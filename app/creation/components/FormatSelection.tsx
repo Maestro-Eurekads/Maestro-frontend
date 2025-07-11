@@ -1,4 +1,5 @@
 "use client"
+
 import Image from "next/image"
 import { useState, useEffect, useCallback, useRef } from "react"
 import { FaCheck, FaSpinner } from "react-icons/fa"
@@ -95,22 +96,13 @@ const DEFAULT_MEDIA_OPTIONS = [
 // Helper functions
 const getLocalStorageItem = (key: string, defaultValue: any = null) => {
   if (typeof window === "undefined") return defaultValue
-  try {
-    const item = localStorage.getItem(key)
-    return item ? JSON.parse(item) : defaultValue
-  } catch (error) {
-    console.error(`Error reading localStorage key "${key}":`, error)
-    return defaultValue
-  }
+  const item = localStorage.getItem(key)
+  return item ? JSON.parse(item) : defaultValue
 }
 
 const setLocalStorageItem = (key: string, value: any) => {
   if (typeof window === "undefined") return
-  try {
-    localStorage.setItem(key, JSON.stringify(value))
-  } catch (error) {
-    console.error(`Error setting localStorage key "${key}":`, error)
-  }
+  localStorage.setItem(key, JSON.stringify(value))
 }
 
 // Helper function to format audience display name like in ad-set-flow
@@ -129,18 +121,6 @@ const debouncedToast = debounce((message: string, type: "success" | "error") => 
     toast.error(message)
   }
 }, 100)
-
-// Helper function to generate unique storage keys for previews
-const getPreviewsStorageKey = (
-  stageName: string,
-  platformName: string,
-  channelName: string,
-  format: string,
-  adSetIndex?: number,
-) => {
-  const baseKey = `previews_${stageName}_${platformName}_${channelName}_${format}`
-  return adSetIndex !== undefined ? `${baseKey}_adset_${adSetIndex}` : baseKey
-}
 
 // Creatives Modal Component
 const CreativesModal = ({
@@ -264,14 +244,12 @@ const CreativesModal = ({
             </svg>
           </button>
         </div>
-
         {CHANNEL_TYPES.map(({ key, title }) => {
           const platforms: PlatformType[] = stage[key] || []
           const hasFormats = platforms.some((platform) =>
             view === "channel"
               ? platform.format?.length > 0
-              : platform.ad_sets?.some((adset) => adset.format?.length > 0),
-          )
+              : platform.ad_sets?.some((adset) => adset.format?.length > 0),          )
 
           if (!hasFormats) return null
 
@@ -333,7 +311,6 @@ const CreativesModal = ({
             </div>
           )
         })}
-
         {!CHANNEL_TYPES.some(({ key }) =>
           stage[key]?.some((platform: PlatformType) =>
             view === "channel"
@@ -382,13 +359,14 @@ const MediaOption = ({
 }) => {
   const [localPreviews, setLocalPreviews] = useState<Array<{ id: string; url: string }>>([])
   const [deletingPreviewId, setDeletingPreviewId] = useState<string | null>(null)
+
   const { jwt } = useCampaigns()
+
   const [isHovered, setIsHovered] = useState(false)
 
   const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL
   const STRAPI_TOKEN = jwt
 
-  // Load previews from localStorage on mount and when dependencies change
   useEffect(() => {
     if (!STRAPI_URL || !STRAPI_TOKEN) {
       console.error("Missing Strapi configuration:", { STRAPI_URL, STRAPI_TOKEN })
@@ -396,77 +374,18 @@ const MediaOption = ({
       return
     }
 
-    // First, try to load from localStorage
-    const storageKey = getPreviewsStorageKey(stageName, platformName, channelName, format, adSetIndex)
-    const storedPreviews = getLocalStorageItem(storageKey, [])
-
-    // Use stored previews if available, otherwise use props
-    const previewsToUse = storedPreviews.length > 0 ? storedPreviews : previews || []
-    const newPreviews = previewsToUse.slice(0, quantity)
-
+    const newPreviews = (previews || []).slice(0, quantity)
     setLocalPreviews((prev) => {
       if (JSON.stringify(prev) !== JSON.stringify(newPreviews)) {
         return newPreviews
       }
       return prev
     })
-  }, [previews, quantity, STRAPI_URL, STRAPI_TOKEN, stageName, platformName, channelName, format, adSetIndex])
+  }, [previews, quantity, STRAPI_URL, STRAPI_TOKEN])
 
-  // Save to localStorage whenever localPreviews changes
   useEffect(() => {
-    if (localPreviews.length > 0) {
-      const storageKey = getPreviewsStorageKey(stageName, platformName, channelName, format, adSetIndex)
-      setLocalStorageItem(storageKey, localPreviews)
-    }
     onPreviewsUpdate(localPreviews)
-  }, [localPreviews, onPreviewsUpdate, stageName, platformName, channelName, format, adSetIndex])
-
-  // Listen for custom events to reload previews
-  useEffect(() => {
-    const handlePreviewsUpdated = (event: CustomEvent) => {
-      const {
-        stageName: eventStage,
-        platformName: eventPlatform,
-        channelName: eventChannel,
-        format: eventFormat,
-        adSetIndex: eventAdSetIndex,
-      } = event.detail
-
-      if (
-        eventStage === stageName &&
-        eventPlatform === platformName &&
-        eventChannel === channelName &&
-        eventFormat === format &&
-        eventAdSetIndex === adSetIndex
-      ) {
-        // Reload previews from localStorage
-        const storageKey = getPreviewsStorageKey(stageName, platformName, channelName, format, adSetIndex)
-        const storedPreviews = getLocalStorageItem(storageKey, [])
-        setLocalPreviews(storedPreviews.slice(0, quantity))
-      }
-    }
-
-    window.addEventListener("previewsUpdated", handlePreviewsUpdated as EventListener)
-    return () => {
-      window.removeEventListener("previewsUpdated", handlePreviewsUpdated as EventListener)
-    }
-  }, [stageName, platformName, channelName, format, adSetIndex, quantity])
-
-  // Listen for window focus to reload previews
-  useEffect(() => {
-    const handleFocus = () => {
-      const storageKey = getPreviewsStorageKey(stageName, platformName, channelName, format, adSetIndex)
-      const storedPreviews = getLocalStorageItem(storageKey, [])
-      if (storedPreviews.length > 0) {
-        setLocalPreviews(storedPreviews.slice(0, quantity))
-      }
-    }
-
-    window.addEventListener("focus", handleFocus)
-    return () => {
-      window.removeEventListener("focus", handleFocus)
-    }
-  }, [stageName, platformName, channelName, format, adSetIndex, quantity])
+  }, [localPreviews, onPreviewsUpdate])
 
   useEffect(() => {
     if (deletingPreviewId && !localPreviews.some((prv) => prv.id === deletingPreviewId)) {
@@ -508,8 +427,10 @@ const MediaOption = ({
             onClick={onSelect}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
-            className={`relative text-center p-2 rounded-lg border transition
-              ${isSelected ? "border-blue-500 shadow-lg" : isHovered ? "border-blue-400 bg-blue-50" : "border-gray-300"}
+            className={`relative text-center p-2 rounded-lg border transition 
+              ${
+                isSelected ? "border-blue-500 shadow-lg" : isHovered ? "border-blue-400 bg-blue-50" : "border-gray-300"
+              } 
               cursor-pointer
               ${isHovered && !isSelected ? "shadow-md" : ""}
             `}
@@ -636,22 +557,15 @@ const MediaSelectionGrid = ({
 }) => {
   const { campaignFormData } = useCampaigns()
   const channelKey = channelName.toLowerCase().replace(/\s+/g, "_")
+
   const stage = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stageName)
   const platform = stage?.[channelKey]?.find((pl) => pl?.platform_name === platformName)
   const adSet = adSetIndex !== undefined ? platform?.ad_sets?.[adSetIndex] : null
 
-  const [previewsMap, setPreviewsMap] = useState<{
-    [format: string]: Array<{ id: string; url: string }>
-  }>({})
+  // --- FIX: Use local expanded state for each adset/format selection grid ---
+  // This ensures that uploading for one adset does not open another adset's format selection.
 
-  const handlePreviewsUpdate = useCallback((format: string, previews: Array<{ id: string; url: string }>) => {
-    setPreviewsMap((prev) => {
-      if (JSON.stringify(prev[format]) !== JSON.stringify(previews)) {
-        return { ...prev, [format]: previews }
-      }
-      return prev
-    })
-  }, [])
+  // Remove previewsMap and handlePreviewsUpdate, as they are not needed for expansion logic.
 
   const memoizedOnOpenModal = useCallback(
     (platform: string, channel: string, format: string, previews: any[], quantities: any, adSetIndex?: number) => {
@@ -703,7 +617,7 @@ const MediaSelectionGrid = ({
                 stageName={stageName}
                 format={option.name}
                 adSetIndex={adSetIndex}
-                onPreviewsUpdate={(previews) => handlePreviewsUpdate(option.name, previews)}
+                onPreviewsUpdate={() => {}} // No longer needed for expansion
                 onDeletePreview={onDeletePreview}
                 completedDeletions={completedDeletions}
               />
@@ -744,7 +658,9 @@ const PlatformItem = ({
   completedDeletions: Set<string>
 }) => {
   const [isExpanded, setIsExpanded] = useState<{ [key: string]: boolean }>({})
-  const [expandedAdsets, setExpandedAdsets] = useState<{ [key: string]: boolean }>({})
+  // --- FIX: Use a separate expanded state for each adset, not a shared object ---
+  // Instead of using a single expandedAdsets object, use an array of booleans, one per adset.
+  const [expandedAdsets, setExpandedAdsets] = useState<boolean[]>([])
   const { campaignFormData, setCampaignFormData } = useCampaigns()
 
   useEffect(() => {
@@ -755,13 +671,14 @@ const PlatformItem = ({
       }))
     }
     if (view === "adset" && platform.ad_sets?.some((adset) => adset.format?.length > 0)) {
-      platform.ad_sets?.forEach((_, index) => {
-        setExpandedAdsets((prev) => ({
-          ...prev,
-          [`${platform.platform_name}-${index}`]: true,
-        }))
-      })
+      // Set only those adsets with formats as expanded, others as false
+      setExpandedAdsets(
+        platform.ad_sets?.map((adset) => (adset.format && adset.format.length > 0 ? true : false)) || [],
+      )
+    } else if (view === "adset") {
+      setExpandedAdsets(platform.ad_sets?.map(() => false) || [])
     }
+    // eslint-disable-next-line
   }, [platform.format, platform.platform_name, platform.id, platform.ad_sets, view])
 
   const toggleExpansion = useCallback((id: string) => {
@@ -771,17 +688,20 @@ const PlatformItem = ({
     }))
   }, [])
 
-  const toggleAdsetExpansion = useCallback((adsetId: string) => {
-    setExpandedAdsets((prev) => ({
-      ...prev,
-      [adsetId]: !prev[adsetId],
-    }))
+  // --- FIX: Toggle only the clicked adset, not all ---
+  const toggleAdsetExpansion = useCallback((adsetIdx: number) => {
+    setExpandedAdsets((prev) => {
+      const newArr = [...prev]
+      newArr[adsetIdx] = !newArr[adsetIdx]
+      return newArr
+    })
   }, [])
 
   const handleFormatSelection = useCallback(
     (index: number, adsetIndex?: number) => {
       const formatName = DEFAULT_MEDIA_OPTIONS[index].name
       const copy = [...campaignFormData.channel_mix]
+
       const stageIndex = copy.findIndex((item) => item.funnel_stage === stageName)
       if (stageIndex === -1) return
 
@@ -797,6 +717,7 @@ const PlatformItem = ({
         if (!adset) return
 
         if (!adset.format) adset.format = []
+
         const adsetFormatIndex = adset.format.findIndex((f) => f.format_type === formatName)
 
         if (adsetFormatIndex !== -1) {
@@ -810,6 +731,7 @@ const PlatformItem = ({
         }
       } else if (view === "channel") {
         if (!platformCopy.format) platformCopy.format = []
+
         const formatIndex = platformCopy.format.findIndex((f) => f.format_type === formatName)
 
         if (formatIndex !== -1) {
@@ -890,18 +812,18 @@ const PlatformItem = ({
       {view === "adset" && platform.ad_sets?.length > 0 && (
         <>
           {platform.ad_sets.map((adset, index) => {
-            const adsetKey = `${adset.id}-${index}`
-            const isAdsetExpanded = expandedAdsets[`${platform.platform_name}-${index}`]
+            // Use expandedAdsets[index] for this adset's expansion state
+            const isAdsetExpanded = expandedAdsets[index] || false
 
             return (
-              <div key={adsetKey}>
+              <div key={`${adset.id}-${index}`}>
                 <div className="my-3 flex items-center gap-8">
                   <div className="p-3 border w-fit rounded-md">
                     {formatAudienceDisplayName(adset.audience_type, adset.name)}
                   </div>
                   <div
                     className="flex items-center gap-2 cursor-pointer"
-                    onClick={() => toggleAdsetExpansion(`${platform.platform_name}-${index}`)}
+                    onClick={() => toggleAdsetExpansion(index)}
                   >
                     {isAdsetExpanded ? (
                       <span className="text-gray-500">Choose the number of visuals for this format</span>
@@ -920,6 +842,7 @@ const PlatformItem = ({
                     )}
                   </div>
                 </div>
+
                 {isAdsetExpanded && (
                   <div className="py-6">
                     <MediaSelectionGrid
@@ -1017,6 +940,7 @@ const StageRecapLine = ({
   onOpenCreativesModal: (stageName: string) => void
 }) => {
   const stage = campaignFormData?.channel_mix?.find((chan: any) => chan?.funnel_stage === stageName)
+
   if (!stage) return null
 
   const grouped: {
@@ -1085,7 +1009,6 @@ const StageRecapLine = ({
           if (idx < arr.length - 1) acc.push(<span key={`sep-${idx}`}> | </span>)
           return acc
         }, [])
-
       return (
         <span key={channel}>
           <span className="font-medium">{channel}</span>
@@ -1142,6 +1065,7 @@ export const Platforms = ({
   const [completedDeletions, setCompletedDeletions] = useState<Set<string>>(new Set())
 
   const { campaignFormData, setCampaignFormData, updateCampaign, campaignData, jwt } = useCampaigns()
+
   const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL
   const STRAPI_TOKEN = jwt
 
@@ -1152,6 +1076,7 @@ export const Platforms = ({
 
   useEffect(() => {
     const stage = campaignFormData?.channel_mix?.find((chan) => chan.funnel_stage === stageName)
+
     if (stage) {
       const initialQuantities: QuantitiesType = {}
 
@@ -1163,6 +1088,7 @@ export const Platforms = ({
               initialQuantities[platform.platform_name][f.format_type] = Number.parseInt(f.num_of_visuals || "1")
             })
           }
+
           if (view === "adset") {
             platform.ad_sets?.forEach((adset, adsetIndex) => {
               if (adset.format && adset.format.length > 0) {
@@ -1194,6 +1120,7 @@ export const Platforms = ({
       if (isUpdatingStrapi) {
         return
       }
+
       setIsUpdatingStrapi(true)
       try {
         const cleanData = JSON.parse(JSON.stringify(data))
@@ -1247,6 +1174,7 @@ export const Platforms = ({
           response: error.response?.data,
           status: error.response?.status,
         })
+        // debouncedToast(`Failed to save campaign data: ${error.message}`, "error")
         throw error
       } finally {
         setIsUpdatingStrapi(false)
@@ -1290,10 +1218,11 @@ export const Platforms = ({
         if (!updatedPlatform.ad_sets?.[adSetIndex]) {
           throw new Error(`Ad set not found at index ${adSetIndex}`)
         }
+
         const adSet = updatedPlatform.ad_sets[adSetIndex]
         adSet.format = adSet.format || []
-        let targetFormatIndex = adSet.format.findIndex((fo: any) => fo.format_type === format)
 
+        let targetFormatIndex = adSet.format.findIndex((fo: any) => fo.format_type === format)
         if (targetFormatIndex === -1) {
           adSet.format.push({
             format_type: format,
@@ -1302,11 +1231,12 @@ export const Platforms = ({
           })
           targetFormatIndex = adSet.format.length - 1
         }
+
         adSet.format[targetFormatIndex].previews = [...updatedPreviews]
       } else {
         updatedPlatform.format = updatedPlatform.format || []
-        let targetFormatIndex = updatedPlatform.format.findIndex((fo: any) => fo.format_type === format)
 
+        let targetFormatIndex = updatedPlatform.format.findIndex((fo: any) => fo.format_type === format)
         if (targetFormatIndex === -1) {
           updatedPlatform.format.push({
             format_type: format,
@@ -1315,6 +1245,7 @@ export const Platforms = ({
           })
           targetFormatIndex = updatedPlatform.format.length - 1
         }
+
         updatedPlatform.format[targetFormatIndex].previews = [...updatedPreviews]
       }
 
@@ -1325,16 +1256,6 @@ export const Platforms = ({
         ...prev,
         channel_mix: updatedChannelMix,
       }))
-
-      // Update localStorage immediately
-      const storageKey = getPreviewsStorageKey(stageName, platformName, channelName, format, adSetIndex)
-      setLocalStorageItem(storageKey, updatedPreviews)
-
-      // Dispatch custom event to notify other components
-      const event = new CustomEvent("previewsUpdated", {
-        detail: { stageName, platformName, channelName, format, adSetIndex },
-      })
-      window.dispatchEvent(event)
 
       await uploadUpdatedCampaignToStrapi({
         ...campaignData,
@@ -1378,7 +1299,7 @@ export const Platforms = ({
       })
 
       if (!deleteResponse.ok) {
-        // throw new Error(`Failed to delete file from Strapi: ${deleteResponse.statusText}`)
+          // throw new Error(`Failed to delete file from Strapi: ${deleteResponse.statusText}`)
       }
 
       const updatedChannelMix = JSON.parse(JSON.stringify(campaignFormData.channel_mix))
@@ -1399,18 +1320,20 @@ export const Platforms = ({
       }
 
       const updatedPlatform = JSON.parse(JSON.stringify(targetPlatform))
-      let updatedPreviews: Array<{ id: string; url: string }>
 
+      let updatedPreviews: Array<{ id: string; url: string }>
       if (adSetIndex !== undefined) {
         if (!updatedPlatform.ad_sets?.[adSetIndex]) {
           throw new Error(`Ad set not found at index ${adSetIndex}`)
         }
+
         const adSet = updatedPlatform.ad_sets[adSetIndex]
         adSet.format = adSet.format || []
         const targetFormat = adSet.format.find((fo: any) => fo.format_type === format)
         if (!targetFormat) {
           throw new Error(`Format "${format}" not found in ad set`)
         }
+
         updatedPreviews = targetFormat.previews.filter((prv: any) => prv.id !== previewId)
         targetFormat.previews = updatedPreviews
       } else {
@@ -1419,6 +1342,7 @@ export const Platforms = ({
         if (!targetFormat) {
           throw new Error(`Format "${format}" not found`)
         }
+
         updatedPreviews = targetFormat.previews.filter((prv: any) => prv.id !== previewId)
         targetFormat.previews = updatedPreviews
       }
@@ -1431,16 +1355,6 @@ export const Platforms = ({
         channel_mix: updatedChannelMix,
       }))
 
-      // Update localStorage immediately
-      const storageKey = getPreviewsStorageKey(stageName, platformName, channelName, format, adSetIndex)
-      setLocalStorageItem(storageKey, updatedPreviews)
-
-      // Dispatch custom event to notify other components
-      const event = new CustomEvent("previewsUpdated", {
-        detail: { stageName, platformName, channelName, format, adSetIndex },
-      })
-      window.dispatchEvent(event)
-
       await uploadUpdatedCampaignToStrapi({
         ...campaignData,
         channel_mix: updatedChannelMix,
@@ -1449,9 +1363,10 @@ export const Platforms = ({
       setDeleteQueue((prev) => prev.slice(1))
       setCompletedDeletions((prev) => new Set(prev).add(previewId))
     } catch (error: any) {
-      console.error("Error processing delete queue:", error)
-      setCompletedDeletions((prev) => new Set(prev).add(previewId))
-      setDeleteQueue((prev) => prev.slice(1))
+        console.error("Error processing delete queue:", error)
+        // debouncedToast(`Failed to delete preview: ${error.message}`, "error")
+        setCompletedDeletions((prev) => new Set(prev).add(previewId))
+        setDeleteQueue((prev) => prev.slice(1))
     } finally {
       setIsProcessingQueue(false)
     }
@@ -1526,9 +1441,6 @@ export const Platforms = ({
               format.num_of_visuals = newQuantity.toString()
               if (format.previews && format.previews.length > newQuantity) {
                 format.previews = format.previews.slice(0, newQuantity)
-                // Update localStorage when quantity is reduced
-                const storageKey = getPreviewsStorageKey(stageName, platformName, channelType.title, formatName)
-                setLocalStorageItem(storageKey, format.previews)
               }
             }
           }
@@ -1540,15 +1452,6 @@ export const Platforms = ({
               adSetFormat.num_of_visuals = newQuantity.toString()
               if (adSetFormat.previews && adSetFormat.previews.length > newQuantity) {
                 adSetFormat.previews = adSetFormat.previews.slice(0, newQuantity)
-                // Update localStorage when quantity is reduced
-                const storageKey = getPreviewsStorageKey(
-                  stageName,
-                  platformName,
-                  channelType.title,
-                  formatName,
-                  adSetIndex,
-                )
-                setLocalStorageItem(storageKey, adSetFormat.previews)
               }
             }
           }
@@ -1580,6 +1483,7 @@ export const Platforms = ({
 
   const getChannelPlatforms = useCallback(() => {
     const stage = campaignFormData?.channel_mix?.find((chan) => chan?.funnel_stage === stageName)
+
     if (!stage) return []
 
     return CHANNEL_TYPES.map(({ key, title }) => ({
@@ -1648,7 +1552,6 @@ export const FormatSelection = ({
   const [view, setView] = useState<"channel" | "adset">("channel")
   const [isCreativesModalOpen, setIsCreativesModalOpen] = useState(false)
   const [selectedStage, setSelectedStage] = useState<string | null>(null)
-
   const { campaignFormData, setCampaignFormData } = useCampaigns()
   const { setIsDrawerOpen, setClose } = useComments()
 
@@ -1664,6 +1567,7 @@ export const FormatSelection = ({
 
   useEffect(() => {
     const savedOpenTabs = getLocalStorageItem("formatSelectionOpenTabs")
+
     if (savedOpenTabs) {
       setOpenTabs(savedOpenTabs)
     } else if (campaignFormData?.channel_mix?.length > 0) {
@@ -1688,6 +1592,7 @@ export const FormatSelection = ({
   const hasSelectedFormatsForStage = useCallback(
     (stageName: string) => {
       const stage = campaignFormData?.channel_mix?.find((chan) => chan?.funnel_stage === stageName)
+
       return (
         stage &&
         CHANNEL_TYPES.some(({ key }) =>
@@ -1705,6 +1610,7 @@ export const FormatSelection = ({
   const getStageStatus = useCallback(
     (stageName: string) => {
       const hasFormats = hasSelectedFormatsForStage(stageName)
+
       if (hasFormats) return ""
       return "Not started"
     },
@@ -1745,7 +1651,6 @@ export const FormatSelection = ({
           t2="Select the creative formats you want to use for your campaign. Specify the number of visuals for each format. Multiple formats can be selected per channel or Ad set"
         />
       )}
-
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
         {!stageName && (
           <div className="flex justify-center gap-3">

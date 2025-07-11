@@ -8,17 +8,9 @@ import AlertMain from "../components/Alert/AlertMain"
 import { useState, useEffect, useRef } from "react"
 import { useCampaigns } from "../app/utils/CampaignsContext"
 import { BiLoader } from "react-icons/bi"
-import { removeKeysRecursively } from "../utils/removeID"
 import { useSelectedDates } from "../app/utils/SelectedDatesContext"
 import { useEditing } from "app/utils/EditingContext"
-import toast, { Toaster } from "react-hot-toast"
-import { useUserPrivileges } from "utils/userPrivileges"
-import {
- extractObjectives,
- getFilteredMetrics,
-} from "app/creation/components/EstablishedGoals/table-view/data-processor"
-import axios from "axios"
-import { updateUsersWithCampaign } from "app/homepage/functions/clients"
+import { Toaster } from "react-hot-toast"
 import SaveProgressButton from "app/utils/SaveProgressButton"
 
 interface BottomProps {
@@ -39,19 +31,41 @@ const CHANNEL_TYPES = [
  { key: "mobile", title: "Mobile" },
 ]
 
+// FIXED: Add function to clear channel state when starting new campaign
+const clearChannelStateForNewCampaign = () => {
+ if (typeof window === "undefined") return
+ try {
+  // Clear all channel state keys from sessionStorage
+  const keysToRemove = []
+  for (let i = 0; i < sessionStorage.length; i++) {
+   const key = sessionStorage.key(i)
+   if (key && key.startsWith("channelLevelAudienceState_")) {
+    keysToRemove.push(key)
+   }
+  }
+  keysToRemove.forEach((key) => sessionStorage.removeItem(key))
+  // Clear global state
+  if ((window as any).channelLevelAudienceState) {
+   Object.keys((window as any).channelLevelAudienceState).forEach((stageName) => {
+    delete (window as any).channelLevelAudienceState[stageName]
+   })
+  }
+  console.log("Cleared all channel state for new campaign")
+ } catch (error) {
+  console.error("Error clearing channel state:", error)
+ }
+}
+
 const Bottom = ({ setIsOpen }: BottomProps) => {
  const { active, setActive, subStep, setSubStep } = useActive()
  const { midcapEditing } = useEditing()
  const [triggerFormatError, setTriggerFormatError] = useState(false)
  const [validateStep, setValidateStep] = useState(false)
  const { selectedDates } = useSelectedDates()
-
  const [isHovered, setIsHovered] = useState(false)
  const [loading, setLoading] = useState(false)
  const [alert, setAlert] = useState(null)
  const [hasFormatSelected, setHasFormatSelected] = useState(false)
-
-
  const {
   createCampaign,
   updateCampaign,
@@ -83,13 +97,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
  // Helper function to preserve formats with previews
  const preserveFormatsWithPreviews = (platforms) => {
   if (!platforms) return []
-
   return platforms.map((platform) => {
    if (!platform.format) return { ...platform, format: [] }
-
    // Keep formats that have previews, remove others
    const formatsWithPreviews = platform.format.filter(formatHasPreviews)
-
    return { ...platform, format: formatsWithPreviews }
   })
  }
@@ -135,7 +146,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
  useEffect(() => {
   if (active === 4 && !hasProceededFromFormatStep.current && !hasInitializedStep4.current) {
    hasInitializedStep4.current = true
-
    setCampaignFormData((prevFormData) => ({
     ...prevFormData,
     channel_mix:
@@ -160,7 +170,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
    const hasExistingPreviews = campaignFormData.channel_mix?.some((mix) =>
     CHANNEL_TYPES.some(({ key }) => mix[key]?.some((platform) => platform.format?.some(formatHasPreviews))),
    )
-
    setHasFormatSelected(hasExistingPreviews)
   }
  }, [active, setCampaignFormData])
@@ -191,11 +200,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   }
  }, [triggerFormatError, cId])
 
-
-
  const validateBuyObjectiveSelection = () => {
   const selectedStages = campaignFormData?.funnel_stages || []
   const validatedStages = campaignFormData?.validatedStages || {}
+
   if (!selectedStages.length || !campaignFormData?.channel_mix) {
    return false
   }
@@ -219,7 +227,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   if (!selectedStages.length || !campaignFormData?.channel_mix) {
    return false
   }
-
   return campaignFormData.channel_mix.some((mix) => CHANNEL_TYPES.some((channel) => mix[channel.key]?.length > 0))
  }
 
@@ -229,6 +236,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
    setActive(4)
    return
   }
+
   if (active === 7) {
    if (subStep > 0) {
     setSubStep((prev) => prev - 1)
@@ -250,50 +258,53 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
  }, [requiredFields, setIsStepZeroValid])
 
  const handleContinue = () => {
+  // FIXED: Clear channel state when moving to step 3 (Adset and Audiences step)
+  if (active === 3) {
+   clearChannelStateForNewCampaign()
+  }
+
   // Handle subStep logic first (for step 7)
   if (active === 7) {
    if (subStep < 1) {
-    setSubStep((prev) => prev + 1);
-    return; // Stop here so we don't advance the main step yet
+    setSubStep((prev) => prev + 1)
+    return // Stop here so we don't advance the main step yet
    } else {
-    setSubStep(0);
-    setActive(8);
-    return;
+    setSubStep(0)
+    setActive(8)
+    return
    }
   }
 
   // Handle specific jumps
   if (active === 0) {
-   setActive(1);
+   setActive(1)
   } else if (active === 1) {
-   setActive(2);
+   setActive(2)
   } else if (active === 2 || active === 3) {
-   setActive(4);
+   setActive(4)
   } else if (active === 4) {
-   setActive(5);
+   setActive(5)
   } else if (active === 5) {
-   setActive(7); // Skip to step 7
+   setActive(7) // Skip to step 7
   } else if (active === 6 || active === 8) {
-   setActive(9);
+   setActive(9)
   } else if (active === 9) {
-   setActive(10);
+   setActive(10)
   } else {
    // Default next step
-   setActive((prev) => prev + 1);
+   setActive((prev) => prev + 1)
   }
- };
-
+ }
 
  const handleSkip = () => {
   setActive((prev) => Math.min(9, prev + 1))
  }
 
  return (
-  <footer id="footer" className="w-full">
+  <footer id="footer" className="w-full relative">
+   <SaveProgressButton setIsOpen={setIsOpen} />
    <Toaster position="bottom-right" />
    {alert && <AlertMain alert={alert} />}
-
-
    <div className="flex justify-between w-full">
     {active === 0 ? (
      <div />
@@ -307,97 +318,60 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       onClick={handleBack}
       disabled={active === 0 && subStep === 0}
      >
-      <Image src={Back} alt="Back" />
+      <Image src={Back || "/placeholder.svg"} alt="Back" />
       <p>Back</p>
      </button>
     )}
     {active === 10 ? (
-     // isFinancialApprover || isAgencyApprover || isAdmin ? (
-     //  (() => {
-     //   const internalApproverEmails =
-     //    campaignFormData?.internal_approver?.map((approver) => approver?.email) || []
-     //   if (!isAdmin && !internalApproverEmails.includes(loggedInUser.email)) {
-     //    return (
-     //     <button
-     //      className="bottom_black_next_btn hover:bg-blue-500"
-     //      onClick={() => toast.error("Not authorized to approve this plan.")}
-     //     >
-     //      <p>Confirm</p>
-     //      <Image src={Continue} alt="Continue" />
-     //     </button>
-     //    )
-     //   }
-     //   return (
-     //    // <button
-     //    //  className="bottom_black_next_btn hover:bg-blue-500"
-     //    //  onClick={() =>
-     //    //   campaignFormData?.isApprove ? toast.error("This plan has already been approved!") : setIsOpen(true)
-     //    //  }
-     //    // >
-     //    <button
-     //     className="bottom_black_next_btn hover:bg-blue-500"
-     //     onClick={() => setIsOpen(true)} >
-     //     <p>Confirm</p>
-     //     <Image src={Continue} alt="Continue" />
-     //    </button>
-     //   )
-     //  })()
-     // ) : (
-
-     <button
-      className="bottom_black_next_btn hover:bg-blue-500"
-      onClick={() => setIsOpen(true)}
-     // onClick={() => toast.error("Role doesn't have permission!")}
-     >
+     <button className="bottom_black_next_btn hover:bg-blue-500" onClick={() => setIsOpen(true)}>
       <p>Confirm</p>
-      <Image src={Continue} alt="Continue" />
+      <Image src={Continue || "/placeholder.svg"} alt="Continue" />
      </button>
-    )
-     : (
-      <div className="flex justify-center items-center gap-3">
-       <button
-        className={clsx(
-         "bottom_black_next_btn whitespace-nowrap",
-         active === 10 && "opacity-50 cursor-not-allowed",
-         active < 10 && "hover:bg-blue-500",
-         active === 4 && !hasFormatSelected && "px-3 py-2", // Add padding for longer text
-        )}
-        onClick={active === 4 && !hasFormatSelected ? handleSkip : handleContinue}
-        disabled={active === 10}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-       >
-        {loading ? (
-         <center>
-          <BiLoader className="animate-spin" />
-         </center>
-        ) : (
-         <>
-          <p
-           style={
-            active === 4 && !hasFormatSelected
-             ? {
-              fontSize: "14px",
-              whiteSpace: "normal",
-              lineHeight: "16px",
-              textAlign: "center",
-              maxWidth: 120,
-             }
-             : {}
-           }
-          >
-           {active === 0
-            ? "Start"
-            : active === 4 && !hasFormatSelected
-             ? "Not mandatory step, skip"
-             : "Continue"}
-          </p>
-          <Image src={Continue} alt="Continue" />
-         </>
-        )}
-       </button>
-      </div>
-     )}
+    ) : (
+     <div className="flex justify-center items-center gap-3">
+      <button
+       className={clsx(
+        "bottom_black_next_btn whitespace-nowrap",
+        active === 10 && "opacity-50 cursor-not-allowed",
+        active < 10 && "hover:bg-blue-500",
+        active === 4 && !hasFormatSelected && "px-3 py-2", // Add padding for longer text
+       )}
+       onClick={active === 4 && !hasFormatSelected ? handleSkip : handleContinue}
+       disabled={active === 10}
+       onMouseEnter={() => setIsHovered(true)}
+       onMouseLeave={() => setIsHovered(false)}
+      >
+       {loading ? (
+        <center>
+         <BiLoader className="animate-spin" />
+        </center>
+       ) : (
+        <>
+         <p
+          style={
+           active === 4 && !hasFormatSelected
+            ? {
+             fontSize: "14px",
+             whiteSpace: "normal",
+             lineHeight: "16px",
+             textAlign: "center",
+             maxWidth: 120,
+            }
+            : {}
+          }
+         >
+          {active === 0
+           ? "Start"
+           : active === 4 && !hasFormatSelected
+            ? "Not mandatory step, skip"
+            : "Continue"}
+         </p>
+         <Image src={Continue || "/placeholder.svg"} alt="Continue" />
+        </>
+       )}
+      </button>
+     </div>
+    )}
    </div>
   </footer>
  )
