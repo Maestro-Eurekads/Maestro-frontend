@@ -1210,12 +1210,12 @@ const MapFunnelStages = () => {
 
   return (
     <div className="relative">
-
-      <div className="flex items-center justify-between">
+      <div className="flex flex-row justify-between w-full">
         <PageHeaderWrapper
           className="text-[22px]"
           t1="How many funnel stage(s) would you like to activate to achieve your objective?"
         />
+        <SaveProgressButton setIsOpen={undefined} />
       </div>
 
       <div className="w-full flex items-start">

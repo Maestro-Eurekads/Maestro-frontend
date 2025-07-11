@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { useComments } from 'app/utils/CommentProvider';
 import { useEditing } from 'app/utils/EditingContext';
 import EnhancedMainSection from './organisms/main-section/enhanced-main-section';
+import SaveProgressButton from 'app/utils/SaveProgressButton';
 
 const PlanCampaignScheduleSubStepComponent = () => {
 	const searchParams = useSearchParams();
@@ -29,13 +30,16 @@ const PlanCampaignScheduleSubStepComponent = () => {
 	return (
 		<div>
 			<div className="creation_continer">
+				<div className='flex flex-row justify-between'>
+					<PageHeaderWrapper
+						t1={'Setup the timeline of your campaign?'}
+						// t2={'Choose your campaign start and end dates, then arrange each funnel phase within the timeline.'}
+						t4={'Phases default to the campaign duration, but you can adjust each phase and channel by dragging them'}
+						span={2}
+					/>
+					<SaveProgressButton setIsOpen={undefined} />
+				</div>
 
-				<PageHeaderWrapper
-					t1={'Setup the timeline of your campaign?'}
-					// t2={'Choose your campaign start and end dates, then arrange each funnel phase within the timeline.'}
-					t4={'Phases default to the campaign duration, but you can adjust each phase and channel by dragging them'}
-					span={2}
-				/>
 			</div>
 			<MainSection />
 			{/* <EnhancedMainSection/> */}

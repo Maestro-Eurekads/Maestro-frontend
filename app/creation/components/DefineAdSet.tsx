@@ -5,6 +5,7 @@ import DefineAdSetPage from "./DefineAdSetPage";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import { useEditing } from "../../utils/EditingContext";
 import { useComments } from "app/utils/CommentProvider";
+import SaveProgressButton from "app/utils/SaveProgressButton";
 
 const DefineAdSet = () => {
   const { setIsEditing } = useEditing();
@@ -23,11 +24,15 @@ const DefineAdSet = () => {
 
   return (
     <div>
-      <PageHeaderWrapper
-        t1={"Define ad sets"}
-        t2={"Specify the details and audiences for each ad set within your campaign."}
-        span={1}
-      />
+      <div className="flex flex-row justify-between ">
+        <PageHeaderWrapper
+          t1={"Define ad sets"}
+          t2={"Specify the details and audiences for each ad set within your campaign."}
+          span={1}
+        />
+        <SaveProgressButton setIsOpen={undefined} />
+      </div>
+
       <DefineAdSetPage view={view} onToggleChange={handleToggleChange} />
     </div>
   );
