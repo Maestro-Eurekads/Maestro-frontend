@@ -26,30 +26,32 @@ const Creation = () => {
 
   return (
     <EnhancedDateProvider campaignFormData={campaignFormData}>
-      <div className="creation_continer">
-        {active === 0 && <SetupScreen />}
-        {/* {active === 1 && <DefineCampaignObjective />} */}
-        {active === 1 && <MapFunnelStages />}
-        {active === 2 && <SelectChannelMix />}
-        {active === 3 && <DefineAdSet />}
+      <div>
+        <div className="creation_continer">
+          {active === 0 && <SetupScreen />}
+          {/* {active === 1 && <DefineCampaignObjective />} */}
+          {active === 1 && <MapFunnelStages />}
+          {active === 2 && <SelectChannelMix />}
+          {active === 3 && <DefineAdSet />}
 
-        {active === 8 && <CampaignBudget />}
+          {active === 8 && <CampaignBudget />}
 
-        {active === 4 && <FormatSelection />}
-        {active === 5 && <SetBuyObjectivesAndTypes />}
-        {/* {active === 6 && <SetBuyObjectivesAndTypesSubStep />} */}
+          {active === 4 && <FormatSelection />}
+          {active === 5 && <SetBuyObjectivesAndTypes />}
+          {/* {active === 6 && <SetBuyObjectivesAndTypesSubStep />} */}
 
-        {/* Step 8 (Tracks 2 subSteps) */}
+          {/* Step 8 (Tracks 2 subSteps) */}
+        </div>
+        {/* Step 7 (Tracks 1 subStep) */}
+        {active === 7 &&
+          (subStep === 0 ? (
+            <PlanCampaignSchedule />
+          ) : (
+            subStep === 1 && <PlanCampaignScheduleSubStepComponent />
+          ))}
+        {active === 9 && <EstablishedGoals />}
+        {active === 10 && <OverviewofyourCampaign />}
       </div>
-      {/* Step 7 (Tracks 1 subStep) */}
-      {active === 7 &&
-        (subStep === 0 ? (
-          <PlanCampaignSchedule />
-        ) : (
-          subStep === 1 && <PlanCampaignScheduleSubStepComponent />
-        ))}
-      {active === 9 && <EstablishedGoals />}
-      {active === 10 && <OverviewofyourCampaign />}
     </EnhancedDateProvider>
   );
 };
