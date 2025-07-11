@@ -58,10 +58,10 @@ const SideNav: React.FC = () => {
     e.stopPropagation();
 
     if (change) {
-      setShowModal(true); // show confirmation modal
-      setPendingBack(true); // track that back was requested
+      setShowModal(true);
+      setPendingBack(true);
     } else {
-      navigateBack(); // no unsaved changes, proceed
+      navigateBack();
     }
   };
 
