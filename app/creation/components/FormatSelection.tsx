@@ -563,18 +563,10 @@ const MediaSelectionGrid = ({
   const platform = stage?.[channelKey]?.find((pl) => pl?.platform_name === platformName)
   const adSet = adSetIndex !== undefined ? platform?.ad_sets?.[adSetIndex] : null
 
-  const [previewsMap, setPreviewsMap] = useState<{
-    [format: string]: Array<{ id: string; url: string }>
-  }>({})
+  // --- FIX: Use local expanded state for each adset/format selection grid ---
+  // This ensures that uploading for one adset does not open another adset's format selection.
 
-  const handlePreviewsUpdate = useCallback((format: string, previews: Array<{ id: string; url: string }>) => {
-    setPreviewsMap((prev) => {
-      if (JSON.stringify(prev[format]) !== JSON.stringify(previews)) {
-        return { ...prev, [format]: previews }
-      }
-      return prev
-    })
-  }, [])
+  // Remove previewsMap and handlePreviewsUpdate, as they are not needed for expansion logic.
 
   const memoizedOnOpenModal = useCallback(
     (platform: string, channel: string, format: string, previews: any[], quantities: any, adSetIndex?: number) => {
@@ -626,7 +618,7 @@ const MediaSelectionGrid = ({
                 stageName={stageName}
                 format={option.name}
                 adSetIndex={adSetIndex}
-                onPreviewsUpdate={(previews) => handlePreviewsUpdate(option.name, previews)}
+                onPreviewsUpdate={() => {}} // No longer needed for expansion
                 onDeletePreview={onDeletePreview}
                 completedDeletions={completedDeletions}
               />
@@ -667,7 +659,9 @@ const PlatformItem = ({
   completedDeletions: Set<string>
 }) => {
   const [isExpanded, setIsExpanded] = useState<{ [key: string]: boolean }>({})
-  const [expandedAdsets, setExpandedAdsets] = useState<{ [key: string]: boolean }>({})
+  // --- FIX: Use a separate expanded state for each adset, not a shared object ---
+  // Instead of using a single expandedAdsets object, use an array of booleans, one per adset.
+  const [expandedAdsets, setExpandedAdsets] = useState<boolean[]>([])
   const { campaignFormData, setCampaignFormData } = useCampaigns()
 
   useEffect(() => {
@@ -678,13 +672,14 @@ const PlatformItem = ({
       }))
     }
     if (view === "adset" && platform.ad_sets?.some((adset) => adset.format?.length > 0)) {
-      platform.ad_sets?.forEach((_, index) => {
-        setExpandedAdsets((prev) => ({
-          ...prev,
-          [`${platform.platform_name}-${index}`]: true,
-        }))
-      })
+      // Set only those adsets with formats as expanded, others as false
+      setExpandedAdsets(
+        platform.ad_sets?.map((adset) => (adset.format && adset.format.length > 0 ? true : false)) || [],
+      )
+    } else if (view === "adset") {
+      setExpandedAdsets(platform.ad_sets?.map(() => false) || [])
     }
+    // eslint-disable-next-line
   }, [platform.format, platform.platform_name, platform.id, platform.ad_sets, view])
 
   const toggleExpansion = useCallback((id: string) => {
@@ -694,11 +689,13 @@ const PlatformItem = ({
     }))
   }, [])
 
-  const toggleAdsetExpansion = useCallback((adsetId: string) => {
-    setExpandedAdsets((prev) => ({
-      ...prev,
-      [adsetId]: !prev[adsetId],
-    }))
+  // --- FIX: Toggle only the clicked adset, not all ---
+  const toggleAdsetExpansion = useCallback((adsetIdx: number) => {
+    setExpandedAdsets((prev) => {
+      const newArr = [...prev]
+      newArr[adsetIdx] = !newArr[adsetIdx]
+      return newArr
+    })
   }, [])
 
   const handleFormatSelection = useCallback(
@@ -816,18 +813,18 @@ const PlatformItem = ({
       {view === "adset" && platform.ad_sets?.length > 0 && (
         <>
           {platform.ad_sets.map((adset, index) => {
-            const adsetKey = `${adset.id}-${index}`
-            const isAdsetExpanded = expandedAdsets[`${platform.platform_name}-${index}`]
+            // Use expandedAdsets[index] for this adset's expansion state
+            const isAdsetExpanded = expandedAdsets[index] || false
 
             return (
-              <div key={adsetKey}>
+              <div key={`${adset.id}-${index}`}>
                 <div className="my-3 flex items-center gap-8">
                   <div className="p-3 border w-fit rounded-md">
                     {formatAudienceDisplayName(adset.audience_type, adset.name)}
                   </div>
                   <div
                     className="flex items-center gap-2 cursor-pointer"
-                    onClick={() => toggleAdsetExpansion(`${platform.platform_name}-${index}`)}
+                    onClick={() => toggleAdsetExpansion(index)}
                   >
                     {isAdsetExpanded ? (
                       <span className="text-gray-500">Choose the number of visuals for this format</span>

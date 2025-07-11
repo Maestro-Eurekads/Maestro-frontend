@@ -38,6 +38,35 @@ const CHANNEL_TYPES = [
   { key: "mobile", title: "Mobile" },
 ]
 
+// FIXED: Add function to clear channel state when starting new campaign
+const clearChannelStateForNewCampaign = () => {
+  if (typeof window === "undefined") return
+
+  try {
+    // Clear all channel state keys from sessionStorage
+    const keysToRemove = []
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const key = sessionStorage.key(i)
+      if (key && key.startsWith("channelLevelAudienceState_")) {
+        keysToRemove.push(key)
+      }
+    }
+
+    keysToRemove.forEach((key) => sessionStorage.removeItem(key))
+
+    // Clear global state
+    if ((window as any).channelLevelAudienceState) {
+      Object.keys((window as any).channelLevelAudienceState).forEach((stageName) => {
+        delete (window as any).channelLevelAudienceState[stageName]
+      })
+    }
+
+    console.log("Cleared all channel state for new campaign")
+  } catch (error) {
+    console.error("Error clearing channel state:", error)
+  }
+}
+
 const Bottom = ({ setIsOpen }: BottomProps) => {
   const { active, setActive, subStep, setSubStep } = useActive()
   const { midcapEditing } = useEditing()
@@ -91,13 +120,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   // Helper function to preserve formats with previews
   const preserveFormatsWithPreviews = (platforms) => {
     if (!platforms) return []
-
     return platforms.map((platform) => {
       if (!platform.format) return { ...platform, format: [] }
-
       // Keep formats that have previews, remove others
       const formatsWithPreviews = platform.format.filter(formatHasPreviews)
-
       return { ...platform, format: formatsWithPreviews }
     })
   }
@@ -143,7 +169,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   useEffect(() => {
     if (active === 4 && !hasProceededFromFormatStep.current && !hasInitializedStep4.current) {
       hasInitializedStep4.current = true
-
       setCampaignFormData((prevFormData) => ({
         ...prevFormData,
         channel_mix:
@@ -223,6 +248,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         setValidateStep(false)
         setAlert(null)
       }, 3000)
+
       return () => clearTimeout(timer)
     }
   }, [
@@ -241,6 +267,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const validateBuyObjectiveSelection = () => {
     const selectedStages = campaignFormData?.funnel_stages || []
     const validatedStages = campaignFormData?.validatedStages || {}
+
     if (!selectedStages.length || !campaignFormData?.channel_mix) {
       return false
     }
@@ -256,6 +283,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         }
       }
     }
+
     return false
   }
 
@@ -274,6 +302,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       setActive(4)
       return
     }
+
     if (active === 7) {
       if (subStep > 0) {
         setSubStep((prev) => prev - 1)
@@ -312,6 +341,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             errorMessage = "Please confirm or cancel your Adset and Audiences changes before proceeding"
             break
         }
+
         if (errorMessage) {
           setIsEditingError(true)
           setAlert({
@@ -323,6 +353,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           return
         }
       }
+
       if (isEditingBuyingObjective) {
         setIsBuyingObjectiveError(true)
         setAlert({
@@ -364,6 +395,11 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         setTriggerChannelMixError(false)
         setAlert(null)
       }
+    }
+
+    // FIXED: Clear channel state when moving to step 3 (Adset and Audiences step)
+    if (active === 3) {
+      clearChannelStateForNewCampaign()
     }
 
     if (active === 8) {
@@ -592,6 +628,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           const url = new URL(window.location.href)
           url.searchParams.set("campaignId", `${response?.data?.data.documentId}`)
           window.history.pushState({}, "", url.toString())
+
           await updateUsersWithCampaign(
             [
               ...(Array.isArray(loggedInUser?.id) ? loggedInUser?.id : [loggedInUser?.id]),
@@ -601,9 +638,13 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             response?.data?.data?.id,
             jwt,
           )
+
           await getActiveCampaign(response?.data?.data.documentId)
           setActive((prev) => prev + 1)
           setAlert({ variant: "success", message: "Campaign created successfully!", position: "bottom-right" })
+
+          // FIXED: Clear channel state when creating a new campaign
+          clearChannelStateForNewCampaign()
         }
       } catch (error) {
         if (error?.response?.status === 401) {
@@ -657,6 +698,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     const handleStepFour = async () => {
       if (!campaignData || !cId) return
       let updatedCampaignFormData = campaignFormData
+
       if (active === 5) {
         const obj = await extractObjectives(campaignFormData)
         const sMetrics = await getFilteredMetrics(obj)
@@ -835,6 +877,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
+
       <div className="flex justify-between w-full">
         {active === 0 ? (
           <div />
@@ -852,6 +895,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             <p>Back</p>
           </button>
         )}
+
         {active === 10 ? (
           isFinancialApprover || isAgencyApprover || isAdmin ? (
             (() => {
@@ -868,6 +912,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                   </button>
                 )
               }
+
               return (
                 <button
                   className="bottom_black_next_btn hover:bg-blue-500"
