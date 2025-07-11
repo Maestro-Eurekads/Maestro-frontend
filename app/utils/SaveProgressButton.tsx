@@ -900,81 +900,94 @@ const SaveProgressButton = ({ setIsOpen }) => {
         />
       )}
 
-      <div className="flex justify-between w-full  ">
-        <div />
-        {/* Confirmation Button on Step 10 */}
-        {active === 10 ? (
-          isInternalApprover ? (
-            showConfirm ? (
-              <button className="bottom_black_next_btn hover:bg-blue-500" onClick={() => setIsOpen(true)}>
-                <p>Confirm</p>
-                <Image src={Continue || "/placeholder.svg"} alt="Continue" />
-              </button>
-            ) : (
-              <button
-                className="bottom_black_next_btn hover:bg-blue-500"
-                onClick={() => showError("Not authorized to approve this plan.")}
-              >
-                <p>Confirm</p>
-                <Image src={Continue || "/placeholder.svg"} alt="Continue" />
-              </button>
-            )
-          ) : (
-            <button
-              className="bottom_blue_save_btn hover:bg-blue-500"
-              onClick={() => showError("Role doesn't have permission!")}
-            >
-              <p>Confirm</p>
-              <Image src={Continue || "/placeholder.svg"} alt="Continue" />
-            </button>
-          )
-        ) : (
-          // Continue/Save Button
-          <div className="flex justify-center items-center gap-3">
-            <button
-              className={clsx(
-                "bottom_blue_save_btn whitespace-nowrap",
-                active === 10 && "opacity-50 cursor-not-allowed",
-                active < 10 && "hover:bg-blue-500",
-                active === 4 && !hasFormatSelected && "px-3 py-2",
-              )}
-              onClick={active === 4 && !hasFormatSelected ? handleSkip : handleContinue}
-              disabled={active === 10}
-              onMouseEnter={() => setIsHovered(true)}
-              onMouseLeave={() => setIsHovered(false)}
-            >
-              {loading ? (
-                <center>
-                  <BiLoader className="animate-spin" />
-                </center>
-              ) : (
-                "Save"
-              )}
-            </button>
-          </div>
-        )}
-      </div>
-      {showSave && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl shadow-lg w-[400px] p-6 text-center">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Confirm Save</h2>
-            <p className="text-gray-700 mb-6">Do you want to save this step progress?</p>
-            <div className="flex justify-center gap-4">
-              <button
-                className="border border-gray-300 text-gray-600 px-4 py-2 rounded hover:bg-gray-100"
-                onClick={cancelSave}
-              >
-                Cancel
-              </button>
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded" onClick={handleSave}>
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </footer>
-  )
-}
+			<div className="flex justify-between w-full  ">
+				<div />
+
+				{/* Confirmation Button on Step 10 */}
+				{/* {active === 10 ? (
+					isInternalApprover ? (
+						showConfirm ? (
+							<button
+								className="bottom_black_next_btn hover:bg-blue-500"
+								onClick={() => setIsOpen(true)}
+							>
+								<p>Confirm</p>
+								<Image src={Continue} alt="Continue" />
+							</button>
+						) : (
+							<button
+								className="bottom_black_next_btn hover:bg-blue-500"
+								onClick={() => showError("Not authorized to approve this plan.")}
+							>
+								<p>Confirm</p>
+								<Image src={Continue} alt="Continue" />
+							</button>
+						)
+					) : (
+						<button
+							className="bottom_blue_save_btn hover:bg-blue-500"
+							onClick={() => showError("Role doesn't have permission!")}
+						>
+							<p>Confirm</p>
+							<Image src={Continue} alt="Continue" />
+						</button>
+					)
+					
+				) : (  */}
+				{active === 10 ? "" :
+					<div className="flex justify-center items-center gap-3">
+						<button
+							className={clsx(
+								"bottom_blue_save_btn whitespace-nowrap",
+								active === 10 && "opacity-50 cursor-not-allowed",
+								active < 10 && "hover:bg-blue-500",
+								active === 4 && !hasFormatSelected && "px-3 py-2"
+							)}
+							onClick={
+								active === 4 && !hasFormatSelected ? handleSkip : handleContinue
+							}
+							disabled={active === 10}
+							onMouseEnter={() => setIsHovered(true)}
+							onMouseLeave={() => setIsHovered(false)}
+						>
+							{loading ? (
+								<center>
+									<BiLoader className="animate-spin" />
+								</center>
+							) : (
+								"Save"
+							)}
+						</button>
+
+					</div>}
+				{/* )} */}
+			</div>
+			{showSave && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+					<div className="bg-white rounded-xl shadow-lg w-[400px] p-6 text-center">
+						<h2 className="text-xl font-semibold text-gray-800 mb-4">Confirm Save</h2>
+						<p className="text-gray-700 mb-6">
+							Do you want to save this step progress?
+						</p>
+						<div className="flex justify-center gap-4">
+							<button
+								className="border border-gray-300 text-gray-600 px-4 py-2 rounded hover:bg-gray-100"
+								onClick={cancelSave}
+							>
+								Cancel
+							</button>
+							<button
+								className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+								onClick={handleSave}
+							>
+								Save
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
+		</footer>
+	);
+};
 
 export default SaveProgressButton
