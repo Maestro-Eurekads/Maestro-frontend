@@ -52,8 +52,8 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 	const stage = campaignData?.isStatus?.stage;
 
 
-	console.log('stage--stage', stage)
-	console.log('stage--showSharePrompt', showSharePrompt)
+
+
 
 	useEffect(() => {
 		if (!campaignData) return;
@@ -144,14 +144,10 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 
 
 
-
-
-
-
-
 	const updateStatus = async (stage, label) => {
 		if (!cId) return;
 		setLoading(true);
+
 		try {
 			const newStatus = {
 				stage,
@@ -164,18 +160,35 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 				date: new Date().toISOString(),
 			};
 
-			const patchData = {
+			// Start with base patch data
+			const basePatchData: any = {
 				isStatus: newStatus,
 				...(stage === 'shared_with_client' && { isApprove: true }),
 			};
 
-			await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`, {
-				data: patchData,
-			}, {
-				headers: {
-					Authorization: `Bearer ${jwt}`,
-				},
-			});
+			// Add media_plan_details only if stage is internal_approver
+			if (stage === 'internally_approved') {
+				basePatchData.media_plan_details = {
+					plan_name: campaignData?.media_plan_details?.plan_name || '',
+					internal_approver: (campaignData?.media_plan_details?.internal_approver || []).map(
+						(approver) => String(approver.id)
+					),
+					client_approver: (campaignData?.media_plan_details?.client_approver || []).map(
+						(approver) => String(approver.id)
+					),
+					approved_by: [String(loggedInUser?.id)],
+				};
+			}
+
+			await axios.put(
+				`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`,
+				{ data: basePatchData },
+				{
+					headers: {
+						Authorization: `Bearer ${jwt}`,
+					},
+				}
+			);
 
 			getActiveCampaign(campaignId);
 			setIsOpen(false);
@@ -192,6 +205,60 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 	};
 
 
+
+
+
+
+	// const updateStatus = async (stage, label) => {
+	// 	if (!cId) return;
+	// 	setLoading(true);
+	// 	try {
+	// 		const newStatus = {
+	// 			stage,
+	// 			label,
+	// 			actor: {
+	// 				id: loggedInUser?.id,
+	// 				name: loggedInUser?.username,
+	// 				role: loggedInUser?.user_type,
+	// 			},
+	// 			date: new Date().toISOString(),
+	// 		};
+
+	// 		const patchData = {
+	// 			isStatus: newStatus,
+	// 			...(stage === 'shared_with_client' && { isApprove: true }),
+	// 		};
+
+	// 		await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`, {
+	// 			data: patchData,
+	// 		}, {
+	// 			headers: {
+	// 				Authorization: `Bearer ${jwt}`,
+	// 			},
+	// 		});
+
+	// 		getActiveCampaign(campaignId);
+	// 		setIsOpen(false);
+	// 		toast.success(`Media plan marked as '${label}'`);
+	// 	} catch (error) {
+	// 		if (error?.response?.status === 401) {
+	// 			const event = new Event("unauthorizedEvent");
+	// 			window.dispatchEvent(event);
+	// 		}
+	// 		toast.error(error?.message || "Failed to update status");
+	// 	} finally {
+	// 		setLoading(false);
+	// 	}
+	// };
+
+	// media_plan_details: {
+	// 	plan_name: campaignData?.media_plan_details?.plan_name,
+	// 		internal_approver: (campaignData?.media_plan_details?.internal_approver || [])
+	// 			.map((approver) => String(approver.id)),
+	// 			client_approver: (campaignData?.media_plan_details?.client_approver || [])
+	// 				.map((approver) => String(approver.id)),
+	// 				approved_by: [String(loggedInUser?.id)],
+	// 			},
 
 
 	const handleAction = async () => {

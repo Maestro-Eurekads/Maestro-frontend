@@ -1006,7 +1006,7 @@ const SaveProgressButton = ({ setIsOpen }) => {
 				<div />
 
 				{/* Confirmation Button on Step 10 */}
-				{active === 10 ? (
+				{/* {active === 10 ? (
 					isInternalApprover ? (
 						showConfirm ? (
 							<button
@@ -1034,8 +1034,9 @@ const SaveProgressButton = ({ setIsOpen }) => {
 							<Image src={Continue} alt="Continue" />
 						</button>
 					)
-				) : (
-					// Continue/Save Button
+					
+				) : (  */}
+				{active === 10 ? "" :
 					<div className="flex justify-center items-center gap-3">
 						<button
 							className={clsx(
@@ -1060,8 +1061,8 @@ const SaveProgressButton = ({ setIsOpen }) => {
 							)}
 						</button>
 
-					</div>
-				)}
+					</div>}
+				{/* )} */}
 			</div>
 			{showSave && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
