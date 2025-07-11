@@ -11,7 +11,6 @@ import { BiLoader } from "react-icons/bi"
 import { useSelectedDates } from "../app/utils/SelectedDatesContext"
 import { useEditing } from "app/utils/EditingContext"
 import { Toaster } from "react-hot-toast"
-import SaveProgressButton from "app/utils/SaveProgressButton"
 
 interface BottomProps {
  setIsOpen: (isOpen: boolean) => void
@@ -301,8 +300,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
  }
 
  return (
-  <footer id="footer" className="w-full relative">
-   <SaveProgressButton setIsOpen={setIsOpen} />
+  <footer id="footer" className="w-full">
    <Toaster position="bottom-right" />
    {alert && <AlertMain alert={alert} />}
    <div className="flex justify-between w-full">
