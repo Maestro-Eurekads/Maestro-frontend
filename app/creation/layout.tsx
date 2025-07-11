@@ -17,9 +17,10 @@ function Layout({ children }: never) {
       <CreationFlowHeader />
       <SideNav />
       <CommentsDrawer isOpen={isDrawerOpen} onClose={setIsDrawerOpen} />
+
       <Bottom setIsOpen={setIsOpen} />
       <Suspense>
-        <main className="!px-0 bg-[#F9FAFB]">{children}</main>
+        <main className="!px-0 bg-[#F9FAFB] !h-full">{children}</main>
       </Suspense>
       <ComfirmModel isOpen={isOpen} setIsOpen={setIsOpen} />
     </div>

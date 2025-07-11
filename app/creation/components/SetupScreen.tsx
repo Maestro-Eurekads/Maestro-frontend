@@ -18,6 +18,7 @@ import { getCreateClient } from "features/Client/clientSlice";
 import { toast } from "sonner";
 import Skeleton from "react-loading-skeleton";
 import ClientSelection from "components/ClientSelection";
+import SaveProgressButton from "app/utils/SaveProgressButton";
 
 
 interface DropdownOption {
@@ -469,6 +470,7 @@ export const SetupScreen = () => {
           </div>
         </div>)
       }
+
     </div >
   );
 };

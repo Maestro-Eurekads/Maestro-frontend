@@ -27,6 +27,8 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import Skeleton from "react-loading-skeleton";
 import { colorClassToHex, colorPalette } from "components/Options";
+import SaveProgressButton from "app/utils/SaveProgressButton";
+import { useSearchParams } from "next/navigation";
 
 // Define type for funnel objects
 
@@ -130,7 +132,8 @@ const MapFunnelStages = () => {
     jwt,
     loadingCampaign,
   } = useCampaigns();
-
+  const query = useSearchParams();
+  const documentId = query.get("campaignId");
   const { setIsDrawerOpen, setClose } = useComments();
 
   const { verifyStep, setHasChanges } = useVerification();
@@ -1206,7 +1209,8 @@ const MapFunnelStages = () => {
   };
 
   return (
-    <div>
+    <div className="relative">
+
       <div className="flex items-center justify-between">
         <PageHeaderWrapper
           className="text-[22px]"
@@ -1220,6 +1224,7 @@ const MapFunnelStages = () => {
           number and name of phases as your liking
         </p>
       </div>
+
 
       {loadingCampaign ? (
         <>
@@ -1493,8 +1498,8 @@ const MapFunnelStages = () => {
                 Save Funnel Configuration
               </button>
             </div>
-          </div>
 
+          </div>
           {isModalOpen && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
               <div
@@ -1750,10 +1755,13 @@ const MapFunnelStages = () => {
                   </button>
                 </div>
               </div>
+
             </div>
           )}
         </>
       )}
+
+
     </div>
   );
 };
