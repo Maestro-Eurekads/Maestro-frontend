@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { useCampaigns } from "../app/utils/CampaignsContext";
+import { useActive } from "app/utils/ActiveContext";
 
 const TextInput = ({
   label,
@@ -10,6 +11,7 @@ const TextInput = ({
   formId: string;
 }) => {
   const { campaignFormData, setCampaignFormData } = useCampaigns();
+  const { setChange } = useActive()
   return (
     <div className="relative max-w-xs">
       {/* Input Field */}
@@ -20,7 +22,7 @@ const TextInput = ({
         value={campaignFormData[formId] || ""}
         onChange={(e) => {
           setCampaignFormData((prev) => ({ ...prev, [formId]: e.target.value }));
-
+          setChange(true)
         }}
       />
     </div>

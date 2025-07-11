@@ -65,6 +65,7 @@
 import React from "react";
 import { Select } from "antd";
 import { useCampaigns } from "../app/utils/CampaignsContext";
+import { useActive } from "app/utils/ActiveContext";
 
 const { Option } = Select;
 
@@ -82,6 +83,7 @@ const InternalApproverDropdowns: React.FC<InternalApproverDropdownsProps> = ({
 	label,
 }) => {
 	const { campaignFormData, setCampaignFormData } = useCampaigns();
+	const { setChange } = useActive()
 	const campaignId = campaignFormData?.campaign_id;
 	const clientId = campaignFormData?.client_selection?.id;
 
@@ -93,6 +95,7 @@ const InternalApproverDropdowns: React.FC<InternalApproverDropdownsProps> = ({
 
 	// Handle selection change
 	const handleChange = (newValues: (number | string)[]) => {
+		setChange(true)
 		const mappedSelectedItems = newValues.map((val) => {
 			// Try to reuse full object if previously selected
 			const existingItem = selectedItems.find((item) => item.id === val);

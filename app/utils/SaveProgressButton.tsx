@@ -77,7 +77,7 @@ const CHANNEL_TYPES = [
 ];
 
 const SaveProgressButton = ({ setIsOpen }) => {
-	const { active, setActive, subStep, setSubStep } = useActive();
+	const { active, setActive, subStep, setSubStep, setChange } = useActive();
 	const { midcapEditing } = useEditing();
 	const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
 	const [setupyournewcampaignError, setSetupyournewcampaignError] =
@@ -703,7 +703,8 @@ const SaveProgressButton = ({ setIsOpen }) => {
 				// Update or Create
 				if (cId && campaignData) {
 					await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`, payload, config);
-					setActive((prev) => prev + 1);
+					// setActive((prev) => prev + 1);
+					setChange(false)
 					setAlert({ variant: "success", message: "Campaign updated successfully!", position: "bottom-right" });
 				} else {
 					const response = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`, payload, config);
@@ -723,7 +724,8 @@ const SaveProgressButton = ({ setIsOpen }) => {
 					);
 
 					await getActiveCampaign(response?.data?.data.documentId);
-					setActive((prev) => prev + 1);
+					setChange(false)
+					// setActive((prev) => prev + 1);
 					setAlert({ variant: "success", message: "Campaign created successfully!", position: "bottom-right" });
 				}
 			} catch (error) {
@@ -931,183 +933,7 @@ const SaveProgressButton = ({ setIsOpen }) => {
 			: false);
 
 	return (
-		// <footer id="footer" className="!border-none ">
-		// 	<Toaster position="bottom-right" />
-		// 	{alert && <AlertMain alert={alert} />}
-		// 	{setupyournewcampaignError && (
-		// 		<AlertMain
-		// 			alert={{
-		// 				variant: "error",
-		// 				message: "Set up your new campaign cannot be empty!",
-		// 				position: "bottom-right",
-		// 			}}
-		// 		/>
-		// 	)}
-		// 	{incompleteFieldsError && (
-		// 		<AlertMain
-		// 			alert={{
-		// 				variant: "error",
-		// 				message: "All fields must be filled before proceeding!",
-		// 				position: "bottom-right",
-		// 			}}
-		// 		/>
-		// 	)}
-		// 	{triggerObjectiveError && (
-		// 		<AlertMain
-		// 			alert={{
-		// 				variant: "error",
-		// 				message: "Please select and validate a campaign objective!",
-		// 				position: "bottom-right",
-		// 			}}
-		// 		/>
-		// 	)}
-		// 	{triggerFunnelError && (
-		// 		<AlertMain
-		// 			alert={{
-		// 				variant: "error",
-		// 				message: "Please select at least one stage!",
-		// 				position: "bottom-right",
-		// 			}}
-		// 		/>
-		// 	)}
-		// 	{selectedDatesError && (
-		// 		<AlertMain
-		// 			alert={{
-		// 				variant: "error",
-		// 				message: "Choose your start and end date!",
-		// 				position: "bottom-right",
-		// 			}}
-		// 		/>
-		// 	)}
-		// 	{triggerChannelMixError && (
-		// 		<AlertMain
-		// 			alert={{
-		// 				variant: "error",
-		// 				message: "Please select at least one channel before proceeding!",
-		// 				position: "bottom-right",
-		// 			}}
-		// 		/>
-		// 	)}
-		// 	{triggerBuyObjectiveError && active === 5 && (
-		// 		<AlertMain
-		// 			alert={{
-		// 				variant: "error",
-		// 				message:
-		// 					"Please select and validate at least one channel with buy type and objective!",
-		// 				position: "bottom-right",
-		// 			}}
-		// 		/>
-		// 	)}
-		// 	<div className="flex justify-between w-full">
-		// 		<div />
-
-		// 		{active === 10 ? (
-		// 			(isFinancialApprover || isAgencyApprover || isAdmin) ? (
-		// 				(() => {
-		// 					const internalApproverEmails = campaignFormData?.internal_approver?.map(
-		// 						(approver) => approver?.email
-		// 					) || [];
-
-		// 					if (!isAdmin && !internalApproverEmails.includes(loggedInUser.email)) {
-		// 						return (
-		// 							<button
-		// 								className="bottom_black_next_btn hover:bg-blue-500"
-		// 								onClick={() =>
-		// 									toast.error("Not authorized to approve this plan.")
-		// 								}
-		// 							>
-		// 								<p>Confirm</p>
-		// 								<Image src={Continue} alt="Continue" />
-		// 							</button>
-		// 						);
-		// 					}
-
-		// 					return (
-		// 						<button
-		// 							className="bottom_black_next_btn hover:bg-blue-500"
-		// 							onClick={() => setIsOpen(true)}
-		// 						>
-		// 							<p>Confirm</p>
-		// 							<Image src={Continue} alt="Continue" />
-		// 						</button>
-		// 						// <button
-		// 						//  className="bottom_black_next_btn hover:bg-blue-500"
-		// 						//  onClick={() =>
-		// 						//   campaignFormData?.isApprove
-		// 						//    ? toast.error("This plan has already been approved!")
-		// 						//    : setIsOpen(true)
-		// 						//  }
-		// 						// >
-		// 						//  <p>Confirm</p>
-		// 						//  <Image src={Continue} alt="Continue" />
-		// 						// </button>
-		// 					);
-		// 				})()
-		// 			) : (
-		// 				<button
-		// 					className="bottom_black_next_btn hover:bg-blue-500"
-		// 					onClick={() => toast.error("Role doesn't have permission!")}
-		// 				>
-		// 					<p>Confirm</p>
-		// 					<Image src={Continue} alt="Continue" />
-		// 				</button>
-		// 			)
-		// 		) : (
-		// 			<div className="flex justify-center items-center gap-3">
-		// 				<button
-		// 					className={clsx(
-		// 						"bottom_black_next_btn whitespace-nowrap",
-		// 						active === 10 && "opacity-50 cursor-not-allowed",
-		// 						active < 10 && "hover:bg-blue-500",
-		// 						active === 4 && !hasFormatSelected && "px-3 py-2"
-		// 					)}
-		// 					onClick={
-		// 						active === 4 && !hasFormatSelected ? handleSkip : handleContinue
-		// 					}
-		// 					disabled={active === 10}
-		// 					onMouseEnter={() => setIsHovered(true)}
-		// 					onMouseLeave={() => setIsHovered(false)}
-		// 				>
-		// 					{/* {loading ? (
-		// 						<center>
-		// 							<BiLoader className="animate-spin" />
-		// 						</center>
-		// 					) : (
-		// 						<> */}
-		// 					{/* <p
-		// 								style={
-		// 									active === 4 && !hasFormatSelected
-		// 										? {
-		// 											fontSize: "14px",
-		// 											whiteSpace: "normal",
-		// 											lineHeight: "16px",
-		// 											textAlign: "center",
-		// 											maxWidth: 120,
-		// 										}
-		// 										: {}
-		// 								} */}
-		// 					{/* > */}
-		// 					{/* {active === 0
-		// 									? "Start"
-		// 									: active === 4 && !hasFormatSelected
-		// 										? "Not mandatory step, skip"
-		// 										: "Continue"} */}
-		// 					{/* </p> */}
-		// 					{/* <Image src={Continue} alt="Continue" /> */}
-		// 					{/* </>
-		// 					)} */}
-		// 					{loading ? (
-		// 						<center>
-		// 							<BiLoader className="animate-spin" />
-		// 						</center>
-		// 					) : (
-		// 						"Save")}
-		// 				</button>
-		// 			</div>
-		// 		)}
-		// 	</div>
-		// </footer>
-		<footer id="footer" className="!border-none">
+		<footer id="footer" className="!border-none absolute bottom-[150px] right-3.5">
 			<Toaster position="bottom-right" />
 
 			{alert && <AlertMain alert={alert} />}
@@ -1201,7 +1027,7 @@ const SaveProgressButton = ({ setIsOpen }) => {
 						)
 					) : (
 						<button
-							className="bottom_black_next_btn hover:bg-blue-500"
+							className="bottom_blue_save_btn hover:bg-blue-500"
 							onClick={() => showError("Role doesn't have permission!")}
 						>
 							<p>Confirm</p>
@@ -1213,7 +1039,7 @@ const SaveProgressButton = ({ setIsOpen }) => {
 					<div className="flex justify-center items-center gap-3">
 						<button
 							className={clsx(
-								"bottom_black_next_btn whitespace-nowrap",
+								"bottom_blue_save_btn whitespace-nowrap",
 								active === 10 && "opacity-50 cursor-not-allowed",
 								active < 10 && "hover:bg-blue-500",
 								active === 4 && !hasFormatSelected && "px-3 py-2"
@@ -1266,28 +1092,3 @@ const SaveProgressButton = ({ setIsOpen }) => {
 };
 
 export default SaveProgressButton;
-
-
-
-{/* <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-	<div className="bg-white rounded-xl shadow-lg w-[400px] p-6 text-center">
-		<h2 className="text-xl font-semibold hover:bg-blue-700 mb-4">Confirm Save</h2>
-		<p className="text-gray-700 mb-6">
-			Do you want to save this step progress at  ?
-		</p>
-		<div className="flex justify-center gap-4">
-			<button
-				className="border border-gray-300 text-gray-600 px-4 py-2 rounded hover:bg-gray-100"
-				onClick={cancelSave}
-			>
-				Cancel
-			</button>
-			<button
-				className="!bg-[#3175FF]   hover:bg-blue-700 text-white px-4 py-2 rounded"
-				onClick={handleSave}
-			>
-				Save
-			</button>
-		</div>
-	</div>
-</div> */}

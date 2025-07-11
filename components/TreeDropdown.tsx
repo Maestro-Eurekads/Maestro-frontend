@@ -5,6 +5,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { TreeSelect } from 'antd';
 import { buildTree } from 'utils/buildTree';
 import { convertToNestedStructure } from 'utils/convertToNestedStructure';
+import { useActive } from 'app/utils/ActiveContext';
 
 interface Props {
 	campaignFormData: any;
@@ -21,6 +22,7 @@ const TreeDropdown: React.FC<Props> = ({
 	title,
 	campaignFormData,
 }) => {
+	const { setChange } = useActive()
 	const [treeOptions, setTreeOptions] = useState<any[]>([]);
 	const [value, setValue] = useState<string[]>([]);
 	const hasSetInitialValue = useRef(false);
@@ -54,6 +56,7 @@ const TreeDropdown: React.FC<Props> = ({
 	}, [treeOptions, nested]);
 
 	const onChange = (newValue: string[]) => {
+		setChange(true)
 		setValue(newValue);
 		setCampaignFormData((prev) => ({
 			...prev,
