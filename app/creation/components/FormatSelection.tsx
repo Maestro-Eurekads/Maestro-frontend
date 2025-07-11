@@ -12,6 +12,7 @@ import { debounce } from "lodash"
 import Switch from "react-switch"
 import PageHeaderWrapper from "../../../components/PageHeaderWapper"
 import { useComments } from "app/utils/CommentProvider"
+import SaveProgressButton from "app/utils/SaveProgressButton"
 
 // Types
 type FormatType = {
@@ -527,9 +528,8 @@ const MediaOption = ({
           {isSelected && (
             <div className="flex items-center bg-[#F6F6F6] gap-2 mt-4 border rounded-[8px]">
               <button
-                className={`px-2 py-1 text-[#000000] text-lg font-semibold ${
-                  isDecreaseDisabled ? "opacity-50 cursor-not-allowed" : ""
-                }`}
+                className={`px-2 py-1 text-[#000000] text-lg font-semibold ${isDecreaseDisabled ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
                 onClick={() => !isDecreaseDisabled && onQuantityChange(-1)}
                 disabled={isDecreaseDisabled}
               >
@@ -580,9 +580,8 @@ const MediaOption = ({
                   )}
                 </a>
                 <button
-                  className={`absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center ${
-                    deletingPreviewId === prv.id ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
-                  }`}
+                  className={`absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center ${deletingPreviewId === prv.id ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                    }`}
                   onClick={() => handleDelete(prv.id)}
                   disabled={deletingPreviewId === prv.id}
                 >
@@ -1213,9 +1212,9 @@ export const Platforms = ({
                   num_of_visuals: fmt.num_of_visuals,
                   previews: Array.isArray(fmt.previews)
                     ? fmt.previews.map((preview: any) => ({
-                        id: String(preview.id),
-                        url: String(preview.url),
-                      }))
+                      id: String(preview.id),
+                      url: String(preview.url),
+                    }))
                     : [],
                 }))
               }
@@ -1224,15 +1223,15 @@ export const Platforms = ({
                   ...adSet,
                   format: adSet.format
                     ? adSet.format.map((fmt: any) => ({
-                        format_type: fmt.format_type,
-                        num_of_visuals: fmt.num_of_visuals,
-                        previews: Array.isArray(fmt.previews)
-                          ? fmt.previews.map((preview: any) => ({
-                              id: String(preview.id),
-                              url: String(preview.url),
-                            }))
-                          : [],
-                      }))
+                      format_type: fmt.format_type,
+                      num_of_visuals: fmt.num_of_visuals,
+                      previews: Array.isArray(fmt.previews)
+                        ? fmt.previews.map((preview: any) => ({
+                          id: String(preview.id),
+                          url: String(preview.url),
+                        }))
+                        : [],
+                    }))
                     : [],
                 }))
               }
@@ -1736,6 +1735,10 @@ export const FormatSelection = ({
 
   return (
     <div>
+      <div className="flex flex-row justify-between">
+        <div />
+        <SaveProgressButton setIsOpen={undefined} />
+      </div>
       {!stageName && (
         <PageHeaderWrapper
           t1="Select formats for each channel"
@@ -1777,9 +1780,8 @@ export const FormatSelection = ({
             return (
               <div key={index}>
                 <div
-                  className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] ${
-                    isOpen ? "rounded-t-[10px]" : "rounded-[10px]"
-                  }`}
+                  className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] ${isOpen ? "rounded-t-[10px]" : "rounded-[10px]"
+                    }`}
                   onClick={() => toggleTab(stage.name)}
                 >
                   <div className="flex items-center gap-2">

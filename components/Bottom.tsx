@@ -289,8 +289,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
  }
 
  return (
-  <footer id="footer" className="w-full relative">
-   <SaveProgressButton setIsOpen={setIsOpen} />
+  <footer id="footer" className="w-full">
    <Toaster position="bottom-right" />
    {alert && <AlertMain alert={alert} />}
 

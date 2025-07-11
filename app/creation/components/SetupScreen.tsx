@@ -364,7 +364,10 @@ export const SetupScreen = () => {
   return (
 
     <div className="container mx-auto px-4">
-      <PageHeaderWrapper t1="Set up your new campaign" />
+      <div className="flex flex-row justify-between w-full align-center">
+        <PageHeaderWrapper t1="Set up your new campaign" />
+        <SaveProgressButton setIsOpen={undefined} />
+      </div>
       {alert && <AlertMain alert={alert} />}
 
       {loading ? (

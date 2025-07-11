@@ -44,6 +44,7 @@ import { toast } from "sonner";
 import Skeleton from "react-loading-skeleton";
 import { useSession } from "next-auth/react";
 import { getComment, getGeneralComment } from "features/Comment/commentSlice";
+import SaveProgressButton from "app/utils/SaveProgressButton";
 
 interface Comment {
   documentId: string;
@@ -291,11 +292,15 @@ const OverviewofyourCampaign = () => {
     }
   }, [showalert]);
 
-  console.log('campaignFormData----', campaignFormData)
+
 
 
   return (
     <div>
+      <div className="flex flex-row justify-between">
+        <div />
+        <SaveProgressButton setIsOpen={undefined} />
+      </div>
       {alert && <AlertMain alert={alert} />}
       {createsSuccess && toast.success("Media plan version created!")}
       {updateSuccess && toast.success("Media plan version updated!")}

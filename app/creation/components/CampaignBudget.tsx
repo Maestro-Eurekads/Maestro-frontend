@@ -17,6 +17,7 @@ import channel from "../../../public/channel_level.svg"
 import toast from "react-hot-toast"
 import { useSearchParams } from "next/navigation"
 import ConfigureAdSetsAndBudget, { BudgetOverviewSection } from "./ ConfigureadSetsAndbudget"
+import SaveProgressButton from "app/utils/SaveProgressButton"
 
 const CampaignBudget = () => {
   const searchParams = useSearchParams()
@@ -262,14 +263,14 @@ const CampaignBudget = () => {
           t4="Choose how to set your campaign budget"
           span={1}
         />
+        <SaveProgressButton setIsOpen={undefined} />
       </div>
 
       <div className="mt-[24px] flex gap-5">
         {/* Top‑down Option */}
         <div
-          className={`relative cursor-pointer ${
-            budgetStyle === "top_down" ? "top_and_bottom_down_container_active" : "top_and_bottom_down_container"
-          }`}
+          className={`relative cursor-pointer ${budgetStyle === "top_down" ? "top_and_bottom_down_container_active" : "top_and_bottom_down_container"
+            }`}
           onClick={() => {
             handleBudgetEdit("budget_type", "top_down")
             setCampaignFormData((prev) => ({
@@ -310,9 +311,8 @@ const CampaignBudget = () => {
 
         {/* Bottom‑up Option */}
         <div
-          className={`relative cursor-pointer ${
-            budgetStyle === "bottom_up" ? "top_and_bottom_down_container_active" : "top_and_bottom_down_container"
-          }`}
+          className={`relative cursor-pointer ${budgetStyle === "bottom_up" ? "top_and_bottom_down_container_active" : "top_and_bottom_down_container"
+            }`}
           onClick={() => {
             handleBudgetEdit("budget_type", "bottom_up")
             setCampaignFormData((prev) => ({
@@ -374,9 +374,8 @@ const CampaignBudget = () => {
                     setFeeStepValidated(true)
                   }
                 }}
-                className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${
-                  loading ? "bg-gray-400 cursor-not-allowed" : "bg-[#3175FF] hover:bg-[#2563eb]"
-                }`}
+                className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-[#3175FF] hover:bg-[#2563eb]"
+                  }`}
                 disabled={loading}
               >
                 {loading ? (
@@ -703,9 +702,8 @@ const CampaignBudget = () => {
                     setShowBottomUpBudgetOverview(true)
                   }
                 }}
-                className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${
-                  loading ? "bg-gray-400 cursor-not-allowed" : "bg-[#3175FF] hover:bg-[#2563eb]"
-                }`}
+                className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-[#3175FF] hover:bg-[#2563eb]"
+                  }`}
                 disabled={loading}
               >
                 {loading ? (
@@ -718,7 +716,7 @@ const CampaignBudget = () => {
               </button>
             </div>
           )}
-          
+
 
           {/* Show the budget overview after validation for bottom-up */}
           {showBottomUpBudgetOverview && (

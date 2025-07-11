@@ -933,7 +933,7 @@ const SaveProgressButton = ({ setIsOpen }) => {
 			: false);
 
 	return (
-		<footer id="footer" className="!border-none absolute bottom-[150px] right-3.5">
+		<div>
 			<Toaster position="bottom-right" />
 
 			{alert && <AlertMain alert={alert} />}
@@ -1002,8 +1002,7 @@ const SaveProgressButton = ({ setIsOpen }) => {
 				/>
 			)}
 
-			<div className="flex justify-between w-full  ">
-				<div />
+			<div  >
 
 				{/* Confirmation Button on Step 10 */}
 				{/* {active === 10 ? (
@@ -1088,7 +1087,7 @@ const SaveProgressButton = ({ setIsOpen }) => {
 					</div>
 				</div>
 			)}
-		</footer>
+		</div>
 	);
 };
 

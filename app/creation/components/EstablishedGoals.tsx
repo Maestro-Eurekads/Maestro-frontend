@@ -20,6 +20,7 @@ import { getCurrencySymbol, mediaTypes } from "components/data";
 import CampaignPhases from "./CampaignPhases";
 import DoughnutChart from "components/DoughnutChat";
 import { useComments } from "app/utils/CommentProvider";
+import SaveProgressButton from "app/utils/SaveProgressButton";
 
 export const EstablishedGoals = () => {
   const [active, setActive] = useState("Timeline View");
@@ -84,6 +85,10 @@ export const EstablishedGoals = () => {
   return (
     <div>
       <div className="creation_continer">
+        <div className="flex flex-row w-full justify-between mb-5">
+          <div />
+          <SaveProgressButton setIsOpen={undefined} />
+        </div>
         <div className="flex justify-between ">
           <PageHeaderWrapper
             t1={"Establish your goals"}
