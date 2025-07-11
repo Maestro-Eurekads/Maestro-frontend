@@ -8,6 +8,7 @@ import { useAppDispatch } from "../store/useStore";
 import { getCreateClient } from "../features/Client/clientSlice";
 import { useSession } from "next-auth/react";
 import { useUserPrivileges } from "utils/userPrivileges";
+import { useActive } from "app/utils/ActiveContext";
 
 const Dropdown = ({
   label,
@@ -25,6 +26,7 @@ const Dropdown = ({
   const { campaignFormData, setCampaignFormData, loadingClients, allClients, setClientUsers, jwt } = useCampaigns();
   const { data: session } = useSession()
   const dispatch = useAppDispatch();
+  const { setChange } = useActive()
   const { isAdmin, isAgencyApprover, isFinancialApprover } =
     useUserPrivileges();
 
@@ -40,6 +42,7 @@ const Dropdown = ({
 
 
   const handleSelect = (id, value: string) => {
+    setChange(true)
     if (formId === "client_selection") {
       const selectedClient = allClients?.find(client => client.documentId === id);
 

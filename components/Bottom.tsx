@@ -14,28 +14,29 @@ import { useEditing } from "app/utils/EditingContext"
 import toast, { Toaster } from "react-hot-toast"
 import { useUserPrivileges } from "utils/userPrivileges"
 import {
-  extractObjectives,
-  getFilteredMetrics,
+ extractObjectives,
+ getFilteredMetrics,
 } from "app/creation/components/EstablishedGoals/table-view/data-processor"
 import axios from "axios"
 import { updateUsersWithCampaign } from "app/homepage/functions/clients"
+import SaveProgressButton from "app/utils/SaveProgressButton"
 
 interface BottomProps {
-  setIsOpen: (isOpen: boolean) => void
+ setIsOpen: (isOpen: boolean) => void
 }
 
 const CHANNEL_TYPES = [
-  { key: "social_media", title: "Social media" },
-  { key: "display_networks", title: "Display Networks" },
-  { key: "search_engines", title: "Search Engines" },
-  { key: "streaming", title: "Streaming" },
-  { key: "ooh", title: "OOH" },
-  { key: "broadcast", title: "Broadcast" },
-  { key: "messaging", title: "Messaging" },
-  { key: "print", title: "Print" },
-  { key: "e_commerce", title: "E Commerce" },
-  { key: "in_game", title: "In Game" },
-  { key: "mobile", title: "Mobile" },
+ { key: "social_media", title: "Social media" },
+ { key: "display_networks", title: "Display Networks" },
+ { key: "search_engines", title: "Search Engines" },
+ { key: "streaming", title: "Streaming" },
+ { key: "ooh", title: "OOH" },
+ { key: "broadcast", title: "Broadcast" },
+ { key: "messaging", title: "Messaging" },
+ { key: "print", title: "Print" },
+ { key: "e_commerce", title: "E Commerce" },
+ { key: "in_game", title: "In Game" },
+ { key: "mobile", title: "Mobile" },
 ]
 
 // FIXED: Add function to clear channel state when starting new campaign
@@ -68,54 +69,45 @@ const clearChannelStateForNewCampaign = () => {
 }
 
 const Bottom = ({ setIsOpen }: BottomProps) => {
-  const { active, setActive, subStep, setSubStep } = useActive()
-  const { midcapEditing } = useEditing()
-  const [triggerObjectiveError, setTriggerObjectiveError] = useState(false)
-  const [setupyournewcampaignError, setSetupyournewcampaignError] = useState(false)
-  const [triggerFunnelError, setTriggerFunnelError] = useState(false)
-  const [selectedDatesError, setSelectedDatesError] = useState(false)
-  const [incompleteFieldsError, setIncompleteFieldsError] = useState(false)
-  const [triggerFormatError, setTriggerFormatError] = useState(false)
-  const [triggerFormatErrorCount, setTriggerFormatErrorCount] = useState(0)
-  const [validateStep, setValidateStep] = useState(false)
-  const { selectedDates } = useSelectedDates()
-  const [triggerChannelMixError, setTriggerChannelMixError] = useState(false)
-  const [triggerBuyObjectiveError, setTriggerBuyObjectiveError] = useState(false)
-  const [isBuyingObjectiveError, setIsBuyingObjectiveError] = useState(false)
-  const [isEditingError, setIsEditingError] = useState(false)
-  const [isHovered, setIsHovered] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [alert, setAlert] = useState(null)
-  const [hasFormatSelected, setHasFormatSelected] = useState(false)
-  const { isFinancialApprover, isAgencyApprover, isAdmin, loggedInUser } = useUserPrivileges()
+ const { active, setActive, subStep, setSubStep } = useActive()
+ const { midcapEditing } = useEditing()
+ const [triggerFormatError, setTriggerFormatError] = useState(false)
+ const [validateStep, setValidateStep] = useState(false)
+ const { selectedDates } = useSelectedDates()
 
-  const {
-    createCampaign,
-    updateCampaign,
-    campaignData,
-    campaignFormData,
-    cId,
-    getActiveCampaign,
-    copy,
-    isEditingBuyingObjective,
-    isStepZeroValid,
-    setIsStepZeroValid,
-    selectedOption,
-    setCampaignFormData,
-    requiredFields,
-    currencySign,
-    jwt,
-    agencyId,
-  } = useCampaigns()
+ const [isHovered, setIsHovered] = useState(false)
+ const [loading, setLoading] = useState(false)
+ const [alert, setAlert] = useState(null)
+ const [hasFormatSelected, setHasFormatSelected] = useState(false)
 
-  // --- Persist format selection for active === 4 ---
-  const hasProceededFromFormatStep = useRef(false)
-  const hasInitializedStep4 = useRef(false)
 
-  // Helper function to check if format has previews
-  const formatHasPreviews = (format) => {
-    return format && format.previews && format.previews.length > 0
-  }
+ const {
+  createCampaign,
+  updateCampaign,
+  campaignData,
+  campaignFormData,
+  cId,
+  getActiveCampaign,
+  copy,
+  isEditingBuyingObjective,
+  isStepZeroValid,
+  setIsStepZeroValid,
+  selectedOption,
+  setCampaignFormData,
+  requiredFields,
+  currencySign,
+  jwt,
+  agencyId,
+ } = useCampaigns()
+
+ // --- Persist format selection for active === 4 ---
+ const hasProceededFromFormatStep = useRef(false)
+ const hasInitializedStep4 = useRef(false)
+
+ // Helper function to check if format has previews
+ const formatHasPreviews = (format) => {
+  return format && format.previews && format.previews.length > 0
+ }
 
   // Helper function to preserve formats with previews
   const preserveFormatsWithPreviews = (platforms) => {
@@ -128,101 +120,101 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     })
   }
 
-  const validateFormatSelection = () => {
-    const selectedStages = campaignFormData?.funnel_stages || []
-    const validatedStages = campaignFormData?.validatedStages || {}
-    let hasValidFormat = false
+ const validateFormatSelection = () => {
+  const selectedStages = campaignFormData?.funnel_stages || []
+  const validatedStages = campaignFormData?.validatedStages || {}
+  let hasValidFormat = false
 
-    for (const stage of selectedStages) {
-      const stageData = campaignFormData?.channel_mix?.find((mix) => mix?.funnel_stage === stage)
-      if (stageData) {
-        const hasFormatSelected = [
-          ...(stageData.social_media || []),
-          ...(stageData.display_networks || []),
-          ...(stageData.search_engines || []),
-          ...(stageData.streaming || []),
-          ...(stageData.ooh || []),
-          ...(stageData.broadcast || []),
-          ...(stageData.messaging || []),
-          ...(stageData.print || []),
-          ...(stageData.e_commerce || []),
-          ...(stageData.in_game || []),
-          ...(stageData.mobile || []),
-        ].some(
-          (platform) =>
-            (platform.format?.length > 0 && platform.format.some((f) => f.format_type && f.num_of_visuals)) ||
-            platform.ad_sets?.some((adset) => adset.format?.some((f) => f.format_type && f.num_of_visuals)),
-        )
+  for (const stage of selectedStages) {
+   const stageData = campaignFormData?.channel_mix?.find((mix) => mix?.funnel_stage === stage)
+   if (stageData) {
+    const hasFormatSelected = [
+     ...(stageData.social_media || []),
+     ...(stageData.display_networks || []),
+     ...(stageData.search_engines || []),
+     ...(stageData.streaming || []),
+     ...(stageData.ooh || []),
+     ...(stageData.broadcast || []),
+     ...(stageData.messaging || []),
+     ...(stageData.print || []),
+     ...(stageData.e_commerce || []),
+     ...(stageData.in_game || []),
+     ...(stageData.mobile || []),
+    ].some(
+     (platform) =>
+      (platform.format?.length > 0 && platform.format.some((f) => f.format_type && f.num_of_visuals)) ||
+      platform.ad_sets?.some((adset) => adset.format?.some((f) => f.format_type && f.num_of_visuals)),
+    )
 
-        const isStageValidated = validatedStages[stage]
-        if (hasFormatSelected || isStageValidated) {
-          hasValidFormat = true
-          break
-        }
-      }
+    const isStageValidated = validatedStages[stage]
+    if (hasFormatSelected || isStageValidated) {
+     hasValidFormat = true
+     break
     }
-
-    return hasValidFormat
+   }
   }
 
-  // Modified useEffect to preserve formats with previews
-  useEffect(() => {
-    if (active === 4 && !hasProceededFromFormatStep.current && !hasInitializedStep4.current) {
-      hasInitializedStep4.current = true
-      setCampaignFormData((prevFormData) => ({
-        ...prevFormData,
-        channel_mix:
-          prevFormData.channel_mix?.map((mix) => ({
-            ...mix,
-            social_media: preserveFormatsWithPreviews(mix.social_media),
-            display_networks: preserveFormatsWithPreviews(mix.display_networks),
-            search_engines: preserveFormatsWithPreviews(mix.search_engines),
-            streaming: preserveFormatsWithPreviews(mix.streaming),
-            ooh: preserveFormatsWithPreviews(mix.ooh),
-            broadcast: preserveFormatsWithPreviews(mix.broadcast),
-            messaging: preserveFormatsWithPreviews(mix.messaging),
-            print: preserveFormatsWithPreviews(mix.print),
-            e_commerce: preserveFormatsWithPreviews(mix.e_commerce),
-            in_game: preserveFormatsWithPreviews(mix.in_game),
-            mobile: preserveFormatsWithPreviews(mix.mobile),
-          })) || [],
-        validatedStages: {},
-      }))
+  return hasValidFormat
+ }
 
-      // Check if there are any formats with previews
-      const hasExistingPreviews = campaignFormData.channel_mix?.some((mix) =>
-        CHANNEL_TYPES.some(({ key }) => mix[key]?.some((platform) => platform.format?.some(formatHasPreviews))),
-      )
+ // Modified useEffect to preserve formats with previews
+ useEffect(() => {
+  if (active === 4 && !hasProceededFromFormatStep.current && !hasInitializedStep4.current) {
+   hasInitializedStep4.current = true
+   setCampaignFormData((prevFormData) => ({
+    ...prevFormData,
+    channel_mix:
+     prevFormData.channel_mix?.map((mix) => ({
+      ...mix,
+      social_media: preserveFormatsWithPreviews(mix.social_media),
+      display_networks: preserveFormatsWithPreviews(mix.display_networks),
+      search_engines: preserveFormatsWithPreviews(mix.search_engines),
+      streaming: preserveFormatsWithPreviews(mix.streaming),
+      ooh: preserveFormatsWithPreviews(mix.ooh),
+      broadcast: preserveFormatsWithPreviews(mix.broadcast),
+      messaging: preserveFormatsWithPreviews(mix.messaging),
+      print: preserveFormatsWithPreviews(mix.print),
+      e_commerce: preserveFormatsWithPreviews(mix.e_commerce),
+      in_game: preserveFormatsWithPreviews(mix.in_game),
+      mobile: preserveFormatsWithPreviews(mix.mobile),
+     })) || [],
+    validatedStages: {},
+   }))
 
-      setHasFormatSelected(hasExistingPreviews)
-    }
-  }, [active, setCampaignFormData])
+   // Check if there are any formats with previews
+   const hasExistingPreviews = campaignFormData.channel_mix?.some((mix) =>
+    CHANNEL_TYPES.some(({ key }) => mix[key]?.some((platform) => platform.format?.some(formatHasPreviews))),
+   )
 
-  // Reset initialization flag when leaving step 4
-  useEffect(() => {
-    if (active !== 4) {
-      hasInitializedStep4.current = false
-    }
-  }, [active])
+   setHasFormatSelected(hasExistingPreviews)
+  }
+ }, [active, setCampaignFormData])
 
-  // Update hasFormatSelected and log state
-  useEffect(() => {
-    const isFormatSelected = validateFormatSelection()
-    setHasFormatSelected(isFormatSelected)
-  }, [active, campaignFormData])
+ // Reset initialization flag when leaving step 4
+ useEffect(() => {
+  if (active !== 4) {
+   hasInitializedStep4.current = false
+  }
+ }, [active])
 
-  useEffect(() => {
-    if (typeof window !== "undefined" && cId) {
-      const storedValue = localStorage.getItem(`triggerFormatError_${cId}`)
-      setTriggerFormatError(storedValue === "true")
-    }
-  }, [cId])
+ // Update hasFormatSelected and log state
+ useEffect(() => {
+  const isFormatSelected = validateFormatSelection()
+  setHasFormatSelected(isFormatSelected)
+ }, [active, campaignFormData])
 
-  useEffect(() => {
-    if (typeof window !== "undefined" && cId) {
-      localStorage.setItem(`triggerFormatError_${cId}`, triggerFormatError.toString())
-    }
-  }, [triggerFormatError, cId])
+ useEffect(() => {
+  if (typeof window !== "undefined" && cId) {
+   const storedValue = localStorage.getItem(`triggerFormatError_${cId}`)
+   setTriggerFormatError(storedValue === "true")
+  }
+ }, [cId])
+
+ useEffect(() => {
+  if (typeof window !== "undefined" && cId) {
+   localStorage.setItem(`triggerFormatError_${cId}`, triggerFormatError.toString())
+  }
+ }, [triggerFormatError, cId])
 
   useEffect(() => {
     if (
@@ -287,14 +279,14 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     return false
   }
 
-  const validateChannelSelection = () => {
-    const selectedStages = campaignFormData?.funnel_stages || []
-    if (!selectedStages.length || !campaignFormData?.channel_mix) {
-      return false
-    }
-
-    return campaignFormData.channel_mix.some((mix) => CHANNEL_TYPES.some((channel) => mix[channel.key]?.length > 0))
+ const validateChannelSelection = () => {
+  const selectedStages = campaignFormData?.funnel_stages || []
+  if (!selectedStages.length || !campaignFormData?.channel_mix) {
+   return false
   }
+
+  return campaignFormData.channel_mix.some((mix) => CHANNEL_TYPES.some((channel) => mix[channel.key]?.length > 0))
+ }
 
   // --- Custom back handler for active === 5 to persist step 4 if user had format selected and continued ---
   const handleBack = () => {
@@ -319,9 +311,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     }
   }
 
-  useEffect(() => {
-    setIsStepZeroValid(requiredFields.every(Boolean))
-  }, [requiredFields, setIsStepZeroValid])
+ useEffect(() => {
+  setIsStepZeroValid(requiredFields.every(Boolean))
+ }, [requiredFields, setIsStepZeroValid])
 
   const handleContinue = async () => {
     if (active === 6) {
@@ -806,182 +798,124 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     }
   }
 
-  const handleSkip = () => {
-    setActive((prev) => Math.min(9, prev + 1))
-  }
+ const handleSkip = () => {
+  setActive((prev) => Math.min(9, prev + 1))
+ }
 
-  return (
-    <footer id="footer" className="w-full">
-      <Toaster position="bottom-right" />
-      {alert && <AlertMain alert={alert} />}
-      {setupyournewcampaignError && (
-        <AlertMain
-          alert={{
-            variant: "error",
-            message: "Set up your new campaign cannot be empty!",
-            position: "bottom-right",
-          }}
-        />
-      )}
-      {incompleteFieldsError && (
-        <AlertMain
-          alert={{
-            variant: "error",
-            message: "All fields must be filled before proceeding!",
-            position: "bottom-right",
-          }}
-        />
-      )}
-      {triggerObjectiveError && (
-        <AlertMain
-          alert={{
-            variant: "error",
-            message: "Please select and validate a campaign objective!",
-            position: "bottom-right",
-          }}
-        />
-      )}
-      {triggerFunnelError && (
-        <AlertMain
-          alert={{
-            variant: "error",
-            message: "Please select at least one stage!",
-            position: "bottom-right",
-          }}
-        />
-      )}
-      {selectedDatesError && (
-        <AlertMain
-          alert={{
-            variant: "error",
-            message: "Choose your start and end date!",
-            position: "bottom-right",
-          }}
-        />
-      )}
-      {triggerChannelMixError && (
-        <AlertMain
-          alert={{
-            variant: "error",
-            message: "Please select at least one channel before proceeding!",
-            position: "bottom-right",
-          }}
-        />
-      )}
-      {triggerBuyObjectiveError && active === 5 && (
-        <AlertMain
-          alert={{
-            variant: "error",
-            message: "Please select and validate at least one channel with buy type and objective!",
-            position: "bottom-right",
-          }}
-        />
-      )}
+ return (
+  <footer id="footer" className="w-full relative">
+   <SaveProgressButton setIsOpen={setIsOpen} />
+   <Toaster position="bottom-right" />
+   {alert && <AlertMain alert={alert} />}
 
-      <div className="flex justify-between w-full">
-        {active === 0 ? (
-          <div />
+
+   <div className="flex justify-between w-full">
+    {active === 0 ? (
+     <div />
+    ) : (
+     <button
+      className={clsx(
+       "bottom_black_back_btn",
+       active === 0 && subStep === 0 && "opacity-50 cursor-not-allowed",
+       active > 0 && "hover:bg-gray-200",
+      )}
+      onClick={handleBack}
+      disabled={active === 0 && subStep === 0}
+     >
+      <Image src={Back} alt="Back" />
+      <p>Back</p>
+     </button>
+    )}
+    {active === 10 ? (
+     // isFinancialApprover || isAgencyApprover || isAdmin ? (
+     //  (() => {
+     //   const internalApproverEmails =
+     //    campaignFormData?.internal_approver?.map((approver) => approver?.email) || []
+     //   if (!isAdmin && !internalApproverEmails.includes(loggedInUser.email)) {
+     //    return (
+     //     <button
+     //      className="bottom_black_next_btn hover:bg-blue-500"
+     //      onClick={() => toast.error("Not authorized to approve this plan.")}
+     //     >
+     //      <p>Confirm</p>
+     //      <Image src={Continue} alt="Continue" />
+     //     </button>
+     //    )
+     //   }
+     //   return (
+     //    // <button
+     //    //  className="bottom_black_next_btn hover:bg-blue-500"
+     //    //  onClick={() =>
+     //    //   campaignFormData?.isApprove ? toast.error("This plan has already been approved!") : setIsOpen(true)
+     //    //  }
+     //    // >
+     //    <button
+     //     className="bottom_black_next_btn hover:bg-blue-500"
+     //     onClick={() => setIsOpen(true)} >
+     //     <p>Confirm</p>
+     //     <Image src={Continue} alt="Continue" />
+     //    </button>
+     //   )
+     //  })()
+     // ) : (
+
+     <button
+      className="bottom_black_next_btn hover:bg-blue-500"
+      onClick={() => setIsOpen(true)}
+     // onClick={() => toast.error("Role doesn't have permission!")}
+     >
+      <p>Confirm</p>
+      <Image src={Continue} alt="Continue" />
+     </button>
+    )
+     : (
+      <div className="flex justify-center items-center gap-3">
+       <button
+        className={clsx(
+         "bottom_black_next_btn whitespace-nowrap",
+         active === 10 && "opacity-50 cursor-not-allowed",
+         active < 10 && "hover:bg-blue-500",
+         active === 4 && !hasFormatSelected && "px-3 py-2", // Add padding for longer text
+        )}
+        onClick={active === 4 && !hasFormatSelected ? handleSkip : handleContinue}
+        disabled={active === 10}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+       >
+        {loading ? (
+         <center>
+          <BiLoader className="animate-spin" />
+         </center>
         ) : (
-          <button
-            className={clsx(
-              "bottom_black_back_btn",
-              active === 0 && subStep === 0 && "opacity-50 cursor-not-allowed",
-              active > 0 && "hover:bg-gray-200",
-            )}
-            onClick={handleBack}
-            disabled={active === 0 && subStep === 0}
+         <>
+          <p
+           style={
+            active === 4 && !hasFormatSelected
+             ? {
+              fontSize: "14px",
+              whiteSpace: "normal",
+              lineHeight: "16px",
+              textAlign: "center",
+              maxWidth: 120,
+             }
+             : {}
+           }
           >
-            <Image src={Back || "/placeholder.svg"} alt="Back" />
-            <p>Back</p>
-          </button>
+           {active === 0
+            ? "Start"
+            : active === 4 && !hasFormatSelected
+             ? "Not mandatory step, skip"
+             : "Continue"}
+          </p>
+          <Image src={Continue} alt="Continue" />
+         </>
         )}
-
-        {active === 10 ? (
-          isFinancialApprover || isAgencyApprover || isAdmin ? (
-            (() => {
-              const internalApproverEmails =
-                campaignFormData?.internal_approver?.map((approver) => approver?.email) || []
-              if (!isAdmin && !internalApproverEmails.includes(loggedInUser.email)) {
-                return (
-                  <button
-                    className="bottom_black_next_btn hover:bg-blue-500"
-                    onClick={() => toast.error("Not authorized to approve this plan.")}
-                  >
-                    <p>Confirm</p>
-                    <Image src={Continue || "/placeholder.svg"} alt="Continue" />
-                  </button>
-                )
-              }
-
-              return (
-                <button
-                  className="bottom_black_next_btn hover:bg-blue-500"
-                  onClick={() =>
-                    campaignFormData?.isApprove ? toast.error("This plan has already been approved!") : setIsOpen(true)
-                  }
-                >
-                  <p>Confirm</p>
-                  <Image src={Continue || "/placeholder.svg"} alt="Continue" />
-                </button>
-              )
-            })()
-          ) : (
-            <button
-              className="bottom_black_next_btn hover:bg-blue-500"
-              onClick={() => toast.error("Role doesn't have permission!")}
-            >
-              <p>Confirm</p>
-              <Image src={Continue || "/placeholder.svg"} alt="Continue" />
-            </button>
-          )
-        ) : (
-          <div className="flex justify-center items-center gap-3">
-            <button
-              className={clsx(
-                "bottom_black_next_btn whitespace-nowrap",
-                active === 10 && "opacity-50 cursor-not-allowed",
-                active < 10 && "hover:bg-blue-500",
-                active === 4 && !hasFormatSelected && "px-3 py-2", // Add padding for longer text
-              )}
-              onClick={active === 4 && !hasFormatSelected ? handleSkip : handleContinue}
-              disabled={active === 10}
-              onMouseEnter={() => setIsHovered(true)}
-              onMouseLeave={() => setIsHovered(false)}
-            >
-              {loading ? (
-                <center>
-                  <BiLoader className="animate-spin" />
-                </center>
-              ) : (
-                <>
-                  <p
-                    style={
-                      active === 4 && !hasFormatSelected
-                        ? {
-                            fontSize: "14px",
-                            whiteSpace: "normal",
-                            lineHeight: "16px",
-                            textAlign: "center",
-                            maxWidth: 120,
-                          }
-                        : {}
-                    }
-                  >
-                    {active === 0
-                      ? "Start"
-                      : active === 4 && !hasFormatSelected
-                        ? "Not mandatory step, skip"
-                        : "Continue"}
-                  </p>
-                  <Image src={Continue || "/placeholder.svg"} alt="Continue" />
-                </>
-              )}
-            </button>
-          </div>
-        )}
+       </button>
       </div>
-    </footer>
-  )
+     )}
+   </div>
+  </footer>
+ )
 }
 
 export default Bottom

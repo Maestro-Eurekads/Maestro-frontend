@@ -48,7 +48,13 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 	const isInternalApprover = isAdmin || isAgencyApprover || isFinancialApprover;
 	const isCreator = isAgencyCreator;
 
+
 	const stage = campaignData?.isStatus?.stage;
+
+
+	console.log('stage--stage', stage)
+	console.log('stage--showSharePrompt', showSharePrompt)
+
 	useEffect(() => {
 		if (!campaignData) return;
 
@@ -111,7 +117,7 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 				setStep(null);
 				break;
 		}
-	}, [campaignData?.isStatus?.stage, stage]);
+	}, [stage]);
 
 	// useEffect(() => {
 	// 	if (!campaignData) return;
@@ -214,49 +220,10 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 
 	return (
 		<>
-			<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-				<div className="relative bg-white rounded-lg w-[440px] max-w-full p-6 shadow-xl text-center">
-					<button onClick={() => setIsOpen(false)} className="absolute top-4 right-4">
-						<X className="w-5 h-5 text-gray-500 hover:text-gray-700" />
-					</button>
-
-					<div className="w-full flex justify-center pt-2">
-						<div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-							<CheckCircle className="text-green-600 w-7 h-7" />
-						</div>
-					</div>
-
-					<h2 className="text-xl font-semibold text-[#181D27] mb-2">
-						{!title ? "Ask for Approval" : title}
-					</h2>
-					<p className="text-sm text-[#535862] mb-4">
-						{!statusMessage ? "You’ve successfully completed the setup of your media plan. Ready to move forward?" : statusMessage}
-					</p>
-
-					<div className="flex flex-col gap-4">
-						<button className="btn_model_active w-full" onClick={handleAction}>
-							{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> :
-								<span className="font-medium">
-									{step === 'creator' && 'Ask for Approval'}
-									{step === 'internal_approver' &&
-										(isInternalApprover ? 'Approve Internally' : 'Share with Client')}
-									{step === 'client' && 'Approve'}
-								</span>}
-						</button>
-						{step !== 'creator' && (
-							<button className="btn_model_outline w-full" onClick={handleRequestChanges}>
-								{loading ? <SVGLoader width="30px" height="30px" color="#000" /> : 'Request Changes'}
-							</button>
-						)}
-					</div>
-				</div>
-			</div>
-
-			{/* SECOND MODAL - SHARE WITH CLIENT */}
-			{showSharePrompt && (
+			{stage === "internally_approved" && isOpen ?
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
 					<div className="relative bg-white rounded-lg w-[440px] max-w-full p-6 shadow-xl text-center">
-						<button onClick={() => setShowSharePrompt(false)} className="absolute top-4 right-4">
+						<button onClick={() => setIsOpen(false)} className="absolute top-4 right-4">
 							<X className="w-5 h-5 text-gray-500 hover:text-gray-700" />
 						</button>
 
@@ -279,16 +246,55 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 							>
 								{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> : 'Share with Client'}
 							</button>
-							<button className="btn_model_outline w-full" onClick={handleAction}>
-								{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> :
-									<span className="font-medium">
-										Approve Internally
-									</span>}
+							<button className="btn_model_outline w-full" onClick={handleRequestChanges}>
+								{loading ? <SVGLoader width="30px" height="30px" color="#000" /> : 'Request Changes'}
 							</button>
 						</div>
 					</div>
-				</div>
-			)}
+				</div> :
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+					<div className="relative bg-white rounded-lg w-[440px] max-w-full p-6 shadow-xl text-center">
+						<button onClick={() => setIsOpen(false)} className="absolute top-4 right-4">
+							<X className="w-5 h-5 text-gray-500 hover:text-gray-700" />
+						</button>
+
+						<div className="w-full flex justify-center pt-2">
+							<div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+								<CheckCircle className="text-green-600 w-7 h-7" />
+							</div>
+						</div>
+
+						<h2 className="text-xl font-semibold text-[#181D27] mb-2">
+							{!title ? "Ask for Approval" : title}
+						</h2>
+						<p className="text-sm text-[#535862] mb-4">
+							{!statusMessage ? "You’ve successfully completed the setup of your media plan. Ready to move forward?" : statusMessage}
+						</p>
+
+						<div className="flex flex-col gap-4">
+							<button className="btn_model_active w-full" onClick={handleAction}>
+								{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> :
+									<span className="font-medium">
+										{step === 'creator' && 'Ask for Approval'}
+										{step === 'internal_approver' &&
+											(isInternalApprover ? 'Approve Internally' : 'Share with Client')}
+										{step === 'client' && 'Approve'}
+									</span>}
+							</button>
+							{step !== 'creator' && (
+								<button className="btn_model_outline w-full" onClick={handleRequestChanges}>
+									{loading ? <SVGLoader width="30px" height="30px" color="#000" /> : 'Request Changes'}
+								</button>
+							)}
+						</div>
+					</div>
+				</div>}
+
+
+			{/* SECOND MODAL - SHARE WITH CLIENT */}
+			{/* {showSharePrompt && (
+				
+			)} */}
 		</>
 	);
 };
