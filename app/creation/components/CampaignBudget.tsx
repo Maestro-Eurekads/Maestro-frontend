@@ -17,8 +17,11 @@ import channel from "../../../public/channel_level.svg"
 import toast from "react-hot-toast"
 import { useSearchParams } from "next/navigation"
 import ConfigureAdSetsAndBudget, { BudgetOverviewSection } from "./ ConfigureadSetsAndbudget"
+import SaveProgressButton from "app/utils/SaveProgressButton"
+import { useActive } from "app/utils/ActiveContext"
 
 const CampaignBudget = () => {
+  const { setChange } = useActive()
   const searchParams = useSearchParams()
   const campaignId = searchParams.get("campaignId")
   const [budgetStyle, setBudgetStyle] = useState("")
@@ -105,6 +108,7 @@ const CampaignBudget = () => {
   }
 
   const handleBudgetEdit = (param, type) => {
+    setChange(true)
     if (!isEditing) return
 
     setCampaignFormData((prev) => ({
@@ -127,6 +131,7 @@ const CampaignBudget = () => {
   }
 
   const handleValidate = () => {
+    setChange(true)
     if (budgetStyle === "top_down") {
       if (!campaignFormData?.campaign_budget?.amount) {
         toast("Please set the overall campaign budget first", {
@@ -200,6 +205,7 @@ const CampaignBudget = () => {
   }
 
   const handleEdit = () => {
+    setChange(true)
     setFeeStepValidated(false)
     setStep(1)
     setFeeType(null)
@@ -262,14 +268,14 @@ const CampaignBudget = () => {
           t4="Choose how to set your campaign budget"
           span={1}
         />
+        <SaveProgressButton deskTopShow={undefined} setDeskTopShow={undefined} />
       </div>
 
       <div className="mt-[24px] flex gap-5">
         {/* Top‑down Option */}
         <div
-          className={`relative cursor-pointer ${
-            budgetStyle === "top_down" ? "top_and_bottom_down_container_active" : "top_and_bottom_down_container"
-          }`}
+          className={`relative cursor-pointer ${budgetStyle === "top_down" ? "top_and_bottom_down_container_active" : "top_and_bottom_down_container"
+            }`}
           onClick={() => {
             handleBudgetEdit("budget_type", "top_down")
             setCampaignFormData((prev) => ({
@@ -310,9 +316,8 @@ const CampaignBudget = () => {
 
         {/* Bottom‑up Option */}
         <div
-          className={`relative cursor-pointer ${
-            budgetStyle === "bottom_up" ? "top_and_bottom_down_container_active" : "top_and_bottom_down_container"
-          }`}
+          className={`relative cursor-pointer ${budgetStyle === "bottom_up" ? "top_and_bottom_down_container_active" : "top_and_bottom_down_container"
+            }`}
           onClick={() => {
             handleBudgetEdit("budget_type", "bottom_up")
             setCampaignFormData((prev) => ({
@@ -374,9 +379,8 @@ const CampaignBudget = () => {
                     setFeeStepValidated(true)
                   }
                 }}
-                className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${
-                  loading ? "bg-gray-400 cursor-not-allowed" : "bg-[#3175FF] hover:bg-[#2563eb]"
-                }`}
+                className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-[#3175FF] hover:bg-[#2563eb]"
+                  }`}
                 disabled={loading}
               >
                 {loading ? (
@@ -540,7 +544,7 @@ const CampaignBudget = () => {
       {budgetStyle !== "" && budgetStyle === "bottom_up" && step > 0 && (
         <>
           {/* Step 1: Choose granularity level first */}
-          <PageHeaderWrapper t4="Choose granularity level" span={1} />
+          <PageHeaderWrapper t4="Choose granularity level" span={2} />
 
           {showLevelCards ? (
             <div className="flex flex-col gap-3 w-[672px] bg-white p-6 rounded-[20px] mt-[20px]">
@@ -677,11 +681,11 @@ const CampaignBudget = () => {
       {/* Step 2: Allocate sub-budgets (ad set/channel) */}
       {budgetStyle !== "" && budgetStyle === "bottom_up" && step > 1 && (
         <>
-          <ConfigureAdSetsAndBudget num={2} netAmount={netAmount} />
+          <ConfigureAdSetsAndBudget num={3} netAmount={netAmount} />
 
           <FeeSelectionStep
-            num1={3}
-            num2={4}
+            num1={4}
+            num2={5}
             isValidated={feeStepValidated}
             setIsValidated={setFeeStepValidated}
             netAmount={netAmount}
@@ -703,9 +707,8 @@ const CampaignBudget = () => {
                     setShowBottomUpBudgetOverview(true)
                   }
                 }}
-                className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${
-                  loading ? "bg-gray-400 cursor-not-allowed" : "bg-[#3175FF] hover:bg-[#2563eb]"
-                }`}
+                className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-[#3175FF] hover:bg-[#2563eb]"
+                  }`}
                 disabled={loading}
               >
                 {loading ? (
@@ -718,7 +721,7 @@ const CampaignBudget = () => {
               </button>
             </div>
           )}
-          
+
 
           {/* Show the budget overview after validation for bottom-up */}
           {showBottomUpBudgetOverview && (

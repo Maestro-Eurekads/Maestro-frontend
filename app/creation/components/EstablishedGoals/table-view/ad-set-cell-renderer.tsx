@@ -52,7 +52,7 @@ export const AdSetCellRenderer = ({
   // Handle channel cell with icon and name
   if (body === "channel") {
     return (
-      <div className="flex gap-2 indent-[10px]">
+      <div className="flex gap-2 indent-[10px] w-fit max-w-[150px]">
         <div className="l-shape-container-cb">
           <div
             className="l-vertical-ad"
@@ -416,7 +416,7 @@ export const AdSetCellRenderer = ({
   if (calculatedFields.includes(body)) {
     return (
       <div
-        className="flex justify-center items-center gap-5 w-fit group"
+        className="flex justify-center items-center gap-5 w-fit max-w-[150px] group"
         onClick={() =>
           toggleNRAdCell(stage.name, `${channel?.name}-${adSetIndex}`, body)
         }
@@ -504,13 +504,13 @@ export const AdSetCellRenderer = ({
           className={`bg-slate-100 hover:bg-white border-none outline-none max-w-[90px] p-1 ${
             isNR ? "text-gray-400" : ""
           }`}
-          placeholder={
-            body === "budget_size"
-              ? "BUDGET"
-              : body
-              ? body?.toUpperCase()
-              : "Insert value"
-          }
+          // placeholder={
+          //   body === "budget_size"
+          //     ? "BUDGET"
+          //     : body
+          //     ? body?.toUpperCase()
+          //     : "Insert value"
+          // }
         />
       )}
       <Ban

@@ -18,6 +18,7 @@ import { getCreateClient } from "features/Client/clientSlice";
 import { toast } from "sonner";
 import Skeleton from "react-loading-skeleton";
 import ClientSelection from "components/ClientSelection";
+import SaveProgressButton from "app/utils/SaveProgressButton";
 
 
 interface DropdownOption {
@@ -363,7 +364,10 @@ export const SetupScreen = () => {
   return (
 
     <div className="container mx-auto px-4">
-      <PageHeaderWrapper t1="Set up your new campaign" />
+      <div className="flex flex-row justify-between w-full align-center">
+        <PageHeaderWrapper t1="Set up your new campaign" />
+        <SaveProgressButton deskTopShow={undefined} setDeskTopShow={undefined} />
+      </div>
       {alert && <AlertMain alert={alert} />}
 
       {loading ? (
@@ -469,6 +473,7 @@ export const SetupScreen = () => {
           </div>
         </div>)
       }
+
     </div >
   );
 };

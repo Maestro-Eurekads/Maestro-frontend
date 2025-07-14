@@ -198,13 +198,13 @@ export const CellRenderer = ({
       // For CPM, preserve decimal places (2 max)
       return formatNumber(Number.parseFloat(numericValue.toFixed(2)))
     } else {
-      if(body !== "reach"  && body !== "video_views") {
+      if(body !== "reach"  && body !== "video_views" && body !== "impressions") {
         // For other fields, round to whole numbers
-        return formatNumber(Math.round(numericValue))
+        return formatNumber(Math.floor(numericValue).toFixed(0))
       }
     }
 
-    return formatNumber(Math.round(numericValue))
+    return formatNumber(Math.floor(numericValue))
   }
 
   // Validate input based on cell type
@@ -323,7 +323,7 @@ export const CellRenderer = ({
   // Channel cell rendering
   if (body === "channel") {
     return (
-      <div className="flex items-center gap-5 w-[150px] pr-6">
+      <div className="flex items-center gap-5 w-fit max-w-[150px] pr-6">
         <span
           className={`flex items-center gap-2 cursor-pointer ${nrColumns?.includes(body) ? "text-gray-400" : ""}`}
           onClick={() =>
@@ -366,10 +366,10 @@ export const CellRenderer = ({
   }
 
   // Handle calculated fields
-  if (calculatedFields.includes(body)) {
+  if (goalLevel === "Channel level" &&calculatedFields.includes(body)) {
     return (
       <div
-        className="flex justify- items-center gap-5 w-[150px] group"
+        className="flex justify- items-center gap-5 w-fit max-w-[150px] group"
         onClick={() => toggleNRCell(stage.name, channel?.name, body)}
       >
         {isNR ? (
@@ -386,7 +386,7 @@ export const CellRenderer = ({
                       : isSecondsType
                         ? "secs"
                         : ""
-                  }${(body == "reach" ||  body !== "video_views") ? value : formatNumber(Number(value))}`
+                  }${(body == "reach" ||  body == "video_views" || body == "impressions") ? value : formatNumber(Number(value))}`
                 : "-"
             })()}
           </p>
@@ -398,7 +398,7 @@ export const CellRenderer = ({
 
   // Handle input fields and static values
   if (!showInput) {
-    const value = channel?.[body]
+    const value = goalLevel === "Channel level" ? channel?.[body] : cellType === "number" ? channel?.kpi?.[body] ? Number(channel?.kpi?.[body]).toFixed(0): "":(channel?.kpi?.[body])
     if (exemptFields.includes(body)) {
       return value === "Invalid date" ? "-" : value
     }
@@ -406,7 +406,7 @@ export const CellRenderer = ({
       "-"
     ) : (
       <div className="flex justify-center items-center gap-5 w-fit">
-        <p>{formatNumber(Number.parseFloat(value)?.toFixed(2))}</p>
+        <p>{cellType === "number" ? formatNumber(Number.parseFloat(value)?.toFixed(0)) :formatNumber(Number.parseFloat(value)?.toFixed(2))}</p>
         <Ban size={10} className="hidden group-hover:block shrink-0 cursor-pointer" />
       </div>
     )

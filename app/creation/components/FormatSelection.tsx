@@ -13,6 +13,8 @@ import { debounce } from "lodash"
 import Switch from "react-switch"
 import PageHeaderWrapper from "../../../components/PageHeaderWapper"
 import { useComments } from "app/utils/CommentProvider"
+import SaveProgressButton from "app/utils/SaveProgressButton"
+import { useActive } from "app/utils/ActiveContext"
 
 // Types
 type FormatType = {
@@ -248,8 +250,7 @@ const CreativesModal = ({
           const hasFormats = platforms.some((platform) =>
             view === "channel"
               ? platform.format?.length > 0
-              : platform.ad_sets?.some((adset) => adset.format?.length > 0),
-          )
+              : platform.ad_sets?.some((adset) => adset.format?.length > 0),)
 
           if (!hasFormats) return null
 
@@ -402,6 +403,7 @@ const MediaOption = ({
 
   const handleDelete = useCallback(
     (previewId: string) => {
+
       if (!previewId || !STRAPI_URL || !STRAPI_TOKEN || deletingPreviewId) {
         if (deletingPreviewId) {
           debouncedToast("Please wait until the current deletion is complete.", "error")
@@ -428,8 +430,7 @@ const MediaOption = ({
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             className={`relative text-center p-2 rounded-lg border transition 
-              ${
-                isSelected ? "border-blue-500 shadow-lg" : isHovered ? "border-blue-400 bg-blue-50" : "border-gray-300"
+              ${isSelected ? "border-blue-500 shadow-lg" : isHovered ? "border-blue-400 bg-blue-50" : "border-gray-300"
               } 
               cursor-pointer
               ${isHovered && !isSelected ? "shadow-md" : ""}
@@ -449,9 +450,8 @@ const MediaOption = ({
           {isSelected && (
             <div className="flex items-center bg-[#F6F6F6] gap-2 mt-4 border rounded-[8px]">
               <button
-                className={`px-2 py-1 text-[#000000] text-lg font-semibold ${
-                  isDecreaseDisabled ? "opacity-50 cursor-not-allowed" : ""
-                }`}
+                className={`px-2 py-1 text-[#000000] text-lg font-semibold ${isDecreaseDisabled ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
                 onClick={() => !isDecreaseDisabled && onQuantityChange(-1)}
                 disabled={isDecreaseDisabled}
               >
@@ -502,9 +502,8 @@ const MediaOption = ({
                   )}
                 </a>
                 <button
-                  className={`absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center ${
-                    deletingPreviewId === prv.id ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
-                  }`}
+                  className={`absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center ${deletingPreviewId === prv.id ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                    }`}
                   onClick={() => handleDelete(prv.id)}
                   disabled={deletingPreviewId === prv.id}
                 >
@@ -564,18 +563,10 @@ const MediaSelectionGrid = ({
   const platform = stage?.[channelKey]?.find((pl) => pl?.platform_name === platformName)
   const adSet = adSetIndex !== undefined ? platform?.ad_sets?.[adSetIndex] : null
 
-  const [previewsMap, setPreviewsMap] = useState<{
-    [format: string]: Array<{ id: string; url: string }>
-  }>({})
+  // --- FIX: Use local expanded state for each adset/format selection grid ---
+  // This ensures that uploading for one adset does not open another adset's format selection.
 
-  const handlePreviewsUpdate = useCallback((format: string, previews: Array<{ id: string; url: string }>) => {
-    setPreviewsMap((prev) => {
-      if (JSON.stringify(prev[format]) !== JSON.stringify(previews)) {
-        return { ...prev, [format]: previews }
-      }
-      return prev
-    })
-  }, [])
+  // Remove previewsMap and handlePreviewsUpdate, as they are not needed for expansion logic.
 
   const memoizedOnOpenModal = useCallback(
     (platform: string, channel: string, format: string, previews: any[], quantities: any, adSetIndex?: number) => {
@@ -627,7 +618,7 @@ const MediaSelectionGrid = ({
                 stageName={stageName}
                 format={option.name}
                 adSetIndex={adSetIndex}
-                onPreviewsUpdate={(previews) => handlePreviewsUpdate(option.name, previews)}
+                onPreviewsUpdate={() => { }} // No longer needed for expansion
                 onDeletePreview={onDeletePreview}
                 completedDeletions={completedDeletions}
               />
@@ -668,7 +659,9 @@ const PlatformItem = ({
   completedDeletions: Set<string>
 }) => {
   const [isExpanded, setIsExpanded] = useState<{ [key: string]: boolean }>({})
-  const [expandedAdsets, setExpandedAdsets] = useState<{ [key: string]: boolean }>({})
+  // --- FIX: Use a separate expanded state for each adset, not a shared object ---
+  // Instead of using a single expandedAdsets object, use an array of booleans, one per adset.
+  const [expandedAdsets, setExpandedAdsets] = useState<boolean[]>([])
   const { campaignFormData, setCampaignFormData } = useCampaigns()
 
   useEffect(() => {
@@ -679,13 +672,14 @@ const PlatformItem = ({
       }))
     }
     if (view === "adset" && platform.ad_sets?.some((adset) => adset.format?.length > 0)) {
-      platform.ad_sets?.forEach((_, index) => {
-        setExpandedAdsets((prev) => ({
-          ...prev,
-          [`${platform.platform_name}-${index}`]: true,
-        }))
-      })
+      // Set only those adsets with formats as expanded, others as false
+      setExpandedAdsets(
+        platform.ad_sets?.map((adset) => (adset.format && adset.format.length > 0 ? true : false)) || [],
+      )
+    } else if (view === "adset") {
+      setExpandedAdsets(platform.ad_sets?.map(() => false) || [])
     }
+    // eslint-disable-next-line
   }, [platform.format, platform.platform_name, platform.id, platform.ad_sets, view])
 
   const toggleExpansion = useCallback((id: string) => {
@@ -695,11 +689,13 @@ const PlatformItem = ({
     }))
   }, [])
 
-  const toggleAdsetExpansion = useCallback((adsetId: string) => {
-    setExpandedAdsets((prev) => ({
-      ...prev,
-      [adsetId]: !prev[adsetId],
-    }))
+  // --- FIX: Toggle only the clicked adset, not all ---
+  const toggleAdsetExpansion = useCallback((adsetIdx: number) => {
+    setExpandedAdsets((prev) => {
+      const newArr = [...prev]
+      newArr[adsetIdx] = !newArr[adsetIdx]
+      return newArr
+    })
   }, [])
 
   const handleFormatSelection = useCallback(
@@ -817,18 +813,18 @@ const PlatformItem = ({
       {view === "adset" && platform.ad_sets?.length > 0 && (
         <>
           {platform.ad_sets.map((adset, index) => {
-            const adsetKey = `${adset.id}-${index}`
-            const isAdsetExpanded = expandedAdsets[`${platform.platform_name}-${index}`]
+            // Use expandedAdsets[index] for this adset's expansion state
+            const isAdsetExpanded = expandedAdsets[index] || false
 
             return (
-              <div key={adsetKey}>
+              <div key={`${adset.id}-${index}`}>
                 <div className="my-3 flex items-center gap-8">
                   <div className="p-3 border w-fit rounded-md">
                     {formatAudienceDisplayName(adset.audience_type, adset.name)}
                   </div>
                   <div
                     className="flex items-center gap-2 cursor-pointer"
-                    onClick={() => toggleAdsetExpansion(`${platform.platform_name}-${index}`)}
+                    onClick={() => toggleAdsetExpansion(index)}
                   >
                     {isAdsetExpanded ? (
                       <span className="text-gray-500">Choose the number of visuals for this format</span>
@@ -1144,9 +1140,9 @@ export const Platforms = ({
                   num_of_visuals: fmt.num_of_visuals,
                   previews: Array.isArray(fmt.previews)
                     ? fmt.previews.map((preview: any) => ({
-                        id: String(preview.id),
-                        url: String(preview.url),
-                      }))
+                      id: String(preview.id),
+                      url: String(preview.url),
+                    }))
                     : [],
                 }))
               }
@@ -1155,15 +1151,15 @@ export const Platforms = ({
                   ...adSet,
                   format: adSet.format
                     ? adSet.format.map((fmt: any) => ({
-                        format_type: fmt.format_type,
-                        num_of_visuals: fmt.num_of_visuals,
-                        previews: Array.isArray(fmt.previews)
-                          ? fmt.previews.map((preview: any) => ({
-                              id: String(preview.id),
-                              url: String(preview.url),
-                            }))
-                          : [],
-                      }))
+                      format_type: fmt.format_type,
+                      num_of_visuals: fmt.num_of_visuals,
+                      previews: Array.isArray(fmt.previews)
+                        ? fmt.previews.map((preview: any) => ({
+                          id: String(preview.id),
+                          url: String(preview.url),
+                        }))
+                        : [],
+                    }))
                     : [],
                 }))
               }
@@ -1179,7 +1175,7 @@ export const Platforms = ({
           response: error.response?.data,
           status: error.response?.status,
         })
-        debouncedToast(`Failed to save campaign data: ${error.message}`, "error")
+        // debouncedToast(`Failed to save campaign data: ${error.message}`, "error")
         throw error
       } finally {
         setIsUpdatingStrapi(false)
@@ -1304,7 +1300,7 @@ export const Platforms = ({
       })
 
       if (!deleteResponse.ok) {
-        throw new Error(`Failed to delete file from Strapi: ${deleteResponse.statusText}`)
+        // throw new Error(`Failed to delete file from Strapi: ${deleteResponse.statusText}`)
       }
 
       const updatedChannelMix = JSON.parse(JSON.stringify(campaignFormData.channel_mix))
@@ -1369,7 +1365,7 @@ export const Platforms = ({
       setCompletedDeletions((prev) => new Set(prev).add(previewId))
     } catch (error: any) {
       console.error("Error processing delete queue:", error)
-      debouncedToast(`Failed to delete preview: ${error.message}`, "error")
+      // debouncedToast(`Failed to delete preview: ${error.message}`, "error")
       setCompletedDeletions((prev) => new Set(prev).add(previewId))
       setDeleteQueue((prev) => prev.slice(1))
     } finally {
@@ -1553,6 +1549,7 @@ export const FormatSelection = ({
   platformName?: string
   view?: "channel" | "adset"
 }) => {
+  const { setChange } = useActive()
   const [openTabs, setOpenTabs] = useState<string[]>([])
   const [view, setView] = useState<"channel" | "adset">("channel")
   const [isCreativesModalOpen, setIsCreativesModalOpen] = useState(false)
@@ -1624,6 +1621,7 @@ export const FormatSelection = ({
 
   const handleToggleChange = useCallback(
     (checked: boolean) => {
+      setChange(true)
       const newView = checked ? "adset" : "channel"
       setView(newView)
       setCampaignFormData((prev) => ({
@@ -1646,6 +1644,10 @@ export const FormatSelection = ({
 
   return (
     <div>
+      <div className="flex flex-row justify-between">
+        <div />
+        <SaveProgressButton deskTopShow={undefined} setDeskTopShow={undefined} />
+      </div>
       {!stageName && (
         <PageHeaderWrapper
           t1="Select formats for each channel"
@@ -1686,9 +1688,8 @@ export const FormatSelection = ({
             return (
               <div key={index}>
                 <div
-                  className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] ${
-                    isOpen ? "rounded-t-[10px]" : "rounded-[10px]"
-                  }`}
+                  className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] ${isOpen ? "rounded-t-[10px]" : "rounded-[10px]"
+                    }`}
                   onClick={() => toggleTab(stage.name)}
                 >
                   <div className="flex items-center gap-2">

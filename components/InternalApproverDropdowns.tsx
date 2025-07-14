@@ -1,70 +1,11 @@
 
 
-
-// "use client";
-
-// import React from "react";
-// import { Select } from "antd";
-// import { useCampaigns } from "../app/utils/CampaignsContext";
-
-// type DropdownOption = { label: string; value: string };
-// type SelectedItem = { value: string; id: string; clientId: string; label: string };
-
-// const InternalApproverDropdowns = ({
-// 	options,
-// 	value,
-// 	onChange,
-// }: {
-// 	options: DropdownOption[];
-// 	value: {
-// 		internal_approver: SelectedItem[];
-// 	};
-// 	onChange: (field: string, selected: SelectedItem[]) => void;
-// }) => {
-// 	const { campaignFormData } = useCampaigns();
-// 	const campaignId = campaignFormData?.campaign_id;
-// 	const clientId = campaignFormData?.client_selection?.id;
-
-// 	const selectedValues = value.internal_approver.map((v) => v.value);
-
-// 	const handleChange = (vals: string[]) => {
-// 		const mapped = vals.map((val) => {
-// 			const found = options.find((opt) => opt.value === val);
-// 			return {
-// 				value: val,
-// 				label: found?.label || val,
-// 				id: campaignId,
-// 				clientId,
-// 			};
-// 		});
-// 		onChange("internal_approver", mapped);
-// 	};
-
-// 	return (
-// 		<div className="w-[327px] mt-2">
-// 			<Select
-// 				mode="multiple"
-// 				style={{ width: "100%" }}
-// 				placeholder="Select internal approvers"
-// 				value={selectedValues}
-// 				options={options}
-// 				onChange={handleChange}
-// 				allowClear
-// 				showSearch
-// 				optionFilterProp="label"
-// 				size="large"
-// 			/>
-// 		</div>
-// 	);
-// };
-
-// export default InternalApproverDropdowns;
-
 "use client";
 
 import React from "react";
 import { Select } from "antd";
 import { useCampaigns } from "../app/utils/CampaignsContext";
+import { useActive } from "app/utils/ActiveContext";
 
 const { Option } = Select;
 
@@ -82,6 +23,7 @@ const InternalApproverDropdowns: React.FC<InternalApproverDropdownsProps> = ({
 	label,
 }) => {
 	const { campaignFormData, setCampaignFormData } = useCampaigns();
+	const { setChange } = useActive()
 	const campaignId = campaignFormData?.campaign_id;
 	const clientId = campaignFormData?.client_selection?.id;
 
@@ -93,6 +35,7 @@ const InternalApproverDropdowns: React.FC<InternalApproverDropdownsProps> = ({
 
 	// Handle selection change
 	const handleChange = (newValues: (number | string)[]) => {
+		setChange(true)
 		const mappedSelectedItems = newValues.map((val) => {
 			// Try to reuse full object if previously selected
 			const existingItem = selectedItems.find((item) => item.id === val);

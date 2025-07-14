@@ -13,8 +13,11 @@ import { useRouter } from "next/router";
 import { useSearchParams } from "next/navigation";
 import { useVerification } from "app/utils/VerificationContext";
 import { useComments } from "app/utils/CommentProvider";
+import SaveProgressButton from "app/utils/SaveProgressButton";
+import { useActive } from "app/utils/ActiveContext";
 
 const PlanCampaignSchedule: React.FC = () => {
+  const { setChange } = useActive()
   const searchParams = useSearchParams();
   const campaignId = searchParams.get("campaignId");
   const [isEditing, setIsEditing] = useState(false);
@@ -122,7 +125,7 @@ const PlanCampaignSchedule: React.FC = () => {
 
   return (
     <div className="creation_continer">
-      <div className="flex justify-between">
+      <div className="flex flex-row justify-between w-full ">
         <PageHeaderWrapper
           t1="Setup the timeline of your campaign?"
           // t2="Choose your campaign start and end dates, then arrange each funnel phase within the timeline."
@@ -134,6 +137,7 @@ const PlanCampaignSchedule: React.FC = () => {
 						Edit
 					</button>
 				)} */}
+        <SaveProgressButton deskTopShow={undefined} setDeskTopShow={undefined} />
       </div>
       {/* @ts-ignore      */}
       {alert && <AlertMain alert={alert} />}

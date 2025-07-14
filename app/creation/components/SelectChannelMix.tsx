@@ -12,6 +12,8 @@ import { useCampaigns } from "../../utils/CampaignsContext";
 import { removeKeysRecursively } from "utils/removeID";
 import { SVGLoader } from "components/SVGLoader";
 import { useComments } from "app/utils/CommentProvider";
+import SaveProgressButton from "app/utils/SaveProgressButton";
+import { useActive } from "app/utils/ActiveContext";
 
 // Simple Toast Component
 const Toast = ({ message, onClose }) => {
@@ -75,6 +77,7 @@ const getChannelTypeLabel = (type) => {
 };
 
 const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
+  const { setChange } = useActive()
   const { setIsDrawerOpen, setClose } = useComments();
   const {
     campaignFormData,
@@ -104,7 +107,7 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
   };
 
   // Debug data on mount
-  useEffect(() => {}, [platformList, campaignFormData, cId]);
+  useEffect(() => { }, [platformList, campaignFormData, cId]);
 
   // Ensure component is mounted and data is ready
   useEffect(() => {
@@ -379,9 +382,11 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
           ?.find((item) => item.funnel_stage === stageName)
           ?.[categoryKey]?.find((platform) => platform.platform_name === name);
 
-        return existingPlatform || { platform_name: name, 
-          campaign_start_date:  campaignFormData?.campaign_timeline_start_date === "" ? null : campaignFormData?.campaign_timeline_start_date || null,
-          campaign_end_date:  campaignFormData?.campaign_timeline_end_date === "" ? null : campaignFormData?.campaign_timeline_end_date || null, };
+        return existingPlatform || {
+          platform_name: name,
+          campaign_start_date: campaignFormData?.campaign_timeline_start_date === "" ? null : campaignFormData?.campaign_timeline_start_date || null,
+          campaign_end_date: campaignFormData?.campaign_timeline_end_date === "" ? null : campaignFormData?.campaign_timeline_end_date || null,
+        };
       });
 
       const existingChannelMixIndex = prevFormData.channel_mix?.findIndex(
@@ -440,6 +445,7 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
     platformName: string,
     type: string
   ) => {
+    setChange(true)
     e.stopPropagation();
     togglePlatform(stageName, category, platformName, type);
   };
@@ -564,11 +570,10 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
                 {platforms.map((platform, idx) => (
                   <div
                     key={idx}
-                    className={`flex items-center gap-1 ${
-                      ONLINE_TYPES.includes(type)
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-green-100 text-green-700"
-                    } rounded-full px-3 py-1`}
+                    className={`flex items-center gap-1 ${ONLINE_TYPES.includes(type)
+                      ? "bg-blue-100 text-blue-700"
+                      : "bg-green-100 text-green-700"
+                      } rounded-full px-3 py-1`}
                   >
                     {getPlatformIcon(platform) && (
                       <Image
@@ -613,11 +618,10 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
                 {platforms.map((platform, idx) => (
                   <div
                     key={idx}
-                    className={`flex items-center gap-1 ${
-                      ONLINE_TYPES.includes(type)
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-green-100 text-green-700"
-                    } rounded-full px-3 py-1`}
+                    className={`flex items-center gap-1 ${ONLINE_TYPES.includes(type)
+                      ? "bg-blue-100 text-blue-700"
+                      : "bg-green-100 text-green-700"
+                      } rounded-full px-3 py-1`}
                   >
                     {getPlatformIcon(platform) && (
                       <Image
@@ -640,20 +644,22 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
 
   return (
     <div className="overflow-hidden">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between w-full">
         <PageHeaderWrapper
           t1="Which platforms would you like to activate for each funnel stage?"
           t2="Choose the platforms for each stage to ensure your campaign reaches the right audience at the right time."
           span={1}
         />
+        <SaveProgressButton deskTopShow={undefined} setDeskTopShow={undefined} />
       </div>
+
 
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
         {(orderedFunnelStages.length > 0
           ? selectedStage
             ? orderedFunnelStages.filter(
-                (stageName) => stageName === selectedStage
-              )
+              (stageName) => stageName === selectedStage
+            )
             : orderedFunnelStages
           : campaignFormData.funnel_stages
         ).map((stageName, index) => {
@@ -681,13 +687,12 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
           const selectedByType = getSelectedPlatformsByType(stage.name);
 
           return (
-            <div key={index} className={`${selectedStage ? "max-h-[500px] overflow-y-scroll": ""}`}>
+            <div key={index} className={`${selectedStage ? "max-h-[500px] overflow-y-scroll" : ""}`}>
               <div
                 className={`flex flex-col p-6 gap-3 w-full bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
-                  ${
-                    openItems[stage.name]
-                      ? "rounded-t-[10px]"
-                      : "rounded-[10px]"
+                  ${openItems[stage.name]
+                    ? "rounded-t-[10px]"
+                    : "rounded-[10px]"
                   }`}
               >
                 <div
@@ -717,11 +722,10 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
                   </div>
                   <div className="flex items-center justify-center flex-1">
                     <p
-                      className={`font-general-sans font-semibold text-[16px] leading-[22px] ${
-                        stageStatuses[stage.name] === "Not started"
-                          ? "text-[#061237] opacity-50"
-                          : "text-[#3175FF]"
-                      }`}
+                      className={`font-general-sans font-semibold text-[16px] leading-[22px] ${stageStatuses[stage.name] === "Not started"
+                        ? "text-[#061237] opacity-50"
+                        : "text-[#3175FF]"
+                        }`}
                     >
                       {stageStatuses[stage.name] || ""}
                     </p>
@@ -798,11 +802,10 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
                               {selectedPlatformsForType.map((platform, idx) => (
                                 <div
                                   key={idx}
-                                  className={`flex items-center gap-1 ${
-                                    ONLINE_TYPES.includes(type)
-                                      ? "bg-blue-100 text-blue-700"
-                                      : "bg-green-100 text-green-700"
-                                  } rounded-full px-3 py-1`}
+                                  className={`flex items-center gap-1 ${ONLINE_TYPES.includes(type)
+                                    ? "bg-blue-100 text-blue-700"
+                                    : "bg-green-100 text-green-700"
+                                    } rounded-full px-3 py-1`}
                                 >
                                   {getPlatformIcon(platform) && (
                                     <Image
@@ -874,11 +877,10 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
                                               <div
                                                 key={pIndex}
                                                 className={`cursor-pointer flex flex-row justify-between items-center p-4 gap-2 w-[250px] min-h-[62px] bg-white 
-                                    border rounded-[10px] ${
-                                      isSelected
-                                        ? "border-[#3175FF]"
-                                        : "border-[rgba(0,0,0,0.1)]"
-                                    }`}
+                                    border rounded-[10px] ${isSelected
+                                                    ? "border-[#3175FF]"
+                                                    : "border-[rgba(0,0,0,0.1)]"
+                                                  }`}
                                                 onClick={(e) =>
                                                   handlePlatformClick(
                                                     e,
@@ -911,11 +913,10 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
                                                   </p>
                                                 </div>
                                                 <div
-                                                  className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${
-                                                    isSelected
-                                                      ? "bg-[#3175FF]"
-                                                      : "border-[0.769px] border-[rgba(0,0,0,0.2)]"
-                                                  }`}
+                                                  className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${isSelected
+                                                    ? "bg-[#3175FF]"
+                                                    : "border-[0.769px] border-[rgba(0,0,0,0.2)]"
+                                                    }`}
                                                 >
                                                   {isSelected && (
                                                     <Image
@@ -936,55 +937,55 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
                                       </div>
                                       {filteredPlatforms.length >
                                         ITEMS_TO_SHOW && (
-                                        <div className="flex justify-center mt-4">
-                                          <button
-                                            onClick={() =>
-                                              toggleShowMore(
+                                          <div className="flex justify-center mt-4">
+                                            <button
+                                              onClick={() =>
+                                                toggleShowMore(
+                                                  `${stage.name}-${channelName}`
+                                                )
+                                              }
+                                              className="text-blue-500 font-medium flex items-center gap-1"
+                                            >
+                                              {showMoreMap[
                                                 `${stage.name}-${channelName}`
-                                              )
-                                            }
-                                            className="text-blue-500 font-medium flex items-center gap-1"
-                                          >
-                                            {showMoreMap[
-                                              `${stage.name}-${channelName}`
-                                            ] ? (
-                                              <>
-                                                Show less
-                                                <svg
-                                                  xmlns="http://www.w3.org/2000/svg"
-                                                  width="20"
-                                                  height="20"
-                                                  viewBox="0 0 24 24"
-                                                  fill="none"
-                                                  stroke="currentColor"
-                                                  strokeWidth="2"
-                                                  strokeLinecap="round"
-                                                  strokeLinejoin="round"
-                                                >
-                                                  <path d="m18 15-6-6-6 6" />
-                                                </svg>
-                                              </>
-                                            ) : (
-                                              <>
-                                                Show more
-                                                <svg
-                                                  xmlns="http://www.w3.org/2000/svg"
-                                                  width="20"
-                                                  height="20"
-                                                  viewBox="0 0 24 24"
-                                                  fill="none"
-                                                  stroke="currentColor"
-                                                  strokeWidth="2"
-                                                  strokeLinecap="round"
-                                                  strokeLinejoin="round"
-                                                >
-                                                  <path d="m6 9 6 6 6-6" />
-                                                </svg>
-                                              </>
-                                            )}
-                                          </button>
-                                        </div>
-                                      )}
+                                              ] ? (
+                                                <>
+                                                  Show less
+                                                  <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    width="20"
+                                                    height="20"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="2"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                  >
+                                                    <path d="m18 15-6-6-6 6" />
+                                                  </svg>
+                                                </>
+                                              ) : (
+                                                <>
+                                                  Show more
+                                                  <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    width="20"
+                                                    height="20"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="2"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                  >
+                                                    <path d="m6 9 6 6 6-6" />
+                                                  </svg>
+                                                </>
+                                              )}
+                                            </button>
+                                          </div>
+                                        )}
                                     </div>
                                   ) : null;
                                 }
