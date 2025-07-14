@@ -78,7 +78,7 @@ const preserveFormatsWithPreviews = (platforms) => {
 	})
 }
 
-const SaveProgressButton = ({ deskTopShow, setDeskTopShow }) => {
+const SaveProgressButton = ({ setIsOpen }) => {
 
 	const { active, setActive, subStep, setSubStep, setChange } = useActive()
 	const { midcapEditing } = useEditing()
@@ -318,8 +318,6 @@ const SaveProgressButton = ({ deskTopShow, setDeskTopShow }) => {
 
 	const cancelSave = () => {
 		setShowSave(false)
-		setDeskTopShow(false)
-		setActive(0)
 	}
 
 	const handleContinue = () => {
@@ -820,11 +818,9 @@ const SaveProgressButton = ({ deskTopShow, setDeskTopShow }) => {
 				window.dispatchEvent(event)
 			}
 			setShowSave(false)
-			setDeskTopShow(false)
 		} finally {
 			setLoading(false)
 			setShowSave(false)
-			setDeskTopShow(false)
 		}
 	}
 
@@ -940,7 +936,7 @@ const SaveProgressButton = ({ deskTopShow, setDeskTopShow }) => {
 					)
 					
 				) : (  */}
-				{(active === 10 || deskTopShow || !active) ? "" :
+				{active === 10 ? "" :
 					<div className="flex justify-center items-center gap-3">
 						<button
 							className={clsx(
@@ -991,33 +987,7 @@ const SaveProgressButton = ({ deskTopShow, setDeskTopShow }) => {
 					</div>
 				</div>
 			)}
-			{deskTopShow &&
-				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-					<div className="bg-white rounded-2xl p-6 w-[90%] max-w-md shadow-lg">
-						<h2 className="text-lg font-semibold text-gray-800 mb-2">Unsaved Changes</h2>
-						<p className="text-sm text-gray-600 mb-6">“If you leave the plan the progress will be lost”</p>
-						<p className="text-sm text-gray-600 mb-6">“Would you like to save your progress?”</p>
-						<div className="flex justify-end gap-3">
-							<button
-								className="px-4 py-2 rounded-md bg-gray-300 text-gray-800 hover:bg-gray-400"
-								onClick={cancelSave}
-							>
-								No
-							</button>
-							<button
-								className="px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700"
-								onClick={handleSave}
-							>
-								{loading ? (
-									<center>
-										<BiLoader className="animate-spin" size={20} />
-									</center>
-								) : (
-									"Yes, Save")}
-							</button>
-						</div>
-					</div>
-				</div>}
+
 		</div>
 	);
 };
