@@ -24,6 +24,7 @@ const AddReplytothisComment = ({ onReplySubmit }) => {
 		onReplySubmit(newReply);
 	};
 
+
 	return (
 		<div className="w-full">
 			<div className="flex flex-col p-3 border border-[#3175ff4d] rounded-md min-h-[160px]">
@@ -35,7 +36,11 @@ const AddReplytothisComment = ({ onReplySubmit }) => {
 						<h3 className="text-[14px] font-medium text-[#292929]">{cleanName(session?.user?.name)}</h3>
 						<div className="text-[11px] text-[#292929] flex gap-2">
 							<p>{new Date().toLocaleDateString()}</p>
-							<p>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+							<p>{new Date().toLocaleTimeString([], {
+								hour: "2-digit",
+								minute: "2-digit",
+								hour12: true,
+							})}</p>
 						</div>
 					</div>
 				</div>
