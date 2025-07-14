@@ -31,8 +31,8 @@ export const DateRangeProvider = ({ children }: { children: React.ReactNode }) =
       const startDate = new Date(campaignFormData.campaign_timeline_start_date);
       const endDate = new Date(campaignFormData.campaign_timeline_end_date);
       // Add 2-day buffer before and after
-      const bufferedStart = subDays(startDate, 2);
-      const bufferedEnd = addDays(endDate, 2);
+      const bufferedStart = subDays(startDate, 0);
+      const bufferedEnd = addDays(endDate, 0);
       const dateList = eachDayOfInterval({ start: bufferedStart, end: bufferedEnd });
       setRange(dateList);
     }
