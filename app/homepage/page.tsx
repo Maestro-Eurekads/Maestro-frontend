@@ -21,15 +21,15 @@ const Homepage = () => {
   const [active, setActive] = useState("Overview");
   const [openModal, setOpenModal] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
-  const [userRole, setUserRole] = useState("guest"); // Assuming a default role
+  const [userRole, setUserRole] = useState("guest");
 
 
 
   useEffect(() => {
     if (change) {
-      setDeskTopShow(true);
+      setShowModal(true);
     } else {
-      setDeskTopShow(false);
+      setShowModal(false);
     }
   }, [change])
 
@@ -38,16 +38,17 @@ const Homepage = () => {
 
   const handleConfirmSave = () => {
     handleSave();
-    setDeskTopShow(false);
+    setShowModal(false);
   };
 
   const handleCancel = () => {
-    setDeskTopShow(false);
+    setShowModal(false);
+    setChange(false);
   };
 
   const handleSave = () => {
     setChange(false);
-    setDeskTopShow(false);
+    setShowModal(false);
   };
 
   return (
@@ -78,14 +79,14 @@ const Homepage = () => {
           selectedRow={selectedRow}
           userRole={userRole}
         />
-        <SaveProgressButton
+        {/* <SaveProgressButton
           deskTopShow={deskTopShow}
-          setDeskTopShow={setDeskTopShow} />
-        {/* <BackConfirmModal
+          setDeskTopShow={setDeskTopShow} /> */}
+        <BackConfirmModal
           isOpen={showModal}
           onClose={handleCancel}
           onConfirm={handleConfirmSave}
-        /> */}
+        />
       </div>
     </>
   );
