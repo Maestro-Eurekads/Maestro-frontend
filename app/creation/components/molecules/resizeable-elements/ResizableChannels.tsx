@@ -802,7 +802,7 @@ const ResizableChannels = ({
             }
           }
 
-          console.log("left position here, and data", {left, width, parentLeft, parentWidth, startDateIndex, stageStartDate, adjustedStageStartDate, dateList})
+          // console.log("left position here, and data", {left, width, parentLeft, parentWidth, startDateIndex, stageStartDate, adjustedStageStartDate, dateList})
           //@ts-ignore
           const existingState = prev.find((state) => state.id === ch.id);
 
@@ -1004,7 +1004,7 @@ const ResizableChannels = ({
                   disableDrag
                     ? "justify-between min-w-[50px]"
                     : "justify-center cursor-move"
-                }  items-center text-white py-[10px] px-4 gap-2 border shadow-md overflow-x-hidden`}
+                }  items-center text-white py-[10px] px-4 gap-2 border shadow-md overflow-x-hidden ${rrange === "Year" ? "flex-col" : "flex-row"}`}
                 style={{
                   left: `${channelState[index]?.left || parentLeft}px`,
                   width: `${
@@ -1021,12 +1021,13 @@ const ResizableChannels = ({
                   disableDrag || openItems ? undefined : handleDragStart(index)
                 }
               >
-                <div className="flex items-center gap-3">
+                <div className={`flex items-center gap-3`}>
                   <Image
                     src={channel.icon || "/placeholder.svg"}
                     alt={channel.icon}
                     width={20}
                     height={20}
+                    className={`${rrange === "Year" ? "hidden":"block"}`}
                   />
                   <span className="font-medium whitespace-nowrap">
                     {channel.name}

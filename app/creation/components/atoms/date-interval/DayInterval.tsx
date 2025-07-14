@@ -22,7 +22,7 @@ const DayInterval: React.FC<DayIntervalProps> = ({ daysCount, src , range}) => {
         {Array.from({ length: ddRange?.length }, (_, i) => {
           const isEdge = i === 0 || i === (src==="dashboard" ? range.length : ddRange?.length - 1);
           const date = src==="dashboard" ? range[i] :ddRange[i]
-          console.log(ddRange)
+          // console.log(ddRange)
           return (
             <div key={i} className="flex flex-col items-center relative">
               {/* Week Label */}
