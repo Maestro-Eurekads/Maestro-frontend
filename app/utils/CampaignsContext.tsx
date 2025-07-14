@@ -50,6 +50,7 @@ const getInitialState = () => {
     goal_level: "",
     validatedStages: {},
     campaign_id: {},
+    cId: "",
   };
 };
 
@@ -222,6 +223,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           campaign_builder: data?.campaign_builder ?? prev.campaign_builder,
           user: data?.user ?? prev.user,
           campaign_id: data?.id ?? prev.id,
+          cId: cId,
           isApprove: data?.isApprove,
           table_headers:
             ((data?.table_headers || {}) ??

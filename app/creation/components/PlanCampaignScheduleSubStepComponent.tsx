@@ -39,7 +39,7 @@ const PlanCampaignScheduleSubStepComponent = () => {
 						t4={'Phases default to the campaign duration, but you can adjust each phase and channel by dragging them'}
 						span={2}
 					/>
-					<SaveProgressButton deskTopShow={undefined} setDeskTopShow={undefined} />
+					<SaveProgressButton setIsOpen={undefined} />
 				</div>
 
 			</div>
