@@ -138,6 +138,7 @@ export const ChannelRow = ({
     purchases: [calculatePurchases, "kpi.payment_infos", "kpi.purchase_rate"],
     cpp: [calculateCPP, "budget.fixed_value", "kpi.purchases"],
   };
+
   const adsetFormulas = {
     cpm: [calculateImpression, "budget.fixed_value", "kpi.impressions"],
     frequency: [calculateReach, "kpi.impressions", "kpi.reach"],
@@ -198,7 +199,8 @@ export const ChannelRow = ({
             if (!isNaN(Number.parseFloat(value))) {
               value = Number(Number.parseFloat(value).toFixed(2)) / 100
             }
-          } else if (typeof value === "number" && value > 1) {
+          } else if (typeof value === "number") {
+            console.log("🚀 ~ value:", value)
             // If it's a number greater than 1, assume it's in percentage format (e.g., 10 for 10%)
             value = value / 100
           }
@@ -221,7 +223,7 @@ export const ChannelRow = ({
     const inputFields = [
       "cpm",
       "reach",
-      "links_click",
+      "link_clicks",
       "impressions",
       "frequency",
       "vtr",
@@ -348,6 +350,7 @@ export const ChannelRow = ({
     // Only include dependencies that should trigger recalculation
     chData?.kpi?.impressions,
     chData?.kpi?.ctr,
+    chData?.kpi?.link_clicks,
     chData?.kpi?.reach,
     chData?.budget?.fixed_value,
     chData?.kpi?.cpm,

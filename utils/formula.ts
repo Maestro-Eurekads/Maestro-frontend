@@ -96,7 +96,7 @@ export const calculateAdReturn: FormulaFunction=(revenue, budget)=>{
 }
 
 export const calculateCTR:FormulaFunction = (linkClicks, impression) => {
-return (linkClicks / impression) * 100;
+return (linkClicks / impression);
 }
 
 
