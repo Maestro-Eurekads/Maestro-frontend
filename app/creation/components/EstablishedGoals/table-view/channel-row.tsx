@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   calculateAdReturn,
   calculateBouncedVisits,
@@ -14,6 +14,7 @@ import {
   calculateCPL,
   calculateCPP,
   calculateCPV,
+  calculateCTR,
   calculateEngagements,
   calculateImpression,
   calculateLands,
@@ -52,13 +53,16 @@ export const ChannelRow = ({
   // Use a ref to store the previous channel data for comparison
   const prevChannelDataRef = useRef(null);
 
-  const chData = campaignFormData?.channel_mix
-    ?.find((ch) => ch?.funnel_stage === stage.name)
-    ?.[channel?.channel_name]?.find((c) => c?.platform_name === channel?.name);
+  const chData = useCallback(() => {
+    return campaignFormData?.channel_mix
+      ?.find((ch) => ch?.funnel_stage === stage.name)
+      ?.[channel?.channel_name]?.find((c) => c?.platform_name === channel?.name);
+  }, [campaignFormData])();
 
   const obj = campaignFormData?.campaign_objectives;
 
   const formulas = {
+    // cpm: [calculateImpression, "budget.fixed_value", "kpi.impressions"],
     impressions: [calculateImpression, "budget.fixed_value", "kpi.cpm"],
     reach: [calculateReach, "kpi.impressions", "kpi.frequency"],
     video_views: [calculateVideoViews, "kpi.impressions", "kpi.vtr"],
@@ -135,6 +139,12 @@ export const ChannelRow = ({
     cpp: [calculateCPP, "budget.fixed_value", "kpi.purchases"],
   };
 
+  const adsetFormulas = {
+    cpm: [calculateImpression, "budget.fixed_value", "kpi.impressions"],
+    frequency: [calculateReach, "kpi.impressions", "kpi.reach"],
+    ctr: [calculateCTR, "kpi.link_clicks", "kpi.impressions"],
+  };
+
   // Helper function to check if a field is a percentage type
   const isPercentageField = (fieldName, headerGroup) => {
     // Extract the field name from the path (e.g., "kpi.ctr" -> "ctr")
@@ -189,7 +199,8 @@ export const ChannelRow = ({
             if (!isNaN(Number.parseFloat(value))) {
               value = Number(Number.parseFloat(value).toFixed(2)) / 100
             }
-          } else if (typeof value === "number" && value > 1) {
+          } else if (typeof value === "number") {
+            console.log("🚀 ~ value:", value)
             // If it's a number greater than 1, assume it's in percentage format (e.g., 10 for 10%)
             value = value / 100
           }
@@ -211,6 +222,9 @@ export const ChannelRow = ({
     // Check if any KPI input values have changed
     const inputFields = [
       "cpm",
+      "reach",
+      "link_clicks",
+      "impressions",
       "frequency",
       "vtr",
       "completion_rate",
@@ -239,9 +253,9 @@ export const ChannelRow = ({
   // Memoize calculated values to prevent unnecessary recalculations
   const getCalculatedValues = () => {
     if (!chData) return {}
-  
+  // console.log((campaignFormData?.campaign_budget?.level === "Adset level" ? adsetFormulas :formulas))
     return Object.fromEntries(
-      Object.entries(formulas).map(([key, [fn, ...args]]) => [
+      Object.entries((campaignFormData?.campaign_budget?.level === "Adset level" ? adsetFormulas :formulas))?.map(([key, [fn, ...args]]) => [
         key,
         typeof fn === "function"
           ? fn.apply(
@@ -257,12 +271,16 @@ export const ChannelRow = ({
 
   // Calculate values only when needed
   const calculatedValues = getCalculatedValues();
+  // console.log("🚀 ~ calculatedValues:", calculatedValues)
 
   // Effect to handle calculations and updates
   useEffect(() => {
+    console.log("triggered")
     // Skip if we don't have channel data
     if (!chData) return;
-    if (campaignFormData?.goal_level === "Adset level") {
+    if (campaignFormData?.campaign_budget?.level === "Adset level") {
+      // debugger;
+      console.log("here called")
       // Check if we need to recalculate (data has changed)
       const needsRecalculation = hasRelevantChanges(
         prevChannelDataRef.current,
@@ -271,6 +289,7 @@ export const ChannelRow = ({
 
       // Only process if we haven't processed this data yet or if relevant data has changed
       if (!hasProcessed || needsRecalculation) {
+        console.log("called here ")
         // Store current channel data for future comparison
         prevChannelDataRef.current = JSON.parse(JSON.stringify(chData));
 
@@ -291,24 +310,24 @@ export const ChannelRow = ({
           // Apply all updates
           updates.forEach(([key, value]) => {
             updatedKpi[key] = value;
+            // Mark this KPI object as manually calculated
+            updatedKpi._calculated = true;
+  
+            // Update the form data with all changes at once
+            handleEditInfo(
+              stage.name,
+              channel?.channel_name,
+              channel?.name,
+              key,
+              updatedKpi[key],
+              "",
+              ""
+            );
+  
+            // Mark as processed to prevent infinite loops
+            setHasProcessed(true);
           });
 
-          // Mark this KPI object as manually calculated
-          updatedKpi._calculated = true;
-
-          // Update the form data with all changes at once
-          handleEditInfo(
-            stage.name,
-            channel?.channel_name,
-            channel?.name,
-            "kpi",
-            updatedKpi,
-            "",
-            ""
-          );
-
-          // Mark as processed to prevent infinite loops
-          setHasProcessed(true);
         }
       }
     } else {
@@ -329,6 +348,10 @@ export const ChannelRow = ({
     }
   }, [
     // Only include dependencies that should trigger recalculation
+    chData?.kpi?.impressions,
+    chData?.kpi?.ctr,
+    chData?.kpi?.link_clicks,
+    chData?.kpi?.reach,
     chData?.budget?.fixed_value,
     chData?.kpi?.cpm,
     chData?.kpi?.frequency,

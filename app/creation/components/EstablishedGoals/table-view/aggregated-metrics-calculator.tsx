@@ -37,7 +37,6 @@ export function useAggregatedMetrics() {
       ].forEach((channelType) => {
         if (!stage[channelType] || !Array.isArray(stage[channelType])) return;
 
-        // Process each platform in the channel type
         stage[channelType].forEach((platform) => {
           const adSets = platform.ad_sets || [];
 
@@ -93,21 +92,24 @@ export function useAggregatedMetrics() {
               const adSetValue = Number(adSet.kpi?.[metric]);
               if (!isNaN(adSetValue) && isFinite(adSetValue)) {
                 adSetsSum += adSetValue;
+                // console.log({kpi: adSet.kpi, metric, value: adSet.kpi[metric], sum: adSetsSum});
                 hasValidAdSetValues = true;
               }
             });
 
             // Only update if we have valid values to add
             if (hasValidAdSetValues) {
+              // console.log(hasValidAdSetValues)
               // Only update if the value would change
               const currentValue = Number(platform.kpi[metric]) || 0;
-              if (Math.abs(currentValue - adSetsSum) > 0.001) {
+              // if (Math.abs(currentValue - adSetsSum) > 0.001) {
                 // Use small epsilon for floating point comparison
                 platform.kpi[metric] = adSetsSum;
+                // console.log({kpi: platform.kpi, metric, value: adSetsSum});
                 // Mark this KPI object as having aggregated values
                 platform.kpi._aggregated = true;
                 hasChanges = true;
-              }
+              // }
             }
           });
         });
