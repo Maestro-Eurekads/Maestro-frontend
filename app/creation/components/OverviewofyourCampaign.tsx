@@ -301,7 +301,7 @@ const OverviewofyourCampaign = () => {
     <div>
       <div className="flex flex-row justify-between">
         <div />
-        <SaveProgressButton setIsOpen={undefined} />
+        <SaveProgressButton deskTopShow={undefined} setDeskTopShow={undefined} />
       </div>
       {alert && <AlertMain alert={alert} />}
       {createsSuccess && toast.success("Media plan version created!")}

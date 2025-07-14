@@ -137,7 +137,7 @@ const PlanCampaignSchedule: React.FC = () => {
 						Edit
 					</button>
 				)} */}
-        <SaveProgressButton setIsOpen={undefined} />
+        <SaveProgressButton deskTopShow={undefined} setDeskTopShow={undefined} />
       </div>
       {/* @ts-ignore      */}
       {alert && <AlertMain alert={alert} />}

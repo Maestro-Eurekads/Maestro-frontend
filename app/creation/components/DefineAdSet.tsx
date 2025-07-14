@@ -33,7 +33,7 @@ const DefineAdSet = () => {
           t2={"Specify the details and audiences for each ad set within your campaign."}
           span={1}
         />
-        <SaveProgressButton setIsOpen={undefined} />
+        <SaveProgressButton deskTopShow={undefined} setDeskTopShow={undefined} />
       </div>
 
       <DefineAdSetPage view={view} onToggleChange={handleToggleChange} />

@@ -16,12 +16,13 @@ const DayInterval: React.FC<DayIntervalProps> = ({ daysCount, src , range}) => {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: `repeat(${daysCount},1fr )`,
+          gridTemplateColumns: `repeat(${ddRange?.length},1fr )`,
         }}
       >
-        {Array.from({ length: daysCount }, (_, i) => {
+        {Array.from({ length: ddRange?.length }, (_, i) => {
           const isEdge = i === 0 || i === (src==="dashboard" ? range.length : ddRange?.length - 1);
           const date = src==="dashboard" ? range[i] :ddRange[i]
+          console.log(ddRange)
           return (
             <div key={i} className="flex flex-col items-center relative">
               {/* Week Label */}

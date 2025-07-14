@@ -8,8 +8,10 @@ import icroundadd from "../public/ic_round-add.svg"
 import { useFunnelContext } from "../app/utils/FunnelContextType"
 import { useCampaigns } from "app/utils/CampaignsContext"
 import moment from "moment"
-import { useDateRange } from "src/date-context"
+import { useDateRange as useDRange } from "src/date-context"
+import { useDateRange  } from "src/date-range-context"
 import { getCurrencySymbol } from "./data"
+import { addDays, format, subDays } from "date-fns"
 
 interface DraggableChannelProps {
   id?: string
@@ -81,7 +83,8 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   const isDragging = useRef<{ startX: number; startPos: number } | null>(null)
   const draftCampaignFormRef = useRef<any>(null)
   const { campaignFormData, setCampaignFormData } = useCampaigns()
-  const { range } = useDateRange()
+  const { range } = useDRange()
+  const {range:rrange, extendRange} = useDateRange()
 
   const [tooltip, setTooltip] = useState<TooltipState>({
     visible: false,
@@ -203,10 +206,12 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     document.addEventListener("mousemove", handleMouseMoveResize)
     document.addEventListener("mouseup", handleMouseUp)
   }
-
   // const handleMouseMoveResize = (e: MouseEvent) => {
   //   if (!isResizing.current) return
   //   const { startX, startWidth, startPos, direction } = isResizing.current
+
+  //   let newWidth = startWidth
+  //   let newPos = startPos
 
   //   const gridContainer = document.querySelector(".grid-container") as HTMLElement
   //   if (!gridContainer) return
@@ -215,30 +220,37 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   //   const minX = 0
   //   const maxX = containerRect.width - 45
 
-  //   let newWidth = startWidth
-  //   let newPos = startPos
-
   //   if (direction === "left") {
-  //     // Calculate the new left position
   //     const deltaX = e.clientX - startX
-  //     newPos = Math.max(minX, Math.min(startPos + deltaX, maxX - 50))
-  //     newPos = snapToTimeline(newPos, containerRect.width)
+  //     newWidth = Math.max(50, startWidth - deltaX)
+  //     newPos = Math.max(minX, startPos + deltaX)
 
-  //     // Calculate new width to keep the right edge fixed
-  //     const originalRightEdge = startPos + startWidth
-  //     newWidth = Math.max(50, originalRightEdge - newPos)
+  //     const snappedPos = snapToTimeline(newPos, containerRect.width)
+  //     newWidth = startWidth - (snappedPos - startPos)
+  //     newPos = snappedPos
   //   } else {
-  //     // Right resize: only adjust width, keep position fixed
+  //     // 👉 Right resize: lock position, grow width only
   //     const deltaX = e.clientX - startX
-  //     newWidth = Math.max(50, startWidth + deltaX)
-  //     newWidth = snapToTimeline(newWidth, containerRect.width)
-  //     newPos = startPos
+  //     const rawNewWidth = startWidth + deltaX
+
+  //     const rightEdgePos = startPos + rawNewWidth
+  //     const snappedRightEdge = snapToTimeline(rightEdgePos, containerRect.width)
+
+  //     newWidth = Math.max(50, snappedRightEdge - startPos)
+  //     newPos = startPos // ⚠️ lock left edge
   //   }
 
+  //   // Convert pixel positions to dates
   //   const startDate = pixelToDate(newPos, containerRect.width)
   //   const endDate = pixelToDate(newPos + newWidth, containerRect.width, "endDate")
 
+  //   if ((startDate) < rrange[0] || endDate > rrange[rrange.length - 1]) {
+  //     extendRange(format(startDate, "yyyy-MM-dd"), format(endDate, "yyyy-MM-dd"));
+  //   }
+
+  //   // Prepare updated channel mix
   //   const updatedChannelMix = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === description)
+
   //   if (updatedChannelMix) {
   //     updatedChannelMix.funnel_stage_timeline_start_date = moment(startDate).format("YYYY-MM-DD")
   //     updatedChannelMix.funnel_stage_timeline_end_date = moment(endDate).format("YYYY-MM-DD")
@@ -266,172 +278,156 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   //         })
   //       }
   //     })
-
-  //     const allStartDates = campaignFormData?.channel_mix
-  //       ?.map((ch) => ch?.funnel_stage_timeline_start_date && moment(ch.funnel_stage_timeline_start_date))
-  //       .filter((date) => date)
-  //     const allEndDates = campaignFormData?.channel_mix
-  //       ?.map((ch) => ch?.funnel_stage_timeline_end_date && moment(ch.funnel_stage_timeline_end_date))
-  //       .filter((date) => date)
-
-  //     const minStartDate = moment.min(allStartDates).format("YYYY-MM-DD")
-  //     const maxEndDate = moment.max(allEndDates).format("YYYY-MM-DD")
-
-  //     draftCampaignFormRef.current = {
-  //       ...campaignFormData,
-  //       channel_mix: campaignFormData.channel_mix.map((ch) => (ch.funnel_stage === description ? updatedChannelMix : ch)),
-  //       ...(range === "Year" && {
-  //         campaign_timeline_start_date: minStartDate,
-  //         campaign_timeline_end_date: maxEndDate,
-  //       }),
-  //     }
   //   }
 
-  //   setParentWidth?.(newWidth)
-  //   setParentLeft?.(newPos)
+  //   const allStartDates = campaignFormData?.channel_mix
+  //     ?.map((ch) => ch?.funnel_stage_timeline_start_date && moment(ch.funnel_stage_timeline_start_date))
+  //     .filter((date) => date) // Filter out null or undefined dates
+
+  //   const allEndDates = campaignFormData?.channel_mix
+  //     ?.map((ch) => ch?.funnel_stage_timeline_end_date && moment(ch.funnel_stage_timeline_end_date))
+  //     .filter((date) => date) // Filter out null or undefined dates
+
+  //   const minStartDate = moment.min(allStartDates).format("YYYY-MM-DD")
+  //   // console.log("🚀 ~ handleMouseMoveResize ~ minStartDate:", minStartDate)
+  //   const maxEndDate = moment.max(allEndDates).format("YYYY-MM-DD")
+  //   // console.log("🚀 ~ handleMouseMoveResize ~ maxEndDate:", maxEndDate)
+
+  //   // 💡 Only buffer the data here; flush on mouseup
+  //   draftCampaignFormRef.current = {
+  //     ...campaignFormData,
+  //     channel_mix: campaignFormData.channel_mix.map((ch) => (ch.funnel_stage === description ? updatedChannelMix : ch)),
+  //     ...(range === "Year" && {
+  //       campaign_timeline_start_date: minStartDate,
+  //       campaign_timeline_end_date: maxEndDate,
+  //     }),
+  //   }
+
+  //   // Update visual size/position immediately
+  //   setParentWidth(newWidth)
+  //   setParentLeft(newPos)
   //   setPosition(newPos)
 
   //   updateTooltipWithDates(newPos, newPos + newWidth, e.clientX, e.clientY, "resize")
   // }
 
-  
   const handleMouseMoveResize = (e: MouseEvent) => {
     if (!isResizing.current) return;
     const { startX, startWidth, startPos, direction } = isResizing.current;
-
+  
+    const gridContainer = document.querySelector(".grid-container");
+    if (!gridContainer) return;
+  
+    const containerRect = gridContainer.getBoundingClientRect();
     let newWidth = startWidth;
     let newPos = startPos;
-
-    // Get the grid container
-    const gridContainer = document.querySelector(
-      ".grid-container"
-    ) as HTMLElement;
-    if (!gridContainer) return;
-
-    // Get container boundaries
-    const containerRect = gridContainer.getBoundingClientRect();
-    const minX = 0;
-    const maxX = containerRect.width - 45;
-
+  
+    const mouseX = e.clientX - containerRect.left;
+  
+    const rangeStart = rrange[0];
+    const rangeEnd = rrange[rrange.length - 1];
+  
     if (direction === "left") {
-      // Calculate new position and width for left resize
       const deltaX = e.clientX - startX;
+      newPos = Math.max(0, startPos + deltaX);
       newWidth = Math.max(50, startWidth - deltaX);
-      newPos = Math.max(minX, startPos + deltaX);
-
-      // Apply snapping to the left edge position
-      const snappedPos = snapToTimeline(newPos, containerRect.width);
-
-      // Adjust width based on the snapped position
-      newWidth = startWidth - (snappedPos - startPos);
-      newPos = snappedPos;
+      newPos = snapToTimeline(newPos, containerRect.width);
+      newWidth = startWidth - (newPos - startPos);
+  
+      if (mouseX < 50) {
+        const newRangeStart = subDays(rangeStart, 2);
+        extendRange(
+          newRangeStart.toISOString().split("T")[0],
+          rangeEnd.toISOString().split("T")[0]
+        );
+      }
     } else {
-      // For right resize, calculate the new width
       const deltaX = e.clientX - startX;
-      const rawNewWidth = startWidth + deltaX;
-
-      // Calculate where the right edge would be
-      const rightEdgePos = startPos + rawNewWidth;
-
-      // Snap the right edge to the timeline
-      const snappedRightEdge = snapToTimeline(
-        rightEdgePos,
-        containerRect.width
-      );
-
-      // Calculate the new width based on the snapped right edge
+      const rightEdgePos = startPos + startWidth + deltaX;
+      const snappedRightEdge = snapToTimeline(rightEdgePos, containerRect.width);
       newWidth = Math.max(50, snappedRightEdge - startPos);
+  
+      if (mouseX > containerRect.width - 50) {
+        const newRangeEnd = addDays(rangeEnd, 2);
+        extendRange(
+          rangeStart.toISOString().split("T")[0],
+          newRangeEnd.toISOString().split("T")[0]
+        );
+      }
     }
-
-    // Convert pixel positions to dates
+  
     const startDate = pixelToDate(newPos, containerRect.width);
-    const endDate = pixelToDate(
-      newPos + newWidth,
-      containerRect.width,
-      "endDate"
-    );
+    const endDate = pixelToDate(newPos + newWidth, containerRect.width);
 
-    const updatedChannelMix = campaignFormData?.channel_mix?.find(
-      (ch) => ch?.funnel_stage === description
-    );
+      //   const updatedChannelMix = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === description)
 
-    if (updatedChannelMix) {
-      // Update funnel stage timeline dates
-      updatedChannelMix["funnel_stage_timeline_start_date"] =
-        moment(startDate).format("YYYY-MM-DD");
-      updatedChannelMix["funnel_stage_timeline_end_date"] =
-        moment(endDate).format("YYYY-MM-DD");
+  //   if (updatedChannelMix) {
+  //     updatedChannelMix.funnel_stage_timeline_start_date = moment(startDate).format("YYYY-MM-DD")
+  //     updatedChannelMix.funnel_stage_timeline_end_date = moment(endDate).format("YYYY-MM-DD")
 
-      // Loop through all media types and update platform dates
-      const mediaTypes = [
-        "social_media",
-        "display_networks",
-        "search_engines",
-        "streaming",
-        "ooh",
-        "broadcast",
-        "messaging",
-        "print",
-        "e_commerce",
-        "in_game",
-        "mobile",
-      ];
+  //     const mediaTypes = [
+  //       "social_media",
+  //       "display_networks",
+  //       "search_engines",
+  //       "streaming",
+  //       "ooh",
+  //       "broadcast",
+  //       "messaging",
+  //       "print",
+  //       "e_commerce",
+  //       "in_game",
+  //       "mobile",
+  //     ]
 
-      mediaTypes.forEach((mediaType) => {
-        const platforms = updatedChannelMix[mediaType];
-        if (platforms && Array.isArray(platforms)) {
-          platforms.forEach((platform) => {
-            // Update campaign_start_date
+  //     mediaTypes.forEach((type) => {
+  //       const platforms = updatedChannelMix[type]
+  //       if (platforms && Array.isArray(platforms)) {
+  //         platforms.forEach((platform) => {
+  //           platform.campaign_start_date = moment(startDate).format("YYYY-MM-DD")
+  //           platform.campaign_end_date = moment(endDate).format("YYYY-MM-DD")
+  //         })
+  //       }
+  //     })
+  //   }
 
-            platform.campaign_start_date =
-              moment(startDate).format("YYYY-MM-DD");
-            platform.campaign_end_date = moment(endDate).format("YYYY-MM-DD");
-          });
-        }
-      });
-    }
+  //   const allStartDates = campaignFormData?.channel_mix
+  //     ?.map((ch) => ch?.funnel_stage_timeline_start_date && moment(ch.funnel_stage_timeline_start_date))
+  //     .filter((date) => date) // Filter out null or undefined dates
 
-    const allStartDates = campaignFormData?.channel_mix?.map(
-      (ch) => moment(ch.funnel_stage_timeline_start_date)
-    );
-    const allEndDates = campaignFormData?.channel_mix?.map(
-      (ch) => moment(ch.funnel_stage_timeline_end_date)
-    );
+  //   const allEndDates = campaignFormData?.channel_mix
+  //     ?.map((ch) => ch?.funnel_stage_timeline_end_date && moment(ch.funnel_stage_timeline_end_date))
+  //     .filter((date) => date) // Filter out null or undefined dates
 
-    const minStartDate = moment.min(allStartDates).format("YYYY-MM-DD");
-    const maxEndDate = moment.max(allEndDates).format("YYYY-MM-DD");
+  //   const minStartDate = moment.min(allStartDates).format("YYYY-MM-DD")
+  //   // console.log("🚀 ~ handleMouseMoveResize ~ minStartDate:", minStartDate)
+  //   const maxEndDate = moment.max(allEndDates).format("YYYY-MM-DD")
+  //   // console.log("🚀 ~ handleMouseMoveResize ~ maxEndDate:", maxEndDate)
 
-    // setCampaignFormData((prev) => ({
-    //   ...prev,
-    //   channel_mix: prev.channel_mix.map((ch) =>
-    //   ch.funnel_stage === description ? updatedChannelMix : ch
-    //   ),
-    //   campaign_timeline_start_date: minStartDate,
-    //   campaign_timeline_end_date: maxEndDate,
-    // }));
-
+  //   // 💡 Only buffer the data here; flush on mouseup
+  //   draftCampaignFormRef.current = {
+  //     ...campaignFormData,
+  //     channel_mix: campaignFormData.channel_mix.map((ch) => (ch.funnel_stage === description ? updatedChannelMix : ch)),
+  //     ...(range === "Year" && {
+  //       campaign_timeline_start_date: minStartDate,
+  //       campaign_timeline_end_date: maxEndDate,
+  //     }),
+  //   }
+  
     setParentWidth(newWidth);
     setParentLeft(newPos);
     setPosition(newPos);
-
-    // Update tooltip during resize
-    updateTooltipWithDates(
-      newPos,
-      newPos + newWidth,
-      e.clientX,
-      e.clientY,
-      "resize"
-    );
-
-    console.log(campaignFormData?.channel_mix?.find((ch)=>ch.funnel_stage === id));
-  };
   
+    updateTooltipWithDates(newPos, newPos + newWidth, e.clientX, e.clientY, "resize");
+  };
+
   const handleMouseDownDrag = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (disableDrag || openItems) return
+    // setOpenChannel(false)
+    if (disableDrag) return
     e.preventDefault()
 
+    // Add tooltip on drag start
     const startPixel = position
-    const endPixel = startPixel + (parentWidth || 0)
+    const endPixel = startPixel + parentWidth
     updateTooltipWithDates(startPixel, endPixel, e.clientX, e.clientY, "drag")
 
     isDragging.current = { startX: e.clientX, startPos: position }
@@ -439,78 +435,112 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     document.addEventListener("mouseup", handleMouseUp)
   }
 
+  // const handleMouseMoveDrag = (e: MouseEvent) => {
+  //   // setOpenChannel(false)
+  //   if (!isDragging.current) return
+  //   const { startX, startPos } = isDragging.current
+
+  //   const gridContainer = document.querySelector(".grid-container") as HTMLElement
+  //   if (!gridContainer) return
+
+  //   const containerRect = gridContainer.getBoundingClientRect()
+  //   const minX = 0
+  //   const maxX = containerRect.width - 45 - parentWidth
+
+  //   let newPosition = startPos + (e.clientX - startX)
+  //   newPosition = Math.max(minX, Math.min(newPosition, maxX))
+
+  //   // Snap to the nearest grid position
+  //   newPosition = snapToTimeline(newPosition, containerRect.width)
+
+  //   // Smoothly update the position using requestAnimationFrame
+  //   requestAnimationFrame(() => {
+  //     setParentLeft(newPosition)
+  //     setPosition(newPosition)
+  //   })
+
+  //   // Calculate start and end pixel positions
+  //   const startPixel = newPosition
+  //   const endPixel = startPixel + parentWidth
+
+  //   // Convert pixel positions to dates
+  //   const startDate = pixelToDate(startPixel, containerRect.width)
+  //   const endDate = pixelToDate(endPixel, containerRect.width, "endDate")
+
+  //   const updatedChannelMix = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === description)
+
+  //   if (updatedChannelMix) {
+  //     updatedChannelMix["funnel_stage_timeline_start_date"] = moment(startDate).format("YYYY-MM-DD")
+  //     updatedChannelMix["funnel_stage_timeline_end_date"] = moment(endDate).format("YYYY-MM-DD")
+
+  //     const allStartDates = campaignFormData?.channel_mix?.map((ch) => moment(ch.funnel_stage_timeline_start_date))
+  //     const allEndDates = campaignFormData?.channel_mix?.map((ch) => moment(ch.funnel_stage_timeline_end_date))
+
+  //     const minStartDate = moment.min(allStartDates).format("YYYY-MM-DD")
+  //     // console.log("🚀 ~ handleMouseMoveDrag ~ minStartDate:", minStartDate)
+  //     const maxEndDate = moment.max(allEndDates).format("YYYY-MM-DD")
+  //     // console.log("🚀 ~ handleMouseMoveDrag ~ maxEndDate:", maxEndDate)
+
+  //     draftCampaignFormRef.current = {
+  //       ...campaignFormData,
+  //       channel_mix: campaignFormData.channel_mix.map((ch) =>
+  //         ch.funnel_stage === description ? updatedChannelMix : ch,
+  //       ),
+  //       ...(range === "Year" && {
+  //         campaign_timeline_start_date: minStartDate,
+  //         campaign_timeline_end_date: maxEndDate,
+  //       }),
+  //     }
+  //   }
+
+  //   // Update tooltip during drag
+  //   updateTooltipWithDates(newPosition, newPosition + parentWidth, e.clientX, e.clientY, "drag")
+  // }
+
   const handleMouseMoveDrag = (e: MouseEvent) => {
-    if (!isDragging.current) return
-    const { startX, startPos } = isDragging.current
-
-    const gridContainer = document.querySelector(".grid-container") as HTMLElement
-    if (!gridContainer) return
-
-    const containerRect = gridContainer.getBoundingClientRect()
-    const minX = 0
-    const maxX = containerRect.width - (parentWidth || 0) - 45
-
-    let newPosition = startPos + (e.clientX - startX)
-    newPosition = Math.max(minX, Math.min(newPosition, maxX))
-    newPosition = snapToTimeline(newPosition, containerRect.width)
-
-    setParentLeft?.(newPosition)
-    setPosition(newPosition)
-
-    const startDate = pixelToDate(newPosition, containerRect.width)
-    const endDate = pixelToDate(newPosition + (parentWidth || 0), containerRect.width, "endDate")
-
-    const updatedChannelMix = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === description)
-    if (updatedChannelMix) {
-      updatedChannelMix.funnel_stage_timeline_start_date = moment(startDate).format("YYYY-MM-DD")
-      updatedChannelMix.funnel_stage_timeline_end_date = moment(endDate).format("YYYY-MM-DD")
-
-      const mediaTypes = [
-        "social_media",
-        "display_networks",
-        "search_engines",
-        "streaming",
-        "ooh",
-        "broadcast",
-        "messaging",
-        "print",
-        "e_commerce",
-        "in_game",
-        "mobile",
-      ]
-
-      mediaTypes.forEach((type) => {
-        const platforms = updatedChannelMix[type]
-        if (platforms && Array.isArray(platforms)) {
-          platforms.forEach((platform) => {
-            platform.campaign_start_date = moment(startDate).format("YYYY-MM-DD")
-            platform.campaign_end_date = moment(endDate).format("YYYY-MM-DD")
-          })
-        }
-      })
-
-      const allStartDates = campaignFormData?.channel_mix
-        ?.map((ch) => ch?.funnel_stage_timeline_start_date && moment(ch.funnel_stage_timeline_start_date))
-        .filter((date) => date)
-      const allEndDates = campaignFormData?.channel_mix
-        ?.map((ch) => ch?.funnel_stage_timeline_end_date && moment(ch.funnel_stage_timeline_end_date))
-        .filter((date) => date)
-
-      const minStartDate = moment.min(allStartDates).format("YYYY-MM-DD")
-      const maxEndDate = moment.max(allEndDates).format("YYYY-MM-DD")
-
-      draftCampaignFormRef.current = {
-        ...campaignFormData,
-        channel_mix: campaignFormData.channel_mix.map((ch) => (ch.funnel_stage === description ? updatedChannelMix : ch)),
-        ...(range === "Year" && {
-          campaign_timeline_start_date: minStartDate,
-          campaign_timeline_end_date: maxEndDate,
-        }),
-      }
+    if (!isDragging.current) return;
+    const { startX, startPos } = isDragging.current;
+  
+    const gridContainer = document.querySelector(".grid-container");
+    if (!gridContainer) return;
+  
+    const containerRect = gridContainer.getBoundingClientRect();
+    const minX = 0;
+    const maxX = containerRect.width - parentWidth;
+  
+    const mouseX = e.clientX - containerRect.left;
+  
+    let newPosition = startPos + (e.clientX - startX);
+    newPosition = Math.max(minX, Math.min(newPosition, maxX));
+    newPosition = snapToTimeline(newPosition, containerRect.width);
+  
+    const rangeStart = rrange[0];
+    const rangeEnd = rrange[rrange.length - 1];
+  
+    if (mouseX < 50) {
+      const newRangeStart = subDays(rangeStart, 2);
+      extendRange(
+        newRangeStart.toISOString().split("T")[0],
+        rangeEnd.toISOString().split("T")[0]
+      );
     }
-
-    updateTooltipWithDates(newPosition, newPosition + (parentWidth || 0), e.clientX, e.clientY, "drag")
-  }
+  
+    if (mouseX > containerRect.width - 50) {
+      const newRangeEnd = addDays(rangeEnd, 2);
+      extendRange(
+        rangeStart.toISOString().split("T")[0],
+        newRangeEnd.toISOString().split("T")[0]
+      );
+    }
+  
+    const startDate = pixelToDate(newPosition, containerRect.width);
+    const endDate = pixelToDate(newPosition + parentWidth, containerRect.width);
+  
+    setParentLeft(newPosition);
+    setPosition(newPosition);
+  
+    updateTooltipWithDates(newPosition, newPosition + parentWidth, e.clientX, e.clientY, "drag");
+  };
 
   const handleMouseUp = () => {
     setTooltip((prev) => ({ ...prev, visible: false }))

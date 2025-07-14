@@ -89,7 +89,7 @@ export const EstablishedGoals = () => {
       <div className="creation_continer">
         <div className="flex flex-row w-full justify-between mb-5">
           <div />
-          <SaveProgressButton setIsOpen={undefined} />
+          <SaveProgressButton deskTopShow={undefined} setDeskTopShow={undefined} />
         </div>
         <div className="flex justify-between ">
           <PageHeaderWrapper
