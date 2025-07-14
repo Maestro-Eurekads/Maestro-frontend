@@ -884,9 +884,9 @@ export const mediaTypes = [
 ];
 
 export const kpis = [
-  "cpm",
+  // "cpm",
   "impressions",
-  "frequency",
+  // "frequency",
   "reach",
   "vtr",
   "video_views",
@@ -897,7 +897,7 @@ export const kpis = [
   "eng_rate",
   "engagements",
   "cpe",
-  "ctr",
+  // "ctr",
   "link_clicks",
   "cpc",
   "click_to_land_rate",

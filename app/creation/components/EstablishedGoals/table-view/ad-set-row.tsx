@@ -179,7 +179,7 @@ export const AdSetRow = ({
             if (!isNaN(Number.parseFloat(value))) {
               value = Number(Number.parseFloat(value).toFixed(2)) / 100
             }
-          } else if (typeof value === "number" && value > 1) {
+          } else if (typeof value === "number" && value > 0) {
             // If it's a number greater than 1, assume it's in percentage format (e.g., 10 for 10%)
             value = value / 100
           }
