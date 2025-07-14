@@ -200,11 +200,11 @@ export const CellRenderer = ({
     } else {
       if(body !== "reach"  && body !== "video_views" && body !== "impressions") {
         // For other fields, round to whole numbers
-        return formatNumber(Math.round(numericValue).toFixed(0))
+        return formatNumber(Math.floor(numericValue).toFixed(0))
       }
     }
 
-    return formatNumber(Math.round(numericValue))
+    return formatNumber(Math.floor(numericValue))
   }
 
   // Validate input based on cell type
