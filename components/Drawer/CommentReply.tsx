@@ -1,3 +1,4 @@
+import moment from "moment";
 import { useEffect, useState } from "react";
 import { useAppSelector } from "store/useStore";
 
@@ -36,7 +37,7 @@ const CommentReply = ({ documentId, contrastingColor }) => {
 								<h3 className="font-medium text-[14px] text-[#292929]">{reply?.name || "?"}</h3>
 								<div className="flex gap-2 text-[11px] text-[#292929]">
 									<p>{reply?.date || "N/A"}</p>
-									<p>{reply?.time || "N/A"}</p>
+									<p>{reply?.time ? moment(reply.time, "HH:mm").format("hh:mm A") : "-"}</p>
 								</div>
 							</div>
 						</div>

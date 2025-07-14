@@ -1,4 +1,5 @@
 import { cleanName } from "components/Options";
+import moment from "moment";
 import { useEffect, useState } from "react";
 import { useAppSelector } from "store/useStore";
 
@@ -69,7 +70,7 @@ const ClientCommentReply = ({ documentId, contrastingColor }) => {
 											{reply?.date || "-"}
 										</p>
 										<p className="font-[400] text-[12px] leading-[16px] text-[#292929]">
-											{reply?.time || "-"}
+											{reply?.time ? moment(reply.time, "HH:mm").format("hh:mm A") : "-"}
 										</p>
 									</div>
 								</div>

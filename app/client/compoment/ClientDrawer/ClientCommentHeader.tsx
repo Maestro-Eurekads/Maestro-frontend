@@ -8,7 +8,7 @@ const ClientCommentHeader = ({ comment }) => {
 		? moment(comment?.createdAt).format("DD/MM/YYYY")
 		: "n/a";
 	const formattedTime = comment?.createdAt
-		? moment(comment?.createdAt).format("HH:mm")
+		? moment(comment.createdAt).format("hh:mm A") // <-- 12-hour format with AM/PM
 		: "n/a";
 
 

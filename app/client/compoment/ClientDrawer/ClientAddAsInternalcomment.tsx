@@ -19,10 +19,6 @@ const ClientAddAsInternalcomment = ({ position, setShow, campaign }) => {
 	const { addComment, isLoading, createCommentsError, comment, setComment, updatePosition } = useComments();
 	const {
 		campaignData,
-		campaignFormData,
-		setCampaignFormData,
-		cId,
-		getActiveCampaign,
 		jwt
 	} = useCampaigns();
 	const [alert, setAlert] = useState(null);
@@ -36,52 +32,13 @@ const ClientAddAsInternalcomment = ({ position, setShow, campaign }) => {
 	}
 
 
-	// const updateStatus = async (stage: string, label: string) => {
-	// 	if (!cId) return;
-	// 	try {
-	// 		const newStatus = {
-	// 			stage,
-	// 			label,
-	// 			actor: {
-	// 				id: loggedInUser?.id,
-	// 				name: loggedInUser?.username,
-	// 				role: loggedInUser?.user_type,
-	// 			},
-	// 			date: new Date().toISOString(),
-	// 		};
 
-	// 		const patchData = {
-	// 			isStatus: newStatus
-	// 		};
-
-	// 		await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`, {
-	// 			data: patchData,
-	// 		}, {
-	// 			headers: {
-	// 				Authorization: `Bearer ${jwt}`,
-	// 			},
-	// 		});
-
-
-	// 		setShow(false);
-	// 		toast.success(`Media plan marked as '${label}'`);
-	// 	} catch (error) {
-	// 		if (error?.response?.status === 401) {
-	// 			const event = new Event("unauthorizedEvent");
-	// 			window.dispatchEvent(event);
-	// 		}
-	// 		toast.error(error?.message || "Failed to update status");
-	// 	} finally {
-	// 	}
-	// };
 
 	const updateStatus = async (stage: string, label: string) => {
 		if (!client_commentID) {
 			console.warn("No campaign ID found — cannot update status");
 			return;
 		}
-
-
 
 		try {
 			const newStatus = {
@@ -103,11 +60,10 @@ const ClientAddAsInternalcomment = ({ position, setShow, campaign }) => {
 				{ headers: { Authorization: `Bearer ${jwt}` } }
 			);
 
-			console.log("✅ Status updated to", stage);
+
 			setShow(false);
 			toast.success(`Media plan marked as '${label}'`);
 		} catch (error) {
-			console.error("❌ Failed to update status:", error);
 			if (error?.response?.status === 401) {
 				const event = new Event("unauthorizedEvent");
 				window.dispatchEvent(event);
