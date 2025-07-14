@@ -37,7 +37,6 @@ export function useAggregatedMetrics() {
       ].forEach((channelType) => {
         if (!stage[channelType] || !Array.isArray(stage[channelType])) return;
 
-        // Process each platform in the channel type
         stage[channelType].forEach((platform) => {
           const adSets = platform.ad_sets || [];
 
