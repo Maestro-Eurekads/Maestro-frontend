@@ -88,90 +88,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
  const hasProceededFromFormatStep = useRef(false)
  const hasInitializedStep4 = useRef(false)
 
- // Helper function to check if format has previews
- const formatHasPreviews = (format) => {
-  return format && format.previews && format.previews.length > 0
- }
 
- // Helper function to preserve formats with previews
- const preserveFormatsWithPreviews = (platforms) => {
-  if (!platforms) return []
-  return platforms.map((platform) => {
-   if (!platform.format) return { ...platform, format: [] }
-   // Keep formats that have previews, remove others
-   const formatsWithPreviews = platform.format.filter(formatHasPreviews)
-   return { ...platform, format: formatsWithPreviews }
-  })
- }
 
- const validateFormatSelection = () => {
-  const selectedStages = campaignFormData?.funnel_stages || []
-  const validatedStages = campaignFormData?.validatedStages || {}
-  let hasValidFormat = false
 
-  for (const stage of selectedStages) {
-   const stageData = campaignFormData?.channel_mix?.find((mix) => mix?.funnel_stage === stage)
-   if (stageData) {
-    const hasFormatSelected = [
-     ...(stageData.social_media || []),
-     ...(stageData.display_networks || []),
-     ...(stageData.search_engines || []),
-     ...(stageData.streaming || []),
-     ...(stageData.ooh || []),
-     ...(stageData.broadcast || []),
-     ...(stageData.messaging || []),
-     ...(stageData.print || []),
-     ...(stageData.e_commerce || []),
-     ...(stageData.in_game || []),
-     ...(stageData.mobile || []),
-    ].some(
-     (platform) =>
-      (platform.format?.length > 0 && platform.format.some((f) => f.format_type && f.num_of_visuals)) ||
-      platform.ad_sets?.some((adset) => adset.format?.some((f) => f.format_type && f.num_of_visuals)),
-    )
 
-    const isStageValidated = validatedStages[stage]
-    if (hasFormatSelected || isStageValidated) {
-     hasValidFormat = true
-     break
-    }
-   }
-  }
-
-  return hasValidFormat
- }
-
- // Modified useEffect to preserve formats with previews
- useEffect(() => {
-  if (active === 4 && !hasProceededFromFormatStep.current && !hasInitializedStep4.current) {
-   hasInitializedStep4.current = true
-   setCampaignFormData((prevFormData) => ({
-    ...prevFormData,
-    channel_mix:
-     prevFormData.channel_mix?.map((mix) => ({
-      ...mix,
-      social_media: preserveFormatsWithPreviews(mix.social_media),
-      display_networks: preserveFormatsWithPreviews(mix.display_networks),
-      search_engines: preserveFormatsWithPreviews(mix.search_engines),
-      streaming: preserveFormatsWithPreviews(mix.streaming),
-      ooh: preserveFormatsWithPreviews(mix.ooh),
-      broadcast: preserveFormatsWithPreviews(mix.broadcast),
-      messaging: preserveFormatsWithPreviews(mix.messaging),
-      print: preserveFormatsWithPreviews(mix.print),
-      e_commerce: preserveFormatsWithPreviews(mix.e_commerce),
-      in_game: preserveFormatsWithPreviews(mix.in_game),
-      mobile: preserveFormatsWithPreviews(mix.mobile),
-     })) || [],
-    validatedStages: {},
-   }))
-
-   // Check if there are any formats with previews
-   const hasExistingPreviews = campaignFormData.channel_mix?.some((mix) =>
-    CHANNEL_TYPES.some(({ key }) => mix[key]?.some((platform) => platform.format?.some(formatHasPreviews))),
-   )
-   setHasFormatSelected(hasExistingPreviews)
-  }
- }, [active, setCampaignFormData])
 
  // Reset initialization flag when leaving step 4
  useEffect(() => {
@@ -180,11 +100,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   }
  }, [active])
 
- // Update hasFormatSelected and log state
- useEffect(() => {
-  const isFormatSelected = validateFormatSelection()
-  setHasFormatSelected(isFormatSelected)
- }, [active, campaignFormData])
+
 
  useEffect(() => {
   if (typeof window !== "undefined" && cId) {
@@ -199,35 +115,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   }
  }, [triggerFormatError, cId])
 
- const validateBuyObjectiveSelection = () => {
-  const selectedStages = campaignFormData?.funnel_stages || []
-  const validatedStages = campaignFormData?.validatedStages || {}
 
-  if (!selectedStages.length || !campaignFormData?.channel_mix) {
-   return false
-  }
 
-  for (const stage of selectedStages) {
-   const stageData = campaignFormData.channel_mix.find((mix) => mix.funnel_stage === stage)
-   if (stageData && validatedStages[stage]) {
-    const hasValidChannel = CHANNEL_TYPES.some((channel) =>
-     (stageData[channel.key] || []).some((platform) => platform.buy_type && platform.objective_type),
-    )
-    if (hasValidChannel) {
-     return true
-    }
-   }
-  }
-  return false
- }
 
- const validateChannelSelection = () => {
-  const selectedStages = campaignFormData?.funnel_stages || []
-  if (!selectedStages.length || !campaignFormData?.channel_mix) {
-   return false
-  }
-  return campaignFormData.channel_mix.some((mix) => CHANNEL_TYPES.some((channel) => mix[channel.key]?.length > 0))
- }
 
  // --- Custom back handler for active === 5 to persist step 4 if user had format selected and continued ---
  const handleBack = () => {
@@ -316,14 +206,14 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       onClick={handleBack}
       disabled={active === 0 && subStep === 0}
      >
-      <Image src={Back || "/placeholder.svg"} alt="Back" />
+      <Image src={Back} alt="Back" />
       <p>Back</p>
      </button>
     )}
     {active === 10 ? (
      <button className="bottom_black_next_btn hover:bg-blue-500" onClick={() => setIsOpen(true)}>
       <p>Confirm</p>
-      <Image src={Continue || "/placeholder.svg"} alt="Continue" />
+      <Image src={Continue} alt="Continue" />
      </button>
     ) : (
      <div className="flex justify-center items-center gap-3">
@@ -364,7 +254,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             ? "Not mandatory step, skip"
             : "Continue"}
          </p>
-         <Image src={Continue || "/placeholder.svg"} alt="Continue" />
+         <Image src={Continue} alt="Continue" />
         </>
        )}
       </button>

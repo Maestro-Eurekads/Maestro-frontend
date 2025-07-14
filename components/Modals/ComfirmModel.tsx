@@ -303,14 +303,13 @@ import { useUserPrivileges } from 'utils/userPrivileges';
 import { SVGLoader } from 'components/SVGLoader';
 
 const ComfirmModel = ({ isOpen, setIsOpen }) => {
-	const router = useRouter();
-	const { setActive, setSubStep } = useActive();
 	const [loading, setLoading] = useState(false);
 	const [step, setStep] = useState<'creator' | 'internal_approver' | 'client' | null>(null);
 	const [statusMessage, setStatusMessage] = useState('');
 	const [title, setTitle] = useState('');
 	const [showSharePrompt, setShowSharePrompt] = useState(false);
 	const [showVersionPrompt, setShowVersionPrompt] = useState(false);
+	const [showPlanInfoModal, setShowPlanInfoModal] = useState(false); // New state for plan info modal
 	const [versionAction, setVersionAction] = useState<'maintain' | 'new' | null>(null);
 
 	const query = useSearchParams();
@@ -342,29 +341,30 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 	const stage = campaignData?.isStatus?.stage;
 
 	// Check if user is an assigned approver
-	const isAssignedInternalApprover = isInternalApprover && campaignData?.media_plan_details?.internal_approver?.includes(String(loggedInUser?.id));
-	const isAssignedClientApprover = isClient && campaignData?.media_plan_details?.client_approver?.includes(String(loggedInUser?.id));
-	const isNotApprover = !campaignData?.media_plan_details?.internal_approver?.includes(String(loggedInUser?.id)) &&
+	const isAssignedInternalApprover =
+		isInternalApprover &&
+		campaignData?.media_plan_details?.internal_approver?.includes(String(loggedInUser?.id));
+	const isAssignedClientApprover =
+		isClient && campaignData?.media_plan_details?.client_approver?.includes(String(loggedInUser?.id));
+	const isNotApprover =
+		!campaignData?.media_plan_details?.internal_approver?.includes(String(loggedInUser?.id)) &&
 		!campaignData?.media_plan_details?.client_approver?.includes(String(loggedInUser?.id));
 
 	useEffect(() => {
 		if (!campaignData || !isOpen) return;
 
-		// Check if plan is approved
 		if (stage === 'approved') {
-			toast.error('This plan has been approved.');
-			setIsOpen(false);
+			setShowVersionPrompt(true);
+			setIsOpen(true);
 			setStep(null);
 			return;
 		}
 
-		// Handle missing stage or draft for creators
 		if (!stage || stage === 'draft') {
-			if (isCreator && isNotApprover) {
+			if (isCreator || isNotApprover || isInternalApprover || isAdmin) {
 				setStep('creator');
 				setTitle('Media plan completed, well done!');
 				setStatusMessage('Ready to ask for approval?');
-				toast.info('Creating a new media plan. You can request approval.');
 			} else {
 				toast.error('Only the campaign creator who is not an approver can request approval.');
 				setIsOpen(false);
@@ -372,22 +372,32 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 			return;
 		}
 
-		// Allow assigned approvers to act in any stage
-		if (isAssignedInternalApprover) {
+		if (isInternalApprover || isAdmin) {
 			setStep('internal_approver');
 			setTitle('Review Media Plan');
 			setStatusMessage('Do you want to approve internally or request changes?');
-			toast.info('Please review the media plan for internal approval.');
-		} else if (isAssignedClientApprover) {
+		} else if (isClientApprover) {
 			setStep('client');
 			setTitle('Review Media Plan');
 			setStatusMessage('Do you want to approve the media plan or request changes?');
-			toast.info('Please review the media plan for client approval.');
 		} else {
 			toast.error('You are not authorized to take action on this plan.');
 			setIsOpen(false);
 		}
-	}, [stage, isCreator, isAssignedInternalApprover, isAssignedClientApprover, isNotApprover, isOpen, setIsOpen, campaignData]);
+	}, [
+		stage,
+		isCreator,
+		isAssignedInternalApprover,
+		isAssignedClientApprover,
+		isNotApprover,
+		isOpen,
+		setIsOpen,
+		campaignData,
+		isAdmin,
+		isInternalApprover,
+		isClientApprover,
+		isClient,
+	]);
 
 	const updateStatus = async (stage, label, versionData = null) => {
 		if (!cId) {
@@ -413,9 +423,8 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 				...(stage === 'shared_with_client' && { isApprove: true }),
 			};
 
-			if (stage === 'internally_approved' || stage === 'approved') {
+			if (stage === 'internally_approved') {
 				basePatchData.media_plan_details = {
-					...campaignData?.media_plan_details,
 					plan_name: campaignData?.media_plan_details?.plan_name || '',
 					internal_approver: (campaignData?.media_plan_details?.internal_approver || []).map(
 						(approver) => String(approver.id)
@@ -423,19 +432,12 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 					client_approver: (campaignData?.media_plan_details?.client_approver || []).map(
 						(approver) => String(approver.id)
 					),
-					approved_by: [
-						...(campaignData?.media_plan_details?.approved_by || []).map((id) => String(id)),
-						String(loggedInUser?.id),
-					],
+					approved_by: [String(loggedInUser?.id)],
 				};
 			}
 
 			if (versionData) {
-				basePatchData.campaign_version = versionData.version;
-				basePatchData.media_plan_details = {
-					...campaignData?.media_plan_details,
-					plan_name: versionData.plan_name,
-				};
+				basePatchData.campaign_version = versionData.version.toString();
 			}
 
 			await axios.put(
@@ -456,7 +458,42 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 			if (error?.response?.status === 401) {
 				const event = new Event('unauthorizedEvent');
 				window.dispatchEvent(event);
-				toast.error('Unauthorized access. Please log in again.');
+			} else {
+				toast.error(error?.message || 'Failed to update status');
+			}
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const updateVersion = async (stage, label, versionData = null) => {
+		if (!cId) {
+			toast.error('No campaign ID provided.');
+			return;
+		}
+		setLoading(true);
+
+		try {
+			const basePatchData = { campaign_version: versionData.version };
+
+			await axios.put(
+				`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`,
+				{ data: basePatchData },
+				{
+					headers: {
+						Authorization: `Bearer ${jwt}`,
+					},
+				}
+			);
+
+			getActiveCampaign(campaignId);
+			setIsOpen(false);
+			setShowVersionPrompt(false);
+			toast.success(`Media plan marked as '${label}'${versionData ? `: ${versionData.plan_name}` : ''}`);
+		} catch (error) {
+			if (error?.response?.status === 401) {
+				const event = new Event('unauthorizedEvent');
+				window.dispatchEvent(event);
 			} else {
 				toast.error(error?.message || 'Failed to update status');
 			}
@@ -473,27 +510,17 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 		}
 
 		if (!campaignData?.campaign_version) {
-			// First save, no version prompt needed
 			await updateStatus('in_internal_review', 'In Internal Review');
 			toast.success('Media plan submitted for internal review.');
 			return;
 		}
 
-		// Show version prompt if the plan has been saved before
 		toast.info('Please choose to maintain the same version or create a new one.');
 		setShowVersionPrompt(true);
 	};
 
-	const handleVersionChoice = async (choice: 'maintain' | 'new') => {
-		if (stage === 'approved') {
-			toast.error('This plan has been approved.');
-			setShowVersionPrompt(false);
-			setIsOpen(false);
-			return;
-		}
-
+	const handleVersionChoice = async (choice) => {
 		if (choice === 'maintain') {
-			await updateStatus('in_internal_review', 'In Internal Review');
 			toast.success('Media plan updated and submitted for internal review.');
 		} else {
 			const currentVersion = campaignData?.campaign_version || 1;
@@ -502,7 +529,7 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 				plan_name: `Media Plan V${newVersion}`,
 				version: newVersion,
 			};
-			await updateStatus('in_internal_review', 'In Internal Review', versionData);
+			await updateVersion('approved', 'Approved', versionData);
 			toast.success(`New version created: Media Plan V${newVersion}`);
 		}
 		setVersionAction(null);
@@ -519,13 +546,23 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 		if (step === 'creator') {
 			await handleSaveWithVersion();
 		} else if (step === 'internal_approver') {
-			await updateStatus('internally_approved', 'Internally Approved');
-			toast.success('Media plan approved internally.');
-			setIsOpen(false);
-			setShowSharePrompt(true);
+			if (isAdmin || isAssignedInternalApprover) {
+				await updateStatus('internally_approved', 'Internally Approved');
+				toast.success('Media plan approved internally.');
+				setIsOpen(false);
+				setShowSharePrompt(true);
+			} else {
+				toast.error('You are not authorized to approve this plan.');
+				setIsOpen(false);
+			}
 		} else if (step === 'client') {
-			await updateStatus('approved', 'Approved');
-			toast.success('Media plan approved by client.');
+			if (isAdmin || isAssignedClientApprover) {
+				await updateStatus('approved', 'Approved');
+				toast.success('Media plan approved by client.');
+			} else {
+				toast.error('You are not authorized to approve this plan.');
+				setIsOpen(false);
+			}
 		}
 	};
 
@@ -542,21 +579,97 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 		toast.success(`Requested changes for the media plan: ${label}`);
 	};
 
-	if (!isOpen || !step) return null;
+	console.log('stage---stage', stage)
+	console.log('showVersionPrompt----kk', showVersionPrompt)
+
+	if (!isOpen) return null;
 
 	return (
 		<>
-			{showVersionPrompt ? (
+			{/* Plan Information Modal */}
+			{showPlanInfoModal && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
 					<div className="relative bg-white rounded-lg w-[440px] max-w-full p-6 shadow-xl text-center">
-						<button onClick={() => {
-							toast.info('Version selection cancelled.');
-							setShowVersionPrompt(false);
-						}} className="absolute top-4 right-4">
+						<button
+							onClick={() => {
+								toast.info('Plan information modal closed.');
+								setShowPlanInfoModal(false);
+								setIsOpen(false); // Close the main modal as well
+							}}
+							className="absolute top-4 right-4"
+						>
+							<X className="w-5 h-5 text-gray-500 hover:text-gray-700" />
+						</button>
+						<h2 className="text-xl font-semibold text-[#181D27] mb-2">Plan Information</h2>
+						<div className="text-sm text-[#535862] mb-4 text-left">
+							<p>
+								<strong>Plan Name:</strong> {campaignData?.media_plan_details?.plan_name || 'N/A'}
+							</p>
+							<p>
+								<strong>Current Version:</strong> Media Plan V{campaignData?.campaign_version || '1'}
+							</p>
+							<p>
+								<strong>Status:</strong> {campaignData?.isStatus?.label || 'Draft'}
+							</p>
+							<p>
+								<strong>Internal Approvers:</strong>
+								{campaignData?.media_plan_details?.internal_approver?.length
+									? campaignData?.media_plan_details?.internal_approver
+										.map((user) => user?.username)
+										.join(', ')
+									: 'None'}
+							</p>
+							<p>
+								<strong>Client Approvers:</strong>{' '}
+								{campaignData?.media_plan_details?.client_approver?.length
+									? campaignData?.media_plan_details?.client_approver
+										.map((user) => user?.username)
+										.join(', ')
+									: 'None'}
+							</p>
+
+
+						</div>
+						<div className="flex flex-col gap-4">
+							<button
+								className="btn_model_active w-full"
+								onClick={() => {
+									toast.info('Plan information modal closed.');
+									setShowPlanInfoModal(false);
+									setIsOpen(false); // Close the main modal as well
+								}}
+							>
+								Close
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
+
+			{/* Version Prompt Modal */}
+			{showVersionPrompt && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+					<div className="relative bg-white rounded-lg w-[440px] max-w-full p-6 shadow-xl text-center">
+						<button
+							onClick={() => {
+								toast.info('Version selection cancelled.');
+								setShowVersionPrompt(false);
+								setShowPlanInfoModal(true);
+							}}
+							className="absolute top-4 right-4"
+						>
 							<X className="w-5 h-5 text-gray-500 hover:text-gray-700" />
 						</button>
 						<h2 className="text-xl font-semibold text-[#181D27] mb-2">Version Control</h2>
-						<p className="text-sm text-[#535862] mb-4">Do you want to maintain the same version or create a new version?</p>
+						<p className="text-sm text-[#535862] mb-4">
+							Do you want to maintain the same version or create a new version?
+						</p>
+						{campaignData?.campaign_version && (
+							<p className="text-xs text-[#717A8C] mt-1">
+								Current version: <span className="font-semibold">Media Plan V{campaignData.campaign_version}</span>
+							</p>
+						)}
+
 						<div className="flex flex-col gap-4">
 							<button
 								className="btn_model_active w-full"
@@ -573,13 +686,51 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 						</div>
 					</div>
 				</div>
+			)}
+
+			{/* Other Modals */}
+
+			{showVersionPrompt ? null : stage === 'shared_with_client' ? (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+					<div className="relative bg-white rounded-lg w-[440px] max-w-full p-6 shadow-xl text-center">
+						<button
+							onClick={() => {
+								toast.success('Client review acknowledged.');
+								setIsOpen(false);
+							}}
+							className="absolute top-4 right-4"
+						>
+							<X className="w-5 h-5 text-gray-500 hover:text-gray-700" />
+						</button>
+						<div className="w-full flex justify-center pt-2">
+							<div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+								<CheckCircle className="text-blue-600 w-7 h-7" />
+							</div>
+						</div>
+						<h2 className="text-xl font-semibold text-[#181D27] mb-2">Media Plan Shared with Client</h2>
+						<p className="text-sm text-[#535862] mb-4">
+							The media plan has been shared with the client and is under review.
+						</p>
+						<div className="flex flex-col gap-4 mt-4">
+							<button
+								className="btn_model_active w-full"
+								onClick={() => setIsOpen(false)}
+							>
+								OK
+							</button>
+						</div>
+					</div>
+				</div>
 			) : (stage === 'internally_approved' || step === 'internal_approver') && showSharePrompt ? (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
 					<div className="relative bg-white rounded-lg w-[440px] max-w-full p-6 shadow-xl text-center">
-						<button onClick={() => {
-							toast.info('Share with client cancelled.');
-							setIsOpen(false);
-						}} className="absolute top-4 right-4">
+						<button
+							onClick={() => {
+								toast.info('Share with client cancelled.');
+								setIsOpen(false);
+							}}
+							className="absolute top-4 right-4"
+						>
 							<X className="w-5 h-5 text-gray-500 hover:text-gray-700" />
 						</button>
 						<div className="w-full flex justify-center pt-2">
@@ -606,13 +757,16 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 						</div>
 					</div>
 				</div>
-			) : (
+			) : (stage !== "approved" &&
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
 					<div className="relative bg-white rounded-lg w-[440px] max-w-full p-6 shadow-xl text-center">
-						<button onClick={() => {
-							toast.info('Action cancelled.');
-							setIsOpen(false);
-						}} className="absolute top-4 right-4">
+						<button
+							onClick={() => {
+								toast.info('Action cancelled.');
+								setIsOpen(false);
+							}}
+							className="absolute top-4 right-4"
+						>
 							<X className="w-5 h-5 text-gray-500 hover:text-gray-700" />
 						</button>
 						<div className="w-full flex justify-center pt-2">
@@ -629,7 +783,24 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 								: statusMessage}
 						</p>
 						<div className="flex flex-col gap-4">
-							<button className="btn_model_active w-full" onClick={handleAction}>
+							<button
+								className={`btn_model_active w-full ${step === 'creator' ||
+									isAdmin ||
+									(step === 'internal_approver' && isAssignedInternalApprover) ||
+									(step === 'client' && isAssignedClientApprover)
+									? ''
+									: 'opacity-50 cursor-not-allowed'
+									}`}
+								onClick={handleAction}
+								disabled={
+									!(
+										step === 'creator' ||
+										isAdmin ||
+										(step === 'internal_approver' && isAssignedInternalApprover) ||
+										(step === 'client' && isAssignedClientApprover)
+									)
+								}
+							>
 								{loading ? (
 									<SVGLoader width="30px" height="30px" color="#fff" />
 								) : (

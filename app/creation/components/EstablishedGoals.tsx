@@ -21,8 +21,10 @@ import CampaignPhases from "./CampaignPhases";
 import DoughnutChart from "components/DoughnutChat";
 import { useComments } from "app/utils/CommentProvider";
 import SaveProgressButton from "app/utils/SaveProgressButton";
+import { useActive } from "app/utils/ActiveContext";
 
 export const EstablishedGoals = () => {
+  const { setChange } = useActive()
   const [active, setActive] = useState("Timeline View");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [step, setStep] = useState(1);
@@ -87,7 +89,7 @@ export const EstablishedGoals = () => {
       <div className="creation_continer">
         <div className="flex flex-row w-full justify-between mb-5">
           <div />
-          <SaveProgressButton setIsOpen={undefined} />
+          <SaveProgressButton deskTopShow={undefined} setDeskTopShow={undefined} />
         </div>
         <div className="flex justify-between ">
           <PageHeaderWrapper

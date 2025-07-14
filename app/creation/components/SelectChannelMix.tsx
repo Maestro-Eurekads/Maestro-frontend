@@ -13,6 +13,7 @@ import { removeKeysRecursively } from "utils/removeID";
 import { SVGLoader } from "components/SVGLoader";
 import { useComments } from "app/utils/CommentProvider";
 import SaveProgressButton from "app/utils/SaveProgressButton";
+import { useActive } from "app/utils/ActiveContext";
 
 // Simple Toast Component
 const Toast = ({ message, onClose }) => {
@@ -76,6 +77,7 @@ const getChannelTypeLabel = (type) => {
 };
 
 const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
+  const { setChange } = useActive()
   const { setIsDrawerOpen, setClose } = useComments();
   const {
     campaignFormData,
@@ -443,6 +445,7 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
     platformName: string,
     type: string
   ) => {
+    setChange(true)
     e.stopPropagation();
     togglePlatform(stageName, category, platformName, type);
   };
@@ -647,7 +650,7 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
           t2="Choose the platforms for each stage to ensure your campaign reaches the right audience at the right time."
           span={1}
         />
-        <SaveProgressButton setIsOpen={undefined} />
+        <SaveProgressButton deskTopShow={undefined} setDeskTopShow={undefined} />
       </div>
 
 

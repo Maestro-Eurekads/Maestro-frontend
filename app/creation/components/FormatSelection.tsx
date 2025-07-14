@@ -14,6 +14,7 @@ import Switch from "react-switch"
 import PageHeaderWrapper from "../../../components/PageHeaderWapper"
 import { useComments } from "app/utils/CommentProvider"
 import SaveProgressButton from "app/utils/SaveProgressButton"
+import { useActive } from "app/utils/ActiveContext"
 
 // Types
 type FormatType = {
@@ -249,7 +250,7 @@ const CreativesModal = ({
           const hasFormats = platforms.some((platform) =>
             view === "channel"
               ? platform.format?.length > 0
-              : platform.ad_sets?.some((adset) => adset.format?.length > 0),          )
+              : platform.ad_sets?.some((adset) => adset.format?.length > 0),)
 
           if (!hasFormats) return null
 
@@ -402,6 +403,7 @@ const MediaOption = ({
 
   const handleDelete = useCallback(
     (previewId: string) => {
+
       if (!previewId || !STRAPI_URL || !STRAPI_TOKEN || deletingPreviewId) {
         if (deletingPreviewId) {
           debouncedToast("Please wait until the current deletion is complete.", "error")
@@ -428,8 +430,7 @@ const MediaOption = ({
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             className={`relative text-center p-2 rounded-lg border transition 
-              ${
-                isSelected ? "border-blue-500 shadow-lg" : isHovered ? "border-blue-400 bg-blue-50" : "border-gray-300"
+              ${isSelected ? "border-blue-500 shadow-lg" : isHovered ? "border-blue-400 bg-blue-50" : "border-gray-300"
               } 
               cursor-pointer
               ${isHovered && !isSelected ? "shadow-md" : ""}
@@ -617,7 +618,7 @@ const MediaSelectionGrid = ({
                 stageName={stageName}
                 format={option.name}
                 adSetIndex={adSetIndex}
-                onPreviewsUpdate={() => {}} // No longer needed for expansion
+                onPreviewsUpdate={() => { }} // No longer needed for expansion
                 onDeletePreview={onDeletePreview}
                 completedDeletions={completedDeletions}
               />
@@ -1299,7 +1300,7 @@ export const Platforms = ({
       })
 
       if (!deleteResponse.ok) {
-          // throw new Error(`Failed to delete file from Strapi: ${deleteResponse.statusText}`)
+        // throw new Error(`Failed to delete file from Strapi: ${deleteResponse.statusText}`)
       }
 
       const updatedChannelMix = JSON.parse(JSON.stringify(campaignFormData.channel_mix))
@@ -1363,10 +1364,10 @@ export const Platforms = ({
       setDeleteQueue((prev) => prev.slice(1))
       setCompletedDeletions((prev) => new Set(prev).add(previewId))
     } catch (error: any) {
-        console.error("Error processing delete queue:", error)
-        // debouncedToast(`Failed to delete preview: ${error.message}`, "error")
-        setCompletedDeletions((prev) => new Set(prev).add(previewId))
-        setDeleteQueue((prev) => prev.slice(1))
+      console.error("Error processing delete queue:", error)
+      // debouncedToast(`Failed to delete preview: ${error.message}`, "error")
+      setCompletedDeletions((prev) => new Set(prev).add(previewId))
+      setDeleteQueue((prev) => prev.slice(1))
     } finally {
       setIsProcessingQueue(false)
     }
@@ -1548,6 +1549,7 @@ export const FormatSelection = ({
   platformName?: string
   view?: "channel" | "adset"
 }) => {
+  const { setChange } = useActive()
   const [openTabs, setOpenTabs] = useState<string[]>([])
   const [view, setView] = useState<"channel" | "adset">("channel")
   const [isCreativesModalOpen, setIsCreativesModalOpen] = useState(false)
@@ -1619,6 +1621,7 @@ export const FormatSelection = ({
 
   const handleToggleChange = useCallback(
     (checked: boolean) => {
+      setChange(true)
       const newView = checked ? "adset" : "channel"
       setView(newView)
       setCampaignFormData((prev) => ({
@@ -1643,7 +1646,7 @@ export const FormatSelection = ({
     <div>
       <div className="flex flex-row justify-between">
         <div />
-        <SaveProgressButton setIsOpen={undefined} />
+        <SaveProgressButton deskTopShow={undefined} setDeskTopShow={undefined} />
       </div>
       {!stageName && (
         <PageHeaderWrapper

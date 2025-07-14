@@ -78,7 +78,8 @@ const preserveFormatsWithPreviews = (platforms) => {
 	})
 }
 
-const SaveProgressButton = ({ setIsOpen }) => {
+const SaveProgressButton = ({ deskTopShow, setDeskTopShow }) => {
+
 	const { active, setActive, subStep, setSubStep, setChange } = useActive()
 	const { midcapEditing } = useEditing()
 	const [triggerObjectiveError, setTriggerObjectiveError] = useState(false)
@@ -317,6 +318,8 @@ const SaveProgressButton = ({ setIsOpen }) => {
 
 	const cancelSave = () => {
 		setShowSave(false)
+		setDeskTopShow(false)
+		setActive(0)
 	}
 
 	const handleContinue = () => {
@@ -324,7 +327,7 @@ const SaveProgressButton = ({ setIsOpen }) => {
 	}
 
 	const handleSave = async () => {
-		setShowSave(false)
+
 		if (active === 6) {
 			if (midcapEditing.isEditing) {
 				let errorMessage = ""
@@ -816,8 +819,12 @@ const SaveProgressButton = ({ setIsOpen }) => {
 				const event = new Event("unauthorizedEvent")
 				window.dispatchEvent(event)
 			}
+			setShowSave(false)
+			setDeskTopShow(false)
 		} finally {
 			setLoading(false)
+			setShowSave(false)
+			setDeskTopShow(false)
 		}
 	}
 
@@ -933,7 +940,7 @@ const SaveProgressButton = ({ setIsOpen }) => {
 					)
 					
 				) : (  */}
-				{active === 10 ? "" :
+				{(active === 10 || deskTopShow || !active) ? "" :
 					<div className="flex justify-center items-center gap-3">
 						<button
 							className={clsx(
@@ -949,17 +956,10 @@ const SaveProgressButton = ({ setIsOpen }) => {
 							onMouseEnter={() => setIsHovered(true)}
 							onMouseLeave={() => setIsHovered(false)}
 						>
-							{loading ? (
-								<center>
-									<BiLoader className="animate-spin" />
-								</center>
-							) : (
-								"Save"
-							)}
+							Save
 						</button>
 
 					</div>}
-				{/* )} */}
 			</div>
 			{showSave && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
@@ -979,12 +979,45 @@ const SaveProgressButton = ({ setIsOpen }) => {
 								className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
 								onClick={handleSave}
 							>
-								Save
+								{loading ? (
+									<center>
+										<BiLoader className="animate-spin" size={20} />
+									</center>
+								) : (
+									"Save"
+								)}
 							</button>
 						</div>
 					</div>
 				</div>
 			)}
+			{deskTopShow &&
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+					<div className="bg-white rounded-2xl p-6 w-[90%] max-w-md shadow-lg">
+						<h2 className="text-lg font-semibold text-gray-800 mb-2">Unsaved Changes</h2>
+						<p className="text-sm text-gray-600 mb-6">“If you leave the plan the progress will be lost”</p>
+						<p className="text-sm text-gray-600 mb-6">“Would you like to save your progress?”</p>
+						<div className="flex justify-end gap-3">
+							<button
+								className="px-4 py-2 rounded-md bg-gray-300 text-gray-800 hover:bg-gray-400"
+								onClick={cancelSave}
+							>
+								No
+							</button>
+							<button
+								className="px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700"
+								onClick={handleSave}
+							>
+								{loading ? (
+									<center>
+										<BiLoader className="animate-spin" size={20} />
+									</center>
+								) : (
+									"Yes, Save")}
+							</button>
+						</div>
+					</div>
+				</div>}
 		</div>
 	);
 };
