@@ -1,6 +1,6 @@
 "use client";
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { addDays, eachDayOfInterval, subDays, differenceInDays, parseISO } from "date-fns";
+import { addDays, eachDayOfInterval, subDays, differenceInDays, parseISO, format } from "date-fns";
 import { useCampaigns } from "app/utils/CampaignsContext";
 
 export type DateRange = {
@@ -19,7 +19,7 @@ type DateRangeContextType = {
 const DateRangeContext = createContext<DateRangeContextType | undefined>(undefined);
 
 export const DateRangeProvider = ({ children }: { children: React.ReactNode }) => {
-  const { campaignFormData } = useCampaigns();
+  const { campaignFormData, setCampaignFormData } = useCampaigns();
   const [range, setRange] = useState<Date[]>([]);
   const [dateRangeWidth, setDateRangeWidth] = useState(0);
 
@@ -51,16 +51,22 @@ export const DateRangeProvider = ({ children }: { children: React.ReactNode }) =
       let updatedEnd = currentEnd;
 
       if (newStart < currentStart) {
-        const daysToAdd = differenceInDays(currentStart, newStart) + 2;
-        updatedStart = subDays(currentStart, daysToAdd);
+        const daysToAdd = differenceInDays(currentStart, newStart) + 1;
+        updatedStart = subDays(currentStart, 1);
       }
       if (newEnd > currentEnd) {
-        const daysToAdd = differenceInDays(newEnd, currentEnd) + 2;
-        updatedEnd = addDays(currentEnd, daysToAdd);
+        const daysToAdd = differenceInDays(newEnd, currentEnd) + 1;
+        updatedEnd = addDays(currentEnd, 1);
       }
 
       if (updatedStart !== currentStart || updatedEnd !== currentEnd) {
         const newRange = eachDayOfInterval({ start: updatedStart, end: updatedEnd });
+        console.log({updatedStart, updatedEnd})
+        // setCampaignFormData((prev) => ({
+        //   ...prev,
+        //   campaign_start_date: format(updatedStart, "yyyy-MM-dd"),
+        //   campaign_end_date: format(updatedEnd,  "yyyy-MM-dd"),
+        // }))
         setRange(newRange);
       }
     },
