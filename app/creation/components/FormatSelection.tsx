@@ -1646,7 +1646,7 @@ export const FormatSelection = ({
     <div>
       <div className="flex flex-row justify-between">
         <div />
-        <SaveProgressButton deskTopShow={undefined} setDeskTopShow={undefined} />
+        <SaveProgressButton setIsOpen={undefined} />
       </div>
       {!stageName && (
         <PageHeaderWrapper

@@ -268,7 +268,7 @@ const CampaignBudget = () => {
           t4="Choose how to set your campaign budget"
           span={1}
         />
-        <SaveProgressButton deskTopShow={undefined} setDeskTopShow={undefined} />
+        <SaveProgressButton setIsOpen={undefined} />
       </div>
 
       <div className="mt-[24px] flex gap-5">
