@@ -8,8 +8,10 @@ import { FunnelStageTable } from "./funnel-stage-table"
 import { extractPlatforms } from "./data-processor"
 import Modal from "components/Modals/Modal"
 import { useAggregatedMetrics } from "./aggregated-metrics-calculator"
+import { useActive } from "app/utils/ActiveContext"
 
 const TableView = () => {
+  const { setChange } = useActive()
   const [expandedRows, setExpandedRows] = useState({})
   const { campaignFormData, setCampaignFormData, updateCampaign } = useCampaigns()
   const [isOpen, setIsOpen] = useState(false)
@@ -243,7 +245,7 @@ const TableView = () => {
 
     setMergedTableHeadersByStage(headersByStage)
     setMergedTableBodyByStage(bodyByStage)
-  }, [campaignFormData]) 
+  }, [campaignFormData])
 
   // Initialize selectedMetrics with metrics that are already in the table
   useEffect(() => {
@@ -327,6 +329,7 @@ const TableView = () => {
   // }, [JSON.stringify(campaignFormData?.channel_mix)])
 
   const handleEditInfo = (stageName, channelName, platformName, fieldName, value, adSetIndex, extraAdSetindex) => {
+    setChange(true)
     setCampaignFormData((prevData) => {
       const updatedData = { ...prevData }
       const channelMix = updatedData.channel_mix?.find((ch) => ch.funnel_stage === stageName)
@@ -459,7 +462,7 @@ const TableView = () => {
 
                 // Show if not in stage objectives, not Brand Awareness, or has selected metrics
                 return (
-                  ( objective !== "Brand Awareness") || hasSelectedMetrics
+                  (objective !== "Brand Awareness") || hasSelectedMetrics
                 )
               })
               //console.log("🚀 ~ TableView ~ filteredObjectives:filteredObjectives);
@@ -494,7 +497,7 @@ const TableView = () => {
                     ...metric,
                     obj: objective, // Add the new property 'obj' with the current objective
                   }))
-// //console.log("here", filterAvailableMetrics)
+                // //console.log("here", filterAvailableMetrics)
                 if (filterAvailableMetrics.length === 0) return null
 
                 return (

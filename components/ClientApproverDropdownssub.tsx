@@ -3,6 +3,7 @@
 import React from "react";
 import { Select } from "antd";
 import { useCampaigns } from "../app/utils/CampaignsContext";
+import { useActive } from "app/utils/ActiveContext";
 
 const { Option } = Select;
 
@@ -16,6 +17,7 @@ type MultiSelectDropdownProps = {
 
 const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({ label, options, formId }) => {
 	const { campaignFormData, setCampaignFormData } = useCampaigns();
+	const { setChange } = useActive()
 
 	// Your selectedItems (full objects) stored in form data at formId key
 	const selectedItems: any[] = campaignFormData?.[formId] || [];
@@ -25,6 +27,7 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({ label, option
 
 	// When user selects options, the newValues are the selected option values (ids)
 	const handleChange = (newValues: (number | string)[]) => {
+		setChange(true)
 		// Map newValues (ids) back to full selected objects from options or previous selectedItems
 		// We try to find matching full user object from selectedItems by id or create new minimal object
 		const mappedSelectedItems = newValues.map(val => {

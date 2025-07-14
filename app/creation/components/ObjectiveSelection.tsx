@@ -21,6 +21,7 @@ import { useCampaigns } from "../../utils/CampaignsContext"
 import { getPlatformIcon } from "../../../components/data"
 import axios from "axios"
 import { FaSpinner } from "react-icons/fa"
+import { useActive } from "app/utils/ActiveContext"
 
 const platformIcons = {
   Facebook: facebook,
@@ -41,6 +42,7 @@ const platformIcons = {
 }
 
 const ObjectiveSelection = () => {
+  const { setChange } = useActive()
   const [openItems, setOpenItems] = useState({ Awareness: true })
   const [statuses, setStatuses] = useState({})
   const [selectedOptions, setSelectedOptions] = useState(() => {
@@ -285,6 +287,7 @@ const ObjectiveSelection = () => {
   }
 
   const handleSelectOption = (platformName, option, category, stageName, dropDownName) => {
+    setChange(true)
     const key = `${stageName}-${category}-${platformName}-${dropDownName}`
 
     setSelectedOptions((prev) => {
@@ -360,6 +363,7 @@ const ObjectiveSelection = () => {
   // But keep getStageRecap for the collapsed view
 
   const handleSaveCustomValue = async (field) => {
+    setChange(true)
     if (!customValue.trim()) {
       toast.error("Please enter a value", { id: "custom-value-error" })
       return

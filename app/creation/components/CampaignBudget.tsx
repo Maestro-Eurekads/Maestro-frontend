@@ -18,8 +18,10 @@ import toast from "react-hot-toast"
 import { useSearchParams } from "next/navigation"
 import ConfigureAdSetsAndBudget, { BudgetOverviewSection } from "./ ConfigureadSetsAndbudget"
 import SaveProgressButton from "app/utils/SaveProgressButton"
+import { useActive } from "app/utils/ActiveContext"
 
 const CampaignBudget = () => {
+  const { setChange } = useActive()
   const searchParams = useSearchParams()
   const campaignId = searchParams.get("campaignId")
   const [budgetStyle, setBudgetStyle] = useState("")
@@ -106,6 +108,7 @@ const CampaignBudget = () => {
   }
 
   const handleBudgetEdit = (param, type) => {
+    setChange(true)
     if (!isEditing) return
 
     setCampaignFormData((prev) => ({
@@ -128,6 +131,7 @@ const CampaignBudget = () => {
   }
 
   const handleValidate = () => {
+    setChange(true)
     if (budgetStyle === "top_down") {
       if (!campaignFormData?.campaign_budget?.amount) {
         toast("Please set the overall campaign budget first", {
@@ -201,6 +205,7 @@ const CampaignBudget = () => {
   }
 
   const handleEdit = () => {
+    setChange(true)
     setFeeStepValidated(false)
     setStep(1)
     setFeeType(null)
@@ -263,7 +268,7 @@ const CampaignBudget = () => {
           t4="Choose how to set your campaign budget"
           span={1}
         />
-        <SaveProgressButton setIsOpen={undefined} />
+        <SaveProgressButton deskTopShow={undefined} setDeskTopShow={undefined} />
       </div>
 
       <div className="mt-[24px] flex gap-5">

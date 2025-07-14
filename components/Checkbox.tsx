@@ -1,5 +1,6 @@
 import React from "react";
 import { useCampaigns } from "../app/utils/CampaignsContext";
+import { useActive } from "app/utils/ActiveContext";
 
 interface CheckboxProps {
 	id: string;
@@ -18,8 +19,10 @@ const Checkbox: React.FC<CheckboxProps> = ({
 }) => {
 	const isChecked = selectedOption === id;
 	const { campaignFormData, setCampaignFormData } = useCampaigns();
+	const { setChange } = useActive()
 
 	const handleChange = () => {
+		setChange(true)
 		if (!isEditing) return; // Ensure editing is allowed
 
 

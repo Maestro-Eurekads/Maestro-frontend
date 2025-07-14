@@ -29,6 +29,7 @@ import Skeleton from "react-loading-skeleton";
 import { colorClassToHex, colorPalette } from "components/Options";
 import SaveProgressButton from "app/utils/SaveProgressButton";
 import { useSearchParams } from "next/navigation";
+import { useActive } from "app/utils/ActiveContext";
 
 // Define type for funnel objects
 
@@ -135,6 +136,7 @@ const MapFunnelStages = () => {
   const query = useSearchParams();
   const documentId = query.get("campaignId");
   const { setIsDrawerOpen, setClose } = useComments();
+  const { setChange } = useActive()
 
   const { verifyStep, setHasChanges } = useVerification();
 
@@ -995,6 +997,7 @@ const MapFunnelStages = () => {
   // Save configuration
 
   const handleSaveConfiguration = () => {
+    setChange(true)
     if (!clientId) {
       toast.error("Please select a client to save funnel configurations.", {
         style: { background: "red", color: "white", textAlign: "center" },
@@ -1013,6 +1016,7 @@ const MapFunnelStages = () => {
   // Confirm save config
 
   const handleSaveConfigConfirm = async () => {
+    setChange(true)
     const error = validateConfigName(newConfigName);
 
     if (error) {
@@ -1106,6 +1110,7 @@ const MapFunnelStages = () => {
   // Open delete confirmation modal
 
   const handleDeleteConfig = (configIdx: number) => {
+    setChange(true)
     setConfigToDelete(configIdx);
 
     setIsDeleteModalOpen(true);
@@ -1114,6 +1119,7 @@ const MapFunnelStages = () => {
   // Confirm delete configuration - Mark as deleted instead of removing
 
   const handleDeleteConfigConfirm = () => {
+    setChange(true)
     if (configToDelete === null) return;
 
     // Mark the configuration as deleted instead of removing it
@@ -1215,7 +1221,7 @@ const MapFunnelStages = () => {
           className="text-[22px]"
           t1="How many funnel stage(s) would you like to activate to achieve your objective?"
         />
-        <SaveProgressButton setIsOpen={undefined} />
+        <SaveProgressButton deskTopShow={undefined} setDeskTopShow={undefined} />
       </div>
 
       <div className="w-full flex items-start">
