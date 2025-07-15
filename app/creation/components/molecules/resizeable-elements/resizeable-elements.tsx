@@ -177,7 +177,7 @@ const ResizeableElements = ({
                   (style) => style.name === platform.platform_name
                 ) ||
                 platformStyles[
-                  Math.floor(Math.random() * platformStyles.length)
+                Math.floor(Math.random() * platformStyles.length)
                 ];
               platformsByStage[funnel_stage].push({
                 name: platform.platform_name,
@@ -341,7 +341,6 @@ const ResizeableElements = ({
 
         monthsByYear[year][month] = (monthsByYear[year][month] || 0) + 1;
       });
-console.log(monthsByYear, "herit")
       return monthsByYear;
     },
     []
@@ -468,7 +467,7 @@ console.log(monthsByYear, "herit")
 
   useEffect(() => {
     if (!campaignFormData?.funnel_stages || !containerWidth) return;
-console.log("here")
+
     const initialWidths: Record<string, number> = {};
     const initialPositions: Record<string, number> = {};
     const getViewportWidth = () => {
@@ -501,24 +500,24 @@ console.log("here")
           // Existing logic for other views
           const startDateIndex = stageStartDate
             ? range?.findIndex((date) => isEqual(date, stageStartDate)) *
-              getDailyWidth()
+            getDailyWidth()
             : 0;
 
           const daysBetween =
             stageStartDate && stageEndDate
               ? eachDayOfInterval({ start: stageStartDate, end: stageEndDate })
-                  .length
+                .length
               : 0;
 
           const daysFromStart =
             campaignFormData?.campaign_timeline_start_date &&
-            campaignFormData?.campaign_timeline_end_date
+              campaignFormData?.campaign_timeline_end_date
               ? eachDayOfInterval({
-                  start: parseISO(
-                    campaignFormData.campaign_timeline_start_date
-                  ),
-                  end: parseISO(campaignFormData.campaign_timeline_end_date),
-                }).length
+                start: parseISO(
+                  campaignFormData.campaign_timeline_start_date
+                ),
+                end: parseISO(campaignFormData.campaign_timeline_end_date),
+              }).length
               : 0;
 
           const dailyWidth = getDailyWidth();
@@ -582,111 +581,109 @@ console.log("here")
         ...(rrange === "Year"
           ? generateYearBackground()
           : {
-              backgroundImage: (() => {
-                if (rrange === "Day" || rrange === "Week") {
+            backgroundImage: (() => {
+              if (rrange === "Day" || rrange === "Week") {
+                return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px), linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
+              } else {
+                // Month view background logic (existing)
+                const months = Object.keys(daysInEachMonth);
+                if (months.length <= 1) {
                   return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px), linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
-                } else {
-                  // Month view background logic (existing)
-                  const months = Object.keys(daysInEachMonth);
-                  if (months.length <= 1) {
-                    return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px), linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
-                  }
-
-                  const regularGrid = `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
-                  const monthBoundaryGrid = `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
-
-                  return `${monthBoundaryGrid}`;
                 }
-              })(),
-              backgroundSize: (() => {
-                const dailyWidth = getDailyWidth();
-                if (rrange === "Day" || rrange === "Week") {
-                  const totalDays = funnelData?.endDay || 1;
-                  const dailyGridSize = `${dailyWidth}px 100%`;
-                  if (rrange === "Week") {
-                    return dailyGridSize;
-                  }
-                  return `${dailyGridSize}, calc(${
-                    dailyWidth * totalDays
+
+                const regularGrid = `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
+                const monthBoundaryGrid = `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
+
+                return `${monthBoundaryGrid}`;
+              }
+            })(),
+            backgroundSize: (() => {
+              const dailyWidth = getDailyWidth();
+              if (rrange === "Day" || rrange === "Week") {
+                const totalDays = funnelData?.endDay || 1;
+                const dailyGridSize = `${dailyWidth}px 100%`;
+                if (rrange === "Week") {
+                  return dailyGridSize;
+                }
+                return `${dailyGridSize}, calc(${dailyWidth * totalDays
                   }px) 100%`;
-                } else {
-                  // Month view background size logic (existing)
-                  if (Object.keys(monthsByYear).length > 0) {
-                    const regularGridSize = `${dailyWidth}px 100%`;
-                    let cumulativeDays = 0;
-                    const boundaryPositions: number[] = [];
-
-                    const sortedYears = Object.keys(monthsByYear).sort();
-                    sortedYears.forEach((year, yearIndex) => {
-                      const monthsInYear = monthsByYear[year];
-                      const monthOrder = [
-                        "January",
-                        "February",
-                        "March",
-                        "April",
-                        "May",
-                        "June",
-                        "July",
-                        "August",
-                        "September",
-                        "October",
-                        "November",
-                        "December",
-                      ];
-
-                      monthOrder.forEach((month, monthIndex) => {
-                        if (monthsInYear[month]) {
-                          cumulativeDays += monthsInYear[month];
-                          if (
-                            !(
-                              yearIndex === sortedYears.length - 1 &&
-                              monthIndex === monthOrder.length - 1
-                            )
-                          ) {
-                            boundaryPositions.push(cumulativeDays * dailyWidth);
-                          }
-                        }
-                      });
-                    });
-
-                    const boundaryBackgrounds = boundaryPositions
-                      .map((position) => `20% 100%`)
-                      .join(", ");
-                    return boundaryBackgrounds
-                      ? ` ${boundaryBackgrounds}`
-                      : regularGridSize;
-                  }
-
-                  const months = Object.keys(daysInEachMonth);
-                  if (months.length === 0) {
-                    return `calc(${dailyWidth}px) 100%, calc(${
-                      dailyWidth * 7
-                    }px) 100%`;
-                  }
-
+              } else {
+                // Month view background size logic (existing)
+                if (Object.keys(monthsByYear).length > 0) {
+                  const regularGridSize = `${dailyWidth}px 100%`;
                   let cumulativeDays = 0;
-                  const monthEndPositions: number[] = [];
+                  const boundaryPositions: number[] = [];
 
-                  months.forEach((month, index) => {
-                    const daysInThisMonth = daysInEachMonth[month];
-                    cumulativeDays += daysInThisMonth;
+                  const sortedYears = Object.keys(monthsByYear).sort();
+                  sortedYears.forEach((year, yearIndex) => {
+                    const monthsInYear = monthsByYear[year];
+                    const monthOrder = [
+                      "January",
+                      "February",
+                      "March",
+                      "April",
+                      "May",
+                      "June",
+                      "July",
+                      "August",
+                      "September",
+                      "October",
+                      "November",
+                      "December",
+                    ];
 
-                    if (index < months.length - 1) {
-                      monthEndPositions.push(cumulativeDays * dailyWidth);
-                    }
+                    monthOrder.forEach((month, monthIndex) => {
+                      if (monthsInYear[month]) {
+                        cumulativeDays += monthsInYear[month];
+                        if (
+                          !(
+                            yearIndex === sortedYears.length - 1 &&
+                            monthIndex === monthOrder.length - 1
+                          )
+                        ) {
+                          boundaryPositions.push(cumulativeDays * dailyWidth);
+                        }
+                      }
+                    });
                   });
 
-                  const regularGridSize = `${dailyWidth}px 100%`;
-                  const monthBoundaryBackgrounds = monthEndPositions
+                  const boundaryBackgrounds = boundaryPositions
                     .map((position) => `20% 100%`)
                     .join(", ");
-
-                  return monthBoundaryBackgrounds
-                    ? ` ${monthBoundaryBackgrounds}`
+                  return boundaryBackgrounds
+                    ? ` ${boundaryBackgrounds}`
                     : regularGridSize;
                 }
-              })(),
-            }),
+
+                const months = Object.keys(daysInEachMonth);
+                if (months.length === 0) {
+                  return `calc(${dailyWidth}px) 100%, calc(${dailyWidth * 7
+                    }px) 100%`;
+                }
+
+                let cumulativeDays = 0;
+                const monthEndPositions: number[] = [];
+
+                months.forEach((month, index) => {
+                  const daysInThisMonth = daysInEachMonth[month];
+                  cumulativeDays += daysInThisMonth;
+
+                  if (index < months.length - 1) {
+                    monthEndPositions.push(cumulativeDays * dailyWidth);
+                  }
+                });
+
+                const regularGridSize = `${dailyWidth}px 100%`;
+                const monthBoundaryBackgrounds = monthEndPositions
+                  .map((position) => `20% 100%`)
+                  .join(", ");
+
+                return monthBoundaryBackgrounds
+                  ? ` ${monthBoundaryBackgrounds}`
+                  : regularGridSize;
+              }
+            })(),
+          }),
       }}
     >
       {/* Year view month headers */}

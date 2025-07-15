@@ -200,7 +200,6 @@ export const ChannelRow = ({
               value = Number(Number.parseFloat(value).toFixed(2)) / 100
             }
           } else if (typeof value === "number") {
-            console.log("🚀 ~ value:", value)
             // If it's a number greater than 1, assume it's in percentage format (e.g., 10 for 10%)
             value = value / 100
           }
@@ -253,17 +252,17 @@ export const ChannelRow = ({
   // Memoize calculated values to prevent unnecessary recalculations
   const getCalculatedValues = () => {
     if (!chData) return {}
-  // console.log((campaignFormData?.campaign_budget?.level === "Adset level" ? adsetFormulas :formulas))
+    // console.log((campaignFormData?.campaign_budget?.level === "Adset level" ? adsetFormulas :formulas))
     return Object.fromEntries(
-      Object.entries((campaignFormData?.campaign_budget?.level === "Adset level" ? adsetFormulas :formulas))?.map(([key, [fn, ...args]]) => [
+      Object.entries((campaignFormData?.campaign_budget?.level === "Adset level" ? adsetFormulas : formulas))?.map(([key, [fn, ...args]]) => [
         key,
         typeof fn === "function"
           ? fn.apply(
-              null,
-              args.map((arg) =>
-                Array.isArray(arg) ? Number(getNestedValue(chData, ...arg)) : Number(getNestedValue(chData, arg)),
-              ),
-            )
+            null,
+            args.map((arg) =>
+              Array.isArray(arg) ? Number(getNestedValue(chData, ...arg)) : Number(getNestedValue(chData, arg)),
+            ),
+          )
           : null,
       ]),
     )
@@ -312,7 +311,7 @@ export const ChannelRow = ({
             updatedKpi[key] = value;
             // Mark this KPI object as manually calculated
             updatedKpi._calculated = true;
-  
+
             // Update the form data with all changes at once
             handleEditInfo(
               stage.name,
@@ -323,7 +322,7 @@ export const ChannelRow = ({
               "",
               ""
             );
-  
+
             // Mark as processed to prevent infinite loops
             setHasProcessed(true);
           });

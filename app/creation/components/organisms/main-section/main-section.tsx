@@ -153,13 +153,11 @@ const MainSection = ({
 
   useEffect(() => {
     if (active === 7) {
-      console.log("active", active)
       if (subStep === 1) {
-        console.log(subStep)
         setClose(true)
       }
     }
-  }, [active, subStep, setClose])
+  }, [active, subStep, close])
 
   function getDaysInEachYear(): Record<string, number> {
     const daysInYear: Record<string, number> = {}

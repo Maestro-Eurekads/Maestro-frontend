@@ -14,7 +14,9 @@ interface ActiveContextType {
 	subStep: number;
 	setSubStep: React.Dispatch<React.SetStateAction<number>>;
 	change: boolean;
+	showModal: boolean;
 	setChange: React.Dispatch<React.SetStateAction<boolean>>;
+	setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const ActiveContext = createContext<ActiveContextType | undefined>(undefined);
@@ -37,6 +39,7 @@ export const ActiveProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 	const [active, setActive] = useState<number>(() => getStoredValue("active", 0));
 	const [subStep, setSubStep] = useState<number>(() => getStoredValue("subStep", 0));
 	const [change, setChange] = useState<boolean>(() => getStoredValue("change", false));
+	const [showModal, setShowModal] = useState(false);
 
 	// Save values to localStorage when they change
 	useEffect(() => {
@@ -52,7 +55,7 @@ export const ActiveProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 	}, [change]);
 
 	return (
-		<ActiveContext.Provider value={{ active, setActive, subStep, setSubStep, change, setChange }}>
+		<ActiveContext.Provider value={{ active, setActive, subStep, setSubStep, change, setChange, showModal, setShowModal }}>
 			{children}
 		</ActiveContext.Provider>
 	);

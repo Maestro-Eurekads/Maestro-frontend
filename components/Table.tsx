@@ -260,7 +260,7 @@ const Table = () => {
                       {data?.media_plan_details?.plan_name || "N/A"}
                       {data?.progress_percent < 100 ? "" : "Completed"}
                     </td>
-                    <td className="py-[12px] px-[16px]">V9</td>
+                    <td className="py-[12px] px-[16px]">{data?.campaign_version || "V1"}</td>
                     <td className="py-[12px] px-[16px]">
                       <ProgressBar progress={data?.progress_percent || 0} />
                     </td>

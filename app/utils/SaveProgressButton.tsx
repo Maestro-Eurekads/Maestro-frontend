@@ -627,6 +627,7 @@ const SaveProgressButton = ({ setIsOpen }) => {
 							currency: campaignFormData?.budget_details_currency?.id || "EUR",
 						},
 						agency_profile: agencyId,
+						campaign_version: cleanedFormData?.campaign_version || "V1",
 					},
 				}
 

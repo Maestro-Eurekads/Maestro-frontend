@@ -256,6 +256,7 @@ export const SetupScreen = () => {
         budget_details_fee_type: {},
         budget_details_value: "",
         level_1: {},
+        campaign_version: "V1",
       };
 
       setCampaignFormData(initialFormData);
