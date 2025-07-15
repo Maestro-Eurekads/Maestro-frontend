@@ -557,12 +557,22 @@ const MediaSelectionGrid = ({
   onDeletePreview: (previewId: string, format: string, adSetIndex?: number) => void
   completedDeletions: Set<string>
 }) => {
-  const { campaignFormData } = useCampaigns()
+  const { campaignFormData, setPlatformName } = useCampaigns()
   const channelKey = channelName.toLowerCase().replace(/\s+/g, "_")
 
   const stage = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stageName)
   const platform = stage?.[channelKey]?.find((pl) => pl?.platform_name === platformName)
   const adSet = adSetIndex !== undefined ? platform?.ad_sets?.[adSetIndex] : null
+
+  console.log("MediaSelectionGrid - platform:", platform)
+  console.log("campaignFormData - platform:", campaignFormData)
+
+
+  useEffect(() => {
+    if (platform) {
+      setPlatformName(platform)
+    }
+  }, [platform]);
 
   // --- FIX: Use local expanded state for each adset/format selection grid ---
   // This ensures that uploading for one adset does not open another adset's format selection.
