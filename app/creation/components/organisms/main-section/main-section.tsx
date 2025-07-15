@@ -39,8 +39,8 @@ const MainSection = ({
   const { range } = useDateRange()
   const [isOpen, setIsOpen] = useState(false)
   const [selectedStage, setSelectedStage] = useState("")
-  const {active, subStep} = useActive()
-  const {setClose} = useComments()
+  const { active, subStep } = useActive()
+  const { setClose } = useComments()
 
   // Zoom state management
   const [zoomLevel, setZoomLevel] = useState(1)
@@ -58,9 +58,9 @@ const MainSection = ({
   const weekDifference =
     startDates && endDates
       ? eachWeekOfInterval(
-          { start: new Date(startDates), end: new Date(endDates) },
-          { weekStartsOn: 1 }, // Optional: set Monday as start of week (0 = Sunday)
-        ).length
+        { start: new Date(startDates), end: new Date(endDates) },
+        { weekStartsOn: 1 }, // Optional: set Monday as start of week (0 = Sunday)
+      ).length
       : 0
   const monthDifference = differenceInCalendarMonths(endDates, startDates)
   const yearDifference = differenceInCalendarYears(endDates, startDates)
@@ -85,9 +85,9 @@ const MainSection = ({
   const allWeeks =
     startDates && endDates
       ? eachWeekOfInterval(
-          { start: new Date(startDates), end: new Date(endDates) },
-          { weekStartsOn: 1 }, // set week start as needed
-        )
+        { start: new Date(startDates), end: new Date(endDates) },
+        { weekStartsOn: 1 }, // set week start as needed
+      )
       : []
 
   // Helper to get week index in the range
@@ -165,14 +165,12 @@ const MainSection = ({
     return daysInMonth
   }
 
-  useEffect(()=>{
-    if(active === 7){
-			console.log("active", active)
-			if (subStep === 1){
-        console.log(subStep)
-				setClose(true)
-			}
-		}
+  useEffect(() => {
+    if (active === 7) {
+      if (subStep === 1) {
+        setClose(true)
+      }
+    }
   }, [active, subStep, close])
 
   function getDaysInEachYear(): Record<string, number> {

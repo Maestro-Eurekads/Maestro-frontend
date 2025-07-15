@@ -1,28 +1,20 @@
-// components/BackConfirmModal.tsx
-"use client";
-import React, { useState } from "react";
-import { useCampaigns } from "app/utils/CampaignsContext";
-import { useUserPrivileges } from "utils/userPrivileges";
-import { toast } from "sonner";
-import { useActive } from "app/utils/ActiveContext";
-import axios from "axios";
-import { updateUsersWithCampaign } from "app/homepage/functions/clients";
-import { BiLoader } from "react-icons/bi";
-import { extractObjectives, getFilteredMetrics } from "app/creation/components/EstablishedGoals/table-view/data-processor";
-import { removeKeysRecursively } from "utils/removeID";
+import { updateUsersWithCampaign } from 'app/homepage/functions/clients';
+import { useActive } from 'app/utils/ActiveContext';
+import { useCampaigns } from 'app/utils/CampaignsContext';
+import axios from 'axios';
+import React, { useState } from 'react'
+import { toast, Toaster } from 'sonner';
+import { removeKeysRecursively } from 'utils/removeID';
+import { useUserPrivileges } from 'utils/userPrivileges';
+import { extractObjectives, getFilteredMetrics } from '../EstablishedGoals/table-view/data-processor';
+import { BiLoader } from 'react-icons/bi';
 
-interface BackConfirmModalProps {
-	isOpen: boolean;
-	onClose: () => void;
-	onConfirm: () => void;
-}
-
-const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, onConfirm }) => {
+const SaveAllProgressButton = () => {
 	const { isClient, loggedInUser } = useUserPrivileges();
 	const [loading, setLoading] = useState(false);
-	const { setChange, showModal, setShowModal } = useActive()
-
-
+	const { setChange } = useActive()
+	const [showSave, setShowSave] = useState(false)
+	const { active, subStep } = useActive();
 
 
 	const clearChannelStateForNewCampaign = () => {
@@ -69,6 +61,10 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 	} = useCampaigns()
 
 
+	const cancelSave = () => {
+		setShowSave(false)
+	}
+
 
 
 	const handleSaveAllSteps = async () => {
@@ -95,6 +91,8 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 			]);
 
 			const campaignBudgetCleaned = removeKeysRecursively(cleanedFormData?.campaign_budget, ["id"]);
+
+			const calcPercent = Math.ceil((active / 10) * 100)
 
 			const payload = {
 				data: {
@@ -127,6 +125,10 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 					campaign_timeline_start_date: cleanedFormData?.campaign_timeline_start_date,
 					campaign_timeline_end_date: cleanedFormData?.campaign_timeline_end_date,
 					agency_profile: agencyId,
+					progress_percent:
+						campaignFormData?.progress_percent > calcPercent ? campaignFormData?.progress_percent : calcPercent,
+					campaign_version: cleanedFormData?.campaign_version || "V1",
+
 				},
 			};
 
@@ -136,8 +138,7 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 				},
 			};
 
-			// CREATE or UPDATE logic
-			// debugger;
+			// CREATE or UPDATE logic 
 			if (campaignFormData.cId) {
 				await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${campaignFormData.cId}`, payload, config);
 				toast.success("Campaign updated successfully!");
@@ -164,49 +165,69 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 			}
 
 			setChange(false);
-			setShowModal(false);
+			setShowSave(false);
 		} catch (error: any) {
 			if (error?.response?.status === 401) {
 				window.dispatchEvent(new Event("unauthorizedEvent"));
 			}
 			toast.error(error?.response?.data?.message || "Something went wrong. Please try again.");
+			setLoading(false);
+			setShowSave(false);
 			setChange(false);
-			setShowModal(false);
 		} finally {
 			setLoading(false);
+			setShowSave(false);
 			setChange(false);
-			setShowModal(false);
 		}
 	};
 
 
 
-	if (!isOpen) return null;
 
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-			<div className="bg-white rounded-2xl p-6 w-[90%] max-w-md shadow-lg">
-				<h2 className="text-lg font-semibold text-gray-800 mb-2 text-center">Unsaved Changes</h2>
+		<div >
+			<div  >
 
-				<p className="text-sm text-gray-600 mb-1 text-center">If you leave the plan the progress will be lost</p>
-				<p className="text-sm text-gray-600 mb-8 text-center">Would you like to save your progress?</p>
-				<div className="flex justify-end gap-3">
-					<button
-						className="px-4 py-2 rounded-md bg-gray-300 text-gray-800 hover:bg-gray-400"
-						onClick={onClose}
-					>
-						No
-					</button>
-					<button
-						className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white"
-						onClick={handleSaveAllSteps}
-					>
-						{loading ? <BiLoader className="animate-spin" size={20} /> : "Save"}
-					</button>
-				</div>
+				<button
+					className={"bottom_blue_save_btn whitespace-nowrap"}
+					onClick={() => setShowSave(true)}
+				>
+					Save
+				</button>
 			</div>
-		</div>
-	);
-};
+			{showSave && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+					<div className="bg-white rounded-xl shadow-lg w-[400px] p-6 text-center">
+						<h2 className="text-xl font-semibold text-gray-800 mb-4">Confirm Save</h2>
+						<p className="text-gray-700 mb-6">
+							Do you want to save this step progress?
+						</p>
+						<div className="flex justify-center gap-4">
+							<button
+								className="border bg-gray-500 border-gray-300 text-white   px-4 py-2 rounded hover:bg-gray-100"
+								onClick={cancelSave}
+							>
+								Cancel
+							</button>
+							<button
+								className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+								onClick={handleSaveAllSteps}
+							>
+								{loading ? (
+									<center>
+										<BiLoader className="animate-spin" size={20} />
+									</center>
+								) : (
+									"Save"
+								)}
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
 
-export default BackConfirmModal;
+		</div>
+	)
+}
+
+export default SaveAllProgressButton

@@ -13,8 +13,9 @@ import { debounce } from "lodash"
 import Switch from "react-switch"
 import PageHeaderWrapper from "../../../components/PageHeaderWapper"
 import { useComments } from "app/utils/CommentProvider"
-import SaveProgressButton from "app/utils/SaveProgressButton"
 import { useActive } from "app/utils/ActiveContext"
+import SaveProgressButton from "app/utils/SaveProgressButton"
+import SaveAllProgressButton from "./SaveProgres/SaveAllProgressButton"
 
 // Types
 type FormatType = {
@@ -1644,16 +1645,18 @@ export const FormatSelection = ({
 
   return (
     <div>
-      <div className="flex flex-row justify-between">
-        <div />
-        <SaveProgressButton setIsOpen={undefined} />
+      <div className="flex flex-row justify-between w-full">
+
+        {!stageName && (
+          <PageHeaderWrapper
+            t1="Select formats for each channel"
+            t2="Select the creative formats you want to use for your campaign. Specify the number of visuals for each format. Multiple formats can be selected per channel or Ad set"
+          />
+        )}
+        <SaveAllProgressButton />
+        {/* <SaveProgressButton setIsOpen={undefined} /> */}
       </div>
-      {!stageName && (
-        <PageHeaderWrapper
-          t1="Select formats for each channel"
-          t2="Select the creative formats you want to use for your campaign. Specify the number of visuals for each format. Multiple formats can be selected per channel or Ad set"
-        />
-      )}
+
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
         {!stageName && (
           <div className="flex justify-center gap-3">

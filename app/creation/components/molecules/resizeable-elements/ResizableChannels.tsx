@@ -327,22 +327,22 @@ const ResizableChannels = ({
     // Convert pixels to dates
     const startPixel = newLeft - parentLeft
     const endPixel = startPixel + newWidth
-    console.log({startPixel, endPixel})
+    console.log({ startPixel, endPixel })
     const newStartDate = pixelToDate(startPixel, parentWidth, index, "startDate")
     const newEndDate = pixelToDate(endPixel, parentWidth, index, "endDate")
-    console.log({newStartDate, newEndDate})
+    console.log({ newStartDate, newEndDate })
 
     // Update the channel state
     setChannelState((prev) =>
       prev.map((state, i) =>
         i === index
           ? {
-              ...state,
-              left: newLeft,
-              width: newWidth,
-              startDate: newStartDate,
-              endDate: newEndDate,
-            }
+            ...state,
+            left: newLeft,
+            width: newWidth,
+            startDate: newStartDate,
+            endDate: newEndDate,
+          }
           : state,
       ),
     )
@@ -352,10 +352,10 @@ const ResizableChannels = ({
       prev.map((ch, i) =>
         i === index
           ? {
-              ...ch,
-              start_date: newStartDate,
-              end_date: newEndDate,
-            }
+            ...ch,
+            start_date: newStartDate,
+            end_date: newEndDate,
+          }
           : ch,
       ),
     )
@@ -373,7 +373,7 @@ const ResizableChannels = ({
 
     if (draggingDataRef.current) {
       const { index, newStartDate, newEndDate } = draggingDataRef.current
-      console.log({index, newStartDate, newEndDate})
+      console.log({ index, newStartDate, newEndDate })
       // Final update to campaign data
       // setCopy(() => {
       //   const updatedData = JSON.parse(JSON.stringify(campaignFormData))
@@ -408,10 +408,10 @@ const ResizableChannels = ({
         (ch) => ch?.funnel_stage === parentId
       )?.funnel_stage_timeline_start_date
         ? new Date(
-            campaignFormData?.channel_mix?.find(
-              (ch) => ch?.funnel_stage === parentId
-            )?.funnel_stage_timeline_start_date
-          )
+          campaignFormData?.channel_mix?.find(
+            (ch) => ch?.funnel_stage === parentId
+          )?.funnel_stage_timeline_start_date
+        )
         : new Date(campaignFormData?.campaign_timeline_start_date);
 
       if (!initialStartDateRef.current) {
@@ -424,10 +424,10 @@ const ResizableChannels = ({
         (ch) => ch?.funnel_stage === parentId
       )?.funnel_stage_timeline_end_date
         ? new Date(
-            campaignFormData?.channel_mix?.find(
-              (ch) => ch?.funnel_stage === parentId
-            )?.funnel_stage_timeline_end_date
-          )
+          campaignFormData?.channel_mix?.find(
+            (ch) => ch?.funnel_stage === parentId
+          )?.funnel_stage_timeline_end_date
+        )
         : new Date(campaignFormData?.campaign_timeline_end_date);
 
       if (!initialEndDateRef.current) {
@@ -610,10 +610,10 @@ const ResizableChannels = ({
           prevChannels.map((ch, i) =>
             i === index
               ? {
-                  ...ch,
-                  start_date: startDate,
-                  end_date: endDate,
-                }
+                ...ch,
+                start_date: startDate,
+                end_date: endDate,
+              }
               : ch
           )
         );
@@ -737,8 +737,8 @@ const ResizableChannels = ({
             stageStartDate && stageStartDate < startDate
               ? stageStartDate
               : stageStartDate < startDate
-              ? startDate
-              : stageStartDate;
+                ? startDate
+                : stageStartDate;
 
           const stageEndDate = findChannel?.campaign_end_date
             ? parseISO(findChannel?.campaign_end_date)
@@ -753,8 +753,8 @@ const ResizableChannels = ({
 
           const startDateIndex = adjustedStageStartDate
             ? dateList?.findIndex((date) =>
-                isEqual(date, adjustedStageStartDate)
-              ) * dailyWidth
+              isEqual(date, adjustedStageStartDate)
+            ) * dailyWidth
             : 0;
 
           let daysBetween;
@@ -773,7 +773,7 @@ const ResizableChannels = ({
           }
 
           let left =
-             Math.abs(startDateIndex < 0 ? 0 : startDateIndex);
+            Math.abs(startDateIndex < 0 ? 0 : startDateIndex);
 
           let width =
             rrange === "Day"
@@ -781,14 +781,14 @@ const ResizableChannels = ({
                 ? dailyWidth * daysBetween
                 : parentWidth
               : rrange === "Week"
-              ? daysBetween > 0
-                ? dailyWidth * daysBetween
-                : parentWidth
-              : rrange === "Month"
-              ? daysBetween > 0
-                ? dailyWidth * daysBetween
-                : parentWidth
-              : parentWidth;
+                ? daysBetween > 0
+                  ? dailyWidth * daysBetween
+                  : parentWidth
+                : rrange === "Month"
+                  ? daysBetween > 0
+                    ? dailyWidth * daysBetween
+                    : parentWidth
+                  : parentWidth;
 
           width = Math.min(width, parentWidth);
 
@@ -796,7 +796,6 @@ const ResizableChannels = ({
             if (width <= parentWidth) {
               left = parentLeft + parentWidth - width;
             } else {
-              console.log("here")
               width = parentWidth;
               left = parentLeft;
             }
@@ -808,14 +807,14 @@ const ResizableChannels = ({
 
           return existingState
             ? {
-                ...existingState,
-                left: left,
-                width: width,
-              }
+              ...existingState,
+              left: left,
+              width: width,
+            }
             : {
-                left: parentLeft,
-                width: Math.min(width, 50),
-              };
+              left: parentLeft,
+              width: Math.min(width, 50),
+            };
         });
 
         return newState;
@@ -963,9 +962,8 @@ const ResizableChannels = ({
         return (
           <div
             key={channel.name}
-            className={`relative w-full ${
-              !disableDrag ? "min-h-[46px]" : ""
-            } min-h-[46px]`}
+            className={`relative w-full ${!disableDrag ? "min-h-[46px]" : ""
+              } min-h-[46px]`}
             style={{
               gridColumnStart: startColumn < 1 ? 1 : startColumn,
               gridColumnEnd: endColumn < 1 ? 1 : endColumn,
@@ -986,11 +984,10 @@ const ResizableChannels = ({
                   style={{
                     left: `${tooltip.x}px`,
                     top: `0px`,
-                    transform: `translate(-${
-                      tooltip.x + 100 >= (channelState[index]?.width || 0)
+                    transform: `translate(-${tooltip.x + 100 >= (channelState[index]?.width || 0)
                         ? 100
                         : 0
-                    }%, -100%)`,
+                      }%, -100%)`,
                     border: `1px solid ${channels[tooltip.index]?.color}`,
                     backgroundColor: `${channels[tooltip.index]?.bg}`,
                     color: `${channels[tooltip.index]?.color}`,
@@ -1000,17 +997,15 @@ const ResizableChannels = ({
                 </div>
               )}
               <div
-                className={`relative h-full flex ${
-                  disableDrag
+                className={`relative h-full flex ${disableDrag
                     ? "justify-between min-w-[50px]"
                     : "justify-center cursor-move"
-                }  items-center text-white py-[10px] px-4 gap-2 border shadow-md overflow-x-hidden ${rrange === "Year" ? "flex-col" : "flex-row"}`}
+                  }  items-center text-white py-[10px] px-4 gap-2 border shadow-md overflow-x-hidden ${rrange === "Year" ? "flex-col" : "flex-row"}`}
                 style={{
                   left: `${channelState[index]?.left || parentLeft}px`,
-                  width: `${
-                    channelState[index]?.width +
+                  width: `${channelState[index]?.width +
                     (disableDrag ? 0 : rrange === "Month" ? 0 : 0)
-                  }px`,
+                    }px`,
                   backgroundColor: channel.bg,
                   color: channel.color,
                   borderColor: channel.color,
@@ -1027,7 +1022,7 @@ const ResizableChannels = ({
                     alt={channel.icon}
                     width={20}
                     height={20}
-                    className={`${rrange === "Year" ? "hidden":"block"}`}
+                    className={`${rrange === "Year" ? "hidden" : "block"}`}
                   />
                   <span className="font-medium whitespace-nowrap">
                     {channel.name}
@@ -1069,19 +1064,18 @@ const ResizableChannels = ({
                     {isNaN(Number(budget)) || Number(budget) <= 0
                       ? ""
                       : `${Number(
-                          budget
-                        )?.toLocaleString()} ${getCurrencySymbol(
-                          campaignFormData?.campaign_budget?.currency
-                        )}`}
+                        budget
+                      )?.toLocaleString()} ${getCurrencySymbol(
+                        campaignFormData?.campaign_budget?.currency
+                      )}`}
                   </div>
                 )}
                 {
                   <>
                     {rrange === "Month" ? (
                       <div
-                        className={`absolute top-0 h-full cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${
-                          disableDrag && "hidden"
-                        }`}
+                        className={`absolute top-0 h-full cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${disableDrag && "hidden"
+                          }`}
                         style={{
                           left: `0px`,
                         }}
@@ -1098,9 +1092,8 @@ const ResizableChannels = ({
                       </div>
                     ) : (
                       <div
-                        className={`absolute top-0 w-4 h-full cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${
-                          disableDrag && "hidden"
-                        }`}
+                        className={`absolute top-0 w-4 h-full cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${disableDrag && "hidden"
+                          }`}
                         style={{
                           left: `0px`,
                           backgroundColor: channel.color,
@@ -1116,9 +1109,8 @@ const ResizableChannels = ({
                     )}
                     {rrange === "Month" ? (
                       <div
-                        className={`absolute top-0 w-4 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
-                          disableDrag && "hidden"
-                        }`}
+                        className={`absolute top-0 w-4 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${disableDrag && "hidden"
+                          }`}
                         style={{
                           right: "0px",
                         }}
@@ -1135,9 +1127,8 @@ const ResizableChannels = ({
                       </div>
                     ) : (
                       <div
-                        className={`absolute top-0 w-4 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
-                          disableDrag && "hidden"
-                        }`}
+                        className={`absolute top-0 w-4 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${disableDrag && "hidden"
+                          }`}
                         style={{
                           right: "0px",
                           backgroundColor: channel.color,
@@ -1225,11 +1216,10 @@ const ResizableChannels = ({
                                 <td className="px-4 py-2 text-[#3175FF] font-bold whitespace-nowrap border-none">
                                   <div className="l-shape-container-ad">
                                     <div
-                                      className={`absolute w-[1px] ${
-                                        extraIndex > 0
+                                      className={`absolute w-[1px] ${extraIndex > 0
                                           ? "h-[35px] top-[-35px]"
                                           : "h-[20px] top-[-20px]"
-                                      } bg-blue-500 left-[60px] `}
+                                        } bg-blue-500 left-[60px] `}
                                     ></div>
                                     <div
                                       className={`absolute w-[60px] h-[1px] bg-blue-500 bottom-[-1px] left-[60px]`}
@@ -1375,67 +1365,67 @@ const ResizableChannels = ({
                       {channel?.ad_sets?.some(
                         (adSet) => adSet?.format?.length > 0
                       ) && (
-                        <div>
-                          <h3 className="font-semibold text-sm mb-2">
-                            Ad Set Formats
-                          </h3>
-                          {channel.ad_sets
-                            ?.filter((adSet) => adSet?.format?.length > 0)
-                            .map((adSet, adSetIndex) => (
-                              <div
-                                key={adSetIndex}
-                                className="mt-3 p-2 bg-white rounded border border-gray-200"
-                              >
-                                <div className="font-medium text-sm">
-                                  {adSet.name || "Unnamed Ad Set"}
-                                </div>
-                                <div className="text-xs text-gray-500 mb-2">
-                                  {adSet.audience_type} • Size:{" "}
-                                  {Number(adSet.size).toLocaleString()}
-                                </div>
-                                {adSet.format?.length > 0 ? (
-                                  <div className="text-sm text-gray-600">
-                                    {adSet.format.map((format, formatIndex) => (
-                                      <div
-                                        key={formatIndex}
-                                        className="p-4 bg-gray-100 rounded-lg shadow-sm"
-                                      >
-                                        <p className="font-medium">
-                                          Format Type: {format?.format_type}
-                                        </p>
-                                        <p className="text-sm text-gray-500">
-                                          Previews:
-                                        </p>
-                                        <div className="grid grid-cols-2 gap-2 mt-2">
-                                          {format?.previews?.map(
-                                            (preview, id) => (
-                                              <div
-                                                key={id}
-                                                className="block w-[140px] h-[140px]"
-                                              >
-                                                {renderUploadedFile(
-                                                  format?.previews?.map(
-                                                    (pp) => pp?.url
-                                                  ),
-                                                  format?.format_type,
-                                                  id
-                                                )}
-                                              </div>
-                                            )
-                                          )}
+                          <div>
+                            <h3 className="font-semibold text-sm mb-2">
+                              Ad Set Formats
+                            </h3>
+                            {channel.ad_sets
+                              ?.filter((adSet) => adSet?.format?.length > 0)
+                              .map((adSet, adSetIndex) => (
+                                <div
+                                  key={adSetIndex}
+                                  className="mt-3 p-2 bg-white rounded border border-gray-200"
+                                >
+                                  <div className="font-medium text-sm">
+                                    {adSet.name || "Unnamed Ad Set"}
+                                  </div>
+                                  <div className="text-xs text-gray-500 mb-2">
+                                    {adSet.audience_type} • Size:{" "}
+                                    {Number(adSet.size).toLocaleString()}
+                                  </div>
+                                  {adSet.format?.length > 0 ? (
+                                    <div className="text-sm text-gray-600">
+                                      {adSet.format.map((format, formatIndex) => (
+                                        <div
+                                          key={formatIndex}
+                                          className="p-4 bg-gray-100 rounded-lg shadow-sm"
+                                        >
+                                          <p className="font-medium">
+                                            Format Type: {format?.format_type}
+                                          </p>
+                                          <p className="text-sm text-gray-500">
+                                            Previews:
+                                          </p>
+                                          <div className="grid grid-cols-2 gap-2 mt-2">
+                                            {format?.previews?.map(
+                                              (preview, id) => (
+                                                <div
+                                                  key={id}
+                                                  className="block w-[140px] h-[140px]"
+                                                >
+                                                  {renderUploadedFile(
+                                                    format?.previews?.map(
+                                                      (pp) => pp?.url
+                                                    ),
+                                                    format?.format_type,
+                                                    id
+                                                  )}
+                                                </div>
+                                              )
+                                            )}
+                                          </div>
                                         </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <div className="text-xs text-gray-500">
-                                    No formats configured
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                        </div>
-                      )}
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <div className="text-xs text-gray-500">
+                                      No formats configured
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                          </div>
+                        )}
                     </div>
                   </div>
                 ))}
@@ -1452,50 +1442,50 @@ const ResizableChannels = ({
         </div>
       </Modal>
       {openAdset &&
-      <Modal
-        isOpen={selectedChannel && openAdset ? true : false}
-        onClose={() => setOpenAdset(false)}
-      >
-        <div className="bg-white w-[950px] p-2 rounded-lg max-h-[600px] overflow-y-scroll">
-          <button
-            className="flex justify-end w-fit ml-auto"
-            onClick={() => setOpenAdset(false)}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="25"
-              height="25"
-              viewBox="0 0 25 25"
-              fill="none"
-            >
-              <path
-                d="M18.7266 6.5L6.72656 18.5M6.72656 6.5L18.7266 18.5"
-                stroke="#717680"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-          <AdSetsFlow stageName={parentId} platformName={selectedChannel} />
-          <div className="w-fit ml-auto">
+        <Modal
+          isOpen={selectedChannel && openAdset ? true : false}
+          onClose={() => setOpenAdset(false)}
+        >
+          <div className="bg-white w-[950px] p-2 rounded-lg max-h-[600px] overflow-y-scroll">
             <button
-              className="bg-blue-500 text-white rounded-md p-2 flex justify-center items-center"
-              onClick={async () => {
-                await sendUpdatedDataToAPI(campaignFormData);
-                await setOpenAdset(false);
-              }}
-              disabled={deleting}
+              className="flex justify-end w-fit ml-auto"
+              onClick={() => setOpenAdset(false)}
             >
-              {deleting ? (
-                <FaSpinner className="animate-spin" />
-              ) : (
-                "Confirm Changes"
-              )}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="25"
+                height="25"
+                viewBox="0 0 25 25"
+                fill="none"
+              >
+                <path
+                  d="M18.7266 6.5L6.72656 18.5M6.72656 6.5L18.7266 18.5"
+                  stroke="#717680"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
             </button>
+            <AdSetsFlow stageName={parentId} platformName={selectedChannel} />
+            <div className="w-fit ml-auto">
+              <button
+                className="bg-blue-500 text-white rounded-md p-2 flex justify-center items-center"
+                onClick={async () => {
+                  await sendUpdatedDataToAPI(campaignFormData);
+                  await setOpenAdset(false);
+                }}
+                disabled={deleting}
+              >
+                {deleting ? (
+                  <FaSpinner className="animate-spin" />
+                ) : (
+                  "Confirm Changes"
+                )}
+              </button>
+            </div>
           </div>
-        </div>
-      </Modal>
+        </Modal>
       }
     </div>
   );
