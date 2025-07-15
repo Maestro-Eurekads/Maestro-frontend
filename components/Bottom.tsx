@@ -90,7 +90,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const hasInitializedStep4 = useRef(false)
 
 
-
+  console.log('campaignData---', platformName)
 
 
 
@@ -252,7 +252,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                     {active === 0
                       ? "Start"
                       : active === 4 && !hasFormatSelected
-                        ? platformName?.format?.length === 0 ? "Not mandatory step, skip" : "Continue"
+                        ? (platformName?.format?.length === 0 || platformName === null) ? "Not mandatory step, skip" : "Continue"
                         : "Continue"}
                   </p>
                   <Image src={Continue} alt="Continue" />
