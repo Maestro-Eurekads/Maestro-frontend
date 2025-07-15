@@ -313,7 +313,7 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 	const [title, setTitle] = useState('');
 	const [showSharePrompt, setShowSharePrompt] = useState(false);
 	const [showVersionPrompt, setShowVersionPrompt] = useState(false);
-	const [showPlanInfoModal, setShowPlanInfoModal] = useState(false); // New state for plan info modal
+	const [showPlanInfoModal, setShowPlanInfoModal] = useState(false);
 	const query = useSearchParams();
 	const campaignId = query.get('campaignId');
 
@@ -493,121 +493,6 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 			setShowVersionPrompt(false);
 		}
 	};
-
-
-
-
-	// const handleCreateNewVersion = async () => {
-	// 	setLoadings(true);
-
-	// 	try {
-	// 		// Clean up & transform fields from all steps
-	// 		const cleanedFormData = {
-	// 			...campaignFormData,
-	// 			internal_approver: campaignFormData?.internal_approver || [],
-	// 			client_approver: campaignFormData?.client_approver || [],
-	// 		};
-
-	// 		const objectives = await extractObjectives(cleanedFormData);
-	// 		const selectedMetrics = await getFilteredMetrics(objectives);
-
-	// 		const channelMixCleaned = removeKeysRecursively(cleanedFormData?.channel_mix, [
-	// 			"id",
-	// 			"isValidated",
-	// 			"formatValidated",
-	// 			"validatedStages",
-	// 			"documentId",
-	// 			"_aggregated",
-	// 		]);
-
-	// 		const campaignBudgetCleaned = removeKeysRecursively(cleanedFormData?.campaign_budget, ["id"]);
-
-	// 		const calcPercent = Math.ceil((active / 10) * 100)
-
-	// 		const payload = {
-	// 			data: {
-	// 				campaign_builder: loggedInUser?.id,
-	// 				client: cleanedFormData?.client_selection?.id,
-	// 				client_selection: {
-	// 					client: cleanedFormData?.client_selection?.value,
-	// 					level_1: cleanedFormData?.level_1,
-	// 				},
-	// 				media_plan_details: {
-	// 					plan_name: cleanedFormData?.media_plan,
-	// 					internal_approver: cleanedFormData.internal_approver.map((item: any) => Number(item.id)),
-	// 					client_approver: cleanedFormData.client_approver.map((item: any) => Number(item.id)),
-	// 				},
-	// 				budget_details: {
-	// 					currency: cleanedFormData?.budget_details_currency?.id || "EUR",
-	// 					value: cleanedFormData?.country_details?.id,
-	// 				},
-	// 				campaign_budget: {
-	// 					...campaignBudgetCleaned,
-	// 					currency: cleanedFormData?.budget_details_currency?.id || "EUR",
-	// 				},
-	// 				funnel_stages: cleanedFormData?.funnel_stages,
-	// 				channel_mix: channelMixCleaned,
-	// 				custom_funnels: cleanedFormData?.custom_funnels,
-	// 				funnel_type: cleanedFormData?.funnel_type,
-	// 				table_headers: objectives || {},
-	// 				selected_metrics: selectedMetrics || {},
-	// 				goal_level: cleanedFormData?.goal_level,
-	// 				campaign_timeline_start_date: cleanedFormData?.campaign_timeline_start_date,
-	// 				campaign_timeline_end_date: cleanedFormData?.campaign_timeline_end_date,
-	// 				agency_profile: agencyId,
-	// 				progress_percent:
-	// 					campaignFormData?.progress_percent > calcPercent ? campaignFormData?.progress_percent : calcPercent,
-	// 				campaign_version: cleanedFormData?.campaign_version || "V1",
-
-	// 			},
-	// 		};
-
-	// 		const config = {
-	// 			headers: {
-	// 				Authorization: `Bearer ${jwt}`,
-	// 			},
-	// 		};
-
-	// 		// CREATE  
-	// 		const response = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`, payload, config);
-
-	// 		const url = new URL(window.location.href);
-	// 		url.searchParams.set("campaignId", `${response?.data?.data.documentId}`);
-	// 		window.history.pushState({}, "", url.toString());
-
-	// 		await updateUsersWithCampaign(
-	// 			[
-	// 				...(Array.isArray(loggedInUser?.id) ? loggedInUser?.id : [loggedInUser?.id]),
-	// 				...cleanedFormData.internal_approver.map((item: any) => String(item.id)),
-	// 				...cleanedFormData.client_approver.map((item: any) => String(item.id)),
-	// 			],
-	// 			response?.data?.data?.id,
-	// 			jwt
-	// 		);
-
-	// 		await getActiveCampaign(response?.data?.data.documentId);
-	// 		toast.success("New Version created successfully!");
-	// 		clearChannelStateForNewCampaign?.();
-
-
-	// 		setChange(false);
-	// 		setShowSave(false);
-	// 	} catch (error: any) {
-	// 		if (error?.response?.status === 401) {
-	// 			window.dispatchEvent(new Event("unauthorizedEvent"));
-	// 		}
-	// 		toast.error(error?.response?.data?.message || "Something went wrong. Please try again.");
-	// 		setLoadings(false);
-	// 		setShowSave(false);
-	// 		setChange(false);
-	// 		setShowVersionPrompt(false);
-	// 	} finally {
-	// 		setLoadings(false);
-	// 		setShowSave(false);
-	// 		setChange(false);
-	// 		setShowVersionPrompt(false);
-	// 	}
-	// };
 
 
 
