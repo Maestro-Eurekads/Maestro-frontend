@@ -299,15 +299,16 @@ display: flex;
 flex-direction: row;
 justify-content: center;
 align-items: center;
-padding: 14px 40px;
+padding: 14px 24px !important;
 gap: 10px;  
-width: 185px;
+/* width: 185px; */
+white-space: nowrap !important;
 /* height: 52px;  */
 background: var(--accent-blue);
 border-radius: 10px;  
 font-style: normal;
 font-weight: 600;
-font-size: 16px;
+font-size: 16px !important;
 line-height: 22px; 
 color: var(--accent-white) 
 
@@ -336,7 +337,7 @@ display: flex;
 flex-direction: row;
 justify-content: center;
 align-items: center;
-padding: 14px 40px;
+padding: 14px 24px !important;
 gap: 10px;  
 width: 152px;
 /* height: 52px;  */

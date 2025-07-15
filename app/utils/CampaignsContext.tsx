@@ -72,6 +72,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [loadingCampaign, setLoadingCampaign] = useState(false);
   const [getloading, setgetLoading] = useState(false);
   const [profile, setGetProfile] = useState(null);
+  const [platformName, setPlatformName] = useState(null);
   const [isEditingBuyingObjective, setIsEditingBuyingObjective] =
     useState(false);
   const [selectedOption, setSelectedOption] = useState("percentage");
@@ -749,7 +750,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       setFC,
       agencyData,
       setAgencyData,
-      updateStatus
+      updateStatus,
+      setPlatformName,
+      platformName
     }),
     [
       getUserByUserType,
@@ -795,7 +798,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       setFC,
       agencyData,
       setAgencyData,
-      updateStatus
+      updateStatus,
+      setPlatformName,
+      platformName
     ]
   );
 

@@ -191,20 +191,7 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 
 				<p className="text-sm text-gray-600 mb-1 text-center">If you leave the plan the progress will be lost</p>
 				<p className="text-sm text-gray-600 mb-8 text-center">Would you like to save your progress?</p>
-				{/* <div className="flex justify-end gap-3">
-					<button
-						className="px-4 py-2 rounded-md bg-gray-300 text-gray-800 hover:bg-gray-400"
-						onClick={onClose}
-					>
-						No
-					</button>
-					<button
-						className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white"
-						onClick={handleSaveAllSteps}
-					>
-						{loading ? <BiLoader className="animate-spin" size={20} /> : "Save"}
-					</button>
-				</div> */}
+
 				<div className="flex flex-row gap-4">
 					<button
 						className="btn_model_outline w-full"
