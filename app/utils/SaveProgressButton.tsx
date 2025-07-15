@@ -941,7 +941,7 @@ const SaveProgressButton = ({ setIsOpen }) => {
 								className="btn_model_active w-full"
 								onClick={cancelSave}
 							>
-								Cancel
+								No
 							</button>
 							<button
 								className="btn_model_outline w-full"
