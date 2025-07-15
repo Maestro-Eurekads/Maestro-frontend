@@ -31,7 +31,7 @@ const PlanCampaignScheduleSubStepComponent = () => {
 
 	return (
 		<div>
-			<div className="creation_continer">
+			<div className="creation_continer" style={{width: '100%', overflowX: 'auto' }}>
 				<div className='flex flex-row justify-between'>
 					<PageHeaderWrapper
 						t1={'Setup the timeline of your campaign?'}

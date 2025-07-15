@@ -39,8 +39,8 @@ const MainSection = ({
   const { range } = useDateRange()
   const [isOpen, setIsOpen] = useState(false)
   const [selectedStage, setSelectedStage] = useState("")
-  const {active, subStep} = useActive()
-  const {setClose} = useComments()
+  const { active, subStep } = useActive()
+  const { setClose } = useComments()
 
   // Zoom state management
   const [zoomLevel, setZoomLevel] = useState(1)
@@ -51,16 +51,12 @@ const MainSection = ({
   const startDates = campaignFormData?.campaign_timeline_start_date
     ? campaignFormData?.campaign_timeline_start_date
     : null
-
   const endDates = campaignFormData?.campaign_timeline_end_date ? campaignFormData?.campaign_timeline_end_date : null
 
   const dayDifference = differenceInCalendarDays(endDates, startDates)
   const weekDifference =
     startDates && endDates
-      ? eachWeekOfInterval(
-          { start: new Date(startDates), end: new Date(endDates) },
-          { weekStartsOn: 1 }, // Optional: set Monday as start of week (0 = Sunday)
-        ).length
+      ? eachWeekOfInterval({ start: new Date(startDates), end: new Date(endDates) }, { weekStartsOn: 1 }).length
       : 0
   const monthDifference = differenceInCalendarMonths(endDates, startDates)
   const yearDifference = differenceInCalendarYears(endDates, startDates)
@@ -84,10 +80,7 @@ const MainSection = ({
   // Get the list of weeks
   const allWeeks =
     startDates && endDates
-      ? eachWeekOfInterval(
-          { start: new Date(startDates), end: new Date(endDates) },
-          { weekStartsOn: 1 }, // set week start as needed
-        )
+      ? eachWeekOfInterval({ start: new Date(startDates), end: new Date(endDates) }, { weekStartsOn: 1 })
       : []
 
   // Helper to get week index in the range
@@ -97,13 +90,10 @@ const MainSection = ({
   // Calculate positions for different time ranges
   const startDay = differenceInCalendarDays(start, startDates) + 1
   const endDay = differenceInCalendarDays(end, startDates) + 1
-
   const startWeek = findWeekIndex(start) - 1
   const endWeek = findWeekIndex(end) - 1
-
   const startMonth = differenceInCalendarMonths(start, startDates) + 1
   const endMonth = differenceInCalendarMonths(end, startDates) + 1
-
   const startYear = differenceInCalendarYears(start, startDates) + 1
   const endYear = differenceInCalendarYears(end, startDates) + 1
 
@@ -154,35 +144,29 @@ const MainSection = ({
 
   function getDaysInEachMonth(): Record<string, number> {
     const daysInMonth: Record<string, number> = {}
-
     rrange?.forEach((date) => {
-      const monthYear = format(date, "MMMM yyyy") // Include year to differentiate months across years
+      const monthYear = format(date, "MMMM yyyy")
       daysInMonth[monthYear] = (daysInMonth[monthYear] || 0) + 1
     })
-
-    // console.log("daysInMonth", daysInMonth);
-
     return daysInMonth
   }
 
-  useEffect(()=>{
-    if(active === 7){
-			console.log("active", active)
-			if (subStep === 1){
+  useEffect(() => {
+    if (active === 7) {
+      console.log("active", active)
+      if (subStep === 1) {
         console.log(subStep)
-				setClose(true)
-			}
-		}
-  }, [active, subStep, close])
+        setClose(true)
+      }
+    }
+  }, [active, subStep, setClose])
 
   function getDaysInEachYear(): Record<string, number> {
     const daysInYear: Record<string, number> = {}
-
     rrange?.forEach((date) => {
       const year = format(date, "yyyy")
       daysInYear[year] = (daysInYear[year] || 0) + 1
     })
-
     return daysInYear
   }
 
@@ -192,7 +176,6 @@ const MainSection = ({
         return (
           <>
             <DayInterval daysCount={dayDifference + 1} src="campaign" />
-            {/* <DayTimeline daysCount={dayDifference} funnels={funnelsData} /> */}
           </>
         )
       case "Month":
@@ -205,7 +188,6 @@ const MainSection = ({
               funnelData={funnelsData}
               disableDrag={disableDrag}
             />
-            {/* <MonthTimeline monthsCount={monthDifference} funnels={funnelsData} /> */}
           </>
         )
       case "Year":
@@ -218,7 +200,6 @@ const MainSection = ({
               funnelData={funnelsData}
               disableDrag={disableDrag}
             />
-            {/* <YearTimeline yearsCount={yearDifference} funnels={funnelsData} /> */}
           </>
         )
       default: // Week is default
@@ -229,14 +210,13 @@ const MainSection = ({
               funnelData={funnelsData}
               disableDrag={disableDrag}
             />
-            {/* <WeekTimeline weeksCount={weekDifference} funnels={funnelsData} /> */}
           </>
         )
     }
   }
 
   return (
-    <div className="mt-[32px]">
+    <div className="mt-[32px] w-full">
       {!hideDate && <DateComponent useDate={true} />}
 
       {/* Zoom Controls */}
@@ -250,11 +230,6 @@ const MainSection = ({
           >
             <ZoomOut className="w-4 h-4" />
           </button>
-
-          {/* <span className="text-sm font-medium min-w-[60px] text-center">
-            {Math.round(zoomLevel * 100)}%
-          </span> */}
-
           <button
             onClick={zoomIn}
             disabled={zoomLevel >= maxZoom}
@@ -263,40 +238,40 @@ const MainSection = ({
           >
             <ZoomIn className="w-4 h-4" />
           </button>
-
           <div className="w-px h-4 bg-gray-300 mx-1" />
-
           <button onClick={resetZoom} className="p-1 rounded hover:bg-gray-100" title="Reset Zoom (Ctrl + 0)">
             <RotateCcw className="w-4 h-4" />
           </button>
         </div>
-
-        {/* <div className="text-xs text-gray-500">Use Ctrl + / Ctrl - to zoom, or Ctrl + 0 to reset</div> */}
       </div>
 
-      <div className="box-border w-full min-h-auto bg-white border-b-2 relative mt-4">
-        <div className={`
-          overflow-auto w-full h-full hide-vertical-scrollbar`}>
+      {/* Timeline Container */}
+      <div className="w-full h-auto bg-white border-b-2 relative mt-4 overflow-hidden">
+        <div
+          className="w-full h-full overflow-x-auto overflow-y-hidden hide-vertical-scrollbar"
+          style={{
+            maxWidth: "100vw",
+          }}
+        >
           <div
-            className={`relative min-w-max transition-transform duration-200 ease-out origin-top-left px-2`}
+            className="relative bg-white transition-transform duration-200 ease-out px-2"
             style={{
               transform: `scale(${zoomLevel})`,
               transformOrigin: "left top",
-              fontSize: `${1 / zoomLevel}em`,
-              width: `${100 * zoomLevel}%`,
-              height: `${100 * zoomLevel}%`,
-              // Add background scaling compensation
-              backgroundSize: `${100 * zoomLevel}% 100%`,
+              width: "fit-content",
+              minWidth: "100%",
             }}
           >
-            <div className="relative">
-              <div className="bg-white">
-                {/* <DateInterval /> */}
-                {renderTimeline()}
-              </div>
+            {/* Timeline Content */}
+            <div className="relative w-full">
+              <div className="bg-white w-full">{renderTimeline()}</div>
             </div>
-            <div className="absolute right-[4px] top-18 w-1 bg-orange-500 z-20" style={{ height: "94%" }}></div>
-            <div className="absolute left-[8px] top-18 w-1 bg-orange-500 z-20" style={{ height: "94%" }}></div>
+
+            {/* Side indicators */}
+            <div className="absolute right-[4px] top-18 w-1 bg-orange-500 z-20" style={{ height: "94%" }} />
+            <div className="absolute left-[8px] top-18 w-1 bg-orange-500 z-20" style={{ height: "94%" }} />
+
+            {/* Resizable Elements */}
             <ResizeableElements
               funnelData={funnelsData}
               disableDrag={disableDrag}
@@ -308,8 +283,9 @@ const MainSection = ({
           </div>
         </div>
       </div>
+
+      {/* Modal */}
       {isOpen && <AddNewChennelsModel isOpen={isOpen} setIsOpen={setIsOpen} selectedStage={selectedStage} />}
-      {/* </div> */}
     </div>
   )
 }
