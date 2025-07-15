@@ -205,13 +205,13 @@ const SaveAllProgressButton = () => {
 
 						<div className="flex flex-row gap-4">
 							<button
-								className="btn_model_active w-full"
+								className="btn_model_outline  w-full"
 								onClick={cancelSave}
 							>
 								No
 							</button>
 							<button
-								className="btn_model_outline w-full"
+								className="btn_model_active w-full"
 								onClick={handleSaveAllSteps}
 							>
 								{loading ? <SVGLoader width="30px" height="30px" color="#000" /> : 'Save'}

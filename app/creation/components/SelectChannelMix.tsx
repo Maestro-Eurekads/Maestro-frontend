@@ -650,7 +650,7 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
           t2="Choose the platforms for each stage to ensure your campaign reaches the right audience at the right time."
           span={1}
         />
-        <SaveProgressButton setIsOpen={undefined} />
+        {/* <SaveProgressButton setIsOpen={undefined} /> */}
       </div>
 
 
