@@ -960,7 +960,7 @@ const MapFunnelStages = () => {
   // Handle saved config selection
 
   const handleConfigSelect = (configIdx: number) => {
-    // console.log("here");
+
     setSelectedConfigIdx(configIdx);
 
     setSelectedPreset(null);

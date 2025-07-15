@@ -301,17 +301,19 @@ import { toast } from 'sonner';
 import axios from 'axios';
 import { useUserPrivileges } from 'utils/userPrivileges';
 import { SVGLoader } from 'components/SVGLoader';
+import { updateUsersWithCampaign } from 'app/homepage/functions/clients';
+import { extractObjectives, getFilteredMetrics } from 'app/creation/components/EstablishedGoals/table-view/data-processor';
+import { removeKeysRecursively } from 'utils/removeID';
 
 const ComfirmModel = ({ isOpen, setIsOpen }) => {
 	const [loading, setLoading] = useState(false);
+	const [loadings, setLoadings] = useState(false);
 	const [step, setStep] = useState<'creator' | 'internal_approver' | 'client' | null>(null);
 	const [statusMessage, setStatusMessage] = useState('');
 	const [title, setTitle] = useState('');
 	const [showSharePrompt, setShowSharePrompt] = useState(false);
 	const [showVersionPrompt, setShowVersionPrompt] = useState(false);
 	const [showPlanInfoModal, setShowPlanInfoModal] = useState(false); // New state for plan info modal
-	const [versionAction, setVersionAction] = useState<'maintain' | 'new' | null>(null);
-
 	const query = useSearchParams();
 	const campaignId = query.get('campaignId');
 
@@ -322,6 +324,7 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 		cId,
 		getActiveCampaign,
 		jwt,
+		agencyId
 	} = useCampaigns();
 
 	const {
@@ -333,10 +336,280 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 		isClientApprover,
 		isClient,
 		userID,
+
 	} = useUserPrivileges();
 
 	const isInternalApprover = isAdmin || isAgencyApprover || isFinancialApprover;
 	const isCreator = isAgencyCreator;
+	const [versionAction, setVersionAction] = useState<'maintain' | 'new' | null>(null);
+
+
+
+	const { setChange } = useActive()
+	const [showSave, setShowSave] = useState(false)
+	const { active, subStep } = useActive();
+
+
+	const clearChannelStateForNewCampaign = () => {
+		if (typeof window === "undefined") return
+		try {
+			// Clear all channel state keys from sessionStorage
+			const keysToRemove = []
+			for (let i = 0; i < sessionStorage.length; i++) {
+				const key = sessionStorage.key(i)
+				if (key && key.startsWith("channelLevelAudienceState_")) {
+					keysToRemove.push(key)
+				}
+			}
+			keysToRemove.forEach((key) => sessionStorage.removeItem(key))
+			// Clear global state
+			if ((window as any).channelLevelAudienceState) {
+				Object.keys((window as any).channelLevelAudienceState).forEach((stageName) => {
+					delete (window as any).channelLevelAudienceState[stageName]
+				})
+			}
+			console.log("Cleared all channel state for new campaign")
+		} catch (error) {
+			console.error("Error clearing channel state:", error)
+		}
+	}
+
+
+
+
+	const handleCreateNewVersion = async () => {
+		setLoadings(true);
+
+		try {
+			// Get current version from existing campaignData or default to V1
+			const currentVersionNumber = Number((campaignData?.campaign_version || 'V1').replace('V', ''));
+			const newVersionNumber = currentVersionNumber + 1;
+			const versionLabel = `V${newVersionNumber}`; // This will be used as string in payload
+
+			const cleanedFormData = {
+				...campaignFormData,
+				internal_approver: campaignFormData?.internal_approver || [],
+				client_approver: campaignFormData?.client_approver || [],
+			};
+
+			const objectives = await extractObjectives(cleanedFormData);
+			const selectedMetrics = await getFilteredMetrics(objectives);
+
+			const channelMixCleaned = removeKeysRecursively(cleanedFormData?.channel_mix, [
+				"id",
+				"isValidated",
+				"formatValidated",
+				"validatedStages",
+				"documentId",
+				"_aggregated",
+			]);
+
+			const campaignBudgetCleaned = removeKeysRecursively(cleanedFormData?.campaign_budget, ["id"]);
+
+			const calcPercent = Math.ceil((active / 10) * 100);
+
+			const payload = {
+				data: {
+					campaign_builder: loggedInUser?.id,
+					client: cleanedFormData?.client_selection?.id,
+					client_selection: {
+						client: cleanedFormData?.client_selection?.value,
+						level_1: cleanedFormData?.level_1,
+					},
+					media_plan_details: {
+						plan_name: cleanedFormData?.media_plan,
+						internal_approver: cleanedFormData.internal_approver.map((item: any) => Number(item.id)),
+						client_approver: cleanedFormData.client_approver.map((item: any) => Number(item.id)),
+					},
+					budget_details: {
+						currency: cleanedFormData?.budget_details_currency?.id || "EUR",
+						value: cleanedFormData?.country_details?.id,
+					},
+					campaign_budget: {
+						...campaignBudgetCleaned,
+						currency: cleanedFormData?.budget_details_currency?.id || "EUR",
+					},
+					funnel_stages: cleanedFormData?.funnel_stages,
+					channel_mix: channelMixCleaned,
+					custom_funnels: cleanedFormData?.custom_funnels,
+					funnel_type: cleanedFormData?.funnel_type,
+					table_headers: objectives || {},
+					selected_metrics: selectedMetrics || {},
+					goal_level: cleanedFormData?.goal_level,
+					campaign_timeline_start_date: cleanedFormData?.campaign_timeline_start_date,
+					campaign_timeline_end_date: cleanedFormData?.campaign_timeline_end_date,
+					agency_profile: agencyId,
+					progress_percent:
+						campaignFormData?.progress_percent > calcPercent
+							? campaignFormData?.progress_percent
+							: calcPercent,
+					campaign_version: versionLabel, // Set string "V2", "V3", etc.
+				},
+			};
+
+			const config = {
+				headers: {
+					Authorization: `Bearer ${jwt}`,
+				},
+			};
+
+			const response = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`, payload, config);
+
+			const url = new URL(window.location.href);
+			url.searchParams.set("campaignId", `${response?.data?.data.documentId}`);
+			window.history.pushState({}, "", url.toString());
+
+			await updateUsersWithCampaign(
+				[
+					...(Array.isArray(loggedInUser?.id) ? loggedInUser?.id : [loggedInUser?.id]),
+					...cleanedFormData.internal_approver.map((item: any) => String(item.id)),
+					...cleanedFormData.client_approver.map((item: any) => String(item.id)),
+				],
+				response?.data?.data?.id,
+				jwt
+			);
+
+			await getActiveCampaign(response?.data?.data.documentId);
+			toast.success(`New Version (${versionLabel}) created successfully!`);
+			clearChannelStateForNewCampaign?.();
+
+			setChange(false);
+			setShowSave(false);
+		} catch (error: any) {
+			if (error?.response?.status === 401) {
+				window.dispatchEvent(new Event("unauthorizedEvent"));
+			}
+			toast.error(error?.response?.data?.message || "Something went wrong. Please try again.");
+			setIsOpen(false);
+			setLoadings(false);
+			setShowSave(false);
+			setChange(false);
+			setShowVersionPrompt(false);
+		} finally {
+			setIsOpen(false);
+			setLoadings(false);
+			setShowSave(false);
+			setChange(false);
+			setShowVersionPrompt(false);
+		}
+	};
+
+
+
+
+	// const handleCreateNewVersion = async () => {
+	// 	setLoadings(true);
+
+	// 	try {
+	// 		// Clean up & transform fields from all steps
+	// 		const cleanedFormData = {
+	// 			...campaignFormData,
+	// 			internal_approver: campaignFormData?.internal_approver || [],
+	// 			client_approver: campaignFormData?.client_approver || [],
+	// 		};
+
+	// 		const objectives = await extractObjectives(cleanedFormData);
+	// 		const selectedMetrics = await getFilteredMetrics(objectives);
+
+	// 		const channelMixCleaned = removeKeysRecursively(cleanedFormData?.channel_mix, [
+	// 			"id",
+	// 			"isValidated",
+	// 			"formatValidated",
+	// 			"validatedStages",
+	// 			"documentId",
+	// 			"_aggregated",
+	// 		]);
+
+	// 		const campaignBudgetCleaned = removeKeysRecursively(cleanedFormData?.campaign_budget, ["id"]);
+
+	// 		const calcPercent = Math.ceil((active / 10) * 100)
+
+	// 		const payload = {
+	// 			data: {
+	// 				campaign_builder: loggedInUser?.id,
+	// 				client: cleanedFormData?.client_selection?.id,
+	// 				client_selection: {
+	// 					client: cleanedFormData?.client_selection?.value,
+	// 					level_1: cleanedFormData?.level_1,
+	// 				},
+	// 				media_plan_details: {
+	// 					plan_name: cleanedFormData?.media_plan,
+	// 					internal_approver: cleanedFormData.internal_approver.map((item: any) => Number(item.id)),
+	// 					client_approver: cleanedFormData.client_approver.map((item: any) => Number(item.id)),
+	// 				},
+	// 				budget_details: {
+	// 					currency: cleanedFormData?.budget_details_currency?.id || "EUR",
+	// 					value: cleanedFormData?.country_details?.id,
+	// 				},
+	// 				campaign_budget: {
+	// 					...campaignBudgetCleaned,
+	// 					currency: cleanedFormData?.budget_details_currency?.id || "EUR",
+	// 				},
+	// 				funnel_stages: cleanedFormData?.funnel_stages,
+	// 				channel_mix: channelMixCleaned,
+	// 				custom_funnels: cleanedFormData?.custom_funnels,
+	// 				funnel_type: cleanedFormData?.funnel_type,
+	// 				table_headers: objectives || {},
+	// 				selected_metrics: selectedMetrics || {},
+	// 				goal_level: cleanedFormData?.goal_level,
+	// 				campaign_timeline_start_date: cleanedFormData?.campaign_timeline_start_date,
+	// 				campaign_timeline_end_date: cleanedFormData?.campaign_timeline_end_date,
+	// 				agency_profile: agencyId,
+	// 				progress_percent:
+	// 					campaignFormData?.progress_percent > calcPercent ? campaignFormData?.progress_percent : calcPercent,
+	// 				campaign_version: cleanedFormData?.campaign_version || "V1",
+
+	// 			},
+	// 		};
+
+	// 		const config = {
+	// 			headers: {
+	// 				Authorization: `Bearer ${jwt}`,
+	// 			},
+	// 		};
+
+	// 		// CREATE  
+	// 		const response = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`, payload, config);
+
+	// 		const url = new URL(window.location.href);
+	// 		url.searchParams.set("campaignId", `${response?.data?.data.documentId}`);
+	// 		window.history.pushState({}, "", url.toString());
+
+	// 		await updateUsersWithCampaign(
+	// 			[
+	// 				...(Array.isArray(loggedInUser?.id) ? loggedInUser?.id : [loggedInUser?.id]),
+	// 				...cleanedFormData.internal_approver.map((item: any) => String(item.id)),
+	// 				...cleanedFormData.client_approver.map((item: any) => String(item.id)),
+	// 			],
+	// 			response?.data?.data?.id,
+	// 			jwt
+	// 		);
+
+	// 		await getActiveCampaign(response?.data?.data.documentId);
+	// 		toast.success("New Version created successfully!");
+	// 		clearChannelStateForNewCampaign?.();
+
+
+	// 		setChange(false);
+	// 		setShowSave(false);
+	// 	} catch (error: any) {
+	// 		if (error?.response?.status === 401) {
+	// 			window.dispatchEvent(new Event("unauthorizedEvent"));
+	// 		}
+	// 		toast.error(error?.response?.data?.message || "Something went wrong. Please try again.");
+	// 		setLoadings(false);
+	// 		setShowSave(false);
+	// 		setChange(false);
+	// 		setShowVersionPrompt(false);
+	// 	} finally {
+	// 		setLoadings(false);
+	// 		setShowSave(false);
+	// 		setChange(false);
+	// 		setShowVersionPrompt(false);
+	// 	}
+	// };
+
+
 
 	const stage = campaignData?.isStatus?.stage;
 
@@ -579,8 +852,7 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 		toast.success(`Requested changes for the media plan: ${label}`);
 	};
 
-	console.log('stage---stage', stage)
-	console.log('showVersionPrompt----kk', showVersionPrompt)
+
 
 	if (!isOpen) return null;
 
@@ -679,9 +951,9 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 							</button>
 							<button
 								className="btn_model_outline w-full"
-								onClick={() => handleVersionChoice('new')}
+								onClick={() => handleCreateNewVersion()}
 							>
-								{loading ? <SVGLoader width="30px" height="30px" color="#000" /> : 'Create New Version'}
+								{loadings ? <SVGLoader width="30px" height="30px" color="#000" /> : 'Create New Version'}
 							</button>
 						</div>
 					</div>

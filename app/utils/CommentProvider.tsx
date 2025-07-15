@@ -49,7 +49,7 @@ export const CommentProvider = ({ children }) => {
 	const jwt =
 		(session?.user as { data?: { jwt: string } })?.data?.jwt
 
-	const {active, subStep} = useActive()
+	const { active, subStep } = useActive()
 
 
 
@@ -59,9 +59,8 @@ export const CommentProvider = ({ children }) => {
 		const storedOpportunities = JSON.parse(localStorage.getItem("opportunities")) || [];
 		setComments(storedComments);
 		setOpportunities(storedOpportunities);
-		if(active === 7){
-			console.log("active", active)
-			if (subStep === 1){
+		if (active === 7) {
+			if (subStep === 1) {
 				setClose(true)
 			}
 		}

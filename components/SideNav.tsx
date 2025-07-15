@@ -24,12 +24,13 @@ import Skeleton from "react-loading-skeleton";
 import BackConfirmModal from "./BackConfirmModal";
 
 const SideNav: React.FC = () => {
+  const { change, setChange, showModal, setShowModal } = useActive()
   const { setClose, close, setViewcommentsId, setOpportunities } = useComments();
   const router = useRouter();
   const { setActive, setSubStep, active, subStep } = useActive();
   const dispatch = useAppDispatch();
   const { campaignData, setCampaignData, loadingCampaign } = useCampaigns();
-  const [showModal, setShowModal] = useState(false);
+
 
   useEffect(() => {
     const shouldClose = active === 9 || active === 10 || (active === 7 && subStep === 1);
@@ -38,44 +39,45 @@ const SideNav: React.FC = () => {
 
 
 
-  const handleBackClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dispatch(reset());
-    setOpportunities([]);
-    setViewcommentsId("");
-    setCampaignData(null);
-    // setActive(0);
-    // setSubStep(0);
-    router.push("/");
-  };
-
-
-
   // const handleBackClick = (e: React.MouseEvent) => {
   //   e.preventDefault();
   //   e.stopPropagation();
-
-  //   if (change) {
-  //     setShowModal(true); 
-  //   } else {
-  //     navigateBack();
-  //   }
+  //   dispatch(reset());
+  //   setOpportunities([]);
+  //   setViewcommentsId("");
+  //   setCampaignData(null);
+  //   // setActive(0);
+  //   // setSubStep(0);
+  //   router.push("/");
   // };
 
-  // const handleConfirmSave = () => {
-  //   handleSave();  
-  //   setShowModal(false); 
-  // };
 
-  // const handleCancel = () => {
-  //   setShowModal(false); 
-  //   navigateBack();  
-  // };
 
-  // const handleSave = () => { 
-  //   setChange(false);
-  // };
+  const handleBackClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (change) {
+      setShowModal(true);
+    } else {
+      navigateBack();
+    }
+  };
+
+  const handleConfirmSave = () => {
+    handleSave(); // trigger save
+    setShowModal(false);
+  };
+
+  const handleCancel = () => {
+    setShowModal(false);
+    navigateBack();
+  };
+
+  const handleSave = () => {
+    // Simulate save logic
+    setChange(false);
+  };
 
   const navigateBack = () => {
     dispatch(reset());
@@ -249,11 +251,11 @@ const SideNav: React.FC = () => {
           display, and any other rights are exclusively reserved to Eurekads Pte. Ltd.
         </p>
       )}
-      {/* <BackConfirmModal
+      <BackConfirmModal
         isOpen={showModal}
         onClose={handleCancel}
         onConfirm={handleConfirmSave}
-      /> */}
+      />
     </div>
   );
 };
