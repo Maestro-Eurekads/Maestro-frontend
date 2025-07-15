@@ -65,10 +65,10 @@ const TableView = () => {
                   color: style?.color,
                   audience: platform.audience,
                   start_date: moment(platform.campaign_start_date).format(
-                    "DD/MM/YYYY"
+                    "MM/DD/YYYY"
                   ),
                   end_date: moment(platform.campaign_end_date).format(
-                    "DD/MM/YYYY"
+                    "MM/DD/YYYY"
                   ),
                   audience_size: platform.audienceSize,
                   budget_size:

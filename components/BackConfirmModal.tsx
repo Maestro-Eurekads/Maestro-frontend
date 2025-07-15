@@ -210,7 +210,7 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 						className="btn_model_active w-full"
 						onClick={onClose}
 					>
-						Cancel
+						No
 					</button>
 					<button
 						className="btn_model_outline w-full"
