@@ -8,10 +8,8 @@ const MessageContainer = ({ isOpen, isCreateOpen }) => {
 
 
 
-
-
 	return (
-		<div className={(activeComment || show) ? "" : "relative"}>
+		<div className={activeComment !== null || show ? "" : "relative"}>
 			{isCreateOpen &&
 				<DraggableMessage />}
 			{isOpen &&
