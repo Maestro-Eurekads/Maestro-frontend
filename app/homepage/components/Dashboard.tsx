@@ -54,7 +54,7 @@ const Dashboard = () => {
   const earliestStartDate = min(startDates)
   const latestEndDate = max(endDates)
 
-  console.log({earliestStartDate, latestEndDate})
+  console.log({ earliestStartDate, latestEndDate })
   // Calculate the week difference
   const dayDifference = differenceInCalendarDays(latestEndDate, earliestStartDate)
   console.log("🚀 ~ Dashboard ~ dayDifference:", dayDifference)
@@ -62,13 +62,13 @@ const Dashboard = () => {
   // const monthDifference = differenceInCalendarMonths(latestEndDate, earliestStartDate)
   const daysDiff = differenceInDays(latestEndDate, earliestStartDate);
   const monthDifference = differenceInCalendarMonths(latestEndDate, earliestStartDate);
-  const yearDifference =  differenceInCalendarYears(latestEndDate, earliestStartDate);
+  const yearDifference = differenceInCalendarYears(latestEndDate, earliestStartDate);
 
-  const funnelsData = clientCampaignData?.filter((cc)=>cc?.campaign_timeline_start_date && cc?.campaign_timeline_end_date)?.map((ch) => {
+  const funnelsData = clientCampaignData?.filter((cc) => cc?.campaign_timeline_start_date && cc?.campaign_timeline_end_date)?.map((ch) => {
     const start = ch?.campaign_timeline_start_date ? parseISO(ch.campaign_timeline_start_date) : null
     const end = ch?.campaign_timeline_end_date ? parseISO(ch.campaign_timeline_end_date) : null
 
-    console.log({start, end})
+    console.log({ start, end })
 
     // Calculate positions for different time ranges
     const startDay = differenceInCalendarDays(start, earliestStartDate) + 1
@@ -214,9 +214,7 @@ const Dashboard = () => {
 
         // Prepare data values for DoughnutChat
         const dataValues = getStagePercentages(campaign)
-        // console.log("dataValues---:", campaign)
-        // console.log("campaignFormData---:", campaignFormData)
-        // console.log("clientCampaignData---:", clientCampaignData)
+
         return (
           <div
             key={index}

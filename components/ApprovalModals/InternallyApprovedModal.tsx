@@ -10,7 +10,7 @@ import { useUserPrivileges } from 'utils/userPrivileges';
 import Continue from "../../public/arrow-back-outline.svg";
 import Image from "next/image";
 
-const InternallyApprovedModal = ({ isOpen, setIsOpen }) => {
+const InternallyApprovedModal = ({ isOpen, setIsOpen, setChange }) => {
 	const [loading, setLoading] = useState(false);
 	const [loadings, setLoadings] = useState(false);
 
@@ -66,6 +66,7 @@ const InternallyApprovedModal = ({ isOpen, setIsOpen }) => {
 			await getActiveCampaign(campaignId);
 			toast.success("Media plan approved internally.");
 			setIsOpen(false);
+			setChange(false)
 		} catch (err) {
 			toast.error("Failed to approve plan internally.");
 		} finally {
@@ -105,6 +106,7 @@ const InternallyApprovedModal = ({ isOpen, setIsOpen }) => {
 			await getActiveCampaign(campaignId);
 			toast.success("Requested changes for the media plan.");
 			setIsOpen(false);
+			setChange(false)
 		} catch (err) {
 			toast.error("Failed to request changes.");
 		} finally {

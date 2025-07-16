@@ -10,6 +10,7 @@ import FinalApprovedModal from './FinalApprovedModal';
 import ChangesNeededModal from './ChangesNeededModal';
 import InternallyApprovedModal from './InternallyApprovedModal';
 import SharedWithClientPromptModal from './SharedWithClientPromptModal';
+import { useActive } from 'app/utils/ActiveContext';
 
 const ApprovalModals = () => {
 	const [isOpen, setIsOpen] = useState(false);
@@ -25,7 +26,7 @@ const ApprovalModals = () => {
 		isClientApprover
 	} = useUserPrivileges();
 	const { campaignData } = useCampaigns();
-
+	const { setChange } = useActive()
 
 
 
@@ -53,13 +54,14 @@ const ApprovalModals = () => {
 
 	switch (effectiveStage) {
 		case 'draft':
-			return (isCreator || isNotApprover || isInternalApprover || isAdmin) ? <ApprovalDraftModal {...sharedProps} /> : null;
+			return (isCreator || isNotApprover || isInternalApprover || isAdmin) ? <ApprovalDraftModal {...sharedProps} setChange={setChange} /> : null;
 
 		case 'in_internal_review':
-			return (isAdmin || isAssignedInternalApprover) ? <InternallyApprovedModal {...sharedProps} /> : null;
+			return (isAdmin || isAssignedInternalApprover) ? <InternallyApprovedModal {...sharedProps}
+				setChange={setChange} /> : null;
 
 		case 'internally_approved':
-			return <ShareWithClientModal {...sharedProps} />;
+			return <ShareWithClientModal {...sharedProps} setChange={setChange} />;
 
 		case 'shared_with_client':
 			return (isCreator || isNotApprover || isInternalApprover || isAdmin || isClientApprover) ? <SharedWithClientPromptModal {...sharedProps} /> : <ClientReviewModal {...sharedProps} />;
@@ -68,10 +70,10 @@ const ApprovalModals = () => {
 			return <FinalApprovedModal {...sharedProps} />;
 
 		case 'changes_needed':
-			return (isAdmin || isAssignedInternalApprover) ? <InternallyApprovedModal  {...sharedProps} /> : null;
+			return (isAdmin || isAssignedInternalApprover) ? <InternallyApprovedModal  {...sharedProps} setChange={setChange} /> : null;
 
 		case 'client_changes_needed':
-			return <ChangesNeededModal stage={stage} {...sharedProps} />;
+			return <ChangesNeededModal stage={stage} {...sharedProps} setChange={setChange} />;
 
 		default:
 			return null;
