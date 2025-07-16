@@ -5,7 +5,7 @@ import React from 'react'
 const RealCommentHeaderwithClose = ({ author, comment }) => {
 	// Format the date & time if provided
 	const formattedDate = comment?.createdAt
-		? moment(comment.createdAt).format("DD/MM/YYYY")
+		? moment(comment.createdAt).format("MM/DD/YYYY")
 		: "n/a";
 
 	const formattedTime = comment?.createdAt
