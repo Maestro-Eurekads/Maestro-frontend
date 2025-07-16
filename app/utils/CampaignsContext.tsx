@@ -72,7 +72,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [loadingCampaign, setLoadingCampaign] = useState(false);
   const [getloading, setgetLoading] = useState(false);
   const [profile, setGetProfile] = useState(null);
-  const [platformName, setPlatformName] = useState(null);
+  const [platformName, setPlatformName] = useState(0);
   const [isEditingBuyingObjective, setIsEditingBuyingObjective] =
     useState(false);
   const [selectedOption, setSelectedOption] = useState("percentage");
