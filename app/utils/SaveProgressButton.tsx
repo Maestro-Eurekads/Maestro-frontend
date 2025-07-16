@@ -947,7 +947,7 @@ const SaveProgressButton = ({ setIsOpen }) => {
 								className=" btn_model_active w-full"
 								onClick={handleSave}
 							>
-								{loading ? <SVGLoader width="30px" height="30px" color="#000" /> : 'Save'}
+								{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> : 'Save'}
 							</button>
 						</div>
 					</div>
