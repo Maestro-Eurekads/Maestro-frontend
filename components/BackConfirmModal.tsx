@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { useActive } from "app/utils/ActiveContext";
 import axios from "axios";
 import { updateUsersWithCampaign } from "app/homepage/functions/clients";
-import { BiLoader } from "react-icons/bi";
 import { extractObjectives, getFilteredMetrics } from "app/creation/components/EstablishedGoals/table-view/data-processor";
 import { removeKeysRecursively } from "utils/removeID";
 import { SVGLoader } from "./SVGLoader";

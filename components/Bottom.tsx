@@ -11,6 +11,8 @@ import { BiLoader } from "react-icons/bi"
 import { useSelectedDates } from "../app/utils/SelectedDatesContext"
 import { useEditing } from "app/utils/EditingContext"
 import { Toaster } from "react-hot-toast"
+import AskForApproval from "./ApprovalModals/AskforApporval"
+import ApprovalModals from "./ApprovalModals/ApprovalModals"
 
 interface BottomProps {
   setIsOpen: (isOpen: boolean) => void
@@ -212,10 +214,12 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           </button>
         )}
         {active === 10 ? (
-          <button className="bottom_black_next_btn hover:bg-blue-500" onClick={() => setIsOpen(true)}>
-            <p>Confirm</p>
-            <Image src={Continue} alt="Continue" />
-          </button>
+          // <button className="bottom_black_next_btn hover:bg-blue-500" onClick={() => setIsOpen(true)}>
+          //   <p>Confirssssm</p>
+          //   <Image src={Continue} alt="Continue" />
+          // </button>
+          <ApprovalModals />
+
         ) : (
           <div className="flex justify-center items-center gap-3">
             <button
