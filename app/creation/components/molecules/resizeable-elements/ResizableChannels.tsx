@@ -1056,7 +1056,7 @@ const ResizableChannels = ({
                 )}
                 {disableDrag && (
                   <div
-                    className="rounded-[5px] px-[12px] font-medium bg-opacity-15 text-[15px]"
+                    className="rounded-[5px] font-medium bg-opacity-15 text-[15px]"
                     style={{
                       color: "#061237",
                     }}
