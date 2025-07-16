@@ -9,7 +9,7 @@ import { useUserPrivileges } from 'utils/userPrivileges';
 import Continue from "../../public/arrow-back-outline.svg";
 import Image from "next/image";
 
-const ShareWithClientModal = ({ isOpen, setIsOpen, campaignId }) => {
+const ShareWithClientModal = ({ isOpen, setIsOpen, campaignId, setChange }) => {
 	const { cId, jwt, getActiveCampaign } = useCampaigns();
 	const { loggedInUser } = useUserPrivileges();
 	const [loading, setLoading] = useState(false);
@@ -38,8 +38,10 @@ const ShareWithClientModal = ({ isOpen, setIsOpen, campaignId }) => {
 			await getActiveCampaign(campaignId);
 			toast.success('Media plan shared with client');
 			setIsOpen(false);
+			setChange(false)
 		} catch (err) {
 			toast.error('Failed to share');
+
 		} finally {
 			setLoading(false);
 		}
@@ -78,6 +80,7 @@ const ShareWithClientModal = ({ isOpen, setIsOpen, campaignId }) => {
 			await getActiveCampaign(campaignId);
 			toast.success("Requested changes for the media plan.");
 			setIsOpen(false);
+			setChange(false)
 		} catch (err) {
 			toast.error("Failed to request changes.");
 		} finally {

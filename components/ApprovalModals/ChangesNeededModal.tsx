@@ -7,7 +7,7 @@ import axios from 'axios';
 import { useCampaigns } from 'app/utils/CampaignsContext';
 import { useUserPrivileges } from 'utils/userPrivileges';
 
-const ChangesNeededModal = ({ isOpen, setIsOpen, stage }) => {
+const ChangesNeededModal = ({ isOpen, setIsOpen, stage, setChange }) => {
 	const { campaignData, cId, jwt, getActiveCampaign } = useCampaigns();
 	const { loggedInUser } = useUserPrivileges();
 
@@ -67,7 +67,9 @@ const ChangesNeededModal = ({ isOpen, setIsOpen, stage }) => {
 
 			toast.success(`Status updated: ${label}`);
 			setIsOpen(false);
+			setChange(false)
 		} catch (error) {
+
 			if (error?.response?.status === 401) {
 				window.dispatchEvent(new Event('unauthorizedEvent'));
 			} else {

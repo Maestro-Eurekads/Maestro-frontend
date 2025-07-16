@@ -10,7 +10,7 @@ import Image from "next/image"
 import Continue from "../../public/arrow-back-outline.svg"
 
 
-const ApprovalDraftModal = ({ isOpen, setIsOpen, campaignId, campaignData }) => {
+const ApprovalDraftModal = ({ isOpen, setIsOpen, campaignId, campaignData, setChange }) => {
 	const { cId, jwt, getActiveCampaign } = useCampaigns();
 	const { loggedInUser } = useUserPrivileges();
 	const [loading, setLoading] = useState(false);
@@ -39,6 +39,7 @@ const ApprovalDraftModal = ({ isOpen, setIsOpen, campaignId, campaignData }) => 
 
 			await getActiveCampaign(campaignId);
 			toast.success('Submitted for internal review');
+			setChange(false)
 			setIsOpen(false);
 		} catch (error) {
 			toast.error('Failed to submit');
