@@ -92,7 +92,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const hasInitializedStep4 = useRef(false)
 
 
-  console.log('campaignData---', platformName)
+
 
 
 
