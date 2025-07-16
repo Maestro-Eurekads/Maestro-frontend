@@ -17,8 +17,8 @@ const DayInterval: React.FC<DayIntervalProps> = ({ daysCount, src, range }) => {
         className="inline-flex"
         style={{
           display: "grid",
-          gridTemplateColumns: `repeat(${ddRange?.length}, minmax(50px, max-content))`,
-          width: "fit-content",
+          gridTemplateColumns: `repeat(${ddRange?.length}, 1fr)`,
+          // width: "fit-content",
         }}
       >
         {Array.from({ length: ddRange?.length }, (_, i) => {
