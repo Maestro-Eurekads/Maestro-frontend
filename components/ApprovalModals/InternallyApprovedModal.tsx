@@ -46,7 +46,13 @@ const InternallyApprovedModal = ({ isOpen, setIsOpen }) => {
 			const updatedData = {
 				isStatus: newStatus,
 				media_plan_details: {
-					...campaignData?.media_plan_details,
+					plan_name: campaignData?.media_plan_details?.plan_name || '',
+					internal_approver: (campaignData?.media_plan_details?.internal_approver || []).map(
+						(approver) => String(approver.id)
+					),
+					client_approver: (campaignData?.media_plan_details?.client_approver || []).map(
+						(approver) => String(approver.id)
+					),
 					approved_by: [String(loggedInUser?.id)],
 				}
 			};
