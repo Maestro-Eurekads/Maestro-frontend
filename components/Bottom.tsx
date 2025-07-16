@@ -96,6 +96,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
 
 
+
   // Reset initialization flag when leaving step 4
   useEffect(() => {
     if (active !== 4) {
@@ -256,7 +257,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                     {active === 0
                       ? "Start"
                       : active === 4 && !hasFormatSelected
-                        ? (platformName?.format?.length === 0 || platformName === null) ? "Not mandatory step, skip" : "Continue"
+                        ? (platformName > 0) ? "Continue" : "Not mandatory step, skip"
                         : "Continue"}
                   </p>
                   <Image src={Continue} alt="Continue" />

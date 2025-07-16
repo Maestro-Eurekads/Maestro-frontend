@@ -33,11 +33,10 @@ const Creation = () => {
           {active === 1 && <MapFunnelStages />}
           {active === 2 && <SelectChannelMix />}
           {active === 3 && <DefineAdSet />}
-
-          {active === 8 && <CampaignBudget />}
-
           {active === 4 && <FormatSelection />}
           {active === 5 && <SetBuyObjectivesAndTypes />}
+          {active === 8 && <CampaignBudget />}
+
           {/* {active === 6 && <SetBuyObjectivesAndTypesSubStep />} */}
 
           {/* Step 8 (Tracks 2 subSteps) */}
