@@ -557,12 +557,22 @@ const MediaSelectionGrid = ({
   onDeletePreview: (previewId: string, format: string, adSetIndex?: number) => void
   completedDeletions: Set<string>
 }) => {
-  const { campaignFormData } = useCampaigns()
+  const { campaignFormData, setPlatformName } = useCampaigns()
   const channelKey = channelName.toLowerCase().replace(/\s+/g, "_")
 
   const stage = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stageName)
   const platform = stage?.[channelKey]?.find((pl) => pl?.platform_name === platformName)
   const adSet = adSetIndex !== undefined ? platform?.ad_sets?.[adSetIndex] : null
+
+  console.log("MediaSelectionGrid - platform:", platform)
+  console.log("campaignFormData - platform:", campaignFormData)
+
+
+  useEffect(() => {
+    if (platform) {
+      setPlatformName(platform)
+    }
+  }, [platform]);
 
   // --- FIX: Use local expanded state for each adset/format selection grid ---
   // This ensures that uploading for one adset does not open another adset's format selection.
@@ -1498,7 +1508,7 @@ export const Platforms = ({
 
   return (
     <div className="text-[16px] overflow-x-hidden">
-      {channelSections.map((channel, index) => (
+      {channelSections?.map((channel, index) => (
         <ChannelSection
           key={`${channel.title}-${index}`}
           channelTitle={channel.title}
@@ -1557,6 +1567,7 @@ export const FormatSelection = ({
   const [selectedStage, setSelectedStage] = useState<string | null>(null)
   const { campaignFormData, setCampaignFormData } = useCampaigns()
   const { setIsDrawerOpen, setClose } = useComments()
+  const { active } = useActive()
 
   useEffect(() => {
     setView(openView ? openView : "channel")
@@ -1653,8 +1664,7 @@ export const FormatSelection = ({
             t2="Select the creative formats you want to use for your campaign. Specify the number of visuals for each format. Multiple formats can be selected per channel or Ad set"
           />
         )}
-        <SaveAllProgressButton />
-        {/* <SaveProgressButton setIsOpen={undefined} /> */}
+        {active === 4 && <SaveAllProgressButton />}
       </div>
 
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">

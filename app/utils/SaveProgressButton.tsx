@@ -18,6 +18,7 @@ import { removeKeysRecursively } from "utils/removeID"
 import AlertMain from "components/Alert/AlertMain"
 import { useCampaigns } from "./CampaignsContext"
 import { useActive } from "app/utils/ActiveContext"
+import { SVGLoader } from "components/SVGLoader"
 
 interface BottomProps {
 	setIsOpen: (isOpen: boolean) => void
@@ -904,39 +905,9 @@ const SaveProgressButton = ({ setIsOpen }) => {
 				/>
 			)}
 
-			<div  >
+			<div>
 
-				{/* Confirmation Button on Step 10 */}
-				{/* {active === 10 ? (
-					isInternalApprover ? (
-						showConfirm ? (
-							<button
-								className="bottom_black_next_btn hover:bg-blue-500"
-								onClick={() => setIsOpen(true)}
-							>
-								<p>Confirm</p>
-								<Image src={Continue} alt="Continue" />
-							</button>
-						) : (
-							<button
-								className="bottom_black_next_btn hover:bg-blue-500"
-								onClick={() => showError("Not authorized to approve this plan.")}
-							>
-								<p>Confirm</p>
-								<Image src={Continue} alt="Continue" />
-							</button>
-						)
-					) : (
-						<button
-							className="bottom_blue_save_btn hover:bg-blue-500"
-							onClick={() => showError("Role doesn't have permission!")}
-						>
-							<p>Confirm</p>
-							<Image src={Continue} alt="Continue" />
-						</button>
-					)
-					
-				) : (  */}
+
 				{active === 10 ? "" :
 					<div className="flex justify-center items-center gap-3">
 						<button
@@ -965,24 +936,18 @@ const SaveProgressButton = ({ setIsOpen }) => {
 						<p className="text-gray-700 mb-6">
 							Do you want to save this step progress?
 						</p>
-						<div className="flex justify-center gap-4">
+						<div className="flex flex-row gap-4">
 							<button
-								className="border border-gray-300 text-gray-600 px-4 py-2 rounded hover:bg-gray-100"
+								className="btn_model_outline w-full"
 								onClick={cancelSave}
 							>
-								Cancel
+								No
 							</button>
 							<button
-								className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+								className=" btn_model_active w-full"
 								onClick={handleSave}
 							>
-								{loading ? (
-									<center>
-										<BiLoader className="animate-spin" size={20} />
-									</center>
-								) : (
-									"Save"
-								)}
+								{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> : 'Save'}
 							</button>
 						</div>
 					</div>

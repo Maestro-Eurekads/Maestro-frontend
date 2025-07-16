@@ -7,9 +7,9 @@ import { toast } from "sonner";
 import { useActive } from "app/utils/ActiveContext";
 import axios from "axios";
 import { updateUsersWithCampaign } from "app/homepage/functions/clients";
-import { BiLoader } from "react-icons/bi";
 import { extractObjectives, getFilteredMetrics } from "app/creation/components/EstablishedGoals/table-view/data-processor";
 import { removeKeysRecursively } from "utils/removeID";
+import { SVGLoader } from "./SVGLoader";
 
 interface BackConfirmModalProps {
 	isOpen: boolean;
@@ -190,18 +190,19 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 
 				<p className="text-sm text-gray-600 mb-1 text-center">If you leave the plan the progress will be lost</p>
 				<p className="text-sm text-gray-600 mb-8 text-center">Would you like to save your progress?</p>
-				<div className="flex justify-end gap-3">
+
+				<div className="flex flex-row gap-4">
 					<button
-						className="px-4 py-2 rounded-md bg-gray-300 text-gray-800 hover:bg-gray-400"
+						className="btn_model_outline w-full"
 						onClick={onClose}
 					>
 						No
 					</button>
 					<button
-						className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white"
+						className="btn_model_active w-full"
 						onClick={handleSaveAllSteps}
 					>
-						{loading ? <BiLoader className="animate-spin" size={20} /> : "Save"}
+						{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> : 'Save'}
 					</button>
 				</div>
 			</div>

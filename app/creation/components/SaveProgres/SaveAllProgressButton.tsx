@@ -8,6 +8,7 @@ import { removeKeysRecursively } from 'utils/removeID';
 import { useUserPrivileges } from 'utils/userPrivileges';
 import { extractObjectives, getFilteredMetrics } from '../EstablishedGoals/table-view/data-processor';
 import { BiLoader } from 'react-icons/bi';
+import { SVGLoader } from 'components/SVGLoader';
 
 const SaveAllProgressButton = () => {
 	const { isClient, loggedInUser } = useUserPrivileges();
@@ -187,7 +188,6 @@ const SaveAllProgressButton = () => {
 	return (
 		<div >
 			<div  >
-
 				<button
 					className={"bottom_blue_save_btn whitespace-nowrap"}
 					onClick={() => setShowSave(true)}
@@ -202,24 +202,19 @@ const SaveAllProgressButton = () => {
 						<p className="text-gray-700 mb-6">
 							Do you want to save this step progress?
 						</p>
-						<div className="flex justify-center gap-4">
+
+						<div className="flex flex-row gap-4">
 							<button
-								className="border bg-gray-500 border-gray-300 text-white   px-4 py-2 rounded hover:bg-gray-100"
+								className="btn_model_outline  w-full"
 								onClick={cancelSave}
 							>
-								Cancel
+								No
 							</button>
 							<button
-								className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+								className="btn_model_active w-full"
 								onClick={handleSaveAllSteps}
 							>
-								{loading ? (
-									<center>
-										<BiLoader className="animate-spin" size={20} />
-									</center>
-								) : (
-									"Save"
-								)}
+								{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> : 'Save'}
 							</button>
 						</div>
 					</div>
