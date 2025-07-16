@@ -1508,7 +1508,7 @@ export const Platforms = ({
 
   return (
     <div className="text-[16px] overflow-x-hidden">
-      {channelSections.map((channel, index) => (
+      {channelSections?.map((channel, index) => (
         <ChannelSection
           key={`${channel.title}-${index}`}
           channelTitle={channel.title}
@@ -1567,6 +1567,7 @@ export const FormatSelection = ({
   const [selectedStage, setSelectedStage] = useState<string | null>(null)
   const { campaignFormData, setCampaignFormData } = useCampaigns()
   const { setIsDrawerOpen, setClose } = useComments()
+  const { active } = useActive()
 
   useEffect(() => {
     setView(openView ? openView : "channel")
@@ -1663,8 +1664,7 @@ export const FormatSelection = ({
             t2="Select the creative formats you want to use for your campaign. Specify the number of visuals for each format. Multiple formats can be selected per channel or Ad set"
           />
         )}
-        <SaveAllProgressButton />
-        {/* <SaveProgressButton setIsOpen={undefined} /> */}
+        {active === 4 && <SaveAllProgressButton />}
       </div>
 
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">

@@ -156,7 +156,7 @@ const InternallyApprovedModal = ({ isOpen, setIsOpen }) => {
 								onClick={handleRequestChanges}
 								disabled={loadings}
 							>
-								{loadings ? <SVGLoader width="30px" height="30px" color="#f87171" /> : 'Request Changes'}
+								{loadings ? <SVGLoader width="30px" height="30px" color="#0866FF" /> : 'Request Changes'}
 							</button>
 						</div>
 					</div>

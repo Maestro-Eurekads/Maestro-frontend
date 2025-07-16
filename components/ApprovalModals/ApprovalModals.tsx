@@ -9,6 +9,7 @@ import ClientReviewModal from './ClientReviewModal';
 import FinalApprovedModal from './FinalApprovedModal';
 import ChangesNeededModal from './ChangesNeededModal';
 import InternallyApprovedModal from './InternallyApprovedModal';
+import SharedWithClientPromptModal from './SharedWithClientPromptModal';
 
 const ApprovalModals = () => {
 	const [isOpen, setIsOpen] = useState(false);
@@ -55,18 +56,20 @@ const ApprovalModals = () => {
 			return (isCreator || isNotApprover || isInternalApprover || isAdmin) ? <ApprovalDraftModal {...sharedProps} /> : null;
 
 		case 'in_internal_review':
-			return (isAdmin || isAgencyApprover) ? <InternallyApprovedModal {...sharedProps} /> : null;
+			return (isAdmin || isAssignedInternalApprover) ? <InternallyApprovedModal {...sharedProps} /> : null;
 
 		case 'internally_approved':
 			return <ShareWithClientModal {...sharedProps} />;
 
 		case 'shared_with_client':
-			return isClientApprover ? <ClientReviewModal {...sharedProps} /> : null;
+			return (isCreator || isNotApprover || isInternalApprover || isAdmin || isClientApprover) ? <SharedWithClientPromptModal {...sharedProps} /> : <ClientReviewModal {...sharedProps} />;
 
 		case 'approved':
 			return <FinalApprovedModal {...sharedProps} />;
 
 		case 'changes_needed':
+			return (isAdmin || isAssignedInternalApprover) ? <InternallyApprovedModal  {...sharedProps} /> : null;
+
 		case 'client_changes_needed':
 			return <ChangesNeededModal stage={stage} {...sharedProps} />;
 
