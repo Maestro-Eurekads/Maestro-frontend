@@ -7,7 +7,6 @@ import { useComments } from 'app/utils/CommentProvider';
 import CommentHeaderwithClose from './CommentHeaderwithClose';
 import { useCampaigns } from 'app/utils/CampaignsContext';
 import { SVGLoader } from 'components/SVGLoader';
-import AlertMain from 'components/Alert/AlertMain';
 import { useSession } from "next-auth/react";
 import { useSearchParams } from 'next/navigation';
 import { useAppSelector } from 'store/useStore';
@@ -16,11 +15,9 @@ import InternalVisibilityToggle from 'components/InternalDropdowns';
 
 
 const AddAsInternalcomment = ({ position, setShow }) => {
-	const { campaignData } = useCampaigns();
 	const { data: session }: any = useSession();
 	const { addComment, isLoading, createCommentsError, comment, setComment } = useComments();
 	const { isLoading: loading } = useAppSelector((state) => state.comment);
-	const [alert, setAlert] = useState(null);
 	const [selectedOption, setSelectedOption] = useState(false);
 	const addcomment_as = selectedOption ? "Client" : "Internal";
 	const query = useSearchParams();
@@ -44,7 +41,6 @@ const AddAsInternalcomment = ({ position, setShow }) => {
 
 	return (
 		<div className='cursor-move z-50'>
-			{alert && <AlertMain alert={alert} />}
 			<div className="w-[320px] flex flex-col items-start p-[8px_16px] bg-white border border-black rounded-[6px]">
 				<div className="flex justify-between items-center gap-2 w-full">
 					<div className="flex items-center gap-2">
@@ -72,7 +68,7 @@ const AddAsInternalcomment = ({ position, setShow }) => {
 						selectedOption={selectedOption}
 						setSelectedOption={setSelectedOption}
 					/>
-					{/* <InternalDropdowns setSelectedOption={setSelectedOption} selectedOption={selectedOption} /> */}
+
 					<div>
 						<button
 							disabled={loading}

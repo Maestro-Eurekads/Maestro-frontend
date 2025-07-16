@@ -17,7 +17,7 @@ interface CommentHeaderProps {
 
 const CommentHeader: React.FC<CommentHeaderProps> = ({ comment }) => {
 	const formattedDate = comment?.createdAt
-		? moment(comment.createdAt).format("DD/MM/YYYY")
+		? moment(comment.createdAt).format("MM/DD/YYYY")
 		: "n/a";
 
 	const formattedTime = comment?.createdAt

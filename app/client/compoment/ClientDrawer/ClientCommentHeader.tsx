@@ -5,7 +5,7 @@ import React from "react";
 const ClientCommentHeader = ({ comment }) => {
 	// Format the date & time if createdAt is provided
 	const formattedDate = comment?.createdAt
-		? moment(comment?.createdAt).format("DD/MM/YYYY")
+		? moment(comment?.createdAt).format("MM/DD/YYYY")
 		: "n/a";
 	const formattedTime = comment?.createdAt
 		? moment(comment.createdAt).format("hh:mm A") // <-- 12-hour format with AM/PM
