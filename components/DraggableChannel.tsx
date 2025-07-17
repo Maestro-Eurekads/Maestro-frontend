@@ -418,7 +418,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
   return (
     <div
-      className={`relative px-[1px] w-full h-14 flex select-none rounded-[10px] cont-${id?.replaceAll(" ", "_")}`}
+      className={`relative px-[1px] w-full ${disableDrag ? "h-auto" : "h-14"}  flex select-none rounded-[10px] cont-${id?.replaceAll(" ", "_")}`}
       style={{
         transform: `translateX(${position + (range === "Month" ? 4 : 0)}px)`,
       }}
@@ -438,7 +438,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         </div>
       )}
       <div
-        className={`relative ${color} h-full flex justify-between items-center text-white px-4 py-[10px] gap-2 border shadow-md min-w-[50px] ${
+        className={`relative ${color} ${disableDrag ? "min-h-14" : "h-14"} flex ${disableDrag&& range === "Year" && parentWidth < 150 ? "flex-col" : "flex-row"}  justify-between items-center text-white px-4 py-[10px] gap-2 border shadow-md min-w-[50px] ${
           disableDrag ? "cursor-default relative" : "cursor-pointer"
         } rounded-[10px] cont-${id?.replaceAll(" ", "_")}`}
         style={{
@@ -489,7 +489,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
           <div />
         )}
         {disableDrag && stageBudget?.fixed_value > 0 && (
-          <div className="bg-[#FFFFFF26] rounded-[5px] py-[10px] px-[12px] font-medium">
+          <div className="bg-[#FFFFFF26] rounded-[5px] py-[10px] font-medium">
             {stageBudget?.fixed_value && Number.parseInt(stageBudget?.fixed_value).toLocaleString()}{" "}
             {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
           </div>

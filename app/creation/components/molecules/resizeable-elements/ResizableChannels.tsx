@@ -375,24 +375,6 @@ const ResizableChannels = ({
       const { index, newStartDate, newEndDate } = draggingDataRef.current
       console.log({ index, newStartDate, newEndDate })
       // Final update to campaign data
-      // setCopy(() => {
-      //   const updatedData = JSON.parse(JSON.stringify(campaignFormData))
-      //   const channelMix = updatedData.channel_mix.find((ch) => ch.funnel_stage === parentId)
-
-      //   if (channelMix) {
-      //     const channelGroup = channelMix[channels[index].channelName]
-      //     if (Array.isArray(channelGroup)) {
-      //       const platform = channelGroup.find((platform) => platform.platform_name === channels[index].name)
-
-      //       if (platform) {
-      //         platform.campaign_start_date = newStartDate
-      //         platform.campaign_end_date = newEndDate
-      //       }
-      //     }
-      //   }
-
-      //   return updatedData
-      // })
 
       draggingDataRef.current = null
     }
@@ -1056,7 +1038,7 @@ const ResizableChannels = ({
                 )}
                 {disableDrag && (
                   <div
-                    className="rounded-[5px] font-medium bg-opacity-15 text-[15px]"
+                    className="rounded-[5px] px-[12px] font-medium bg-opacity-15 text-[15px]"
                     style={{
                       color: "#061237",
                     }}
