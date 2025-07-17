@@ -341,60 +341,7 @@ function extractKPIByFunnelStage(data, kpiCategories) {
 }
 
 
-// function aggregateKPIStatsFromExtracted(extractedData, kpiCategories) {
-//   const kpiAccumulator = {};
 
-//   Object.keys(kpiCategories).forEach((category) => {
-//     kpiAccumulator[category] = {};
-//     kpiCategories[category].forEach((kpiName) => {
-//       kpiAccumulator[category][kpiName] = {
-//         values: [],
-//         displayName: kpiName,
-//       };
-//     });
-//   });
-
-//   Object.keys(extractedData).forEach((funnelStage) => {
-//     const platforms = extractedData[funnelStage] || [];
-
-//     platforms.forEach((platform) => {
-//       const kpi = platform?.kpi || {};
-
-//       Object.keys(kpiCategories).forEach((category) => {
-//         const kpiList = kpiCategories[category];
-//         const categoryData = kpi[category] || {};
-
-//         kpiList.forEach((kpiName) => {
-//           if (categoryData[kpiName] !== undefined && categoryData[kpiName] !== null) {
-//             kpiAccumulator[category][kpiName]?.values?.push(categoryData[kpiName]);
-//           }
-//         });
-//       });
-//     });
-//   });
-
-//   const aggregatedStats = {};
-
-//   Object.keys(kpiAccumulator).forEach((category) => {
-//     aggregatedStats[category] = {};
-
-//     Object.keys(kpiAccumulator[category]).forEach((kpiName) => {
-//       const kpiData = kpiAccumulator[category][kpiName];
-//       const values = kpiData?.values;
-
-//       if (values.length > 0) {
-//         const average = values.reduce((sum, val) => sum + val, 0) / values?.length;
-//         aggregatedStats[category][kpiData?.displayName] = Number(average.toFixed(2));
-//       }
-//     });
-
-//     if (Object.keys(aggregatedStats[category])?.length === 0) {
-//       delete aggregatedStats[category];
-//     }
-//   });
-
-//   return aggregatedStats;
-// }
 function aggregateKPIStatsFromExtracted(extractedData, kpiCategories) {
   const kpiAccumulator = {};
 
@@ -1114,7 +1061,33 @@ const tailwindToHex: { [key: string]: string } = {
 
 const isHexColor = (color: string) => /^#[0-9A-Fa-f]{6}$/.test(color);
 
+
+// Constants
+const CHANNEL_TYPES = [
+  { key: "social_media", title: "Social media" },
+  { key: "display_networks", title: "Display Networks" },
+  { key: "search_engines", title: "Search Engines" },
+  { key: "streaming", title: "Streaming" },
+  { key: "ooh", title: "OOH" },
+  { key: "broadcast", title: "Broadcast" },
+  { key: "messaging", title: "Messaging" },
+  { key: "print", title: "Print" },
+  { key: "e_commerce", title: "E Commerce" },
+  { key: "in_game", title: "In Game" },
+  { key: "mobile", title: "Mobile" },
+]
+
+const DEFAULT_MEDIA_OPTIONS = [
+  { name: "Carousel", icon: "/carousel.svg" },
+  { name: "Image", icon: "/Image_format.svg" },
+  { name: "Video", icon: "/video_format.svg" },
+  { name: "Slideshow", icon: "/slideshow_format.svg" },
+  { name: "Collection", icon: "/collection_format.svg" },
+]
+
 export {
+  CHANNEL_TYPES,
+  DEFAULT_MEDIA_OPTIONS,
   months,
   kpiCategories,
   categoryOrder,

@@ -16,6 +16,7 @@ import { useComments } from "app/utils/CommentProvider"
 import { useActive } from "app/utils/ActiveContext"
 import SaveProgressButton from "app/utils/SaveProgressButton"
 import SaveAllProgressButton from "./SaveProgres/SaveAllProgressButton"
+import { CHANNEL_TYPES, DEFAULT_MEDIA_OPTIONS } from "components/Options"
 
 // Types
 type FormatType = {
@@ -72,28 +73,7 @@ type QuantitiesType = {
  }
 }
 
-// Constants
-const CHANNEL_TYPES = [
- { key: "social_media", title: "Social media" },
- { key: "display_networks", title: "Display Networks" },
- { key: "search_engines", title: "Search Engines" },
- { key: "streaming", title: "Streaming" },
- { key: "ooh", title: "OOH" },
- { key: "broadcast", title: "Broadcast" },
- { key: "messaging", title: "Messaging" },
- { key: "print", title: "Print" },
- { key: "e_commerce", title: "E Commerce" },
- { key: "in_game", title: "In Game" },
- { key: "mobile", title: "Mobile" },
-]
 
-const DEFAULT_MEDIA_OPTIONS = [
- { name: "Carousel", icon: "/carousel.svg" },
- { name: "Image", icon: "/Image_format.svg" },
- { name: "Video", icon: "/video_format.svg" },
- { name: "Slideshow", icon: "/slideshow_format.svg" },
- { name: "Collection", icon: "/collection_format.svg" },
-]
 
 // Helper functions
 const getLocalStorageItem = (key: string, defaultValue: any = null) => {
@@ -563,15 +543,19 @@ const MediaSelectionGrid = ({
  const stage = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stageName)
  const platform = stage?.[channelKey]?.find((pl) => pl?.platform_name === platformName)
  const adSet = adSetIndex !== undefined ? platform?.ad_sets?.[adSetIndex] : null
+ const platformformat = platform?.format?.length ?? 0
+ const adsetformat = adSet?.format?.length ?? 0
+ const isSelected = adSet === null ? platformformat : adsetformat
 
- console.log("MediaSelectionGrid - adSet:", adSet)
- console.log("MediaSelectionGrid - platform:", platform)
+
 
  useEffect(() => {
-  if (platform) {
-   setPlatformName(platform)
+  if (adSet === null) {
+   setPlatformName(platformformat)
+  } else {
+   setPlatformName(adsetformat)
   }
- }, [platform]);
+ }, [isSelected, adSet, platform]);
 
  // --- FIX: Use local expanded state for each adset/format selection grid ---
  // This ensures that uploading for one adset does not open another adset's format selection.

@@ -37,7 +37,11 @@ const ClientAddReplytothisComment = ({ onReplySubmit }) => {
 							<div>
 								<h3 className="font-[500] text-[20px] leading-[27px] text-[#292929]">{cleanName(session?.user?.name)}</h3>
 								<div className='flex items-center gap-2'>
-									<p className="font-[400] text-[12px] leading-[16px] text-[#292929]">{new Date().toLocaleDateString()}</p>
+									<p className="font-[400] text-[12px] leading-[16px] text-[#292929]">{new Date().toLocaleDateString("en-US", {
+										year: "numeric",
+										month: "2-digit",
+										day: "2-digit",
+									})}</p>
 									<p className="font-[400] text-[12px] leading-[16px] text-[#292929]">{new Date().toLocaleTimeString([], {
 										hour: "2-digit",
 										minute: "2-digit",

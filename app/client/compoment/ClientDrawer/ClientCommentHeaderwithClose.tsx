@@ -5,12 +5,19 @@ const ClientCommentHeaderwithClose = ({ author }) => {
 	// Use a single Date object for the current date and time
 	const currentDate = new Date();
 	// Format the date and time
-	const formattedDate = currentDate.toLocaleDateString();
+	const formattedDate = currentDate.toLocaleDateString(
+		"en-US", {
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+	}
+	);
 	const formattedTime = currentDate.toLocaleTimeString([], {
 		hour: "2-digit",
 		minute: "2-digit",
 		hour12: true,
 	});
+
 
 	return (
 		<div>
