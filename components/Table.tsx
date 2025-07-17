@@ -258,7 +258,6 @@ const Table = () => {
                   >
                     <td className=" py-[12px] px-[16px] ">
                       {data?.media_plan_details?.plan_name || "N/A"}
-                      {data?.progress_percent}
                       {/* {data?.progress_percent < 100 ? "" : "Completed"} */}
                     </td>
                     <td className="py-[12px] px-[16px]">{data?.campaign_version || "V1"}</td>
