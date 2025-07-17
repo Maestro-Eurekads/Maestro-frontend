@@ -374,7 +374,7 @@ const ResizableChannels = ({
     if (draggingDataRef.current) {
       const { index, newStartDate, newEndDate } = draggingDataRef.current
       console.log({ index, newStartDate, newEndDate })
-      // Final update to campaign data
+      // Final update to campaign info
 
       draggingDataRef.current = null
     }
