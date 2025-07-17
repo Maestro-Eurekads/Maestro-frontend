@@ -25,7 +25,8 @@ const ApprovalModals = () => {
 		isClient,
 		isClientApprover
 	} = useUserPrivileges();
-	const { campaignData } = useCampaigns();
+	const { campaignData, campaignFormData } = useCampaigns();
+
 	const { setChange } = useActive()
 
 
@@ -34,9 +35,11 @@ const ApprovalModals = () => {
 	// Check if user is an assigned approver
 	const isInternalApprover = isAdmin || isAgencyApprover || isFinancialApprover;
 	const isCreator = isAgencyCreator;
-	const isAssignedInternalApprover =
-		isInternalApprover &&
-		campaignData?.media_plan_details?.internal_approver?.includes(String(loggedInUser?.id));
+	// const isAssignedInternalApprover = campaignData?.media_plan_details?.internal_approver?.includes(String(loggedInUser?.id));
+	const internalApproverEmails = campaignFormData?.internal_approver?.map((a) => a?.email) || []
+
+	const isAssignedInternalApprover = internalApproverEmails.includes(loggedInUser.email)
+	// console.log('isAssignedInternalApprover----', isAssignedInternalApprover)
 	const isAssignedClientApprover =
 		isClient && campaignData?.media_plan_details?.client_approver?.includes(String(loggedInUser?.id));
 	const isNotApprover =
@@ -47,7 +50,7 @@ const ApprovalModals = () => {
 
 	const sharedProps = { isOpen, setIsOpen, campaignId, campaignData };
 
-	console.log('stage----', stage)
+	// console.log('stage----', stage)
 
 
 	const effectiveStage = stage === undefined ? 'draft' : stage;
@@ -64,7 +67,7 @@ const ApprovalModals = () => {
 			return <ShareWithClientModal {...sharedProps} setChange={setChange} />;
 
 		case 'shared_with_client':
-			return (isInternalApprover || isAdmin) ? <SharedWithClientPromptModal {...sharedProps} /> : <ClientReviewModal {...sharedProps} />;
+			return (isAssignedInternalApprover || isAdmin) ? <SharedWithClientPromptModal {...sharedProps} /> : <ClientReviewModal {...sharedProps} />;
 
 		case 'approved':
 			return <FinalApprovedModal {...sharedProps} />;
