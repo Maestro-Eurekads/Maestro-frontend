@@ -44,8 +44,8 @@ import { toast } from "sonner";
 import Skeleton from "react-loading-skeleton";
 import { useSession } from "next-auth/react";
 import { getComment, getGeneralComment } from "features/Comment/commentSlice";
-import SaveProgressButton from "app/utils/SaveProgressButton";
 import { useActive } from "app/utils/ActiveContext";
+import VersionPromptModal from "components/ApprovalModals/VersionPromptModal";
 
 interface Comment {
   documentId: string;
@@ -85,10 +85,9 @@ const OverviewofyourCampaign = () => {
   const dispatch = useAppDispatch();
   const query = useSearchParams();
   const commentId = query.get("campaignId");
-
   const campaignId = query.get("campaignId");
   const [finalCategoryOrder, setFinalCategoryOrder] = useState(categoryOrder);
-  const { data: session } = useSession();
+
 
 
   const {
@@ -294,26 +293,25 @@ const OverviewofyourCampaign = () => {
     }
   }, [showalert]);
 
-
+  const stage = campaignData?.isStatus?.stage;
 
 
   return (
     <div>
-      <div className="flex flex-row justify-between">
-        <div />
-        <SaveProgressButton setIsOpen={undefined} />
-      </div>
-      {alert && <AlertMain alert={alert} />}
-      {createsSuccess && toast.success("Media plan version created!")}
-      {updateSuccess && toast.success("Media plan version updated!")}
       <div
         className={`px-[20px]  ${isDrawerOpen ? "md:px-[30px]" : "xl:px-[60px]"
           }`}
       >
         <div className="flex	flex-col gap-[24px]">
-          <div className="bg-white w-fit p-2 rounded-md shadow-[0px_4px_14px_rgba(0,38,116,0.15)]">
-            {campaignFormData?.media_plan && (<p>{campaignFormData?.media_plan}</p>)}
+          <div className="flex flex-row justify-between">
+
+            <div className="bg-white w-fit p-2 h-fit rounded-md shadow-[0px_4px_14px_rgba(0,38,116,0.15)]">
+              {campaignFormData?.media_plan && (<p>{campaignFormData?.media_plan}</p>)}
+            </div>
+            {!stage && <VersionPromptModal />}
           </div>
+
+
           <BusinessApproverContainer
             campaign={campaignData}
             loading={undefined}
@@ -405,8 +403,6 @@ const OverviewofyourCampaign = () => {
           <DateComponent useDate={true} hideRange={true} />
         </div>
 
-
-        {/* <OverviewOfYourCampaigntimeline dateList={range} funnels={funnelsData} setIsDrawerOpen={setIsDrawerOpen} openComments={isDrawerOpen} /> */}
         {isLoadingCampaign ?
           <div className='w-full h-[500px] flex flex-col gap-[50px] m-20px'>
             <Skeleton height={20} width={600} />
