@@ -101,6 +101,7 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 				...campaignFormData,
 				internal_approver: campaignFormData?.internal_approver || [],
 				client_approver: campaignFormData?.client_approver || [],
+				approved_by: campaignFormData?.approved_by || [],
 			};
 
 			const objectives = await extractObjectives(cleanedFormData);
@@ -131,6 +132,7 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 						plan_name: cleanedFormData?.media_plan,
 						internal_approver: cleanedFormData.internal_approver.map((item: any) => Number(item.id)),
 						client_approver: cleanedFormData.client_approver.map((item: any) => Number(item.id)),
+						approved_by: cleanedFormData.approved_by.map((item: any) => Number(item.id)),
 					},
 					budget_details: {
 						currency: cleanedFormData?.budget_details_currency?.id || "EUR",

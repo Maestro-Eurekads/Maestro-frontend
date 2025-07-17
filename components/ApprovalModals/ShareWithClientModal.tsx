@@ -30,7 +30,10 @@ const ShareWithClientModal = ({ isOpen, setIsOpen, campaignId, setChange }) => {
 			};
 
 			await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`, {
-				data: { isStatus: newStatus },
+				data: {
+					isStatus: newStatus,
+					isApprove: true,
+				},
 			}, {
 				headers: { Authorization: `Bearer ${jwt}` },
 			});

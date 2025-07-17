@@ -23,243 +23,35 @@ import { reset } from "features/Comment/commentSlice";
 import Skeleton from "react-loading-skeleton";
 import BackConfirmModal from "./BackConfirmModal";
 
-// const SideNav: React.FC = () => {
-//   const { change, setChange, showModal, setShowModal } = useActive()
-//   const { setClose, close, setViewcommentsId, setOpportunities } = useComments();
-//   const router = useRouter();
-//   const { setActive, setSubStep, active, subStep } = useActive();
-//   const dispatch = useAppDispatch();
-//   const { campaignData, setCampaignData, loadingCampaign } = useCampaigns();
-
-
-//   useEffect(() => {
-//     const shouldClose = active === 9 || active === 10 || (active === 7 && subStep === 1);
-//     setClose((prev) => (prev !== shouldClose ? shouldClose : prev));
-//   }, [active, setClose, subStep]);
-
-
-//   const handleBackClick = (e: React.MouseEvent) => {
-//     e.preventDefault();
-//     e.stopPropagation();
-
-//     if (change) {
-//       setShowModal(true);
-//     } else {
-//       navigateBack();
-//     }
-//   };
-
-//   const handleConfirmSave = () => {
-//     handleSave(); // trigger save
-//     setShowModal(false);
-//   };
-
-//   const handleCancel = () => {
-//     setShowModal(false);
-//     navigateBack();
-//   };
-
-//   const handleSave = () => {
-//     // Simulate save logic
-//     setChange(false);
-//   };
-
-//   const navigateBack = () => {
-//     dispatch(reset());
-//     setOpportunities([]);
-//     setViewcommentsId("");
-//     setCampaignData(null);
-//     router.push("/");
-//   };
-
-//   const steps = useMemo(
-//     () => [
-//       {
-//         vl: "vl",
-//         vl_done: "vl_done",
-//         vl_active: "vl_active",
-//         state_text: "SideBar_Menu_state",
-//         sidecircle: "SideBar_Menu_active",
-//         title: "Map funnel stages",
-//         // objective:
-//         //   campaignData?.funnel_stages?.length > 0
-//         //     ? campaignData.funnel_stages.length > 3
-//         //       ? campaignData.funnel_stages.slice(0, 3).join(" · ") + " ..."
-//         //       : campaignData.funnel_stages.join(" · ")
-//         //     : "",
-//         img: <Image src={funnel} alt="funnel" />,
-//       },
-//       {
-//         vl: "vl",
-//         vl_done: "vl_done",
-//         vl_active: "vl_active",
-//         state_text: "SideBar_Menu_state",
-//         sidecircle: "SideBar_Menu_active",
-//         title: "Select channel mix",
-//         img: <Image src={channel} alt="channel" />,
-//       },
-//       {
-//         vl: "vl",
-//         vl_done: "vl_done",
-//         vl_active: "vl_active",
-//         state_text: "SideBar_Menu_state",
-//         sidecircle: "SideBar_Menu_active",
-//         title: "Configure ad sets and audiences",
-//         img: <Image src={click} alt="click" />,
-//       },
-//       {
-//         vl: "vl",
-//         vl_done: "vl_done",
-//         vl_active: "vl_active",
-//         state_text: "SideBar_Menu_state",
-//         sidecircle: "SideBar_Menu_active",
-//         title: "Formats selection",
-//         img: <Image src={devicefill} alt="devicefill" />,
-//       },
-//       {
-//         vl: "vl",
-//         vl_done: "vl_done",
-//         vl_active: "vl_active",
-//         state_text: "SideBar_Menu_state",
-//         sidecircle: "SideBar_Menu_active",
-//         title: "Set buy objectives and types",
-//         img: <Image src={basket} alt="basket" />,
-//       },
-//       {
-//         vl: "vls",
-//         vl_done: "vl_dones",
-//         vl_active: "vl_actives",
-//         state_text: "SideBar_Menu_state_sub",
-//         sidecircle: "SideBar_Menu_active_sub",
-//         title: "Mid-recap",
-//       },
-//       {
-//         vl: "vl",
-//         vl_done: "vl_done",
-//         vl_active: "vl_active",
-//         state_text: "SideBar_Menu_state",
-//         sidecircle: "SideBar_Menu_active",
-//         title: "Plan campaign schedule",
-//         img: <Image src={Calender} alt="Calender" />,
-//       },
-//       {
-//         vl: "vl",
-//         vl_done: "vl_done",
-//         vl_active: "vl_active",
-//         state_text: "SideBar_Menu_state",
-//         sidecircle: "SideBar_Menu_active",
-//         title: "Allocate Campaign Budget",
-//         img: <Image src={click} alt="click" />,
-//       },
-//       {
-//         vl: "vl",
-//         vl_done: "vl_done",
-//         vl_active: "vl_active",
-//         state_text: "SideBar_Menu_state",
-//         sidecircle: "SideBar_Menu_active",
-//         title: "Establish goals",
-//         img: <Image src={workbench} alt="workbench" />,
-//       },
-//       {
-//         vl: "vl",
-//         vl_done: "vl_done",
-//         vl_active: "vl_active",
-//         state_text: "SideBar_Menu_state",
-//         sidecircle: "SideBar_Menu_active",
-//         title: "Overview of your campaign",
-//         img: <Image src={checkfill} alt="checkfill" />,
-//       },
-//     ],
-//     [campaignData]
-//   );
-
-//   const isCampaignDataLoaded = campaignData?.client?.client_name && campaignData?.media_plan_details?.plan_name;
-
-//   return (
-//     <div id={close ? "side-nav-active" : "side-nav"} className="!flex !flex-col !h-full">
-//       <div className="flex flex-col">
-//         <div className={`flex ${close ? "justify-center mb-[30px]" : "justify-end"} w-full`}>
-//           <button onClick={() => {
-//             // if(active === 7 && subStep === 1){
-//             //   setClose(true)
-//             // } else{
-//             // }
-//             setClose(!close)
-//           }}>
-//             <Image src={closeicon} alt="closeicon" />
-//           </button>
-//         </div>
-//         {!close && (
-//           <div className="flex flex-col items-start mb-8">
-//             <button
-//               onClick={handleBackClick}
-//               className="font-general-sans font-semibold text-[16px] leading-[22px] text-[#3175FF] flex items-center gap-2"
-//             >
-//               <Image src={left_arrow} alt="menu" />
-//               <p>Back to Dashboard</p>
-//             </button>
-//             {loadingCampaign ? (
-//               // Minimize skeleton visibility with a timeout
-//               <div className="opacity.cas(0).delay(200ms).duration(300ms)">
-//                 <Skeleton height={20} width={200} />
-//               </div>
-//             ) : isCampaignDataLoaded ? (
-//               <div>
-//                 <h6 className="font-general-sans font-semibold text-[24px] leading-[36px] text-[#152A37]">
-//                   {campaignData.media_plan_details.plan_name.charAt(0).toUpperCase() +
-//                     campaignData.media_plan_details.plan_name.slice(1)}
-//                 </h6>
-//               </div>
-//             ) : null}
-//             <div className="flex items-center gap-[8px]">
-//               {loadingCampaign ? (
-//                 <div className="opacity.cas(0).delay(200ms).duration(300ms)">
-//                   <Skeleton height={20} width={150} />
-//                 </div>
-//               ) : isCampaignDataLoaded ? (
-//                 <p className="text-[#152A37] text-[15px] font-medium leading-[175%] not-italic">
-//                   {campaignData?.client?.client_name?.charAt(0).toUpperCase() + campaignData?.client?.client_name?.slice(1)}
-//                 </p>
-//               ) : (
-//                 <p className="text-[#152A37] text-[15px] font-medium leading-[175%] not-italic mt-3">
-//                   Follow the steps to set up an effective and successful campaign strategy.
-//                 </p>
-//               )}
-//             </div>
-//           </div>
-//         )}
-//       </div>
-//       {close ? <CreationFlowActive steps={steps} close={close} /> : <CreationFlow steps={steps} />}
-//       {!close && (
-//         <p className="font-general-sans italic font-medium text-[12px] leading-[21px] text-[rgba(6,18,55,0.8)]">
-//           This screen, all the other ones, as well as the system they build together are protected by copyright © - all use,
-//           display, and any other rights are exclusively reserved to Eurekads Pte. Ltd.
-//         </p>
-//       )}
-//       <BackConfirmModal
-//         isOpen={showModal}
-//         onClose={handleCancel}
-//         onConfirm={handleConfirmSave}
-//       />
-//     </div>
-//   );
-// };
-
-// export default SideNav;
-
-
 const SideNav: React.FC = () => {
-  const { change, setChange, showModal, setShowModal } = useActive();
+  const { change, setChange, showModal, setShowModal } = useActive()
   const { setClose, close, setViewcommentsId, setOpportunities } = useComments();
   const router = useRouter();
   const { setActive, setSubStep, active, subStep } = useActive();
   const dispatch = useAppDispatch();
   const { campaignData, setCampaignData, loadingCampaign } = useCampaigns();
 
+
   useEffect(() => {
     const shouldClose = active === 9 || active === 10 || (active === 7 && subStep === 1);
     setClose((prev) => (prev !== shouldClose ? shouldClose : prev));
   }, [active, setClose, subStep]);
+
+
+
+  // const handleBackClick = (e: React.MouseEvent) => {
+  //   e.preventDefault();
+  //   e.stopPropagation();
+  //   dispatch(reset());
+  //   setOpportunities([]);
+  //   setViewcommentsId("");
+  //   setCampaignData(null);
+  //   // setActive(0);
+  //   // setSubStep(0);
+  //   router.push("/");
+  // };
+
+
 
   const handleBackClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -273,7 +65,7 @@ const SideNav: React.FC = () => {
   };
 
   const handleConfirmSave = () => {
-    handleSave();
+    handleSave(); // trigger save
     setShowModal(false);
   };
 
@@ -283,6 +75,7 @@ const SideNav: React.FC = () => {
   };
 
   const handleSave = () => {
+    // Simulate save logic
     setChange(false);
   };
 
@@ -303,6 +96,12 @@ const SideNav: React.FC = () => {
         state_text: "SideBar_Menu_state",
         sidecircle: "SideBar_Menu_active",
         title: "Map funnel stages",
+        // objective:
+        //   campaignData?.funnel_stages?.length > 0
+        //     ? campaignData.funnel_stages.length > 3
+        //       ? campaignData.funnel_stages.slice(0, 3).join(" · ") + " ..."
+        //       : campaignData.funnel_stages.join(" · ")
+        //     : "",
         img: <Image src={funnel} alt="funnel" />,
       },
       {
@@ -391,27 +190,17 @@ const SideNav: React.FC = () => {
 
   const isCampaignDataLoaded = campaignData?.client?.client_name && campaignData?.media_plan_details?.plan_name;
 
-  // Skeleton loader for steps
-  const renderStepSkeletons = () => (
-    <div className="flex flex-col gap-[30px] mb-[30px]">
-      {steps.map((_, index) => (
-        <div key={index} className="flex items-center gap-3">
-          <Skeleton height={24} width={24} circle />
-          {close ? "" : < Skeleton height={20} width={150} />}
-        </div>
-      ))}
-    </div>
-  );
-
   return (
     <div id={close ? "side-nav-active" : "side-nav"} className="!flex !flex-col !h-full">
       <div className="flex flex-col">
         <div className={`flex ${close ? "justify-center mb-[30px]" : "justify-end"} w-full`}>
-          <button
-            onClick={() => {
-              setClose(!close);
-            }}
-          >
+          <button onClick={() => {
+            // if(active === 7 && subStep === 1){
+            //   setClose(true)
+            // } else{
+            // }
+            setClose(!close)
+          }}>
             <Image src={closeicon} alt="closeicon" />
           </button>
         </div>
@@ -425,6 +214,7 @@ const SideNav: React.FC = () => {
               <p>Back to Dashboard</p>
             </button>
             {loadingCampaign ? (
+              // Minimize skeleton visibility with a timeout
               <div className="opacity.cas(0).delay(200ms).duration(300ms)">
                 <Skeleton height={20} width={200} />
               </div>
@@ -443,8 +233,7 @@ const SideNav: React.FC = () => {
                 </div>
               ) : isCampaignDataLoaded ? (
                 <p className="text-[#152A37] text-[15px] font-medium leading-[175%] not-italic">
-                  {campaignData?.client?.client_name?.charAt(0).toUpperCase() +
-                    campaignData?.client?.client_name?.slice(1)}
+                  {campaignData.client.client_name.charAt(0).toUpperCase() + campaignData.client.client_name.slice(1)}
                 </p>
               ) : (
                 <p className="text-[#152A37] text-[15px] font-medium leading-[175%] not-italic mt-3">
@@ -455,28 +244,18 @@ const SideNav: React.FC = () => {
           </div>
         )}
       </div>
-      {!campaignData ? (
-        renderStepSkeletons()
-      ) : close ? (
-        <CreationFlowActive steps={steps} close={close} />
-      ) : (
-        <CreationFlow steps={steps} />
-      )}
+      {close ? <CreationFlowActive steps={steps} close={close} /> : <CreationFlow steps={steps} />}
       {!close && (
-        !campaignData ? (
-          <div className="opacity.cas(0).delay(200ms).duration(300ms)">
-            <Skeleton height={21} width={300} />
-            <Skeleton height={21} width={280} />
-            <Skeleton height={21} width={250} />
-          </div>
-        ) : (
-          <p className="font-general-sans italic font-medium text-[12px] leading-[21px] text-[rgba(6,18,55,0.8)]">
-            This screen, all the other ones, as well as the system they build together are protected by copyright © - all
-            use, display, and any other rights are exclusively reserved to Eurekads Pte. Ltd.
-          </p>
-        )
+        <p className="font-general-sans italic font-medium text-[12px] leading-[21px] text-[rgba(6,18,55,0.8)]">
+          This screen, all the other ones, as well as the system they build together are protected by copyright © - all use,
+          display, and any other rights are exclusively reserved to Eurekads Pte. Ltd.
+        </p>
       )}
-      <BackConfirmModal isOpen={showModal} onClose={handleCancel} onConfirm={handleConfirmSave} />
+      <BackConfirmModal
+        isOpen={showModal}
+        onClose={handleCancel}
+        onConfirm={handleConfirmSave}
+      />
     </div>
   );
 };
