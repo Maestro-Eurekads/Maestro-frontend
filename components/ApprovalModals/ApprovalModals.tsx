@@ -47,6 +47,7 @@ const ApprovalModals = () => {
 
 	const sharedProps = { isOpen, setIsOpen, campaignId, campaignData };
 
+	console.log('stage----', stage)
 
 
 	const effectiveStage = stage === undefined ? 'draft' : stage;
@@ -69,7 +70,7 @@ const ApprovalModals = () => {
 			return <FinalApprovedModal {...sharedProps} />;
 
 		case 'changes_needed':
-			return (isAdmin || isAssignedInternalApprover) ? <InternallyApprovedModal  {...sharedProps} setChange={setChange} /> : null;
+			return (isAdmin || isAssignedInternalApprover) ? <ChangesNeededModal stage={stage} {...sharedProps} setChange={setChange} /> : null;
 
 		case 'client_changes_needed':
 			return <ChangesNeededModal stage={stage} {...sharedProps} setChange={setChange} />;
