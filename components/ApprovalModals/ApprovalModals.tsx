@@ -48,7 +48,6 @@ const ApprovalModals = () => {
 	const sharedProps = { isOpen, setIsOpen, campaignId, campaignData };
 
 
-	console.log('ApprovalModals rendered with stage:', stage);
 
 	const effectiveStage = stage === undefined ? 'draft' : stage;
 
@@ -64,7 +63,7 @@ const ApprovalModals = () => {
 			return <ShareWithClientModal {...sharedProps} setChange={setChange} />;
 
 		case 'shared_with_client':
-			return (isCreator || isNotApprover || isInternalApprover || isAdmin || isClientApprover) ? <SharedWithClientPromptModal {...sharedProps} /> : <ClientReviewModal {...sharedProps} />;
+			return (isInternalApprover || isAdmin) ? <SharedWithClientPromptModal {...sharedProps} /> : <ClientReviewModal {...sharedProps} />;
 
 		case 'approved':
 			return <FinalApprovedModal {...sharedProps} />;

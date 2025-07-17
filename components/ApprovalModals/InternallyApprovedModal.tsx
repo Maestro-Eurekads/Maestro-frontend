@@ -118,137 +118,10 @@ const InternallyApprovedModal = ({ isOpen, setIsOpen, setChange }) => {
 
 
 
-	const handleCreateNewVersion = async () => {
-		setLoadingc(true);
-
-		try {
-			// Clean up & transform fields from all steps
-			const cleanedFormData = {
-				...campaignFormData,
-				internal_approver: campaignFormData?.internal_approver || [],
-				client_approver: campaignFormData?.client_approver || [],
-				approved_by: campaignFormData?.approved_by || [],
-			};
-
-			const objectives = await extractObjectives(cleanedFormData);
-			const selectedMetrics = await getFilteredMetrics(objectives);
-
-			const channelMixCleaned = removeKeysRecursively(cleanedFormData?.channel_mix, [
-				"id",
-				"isValidated",
-				"formatValidated",
-				"validatedStages",
-				"documentId",
-				"_aggregated",
-			]);
-
-			const campaignBudgetCleaned = removeKeysRecursively(cleanedFormData?.campaign_budget, ["id"]);
-
-			const calcPercent = Math.ceil((active / 10) * 100);
-
-			// Normalize approved_by to array of IDs (support objects or IDs)
-			const existingApprovedByRaw = campaignFormData?.media_plan_details?.approved_by;
-			const existingApprovedBy = Array.isArray(existingApprovedByRaw)
-				? existingApprovedByRaw.map((user: any) => (typeof user === "object" ? user.id : user))
-				: [];
-
-			const currentVersionNumber = Number((campaignData?.campaign_version || 'V1').replace('V', ''));
-			const newVersionNumber = currentVersionNumber + 1;
-			const versionLabel = `V${newVersionNumber}`; // This will be used as string in payload
-
-			const payload = {
-				data: {
-					campaign_builder: loggedInUser?.id,
-					client: cleanedFormData?.client_selection?.id,
-					client_selection: {
-						client: cleanedFormData?.client_selection?.value,
-						level_1: cleanedFormData?.level_1,
-					},
-					media_plan_details: {
-						plan_name: cleanedFormData?.media_plan,
-						internal_approver: cleanedFormData.internal_approver.map((item: any) => Number(item.id)),
-						client_approver: cleanedFormData.client_approver.map((item: any) => Number(item.id)),
-						approved_by: cleanedFormData.approved_by.map((item: any) => Number(item.id)),
-						// approved_by: [String(loggedInUser?.id)],
-					},
-					budget_details: {
-						currency: cleanedFormData?.budget_details_currency?.id || "EUR",
-						value: cleanedFormData?.country_details?.id,
-					},
-					campaign_budget: {
-						...campaignBudgetCleaned,
-						currency: cleanedFormData?.budget_details_currency?.id || "EUR",
-					},
-					funnel_stages: cleanedFormData?.funnel_stages,
-					channel_mix: channelMixCleaned,
-					custom_funnels: cleanedFormData?.custom_funnels,
-					funnel_type: cleanedFormData?.funnel_type,
-					table_headers: objectives || {},
-					selected_metrics: selectedMetrics || {},
-					goal_level: cleanedFormData?.goal_level,
-					campaign_timeline_start_date: cleanedFormData?.campaign_timeline_start_date,
-					campaign_timeline_end_date: cleanedFormData?.campaign_timeline_end_date,
-					agency_profile: agencyId,
-					progress_percent:
-						campaignFormData?.progress_percent > calcPercent ? campaignFormData?.progress_percent : calcPercent,
-					campaign_version: versionLabel,
-				},
-			};
-
-			const config = {
-				headers: {
-					Authorization: `Bearer ${jwt}`,
-				},
-			};
-
-			// CREATE or UPDATE logic
-			if (campaignFormData.cId) {
-				const response = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`, payload, config);
-
-				const url = new URL(window.location.href);
-				url.searchParams.set("campaignId", `${response?.data?.data.documentId}`);
-				window.history.pushState({}, "", url.toString());
-
-				await updateUsersWithCampaign(
-					[
-						...(Array.isArray(loggedInUser?.id) ? loggedInUser?.id : [loggedInUser?.id]),
-						...cleanedFormData.internal_approver.map((item: any) => String(item.id)),
-						...cleanedFormData.client_approver.map((item: any) => String(item.id)),
-					],
-					response?.data?.data?.id,
-					jwt
-				);
-
-				await getActiveCampaign(response?.data?.data.documentId);
-				toast.success("Campaign created successfully!");
-				clearChannelStateForNewCampaign?.();
-			}
-
-			setIsOpen(false);
-			setChange(false);
-		} catch (error: any) {
-			if (error?.response?.status === 401) {
-				window.dispatchEvent(new Event("unauthorizedEvent"));
-			}
-			toast.error(error?.response?.data?.message || "Something went wrong. Please try again.");
-			setLoadingc(false);
-			setChange(false);
-		} finally {
-			setLoadingc(false);
-			setChange(false);
-		}
-	};
 
 
-	// const {
-	// 	cId,
-	// 	getActiveCampaign,
-	// 	jwt,
-	// 	campaignData
-	// } = useCampaigns();
 
-	// const { loggedInUser } = useUserPrivileges();
-	// const campaignId = campaignData?.documentId;
+
 
 	const handleApprove = async () => {
 		if (!cId) {
@@ -387,13 +260,7 @@ const InternallyApprovedModal = ({ isOpen, setIsOpen, setChange }) => {
 								{loadings ? <SVGLoader width="30px" height="30px" color="#0866FF" /> : 'Request Changes'}
 							</button>
 
-							<button
-								className="btn_model_outline w-full"
-								onClick={handleCreateNewVersion}
-								disabled={loadingc}
-							>
-								{loadingc ? <SVGLoader width="30px" height="30px" color="#000" /> : 'Create New Version'}
-							</button>
+
 						</div>
 					</div>
 				</div>}

@@ -258,7 +258,8 @@ const Table = () => {
                   >
                     <td className=" py-[12px] px-[16px] ">
                       {data?.media_plan_details?.plan_name || "N/A"}
-                      {data?.progress_percent < 100 ? "" : "Completed"}
+                      {data?.progress_percent}
+                      {/* {data?.progress_percent < 100 ? "" : "Completed"} */}
                     </td>
                     <td className="py-[12px] px-[16px]">{data?.campaign_version || "V1"}</td>
                     <td className="py-[12px] px-[16px]">
@@ -288,13 +289,6 @@ const Table = () => {
                           approved: "Approved",
                         }[data?.isStatus?.stage] || "In Progress"}
                       </div>
-
-
-
-                      {/* <div className={"Not_Approved"}>
-
-                        {"In Progress"}
-                      </div> */}
                     </td>
                     <td className="py-[12px] px-[16px]">
                       <div className="flex felx-row  gap-1">
