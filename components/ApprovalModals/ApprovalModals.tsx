@@ -70,10 +70,10 @@ const ApprovalModals = () => {
 			return <FinalApprovedModal {...sharedProps} />;
 
 		case 'changes_needed':
-			return (isAdmin || isAssignedInternalApprover) ? <ChangesNeededModal stage={stage} {...sharedProps} setChange={setChange} /> : null;
+			return (isCreator || isNotApprover || isInternalApprover || isAdmin) ? <ChangesNeededModal stage={stage} {...sharedProps} setChange={setChange} /> : null;
 
 		case 'client_changes_needed':
-			return <ChangesNeededModal stage={stage} {...sharedProps} setChange={setChange} />;
+			return (isCreator || isNotApprover || isInternalApprover || isAdmin) ? <ChangesNeededModal stage={stage} {...sharedProps} setChange={setChange} /> : null;
 
 		default:
 			return null;
