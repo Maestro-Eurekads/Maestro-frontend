@@ -602,6 +602,7 @@ const SaveProgressButton = ({ setIsOpen }) => {
 					...campaignFormData,
 					internal_approver: campaignFormData?.internal_approver || [],
 					client_approver: campaignFormData?.client_approver || [],
+					approved_by: campaignFormData?.approved_by || [],
 				}
 
 				setCampaignFormData(cleanedFormData)
@@ -619,6 +620,7 @@ const SaveProgressButton = ({ setIsOpen }) => {
 							plan_name: campaignFormData?.media_plan,
 							internal_approver: (campaignFormData?.internal_approver || []).map((item: any) => Number(item.id)),
 							client_approver: (campaignFormData?.client_approver || []).map((item: any) => Number(item.id)),
+							approved_by: cleanedFormData.approved_by.map((item: any) => Number(item.id)),
 						},
 						budget_details: {
 							currency: campaignFormData?.budget_details_currency?.id || "EUR",

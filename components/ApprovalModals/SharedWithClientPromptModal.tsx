@@ -1,4 +1,4 @@
-'use client';
+
 
 import { CheckCircle, X } from 'lucide-react';
 import { toast } from 'sonner';

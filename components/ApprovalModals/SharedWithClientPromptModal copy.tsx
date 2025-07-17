@@ -1,25 +1,21 @@
 'use client';
 
 import { CheckCircle, X } from 'lucide-react';
-import { SVGLoader } from 'components/SVGLoader';
-import { useState } from 'react';
 import { toast } from 'sonner';
-import axios from 'axios';
-import { useCampaigns } from 'app/utils/CampaignsContext';
-import { useUserPrivileges } from 'utils/userPrivileges';
 import Continue from "../../public/arrow-back-outline.svg";
 import Image from "next/image";
-import { updateUsersWithCampaign } from 'app/homepage/functions/clients';
-import { extractObjectives, getFilteredMetrics } from 'app/creation/components/EstablishedGoals/table-view/data-processor';
+import { useState } from "react";
+import axios from "axios";
 import { useActive } from 'app/utils/ActiveContext';
-import { useSearchParams } from 'next/navigation';
+import { extractObjectives, getFilteredMetrics } from 'app/creation/components/EstablishedGoals/table-view/data-processor';
 import { removeKeysRecursively } from 'utils/removeID';
+import { useCampaigns } from 'app/utils/CampaignsContext';
+import { updateUsersWithCampaign } from 'app/homepage/functions/clients';
+import { useSearchParams } from 'next/navigation';
+import { useUserPrivileges } from 'utils/userPrivileges';
+import { SVGLoader } from 'components/SVGLoader';
 
-const InternallyApprovedModal = ({ isOpen, setIsOpen, setChange }) => {
-	const [loading, setLoading] = useState(false);
-	const [loadings, setLoadings] = useState(false);
-	const [loadingc, setLoadingc] = useState(false);
-
+const SharedWithClientPromptModal = ({ isOpen, setIsOpen }) => {
 	const {
 		campaignData,
 		campaignFormData,
@@ -34,10 +30,11 @@ const InternallyApprovedModal = ({ isOpen, setIsOpen, setChange }) => {
 	} = useUserPrivileges();
 
 	const { active } = useActive();
+	const [loading, setLoading] = useState(false);
 	const [showVersionPrompt, setShowVersionPrompt] = useState(false);
 	const [showPlanInfoModal, setShowPlanInfoModal] = useState(false);
 	const [versionAction, setVersionAction] = useState<'maintain' | 'new' | null>(null);
-
+	const { setChange } = useActive();
 	const query = useSearchParams();
 	const campaignId = query.get('campaignId');
 
@@ -119,7 +116,7 @@ const InternallyApprovedModal = ({ isOpen, setIsOpen, setChange }) => {
 
 
 	const handleCreateNewVersion = async () => {
-		setLoadingc(true);
+		setLoading(true);
 
 		try {
 			// Clean up & transform fields from all steps
@@ -231,174 +228,58 @@ const InternallyApprovedModal = ({ isOpen, setIsOpen, setChange }) => {
 				window.dispatchEvent(new Event("unauthorizedEvent"));
 			}
 			toast.error(error?.response?.data?.message || "Something went wrong. Please try again.");
-			setLoadingc(false);
+			setLoading(false);
 			setChange(false);
-		} finally {
-			setLoadingc(false);
-			setChange(false);
-		}
-	};
-
-
-	// const {
-	// 	cId,
-	// 	getActiveCampaign,
-	// 	jwt,
-	// 	campaignData
-	// } = useCampaigns();
-
-	// const { loggedInUser } = useUserPrivileges();
-	// const campaignId = campaignData?.documentId;
-
-	const handleApprove = async () => {
-		if (!cId) {
-			toast.error("No campaign ID");
-			return;
-		}
-
-		setLoading(true);
-		try {
-			const newStatus = {
-				stage: 'internally_approved',
-				label: 'Internally Approved',
-				actor: {
-					id: loggedInUser?.id,
-					name: loggedInUser?.username,
-					role: loggedInUser?.user_type,
-				},
-				date: new Date().toISOString(),
-			};
-
-			const updatedData = {
-				isStatus: newStatus,
-				media_plan_details: {
-					plan_name: campaignData?.media_plan_details?.plan_name || '',
-					internal_approver: (campaignData?.media_plan_details?.internal_approver || []).map(
-						(approver) => String(approver.id)
-					),
-					client_approver: (campaignData?.media_plan_details?.client_approver || []).map(
-						(approver) => String(approver.id)
-					),
-					approved_by: [String(loggedInUser?.id)],
-				}
-			};
-
-			await axios.put(
-				`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`,
-				{ data: updatedData },
-				{ headers: { Authorization: `Bearer ${jwt}` } }
-			);
-
-			await getActiveCampaign(campaignId);
-			toast.success("Media plan approved internally.");
-			setIsOpen(false);
-			setChange(false)
-		} catch (err) {
-			toast.error("Failed to approve plan internally.");
 		} finally {
 			setLoading(false);
-		}
-	};
-
-	const handleRequestChanges = async () => {
-		if (!cId) {
-			toast.error("No campaign ID");
-			return;
-		}
-
-		setLoadings(true);
-		try {
-			const newStatus = {
-				stage: 'changes_needed',
-				label: 'Changes Needed',
-				actor: {
-					id: loggedInUser?.id,
-					name: loggedInUser?.username,
-					role: loggedInUser?.user_type,
-				},
-				date: new Date().toISOString(),
-			};
-
-			const updatedData = {
-				isStatus: newStatus,
-			};
-
-			await axios.put(
-				`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`,
-				{ data: updatedData },
-				{ headers: { Authorization: `Bearer ${jwt}` } }
-			);
-
-			await getActiveCampaign(campaignId);
-			toast.success("Requested changes for the media plan.");
-			setIsOpen(false);
-			setChange(false)
-		} catch (err) {
-			toast.error("Failed to request changes.");
-		} finally {
-			setLoadings(false);
+			setChange(false);
 		}
 	};
 
 	return (
 		<>
-			{/* The trigger button */}
 			<button className="bottom_black_next_btn hover:bg-blue-500 whitespace-nowrap" onClick={() => setIsOpen(true)}>
-				<p>Approval Internally</p>
+				<p>Shared with client</p>
 				<Image src={Continue} alt="Continue" />
 			</button>
 
-			{/* Modal overlay */}
-			{isOpen &&
+			{isOpen && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-					<div className="relative bg-white rounded-lg w-[440px] p-6 shadow-xl text-center">
-						<button
-							onClick={() => setIsOpen(false)}
-							className="absolute top-4 right-4"
-						>
+					<div className="relative bg-white rounded-lg w-[440px] max-w-full p-6 shadow-xl text-center">
+						<button onClick={() => setIsOpen(false)} className="absolute top-4 right-4">
 							<X className="w-5 h-5 text-gray-500 hover:text-gray-700" />
 						</button>
-
 						<div className="w-full flex justify-center pt-2">
-							<div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-								<CheckCircle className="text-green-600 w-7 h-7" />
+							<div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+								<CheckCircle className="text-blue-600 w-7 h-7" />
 							</div>
 						</div>
-
-						<h2 className="text-xl font-semibold text-[#181D27] mb-2">Approve Internally?</h2>
+						<h2 className="text-xl font-semibold text-[#181D27] mb-2">
+							Media Plan Shared with Client
+						</h2>
 						<p className="text-sm text-[#535862] mb-4">
-							Are you sure you want to approve this media plan internally?
+							The media plan has been shared with the client and is under review.
 						</p>
 
-						<div className="flex flex-col gap-4 mt-4">
+						<div className="flex flex-col gap-4">
 							<button
 								className="btn_model_active w-full"
-								onClick={handleApprove}
-								disabled={loading}
+								onClick={() => handleVersionChoice('maintain')}
 							>
-								{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> : 'Approve Internally'}
+								{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> : 'Maintain Same Version'}
 							</button>
-
-							<button
-								className="btn_model_outline w-full"
-								onClick={handleRequestChanges}
-								disabled={loadings}
-							>
-								{loadings ? <SVGLoader width="30px" height="30px" color="#0866FF" /> : 'Request Changes'}
-							</button>
-
 							<button
 								className="btn_model_outline w-full"
 								onClick={handleCreateNewVersion}
-								disabled={loadingc}
 							>
-								{loadingc ? <SVGLoader width="30px" height="30px" color="#000" /> : 'Create New Version'}
+								{loading ? <SVGLoader width="30px" height="30px" color="#000" /> : 'Create New Version'}
 							</button>
 						</div>
 					</div>
-				</div>}
+				</div>
+			)}
 		</>
 	);
 };
 
-export default InternallyApprovedModal;
+export default SharedWithClientPromptModal;
