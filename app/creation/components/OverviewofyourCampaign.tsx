@@ -308,7 +308,8 @@ const OverviewofyourCampaign = () => {
             <div className="bg-white w-fit p-2 h-fit rounded-md shadow-[0px_4px_14px_rgba(0,38,116,0.15)]">
               {campaignFormData?.media_plan && (<p>{campaignFormData?.media_plan}</p>)}
             </div>
-            {!stage && <VersionPromptModal />}
+            {(!stage || stage === "client_changes_needed" || stage === "changes_needed") && <VersionPromptModal />}
+
           </div>
 
 
