@@ -2,7 +2,6 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useCampaigns } from 'app/utils/CampaignsContext';
 import { useUserPrivileges } from 'utils/userPrivileges';
-import ApprovalDraftModal from './ApprovalDraftModal';
 import ShareWithClientModal from './ShareWithClientModal';
 import InternalReviewModal from './InternalReviewModal';
 import ClientReviewModal from './ClientReviewModal';
@@ -11,6 +10,7 @@ import ChangesNeededModal from './ChangesNeededModal';
 import InternallyApprovedModal from './InternallyApprovedModal';
 import SharedWithClientPromptModal from './SharedWithClientPromptModal';
 import { useActive } from 'app/utils/ActiveContext';
+import AskForApproval from './AskforApporval';
 
 const ApprovalModals = () => {
 	const [isOpen, setIsOpen] = useState(false);
@@ -35,9 +35,7 @@ const ApprovalModals = () => {
 	// Check if user is an assigned approver
 	const isInternalApprover = isAdmin || isAgencyApprover || isFinancialApprover;
 	const isCreator = isAgencyCreator;
-	// const isAssignedInternalApprover = campaignData?.media_plan_details?.internal_approver?.includes(String(loggedInUser?.id));
 	const internalApproverEmails = campaignFormData?.internal_approver?.map((a) => a?.email) || []
-
 	const isAssignedInternalApprover = internalApproverEmails.includes(loggedInUser.email)
 	// console.log('isAssignedInternalApprover----', isAssignedInternalApprover)
 	const isAssignedClientApprover =
@@ -57,14 +55,14 @@ const ApprovalModals = () => {
 
 	switch (effectiveStage) {
 		case 'draft':
-			return (isCreator || isNotApprover || isInternalApprover || isAdmin) ? <ApprovalDraftModal {...sharedProps} setChange={setChange} /> : null;
+			return (isCreator || isNotApprover || isInternalApprover || isAdmin) ? <AskForApproval {...sharedProps} setChange={setChange} /> : null;
 
 		case 'in_internal_review':
 			return (isAdmin || isAssignedInternalApprover) ? <InternallyApprovedModal {...sharedProps}
 				setChange={setChange} /> : null;
 
 		case 'internally_approved':
-			return <ShareWithClientModal {...sharedProps} setChange={setChange} />;
+			return (isAdmin || isAssignedInternalApprover) ? <ShareWithClientModal {...sharedProps} setChange={setChange} /> : null;
 
 		case 'shared_with_client':
 			return (isAssignedInternalApprover || isAdmin) ? <SharedWithClientPromptModal {...sharedProps} /> : <ClientReviewModal {...sharedProps} />;
