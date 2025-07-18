@@ -1,9 +1,8 @@
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useCampaigns } from 'app/utils/CampaignsContext';
 import { useUserPrivileges } from 'utils/userPrivileges';
 import ShareWithClientModal from './ShareWithClientModal';
-import InternalReviewModal from './InternalReviewModal';
 import ClientReviewModal from './ClientReviewModal';
 import FinalApprovedModal from './FinalApprovedModal';
 import ChangesNeededModal from './ChangesNeededModal';
@@ -47,8 +46,6 @@ const ApprovalModals = () => {
 	if (!campaignData) return null;
 
 	const sharedProps = { isOpen, setIsOpen, campaignId, campaignData };
-
-	// console.log('stage----', stage)
 
 
 	const effectiveStage = stage === undefined ? 'draft' : stage;

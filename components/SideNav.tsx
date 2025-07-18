@@ -32,6 +32,7 @@ const SideNav: React.FC = () => {
   const { campaignData, setCampaignData, loadingCampaign } = useCampaigns();
 
 
+
   useEffect(() => {
     const shouldClose = active === 9 || active === 10 || (active === 7 && subStep === 1);
     setClose((prev) => (prev !== shouldClose ? shouldClose : prev));
