@@ -3,8 +3,8 @@ import send from "../../../../public/send.svg";
 import closecircle from "../../../../public/close-circle.svg";
 import Image from "next/image";
 import { useComments } from 'app/utils/CommentProvider';
-import CommentHeaderwithClose from './ClientCommentHeaderwithClose';
 import { cleanName } from 'components/Options';
+import ClientCommentHeaderwithMessage from './ClientCommentHeaderwithMessage.tsx';
 
 
 const ClientShowcomment = ({ comment, setActiveComment }) => {
@@ -26,9 +26,7 @@ const ClientShowcomment = ({ comment, setActiveComment }) => {
 						<div className="flex flex-col justify-center items-center p-[10px] gap-[10px] w-[40px] h-[40px] bg-[#00A36C] rounded-full text-[20px] leading-[27px] text-center text-white">
 							{comment?.creator?.name[0] ?? ""}
 						</div>
-						<CommentHeaderwithClose author={cleanName(comment?.creator?.name)}
-							comment={comment}
-						/>
+						<ClientCommentHeaderwithMessage author={cleanName(comment?.creator?.name)} comment={comment} />
 					</div>
 
 					{/* Mark as Approved Button */}

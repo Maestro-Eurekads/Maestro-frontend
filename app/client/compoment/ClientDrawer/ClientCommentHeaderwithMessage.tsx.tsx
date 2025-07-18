@@ -1,23 +1,15 @@
 import { cleanName } from "components/Options";
+import moment from "moment";
 import React from "react";
 
-const ClientCommentHeaderwithClose = ({ author }) => {
+const ClientCommentHeaderwithMessage = ({ author, comment }) => {
 	// Use a single Date object for the current date and time
-	const currentDate = new Date();
-	// Format the date and time
-	const formattedDate = currentDate.toLocaleDateString(
-		"en-US", {
-		year: "numeric",
-		month: "2-digit",
-		day: "2-digit",
-	}
-	);
-	const formattedTime = currentDate.toLocaleTimeString([], {
-		hour: "2-digit",
-		minute: "2-digit",
-		hour12: true,
-	});
-
+	const formattedDate = comment?.createdAt
+		? moment(comment?.createdAt).format("MM/DD/YYYY")
+		: "n/a";
+	const formattedTime = comment?.createdAt
+		? moment(comment.createdAt).format("hh:mm A") // <-- 12-hour format with AM/PM
+		: "n/a";
 
 	return (
 		<div>
@@ -30,4 +22,4 @@ const ClientCommentHeaderwithClose = ({ author }) => {
 	);
 };
 
-export default ClientCommentHeaderwithClose;
+export default ClientCommentHeaderwithMessage;
