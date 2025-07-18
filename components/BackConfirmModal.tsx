@@ -10,6 +10,10 @@ import { updateUsersWithCampaign } from "app/homepage/functions/clients";
 import { extractObjectives, getFilteredMetrics } from "app/creation/components/EstablishedGoals/table-view/data-processor";
 import { removeKeysRecursively } from "utils/removeID";
 import { SVGLoader } from "./SVGLoader";
+import { useAppDispatch } from "store/useStore";
+import { useRouter } from "next/navigation";
+import { useComments } from "app/utils/CommentProvider";
+import { reset } from "features/Client/clientSlice";
 
 interface BackConfirmModalProps {
 	isOpen: boolean;
@@ -21,7 +25,10 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 	const { isClient, loggedInUser } = useUserPrivileges();
 	const [loading, setLoading] = useState(false);
 	const { setChange, showModal, setShowModal } = useActive()
-
+	const { setClose, close, setViewcommentsId, setOpportunities } = useComments();
+	const router = useRouter();
+	const { setActive, setSubStep, active, subStep } = useActive();
+	const dispatch = useAppDispatch();
 
 
 
@@ -56,6 +63,7 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 		campaignFormData,
 		cId,
 		getActiveCampaign,
+		setCampaignData,
 		copy,
 		isEditingBuyingObjective,
 		isStepZeroValid,
@@ -143,6 +151,14 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 			if (campaignFormData.cId) {
 				await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${campaignFormData.cId}`, payload, config);
 				toast.success("Campaign updated successfully!");
+				setChange(false);
+				setShowModal(false);
+				dispatch(reset());
+				setOpportunities([]);
+				setViewcommentsId("");
+				setCampaignData(null);
+				router.push("/");
+				clearChannelStateForNewCampaign?.();
 			} else {
 				const response = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`, payload, config);
 
@@ -162,11 +178,17 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 
 				await getActiveCampaign(response?.data?.data.documentId);
 				toast.success("Campaign created successfully!");
+				setChange(false);
+				setShowModal(false);
+				dispatch(reset());
+				setOpportunities([]);
+				setViewcommentsId("");
+				setCampaignData(null);
+				router.push("/");
 				clearChannelStateForNewCampaign?.();
 			}
 
-			setChange(false);
-			setShowModal(false);
+
 		} catch (error: any) {
 			if (error?.response?.status === 401) {
 				window.dispatchEvent(new Event("unauthorizedEvent"));
