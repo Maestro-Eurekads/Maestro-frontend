@@ -3,8 +3,6 @@ import moment from "moment";
 import React from "react";
 
 const ClientCommentHeaderwithClose = ({ author, comment }) => {
-	// Use a single Date object for the current date and time
-
 	// Format the date & time if createdAt is provided
 	const formattedDate = comment?.createdAt
 		? moment(comment?.createdAt).format("MM/DD/YYYY")
