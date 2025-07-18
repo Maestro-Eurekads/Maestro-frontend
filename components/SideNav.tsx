@@ -99,7 +99,7 @@ const SideNav: React.FC = () => {
         // objective: campaignData?.funnel_stages,
         // campaignData?.funnel_stages?.length > 0
         //   ? campaignData.funnel_stages.length > 3
-        //     ? campaignData.funnel_stages.slice(0, 3).join(" · ") + " ..."
+        //     ? campaignData.funnel_stages.slice(0, 3).join(" · ") + " .."
         //     : campaignData.funnel_stages.join(" · ")
         //   : "",
         img: <Image src={funnel} alt="funnel" />,
