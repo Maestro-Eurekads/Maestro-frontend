@@ -123,6 +123,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   // Save form data to localStorage with debounce
   useEffect(() => {
     if (typeof window !== "undefined") {
+      const {campaign_timeline_start_date, campaign_timeline_end_date, ...rest} = campaignFormData
       const timeout = setTimeout(() => {
         localStorage.setItem(
           "campaignFormData",
@@ -215,9 +216,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           channel_mix: data?.channel_mix ?? prev.channel_mix,
           campaign_timeline_start_date:
             data?.campaign_timeline_start_date ??
-            prev.campaign_timeline_start_date,
+            "",
           campaign_timeline_end_date:
-            data?.campaign_timeline_end_date ?? prev.campaign_timeline_end_date,
+            data?.campaign_timeline_end_date ?? "",
           campaign_budget: data?.campaign_budget ?? prev.campaign_budget,
           goal_level: data?.goal_level ?? prev.goal_level,
           progress_percent: data?.progress_percent ?? prev.progress_percent,

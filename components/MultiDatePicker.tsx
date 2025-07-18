@@ -16,12 +16,12 @@ interface MultiDatePickerProps {
 
 const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
   isEditing,
-  campaignData,
+  // campaignData,
 }) => {
   const weekdays = ["M", "T", "W", "Th", "F", "S", "S"];
   const { selectedDates, setSelectedDates } = useSelectedDates();
   const [monthOffset, setMonthOffset] = useState(0);
-  const { setCampaignFormData, campaignFormData } = useCampaigns();
+  const { setCampaignFormData, campaignFormData, campaignData } = useCampaigns();
 
   const getMonthData = (offset: number) => {
     const today = new Date();

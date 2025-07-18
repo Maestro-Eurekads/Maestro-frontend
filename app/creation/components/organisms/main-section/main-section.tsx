@@ -50,8 +50,8 @@ const MainSection = ({
 
   const startDates = campaignFormData?.campaign_timeline_start_date
     ? campaignFormData?.campaign_timeline_start_date
-    : null
-  const endDates = campaignFormData?.campaign_timeline_end_date ? campaignFormData?.campaign_timeline_end_date : null
+    : ""
+  const endDates = campaignFormData?.campaign_timeline_end_date ? campaignFormData?.campaign_timeline_end_date : ""
 
   const dayDifference = differenceInCalendarDays(endDates, startDates)
   const weekDifference =
