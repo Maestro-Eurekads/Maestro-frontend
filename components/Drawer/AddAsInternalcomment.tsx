@@ -5,7 +5,6 @@ import closecircle from "../../public/close-circle.svg";
 import Image from "next/image";
 import { useComments } from 'app/utils/CommentProvider';
 import CommentHeaderwithClose from './CommentHeaderwithClose';
-import { useCampaigns } from 'app/utils/CampaignsContext';
 import { SVGLoader } from 'components/SVGLoader';
 import { useSession } from "next-auth/react";
 import { useSearchParams } from 'next/navigation';
