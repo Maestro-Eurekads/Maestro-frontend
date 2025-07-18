@@ -5,7 +5,6 @@ import Continue from "../../public/arrow-back-outline.svg"
 import { useState, useEffect, useRef } from "react"
 import { BiLoader } from "react-icons/bi"
 import { useEditing } from "app/utils/EditingContext"
-import toast, { Toaster } from "react-hot-toast"
 import { useUserPrivileges } from "utils/userPrivileges"
 import {
 	extractObjectives,
@@ -19,6 +18,7 @@ import AlertMain from "components/Alert/AlertMain"
 import { useCampaigns } from "./CampaignsContext"
 import { useActive } from "app/utils/ActiveContext"
 import { SVGLoader } from "components/SVGLoader"
+import { toast } from "sonner"
 
 interface BottomProps {
 	setIsOpen: (isOpen: boolean) => void
@@ -347,11 +347,7 @@ const SaveProgressButton = ({ setIsOpen }) => {
 
 				if (errorMessage) {
 					setIsEditingError(true)
-					setAlert({
-						variant: "error",
-						message: errorMessage,
-						position: "bottom-right",
-					})
+					toast.error(errorMessage)
 					setLoading(false)
 					return
 				}
@@ -359,11 +355,7 @@ const SaveProgressButton = ({ setIsOpen }) => {
 
 			if (isEditingBuyingObjective) {
 				setIsBuyingObjectiveError(true)
-				setAlert({
-					variant: "error",
-					message: "Please confirm or cancel your buying objective changes before proceeding",
-					position: "bottom-right",
-				})
+				toast.error("Please confirm or cancel your buying objective changes before proceeding")
 				setLoading(false)
 				return
 			}
@@ -375,28 +367,16 @@ const SaveProgressButton = ({ setIsOpen }) => {
 		if (active === 1) {
 			if (!campaignFormData?.funnel_stages || campaignFormData.funnel_stages.length === 0) {
 				setTriggerFunnelError(true)
-				setAlert({
-					variant: "error",
-					message: "Please select at least one stage!",
-					position: "bottom-right",
-				})
-				hasError = true
+				toast.error("Please select at least one stage!")
+				setLoading(false)
+				return
 			}
 		}
 
 		if (active === 2) {
 			const hasChannelSelected = validateChannelSelection()
 			if (!hasChannelSelected) {
-				setTriggerChannelMixError(true)
-				setAlert({
-					variant: "error",
-					message: "Please select at least one channel before proceeding!",
-					position: "bottom-right",
-				})
-				hasError = true
-			} else {
-				setTriggerChannelMixError(false)
-				setAlert(null)
+				toast.error("Please select at least one channel before proceeding!")
 			}
 		}
 
@@ -408,36 +388,14 @@ const SaveProgressButton = ({ setIsOpen }) => {
 		if (active === 8) {
 			// Check if budget type is selected
 			if (!campaignFormData?.campaign_budget?.budget_type) {
-				toast("Please select how to set your budget", {
-					style: {
-						background: "#FFEBEE",
-						color: "#F87171",
-						marginBottom: "70px",
-						padding: "16px",
-						borderRadius: "8px",
-						width: "320px",
-						border: "1px solid red",
-						borderLeft: "4px solid red",
-					},
-				})
+				toast.error("Please select how to set your budget")
 				setLoading(false)
 				return
 			}
 
 			// Check if budget amount is provided
 			if (!campaignFormData?.campaign_budget?.amount) {
-				toast("Please input a budget amount", {
-					style: {
-						background: "#FFEBEE",
-						color: "red",
-						marginBottom: "70px",
-						padding: "16px",
-						borderRadius: "8px",
-						width: "320px",
-						border: "1px solid red",
-						borderLeft: "4px solid red",
-					},
-				})
+				toast.error("Please input a budget amount")
 				setLoading(false)
 				return
 			}
@@ -448,36 +406,14 @@ const SaveProgressButton = ({ setIsOpen }) => {
 				subStep > 0 &&
 				!campaignFormData?.campaign_budget?.sub_budget_type
 			) {
-				toast("Please select what type of budget you want", {
-					style: {
-						background: "#FFEBEE",
-						color: "red",
-						marginBottom: "70px",
-						padding: "16px",
-						borderRadius: "8px",
-						width: "320px",
-						border: "1px solid red",
-						borderLeft: "4px solid red",
-					},
-				})
+				toast.error("Please select what type of budget you want")
 				setLoading(false)
 				return
 			}
 
 			// Check if granularity level is selected
 			if (!campaignFormData?.campaign_budget?.level) {
-				toast("Please select a granularity level (Channel level or Adset level)", {
-					style: {
-						background: "#FFEBEE",
-						color: "red",
-						marginBottom: "70px",
-						padding: "16px",
-						borderRadius: "8px",
-						width: "320px",
-						border: "1px solid red",
-						borderLeft: "4px solid red",
-					},
-				})
+				toast.error("Please select a granularity level (Channel level or Adset level)")
 				setLoading(false)
 				return
 			}
@@ -518,12 +454,9 @@ const SaveProgressButton = ({ setIsOpen }) => {
 			} else {
 				if ((!selectedDates?.to?.day || !selectedDates?.from?.day) && subStep < 1) {
 					setSelectedDatesError(true)
-					setAlert({
-						variant: "error",
-						message: "Choose your start and end date!",
-						position: "bottom-right",
-					})
-					hasError = true
+					toast.error("Choose your start and end date!")
+					setLoading(false)
+					return
 				}
 			}
 		}
@@ -542,16 +475,14 @@ const SaveProgressButton = ({ setIsOpen }) => {
 						campaignFormData?.progress_percent > calcPercent ? campaignFormData?.progress_percent : calcPercent,
 				})
 				await getActiveCampaign(data)
+				toast.success("Campaign updated!")
 			} catch (error) {
 				if (error?.response?.status === 401) {
 					const event = new Event("unauthorizedEvent")
 					window.dispatchEvent(event)
 				}
-				setAlert({
-					variant: "error",
-					message: "Failed to update campaign data",
-					position: "bottom-right",
-				})
+				toast.error("Failed to update campaign data")
+				setLoading(false)
 				throw error
 			}
 		}
@@ -587,11 +518,7 @@ const SaveProgressButton = ({ setIsOpen }) => {
 				}
 
 				if (hasError) {
-					setAlert({
-						variant: "error",
-						message: errors.join(" "),
-						position: "bottom-right",
-					})
+					toast.error(errors.join(" "))
 					setValidateStep(true)
 					setLoading(false)
 					return
@@ -644,7 +571,7 @@ const SaveProgressButton = ({ setIsOpen }) => {
 				if (cId && campaignData) {
 					await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`, payload, config)
 					setChange(false)
-					setAlert({ variant: "success", message: "Campaign updated successfully!", position: "bottom-right" })
+					toast.success("Campaign updated successfully!")
 				} else {
 					const response = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`, payload, config)
 					const url = new URL(window.location.href)
@@ -661,7 +588,7 @@ const SaveProgressButton = ({ setIsOpen }) => {
 					)
 					await getActiveCampaign(response?.data?.data.documentId)
 					setChange(false)
-					setAlert({ variant: "success", message: "Campaign created successfully!", position: "bottom-right" })
+					toast.success("Campaign created successfully!")
 					// FIXED: Clear channel state when creating a new campaign
 					clearChannelStateForNewCampaign()
 				}
@@ -670,11 +597,7 @@ const SaveProgressButton = ({ setIsOpen }) => {
 					const event = new Event("unauthorizedEvent")
 					window.dispatchEvent(event)
 				}
-				setAlert({
-					variant: "error",
-					message: error.response?.data?.message || "Something went wrong. Please try again.",
-					position: "bottom-right",
-				})
+				toast.error(error.response?.data?.message || "Something went wrong. Please try again.")
 				if (error?.response?.status === 401) {
 					const event = new Event("unauthorizedEvent")
 					window.dispatchEvent(event)
@@ -804,18 +727,18 @@ const SaveProgressButton = ({ setIsOpen }) => {
 				await handleStepFour()
 			}
 
-			if (active === 7) {
-				if (subStep < 1) {
-					setSubStep((prev) => prev + 1)
-				} else {
-					setActive((prev) => prev + 1)
-					setSubStep(0)
-				}
-			} else if (active === 5) {
-				setActive(7)
-			} else if (active !== 0) {
-				setActive((prev) => prev + 1)
-			}
+			// if (active === 7) {
+			// 	if (subStep < 1) {
+			// 		setSubStep((prev) => prev + 1)
+			// 	} else {
+			// 		setActive((prev) => prev + 1)
+			// 		setSubStep(0)
+			// 	}
+			// } else if (active === 5) {
+			// 	setActive(7)
+			// } else if (active !== 0) {
+			// 	setActive((prev) => prev + 1)
+			// }
 		} catch (error) {
 			if (error?.response?.status === 401) {
 				const event = new Event("unauthorizedEvent")
@@ -832,7 +755,7 @@ const SaveProgressButton = ({ setIsOpen }) => {
 		setActive((prev) => Math.min(9, prev + 1))
 	}
 
-	const showError = (msg: string) => toast.error(msg, { position: "bottom-right" })
+
 
 	const internalApproverEmails = campaignFormData?.internal_approver?.map((a) => a?.email) || []
 
@@ -841,7 +764,6 @@ const SaveProgressButton = ({ setIsOpen }) => {
 
 	return (
 		<div >
-			<Toaster position="bottom-right" />
 			{alert && <AlertMain alert={alert} />}
 			{setupyournewcampaignError && (
 				<AlertMain

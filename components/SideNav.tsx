@@ -96,12 +96,12 @@ const SideNav: React.FC = () => {
         state_text: "SideBar_Menu_state",
         sidecircle: "SideBar_Menu_active",
         title: "Map funnel stages",
-        // objective:
-        //   campaignData?.funnel_stages?.length > 0
-        //     ? campaignData.funnel_stages.length > 3
-        //       ? campaignData.funnel_stages.slice(0, 3).join(" · ") + " ..."
-        //       : campaignData.funnel_stages.join(" · ")
-        //     : "",
+        objective: campaignData?.funnel_stages,
+        // campaignData?.funnel_stages?.length > 0
+        //   ? campaignData.funnel_stages.length > 3
+        //     ? campaignData.funnel_stages.slice(0, 3).join(" · ") + " ..."
+        //     : campaignData.funnel_stages.join(" · ")
+        //   : "",
         img: <Image src={funnel} alt="funnel" />,
       },
       {
@@ -233,7 +233,7 @@ const SideNav: React.FC = () => {
                 </div>
               ) : isCampaignDataLoaded ? (
                 <p className="text-[#152A37] text-[15px] font-medium leading-[175%] not-italic">
-                  {campaignData.client.client_name.charAt(0).toUpperCase() + campaignData.client.client_name.slice(1)}
+                  {campaignData?.client?.client_name.charAt(0).toUpperCase() + campaignData.client.client_name.slice(1)}
                 </p>
               ) : (
                 <p className="text-[#152A37] text-[15px] font-medium leading-[175%] not-italic mt-3">
