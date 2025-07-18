@@ -83,10 +83,7 @@ const ClientAddAsInternalcomment = ({ position, setShow, campaign }) => {
 			await addComment(commentId, comment, position, addcomment_as, creator, client_commentID);
 			await updateStatus(stage, label);
 			await updatePosition(commentId, position);
-
-
-
-
+			setComment("");
 		} catch (error) {
 			console.error("Error adding comment or updating status:", error);
 		}
@@ -104,7 +101,7 @@ const ClientAddAsInternalcomment = ({ position, setShow, campaign }) => {
 						<div className="flex flex-col justify-center items-center p-[10px] gap-[10px] w-[40px] h-[40px] bg-[#00A36C] rounded-full text-[20px] leading-[27px] text-center text-white">
 							{cleanName(session?.user?.name[0])}
 						</div>
-						<CommentHeaderwithClose author={cleanName(session?.user?.name)} />
+						<CommentHeaderwithClose author={cleanName(session?.user?.name)} comment={comment} />
 					</div>
 
 					{/* Mark as Approved Button */}
