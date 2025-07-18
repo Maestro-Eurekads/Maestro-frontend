@@ -85,7 +85,7 @@ const CreationFlow = ({ steps }) => {
               </span>
               {isCompleted && step?.objective && (
                 <div
-                  className="objective_step_text whitespace-nowrap overflow-hidden text-ellipsis max-w-[220px]"
+                  className="objective_step_text whitespace-nowrap overflow-hidden text-ellipsis  "
                   title={step?.objective?.join(" · ")}
                 >
                   {step?.objective?.length > 0

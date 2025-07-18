@@ -85,7 +85,7 @@ const ClientAddAsInternalcomment = ({ position, setShow, campaign }) => {
 			await updatePosition(commentId, position);
 			setComment("");
 		} catch (error) {
-			console.error("Error adding comment or updating status:", error);
+			toast.error(error.message);
 		}
 	};
 
