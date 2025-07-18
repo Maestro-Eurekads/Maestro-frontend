@@ -85,7 +85,7 @@ const BusinessGeneralComment = () => {
 	// 	dispatch(getGeneralComment(commentId));
 	// }, [ ]);
 
-	console.log('generalComment----', generalcommentsSuccess);
+
 
 	useEffect(() => {
 		if (generalcommentsSuccess) {

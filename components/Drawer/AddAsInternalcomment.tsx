@@ -46,7 +46,7 @@ const AddAsInternalcomment = ({ position, setShow }) => {
 						<div className="flex justify-center items-center p-[8px] w-[34px] h-[34px] bg-[#00A36C] rounded-full text-[16px] text-white">
 							{session?.user?.name[0]}
 						</div>
-						<CommentHeaderwithClose author={session?.user?.name} comment={comment} />
+						<CommentHeaderwithClose author={session?.user?.name} />
 					</div>
 
 					<button onClick={() => setShow(false)}>
