@@ -161,6 +161,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
                     client_approver: {
                       populate: "user",
                     },
+                    approved_by: {
+                      populate: "user",
+                    },
                   },
                 },
                 budget_details: "*",
@@ -209,6 +212,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             prev.internal_approver,
           client_approver:
             data?.media_plan_details?.client_approver ?? prev.client_approver,
+          approved_by:
+            data?.media_plan_details?.approved_by ?? prev.approved_by,
           campaign_objectives:
             data?.campaign_objective ?? prev.campaign_objectives,
           funnel_stages: data?.funnel_stages ?? prev.funnel_stages,
