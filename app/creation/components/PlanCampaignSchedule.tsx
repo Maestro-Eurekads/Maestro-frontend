@@ -37,11 +37,11 @@ const PlanCampaignSchedule: React.FC = () => {
     setClose(false);
   }, []);
 
-  useEffect(() => {
-    if (campaignId) {
-      getActiveCampaign(campaignId);
-    }
-  }, [campaignId]);
+  // useEffect(() => {
+  //   if (campaignId) {
+  //     getActiveCampaign(campaignId);
+  //   }
+  // }, [campaignId]);
 
   //   Auto-hide alert after 3 seconds
   useEffect(() => {

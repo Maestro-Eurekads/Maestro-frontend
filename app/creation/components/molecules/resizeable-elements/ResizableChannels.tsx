@@ -169,16 +169,6 @@ const ResizableChannels = ({
     index: number
   } | null>(null)
 
-  const newDatesRef = useRef<{
-    startDate: string | null
-    endDate: string | null
-    index: number | null
-  }>({
-    startDate: null,
-    endDate: null,
-    index: null,
-  })
-
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
     const baseStep = dailyWidth;
     const adjustmentPerStep = 0;
@@ -342,7 +332,7 @@ const ResizableChannels = ({
     const newEndDate = pixelToDate(endPixel, parentWidth, index, "endDate")
     console.log({ newStartDate, newEndDate })
 
-    // Update the channel state (visual only)
+    // Update the channel state
     setChannelState((prev) =>
       prev.map((state, i) =>
         i === index
@@ -357,10 +347,23 @@ const ResizableChannels = ({
       ),
     )
 
-    // Buffer the new dates in ref for final update
-    newDatesRef.current = { startDate: newStartDate, endDate: newEndDate, index }
+    // Update channels data
+    setChannels((prev) =>
+      prev.map((ch, i) =>
+        i === index
+          ? {
+            ...ch,
+            start_date: newStartDate,
+            end_date: newEndDate,
+          }
+          : ch,
+      ),
+    )
 
     updateTooltipWithDates(startPixel, endPixel, index, e.clientX, e.clientY, "resize")
+
+    // Store data for final update
+    draggingDataRef.current = { index, newStartDate, newEndDate }
   }
 
   const handleMouseUpResize = () => {
@@ -368,46 +371,30 @@ const ResizableChannels = ({
     console.log(isResizing.current, "isResizing state on mouse up")
     setTooltip((prev) => ({ ...prev, visible: false }))
 
-    if (newDatesRef.current.startDate && newDatesRef.current.endDate && newDatesRef.current.index !== null) {
-      const { startDate, endDate, index } = newDatesRef.current
-      console.log({ index, startDate, endDate })
-      
+    if (draggingDataRef.current) {
+      const { index, newStartDate, newEndDate } = draggingDataRef.current
+      console.log({ index, newStartDate, newEndDate })
       // Final update to campaign data
-      const updatedData = JSON.parse(JSON.stringify(campaignFormData))
-      const channelMix = updatedData.channel_mix.find((ch) => ch.funnel_stage === parentId)
+      // setCopy(() => {
+      //   const updatedData = JSON.parse(JSON.stringify(campaignFormData))
+      //   const channelMix = updatedData.channel_mix.find((ch) => ch.funnel_stage === parentId)
 
-      if (channelMix) {
-        const channelGroup = channelMix[channels[index].channelName]
-        if (Array.isArray(channelGroup)) {
-          const platform = channelGroup.find(
-            (platform) => platform.platform_name === channels[index].name
-          )
+      //   if (channelMix) {
+      //     const channelGroup = channelMix[channels[index].channelName]
+      //     if (Array.isArray(channelGroup)) {
+      //       const platform = channelGroup.find((platform) => platform.platform_name === channels[index].name)
 
-          if (platform) {
-            platform.campaign_start_date = startDate
-            platform.campaign_end_date = endDate
-          }
-        }
-      }
+      //       if (platform) {
+      //         platform.campaign_start_date = newStartDate
+      //         platform.campaign_end_date = newEndDate
+      //       }
+      //     }
+      //   }
 
-      // Update the campaign form data
-      setCampaignFormData(updatedData)
+      //   return updatedData
+      // })
 
-      // Update channels data
-      setChannels((prev) =>
-        prev.map((ch, i) =>
-          i === index
-            ? {
-              ...ch,
-              start_date: startDate,
-              end_date: endDate,
-            }
-            : ch
-        )
-      )
-
-      // Reset the ref
-      newDatesRef.current = { startDate: null, endDate: null, index: null }
+      draggingDataRef.current = null
     }
 
     isResizing.current = null
@@ -476,98 +463,45 @@ const ResizableChannels = ({
   }, [startDate, endDate]);
 
   const pixelToDate = (pixel, containerWidth, index, fieldName) => {
-    if (rrange === "Year") {
-      // Year view logic - similar to DraggableChannel.tsx
-      if (!dateList || dateList.length === 0) return null;
-      
-      const startDate = dateList[0];
-      const totalMonths = 12;
-      const clampedPixel = Math.max(0, Math.min(pixel, containerWidth));
-      const monthFraction = clampedPixel / containerWidth;
-      const monthIndex = Math.floor(monthFraction * totalMonths);
-      const year = startDate.getFullYear();
-      
-      let calculatedDate;
-      if (fieldName === "endDate") {
-        // Last day of the target month
-        calculatedDate = new Date(year, Math.min(11, monthIndex), 0);
-      } else if (fieldName === "startDate") {
-        // First day of the target month
-        calculatedDate = new Date(year, Math.min(11, monthIndex), 1);
-      } else {
-        // Default to first day of the month
-        calculatedDate = new Date(year, Math.min(11, monthIndex), 1);
-      }
+    const totalDays =
+      fieldName === "endDate" ? dRange?.length - 1 : dRange?.length;
+    const dayIndex = Math.min(
+      totalDays,
+      Math.max(0, Math.floor((pixel / containerWidth) * totalDays))
+    );
 
-      // Update campaign data
-      const updatedCampaignFormData = { ...campaignFormData };
-      const channelMix = updatedCampaignFormData.channel_mix.find(
-        (ch) => ch.funnel_stage === parentId
+    console.log(dayIndex)
+
+    const calculatedDate = new Date(startDate);
+    calculatedDate.setDate(startDate?.getDate() + dayIndex);
+
+    const updatedCampaignFormData = { ...campaignFormData };
+
+    const channelMix = updatedCampaignFormData.channel_mix.find(
+      (ch) => ch.funnel_stage === parentId
+    );
+
+    if (channelMix) {
+      const platform = channelMix[channels[index].channelName]?.find(
+        (platform) => platform.platform_name === channels[index].name
       );
 
-      if (channelMix) {
-        const platform = channelMix[channels[index].channelName]?.find(
-          (platform) => platform.platform_name === channels[index].name
-        );
-
-        if (platform) {
-          if (fieldName === "startDate") {
-            platform.campaign_start_date = calculatedDate
-              ? moment(calculatedDate).format("YYYY-MM-DD")
-              : null;
-          } else {
-            const endDateToUse =
-              endDate && calculatedDate > endDate ? endDate : calculatedDate;
-            platform.campaign_end_date = endDateToUse
-              ? moment(endDateToUse).format("YYYY-MM-DD")
-              : null;
-          }
+      if (platform) {
+        if (fieldName === "startDate") {
+          platform.campaign_start_date = calculatedDate
+            ? moment(calculatedDate).format("YYYY-MM-DD")
+            : null;
+        } else {
+          const endDateToUse =
+            endDate && calculatedDate > endDate ? endDate : calculatedDate;
+          platform.campaign_end_date = endDateToUse
+            ? moment(endDateToUse).format("YYYY-MM-DD")
+            : null;
         }
       }
-
-      return calculatedDate ? moment(calculatedDate).format("YYYY-MM-DD") : null;
-    } else {
-      // Existing logic for other views (Day, Week, Month)
-      const totalDays =
-        fieldName === "endDate" ? dRange?.length - 1 : dRange?.length;
-      const dayIndex = Math.min(
-        totalDays,
-        Math.max(0, Math.floor((pixel / containerWidth) * totalDays))
-      );
-
-      console.log(dayIndex)
-
-      const calculatedDate = new Date(startDate);
-      calculatedDate.setDate(startDate?.getDate() + dayIndex);
-
-      const updatedCampaignFormData = { ...campaignFormData };
-
-      const channelMix = updatedCampaignFormData.channel_mix.find(
-        (ch) => ch.funnel_stage === parentId
-      );
-
-      if (channelMix) {
-        const platform = channelMix[channels[index].channelName]?.find(
-          (platform) => platform.platform_name === channels[index].name
-        );
-
-        if (platform) {
-          if (fieldName === "startDate") {
-            platform.campaign_start_date = calculatedDate
-              ? moment(calculatedDate).format("YYYY-MM-DD")
-              : null;
-          } else {
-            const endDateToUse =
-              endDate && calculatedDate > endDate ? endDate : calculatedDate;
-            platform.campaign_end_date = endDateToUse
-              ? moment(endDateToUse).format("YYYY-MM-DD")
-              : null;
-          }
-        }
-      }
-
-      return calculatedDate ? moment(calculatedDate).format("YYYY-MM-DD") : null;
     }
+
+    return calculatedDate ? moment(calculatedDate).format("YYYY-MM-DD") : null;
   };
 
   const handleDragStart = (index) => (event) => {
@@ -629,8 +563,7 @@ const ResizableChannels = ({
       );
       const endDate = pixelToDate(endPixel, parentWidth, index, "endDate");
 
-      // Buffer the new dates in ref for final update
-      newDatesRef.current = { startDate, endDate, index };
+      draggingDataRef.current = { index, startDate, endDate };
 
       updateTooltipWithDates(
         startPixel,
@@ -645,32 +578,33 @@ const ResizableChannels = ({
     const handleDragEnd = () => {
       setTooltip((prev) => ({ ...prev, visible: false }));
 
-      if (newDatesRef.current.startDate && newDatesRef.current.endDate && newDatesRef.current.index !== null) {
-        const { startDate, endDate, index } = newDatesRef.current;
+      if (draggingDataRef.current) {
+        const { index, startDate, endDate } = draggingDataRef.current;
 
-        // Final update to campaign data
-        const updatedData = JSON.parse(JSON.stringify(campaignFormData));
-        const channelMix = updatedData.channel_mix.find(
-          (ch) => ch.funnel_stage === parentId
-        );
+        setCopy(() => {
+          const updatedData = JSON.parse(JSON.stringify(campaignFormData));
 
-        if (channelMix) {
-          const channelGroup = channelMix[channels[index].channelName];
+          const channelMix = updatedData.channel_mix.find(
+            (ch) => ch.funnel_stage === parentId
+          );
 
-          if (Array.isArray(channelGroup)) {
-            const platform = channelGroup.find(
-              (platform) => platform.platform_name === channels[index].name
-            );
+          if (channelMix) {
+            const channelGroup = channelMix[channels[index].channelName];
 
-            if (platform) {
-              platform.campaign_start_date = startDate;
-              platform.campaign_end_date = endDate;
+            if (Array.isArray(channelGroup)) {
+              const platform = channelGroup.find(
+                (platform) => platform.platform_name === channels[index].name
+              );
+
+              if (platform) {
+                platform.campaign_start_date = startDate;
+                platform.campaign_end_date = endDate;
+              }
             }
           }
-        }
 
-        // Update the campaign form data
-        setCampaignFormData(updatedData);
+          return updatedData;
+        });
 
         setChannels((prevChannels) =>
           prevChannels.map((ch, i) =>
@@ -684,8 +618,7 @@ const ResizableChannels = ({
           )
         );
 
-        // Reset the ref
-        newDatesRef.current = { startDate: null, endDate: null, index: null };
+        draggingDataRef.current = null;
       }
 
       isDraggingRef.current = false;
@@ -700,7 +633,7 @@ const ResizableChannels = ({
       document.removeEventListener("mousemove", handleDragMove);
       document.removeEventListener("mouseup", handleDragEnd);
       isDraggingRef.current = false;
-      newDatesRef.current = { startDate: null, endDate: null, index: null };
+      draggingDataRef.current = null;
     };
   }, [draggingPosition, parentLeft, channelState]);
 
