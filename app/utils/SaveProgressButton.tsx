@@ -476,6 +476,7 @@ const SaveProgressButton = ({ setIsOpen }) => {
 				})
 				await getActiveCampaign(data)
 				toast.success("Campaign updated!")
+				setChange(false)
 			} catch (error) {
 				if (error?.response?.status === 401) {
 					const event = new Event("unauthorizedEvent")

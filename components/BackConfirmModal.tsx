@@ -1,6 +1,9 @@
-// components/BackConfirmModal.tsx
+// 
+
+
+
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { useUserPrivileges } from "utils/userPrivileges";
 import { toast } from "sonner";
@@ -24,37 +27,32 @@ interface BackConfirmModalProps {
 const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, onConfirm }) => {
 	const { isClient, loggedInUser } = useUserPrivileges();
 	const [loading, setLoading] = useState(false);
-	const { setChange, showModal, setShowModal } = useActive()
+	const { change, setChange, showModal, setShowModal } = useActive();
 	const { setClose, close, setViewcommentsId, setOpportunities } = useComments();
 	const router = useRouter();
-	const { setActive, setSubStep, active, subStep } = useActive();
 	const dispatch = useAppDispatch();
 
-
-
 	const clearChannelStateForNewCampaign = () => {
-		if (typeof window === "undefined") return
+		if (typeof window === "undefined") return;
 		try {
-			// Clear all channel state keys from sessionStorage
-			const keysToRemove = []
+			const keysToRemove: string[] = [];
 			for (let i = 0; i < sessionStorage.length; i++) {
-				const key = sessionStorage.key(i)
+				const key = sessionStorage.key(i);
 				if (key && key.startsWith("channelLevelAudienceState_")) {
-					keysToRemove.push(key)
+					keysToRemove.push(key);
 				}
 			}
-			keysToRemove.forEach((key) => sessionStorage.removeItem(key))
-			// Clear global state
+			keysToRemove.forEach((key) => sessionStorage.removeItem(key));
 			if ((window as any).channelLevelAudienceState) {
 				Object.keys((window as any).channelLevelAudienceState).forEach((stageName) => {
-					delete (window as any).channelLevelAudienceState[stageName]
-				})
+					delete (window as any).channelLevelAudienceState[stageName];
+				});
 			}
-			console.log("Cleared all channel state for new campaign")
+			console.log("Cleared all channel state for new campaign");
 		} catch (error) {
-			console.error("Error clearing channel state:", error)
+			console.error("Error clearing channel state:", error);
 		}
-	}
+	};
 
 	const {
 		createCampaign,
@@ -74,16 +72,11 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 		currencySign,
 		jwt,
 		agencyId,
-	} = useCampaigns()
-
-
-
+	} = useCampaigns();
 
 	const handleSaveAllSteps = async () => {
 		setLoading(true);
-
 		try {
-			// Clean up & transform fields from all steps
 			const cleanedFormData = {
 				...campaignFormData,
 				internal_approver: campaignFormData?.internal_approver || [],
@@ -146,8 +139,6 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 				},
 			};
 
-			// CREATE or UPDATE logic
-			// debugger;
 			if (campaignFormData.cId) {
 				await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${campaignFormData.cId}`, payload, config);
 				toast.success("Campaign updated successfully!");
@@ -187,8 +178,6 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 				router.push("/");
 				clearChannelStateForNewCampaign?.();
 			}
-
-
 		} catch (error: any) {
 			if (error?.response?.status === 401) {
 				window.dispatchEvent(new Event("unauthorizedEvent"));
@@ -203,7 +192,35 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 		}
 	};
 
+	// Modified beforeunload to prevent default refresh when change is true
+	useEffect(() => {
+		const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+			if (change) {
+				// Prevent default refresh behavior
+				event.preventDefault();
+				// Show the modal
+				setShowModal(true);
+				// Do not set event.returnValue to avoid browser prompt
+			}
+		};
 
+		if (change) {
+			window.addEventListener("beforeunload", handleBeforeUnload);
+		}
+
+		return () => {
+			window.removeEventListener("beforeunload", handleBeforeUnload);
+		};
+	}, [change, setShowModal]);
+
+	// Handle "No" button to allow refresh
+	const handleNoClick = () => {
+		setChange(false); // Reset change state
+		setShowModal(false); // Close modal
+		onClose(); // Call original onClose
+		// Programmatically refresh the page
+		window.location.reload();
+	};
 
 	if (!isOpen) return null;
 
@@ -211,22 +228,14 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
 			<div className="bg-white rounded-2xl p-6 w-[90%] max-w-md shadow-lg">
 				<h2 className="text-lg font-semibold text-gray-800 mb-2 text-center">Unsaved Changes</h2>
-
-				<p className="text-sm text-gray-600 mb-1 text-center">If you leave the plan the progress will be lost</p>
+				<p className="text-sm text-gray-600 mb-1 text-center">If you leave the plan, the progress will be lost</p>
 				<p className="text-sm text-gray-600 mb-8 text-center">Would you like to save your progress?</p>
-
 				<div className="flex flex-row gap-4">
-					<button
-						className="btn_model_outline w-full"
-						onClick={onClose}
-					>
+					<button className="btn_model_outline w-full" onClick={handleNoClick}>
 						No
 					</button>
-					<button
-						className="btn_model_active w-full"
-						onClick={handleSaveAllSteps}
-					>
-						{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> : 'Save'}
+					<button className="btn_model_active w-full" onClick={handleSaveAllSteps}>
+						{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> : "Save"}
 					</button>
 				</div>
 			</div>

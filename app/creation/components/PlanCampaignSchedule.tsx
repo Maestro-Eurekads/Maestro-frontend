@@ -15,6 +15,7 @@ import { useVerification } from "app/utils/VerificationContext";
 import { useComments } from "app/utils/CommentProvider";
 import SaveProgressButton from "app/utils/SaveProgressButton";
 import { useActive } from "app/utils/ActiveContext";
+import { toast } from "sonner";
 
 const PlanCampaignSchedule: React.FC = () => {
   const { setChange } = useActive()
@@ -24,11 +25,6 @@ const PlanCampaignSchedule: React.FC = () => {
   const { setIsDrawerOpen, setClose } = useComments();
   const [loading, setLoading] = useState(false);
   const { selectedDates } = useSelectedDates();
-  const [alert, setAlert] = useState<{
-    variant: string;
-    message: string;
-    position: string;
-  } | null>(null);
   const currentYear = new Date().getFullYear();
   const { updateCampaign, campaignData, getActiveCampaign } = useCampaigns();
   const { setHasChanges, hasChanges } = useVerification();
@@ -43,21 +39,11 @@ const PlanCampaignSchedule: React.FC = () => {
   //   }
   // }, [campaignId]);
 
-  //   Auto-hide alert after 3 seconds
-  useEffect(() => {
-    if (alert) {
-      const timer = setTimeout(() => setAlert(null), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [alert]);
+
 
   const handleValidate = async (selectedDates: any) => {
     if (!selectedDates?.from || !selectedDates?.to) {
-      setAlert({
-        variant: "error",
-        message: "Please select a valid start and end date.",
-        position: "bottom-right",
-      });
+      toast.error("Please select a valid start and end date.")
       return;
     }
 
@@ -76,11 +62,7 @@ const PlanCampaignSchedule: React.FC = () => {
     ).format("YYYY-MM-DD");
 
     if (!campaignData) {
-      setAlert({
-        variant: "error",
-        message: "Campaign data is missing.",
-        position: "bottom-right",
-      });
+      toast.error("Campaign data is missing.")
       setLoading(false);
       return;
     }
@@ -102,21 +84,14 @@ const PlanCampaignSchedule: React.FC = () => {
       });
       await getActiveCampaign(cleanData);
       setHasChanges(false);
-      setAlert({
-        variant: "success",
-        message: "Date successfully updated!",
-        position: "bottom-right",
-      });
+      setChange(false)
+      toast.success("Date successfully updated!")
     } catch (error) {
       if (error?.response?.status === 401) {
         const event = new Event("unauthorizedEvent");
         window.dispatchEvent(event);
       }
-      setAlert({
-        variant: "error",
-        message: "Failed to update date.",
-        position: "bottom-right",
-      });
+      toast.error("Failed to update date.")
     }
 
     setLoading(false);
@@ -139,8 +114,6 @@ const PlanCampaignSchedule: React.FC = () => {
 				)} */}
         <SaveProgressButton setIsOpen={undefined} />
       </div>
-      {/* @ts-ignore      */}
-      {alert && <AlertMain alert={alert} />}
 
       <MultiDatePicker isEditing={isEditing} campaignData={campaignData} />
 
