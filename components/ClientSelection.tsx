@@ -86,7 +86,7 @@ const Dropdown = ({
         onClick={toggleDropdown}
       >
         <span className="text-[#061237]">
-          {/* Show the label for the selected value, not the id */}
+          {/* Show the label for the selected value, not the id. If nothing is selected, show the label as placeholder. */}
           {
             (() => {
               const selected = options?.find(
@@ -94,7 +94,11 @@ const Dropdown = ({
                   opt.value === campaignFormData[formId]?.value ||
                   opt.id === campaignFormData[formId]?.id
               );
-              return selected ? selected.label : (campaignFormData[formId]?.value || label);
+              // If nothing is selected, show the label (placeholder)
+              if (!campaignFormData[formId] || (!campaignFormData[formId]?.value && !campaignFormData[formId]?.id)) {
+                return label;
+              }
+              return selected ? selected.label : label;
             })()
           }
         </span>
