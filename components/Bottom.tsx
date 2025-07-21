@@ -218,6 +218,17 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     }
 
+    // Step 8: Allocate budget - budget must not be empty
+    if (active === 8) {
+      const amount = campaignFormData?.campaign_budget?.amount;
+      if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
+        toast.error("Please enter a valid budget amount before proceeding!");
+        return;
+      }
+      setActive(9);
+      return;
+    }
+
     // FIXED: Clear channel state when moving to step 3 (Adset and Audiences step)
     if (active === 3) {
       clearChannelStateForNewCampaign()
