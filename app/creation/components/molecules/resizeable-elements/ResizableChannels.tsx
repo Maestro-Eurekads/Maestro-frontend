@@ -681,20 +681,13 @@ const ResizableChannels = ({
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`,
         {
           data: {
-            ...removeKeysRecursively(campaignData, [
-              "id",
-              "documentId",
-              "createdAt",
-              "publishedAt",
-              "updatedAt",
-              "_aggregated",
-            ]),
             channel_mix: removeKeysRecursively(updatedData?.channel_mix, [
               "id",
               "isValidated",
               "validatedStages",
               "documentId",
               "_aggregated",
+              "user"
             ]),
           },
         },
