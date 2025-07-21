@@ -23,7 +23,8 @@ import { useActive } from "app/utils/ActiveContext"
 import { removeKeysRecursively } from "utils/removeID"
 import { getPlatformIcon, mediaTypes } from "components/data"
 import axios from "axios"
-import toast from "react-hot-toast"
+import { toast } from "sonner"
+
 
 // --- Custom Audience Types Context (Global, for all stages) ---
 const CustomAudienceTypesContext = createContext<{
@@ -31,7 +32,7 @@ const CustomAudienceTypesContext = createContext<{
   addCustomAudienceType: (type: string) => void
 }>({
   customAudienceTypes: [],
-  addCustomAudienceType: () => {},
+  addCustomAudienceType: () => { },
 })
 
 // Helper for thousand separator
@@ -144,7 +145,7 @@ const DropdownContext = createContext<{
   setOpenDropdownId: (id: number | null | string) => void
 }>({
   openDropdownId: null,
-  setOpenDropdownId: () => {},
+  setOpenDropdownId: () => { },
 })
 
 // Utility functions
@@ -252,7 +253,7 @@ const channelLevelAudienceState: {
 
 // Make channel state globally accessible for recap
 if (typeof window !== "undefined") {
-  ;(window as any).channelLevelAudienceState = channelLevelAudienceState
+  ; (window as any).channelLevelAudienceState = channelLevelAudienceState
 }
 
 // AdSet Component - Updated to handle granularity properly with complete separation
@@ -477,9 +478,8 @@ const AdSet = memo(function AdSet({
           value={channelAudience.name}
           onChange={(e) => handleChannelAudienceChange("name", e.target.value)}
           disabled={!isEditing}
-          className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[160px] ${
-            !isEditing ? "cursor-not-allowed" : ""
-          }`}
+          className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[160px] ${!isEditing ? "cursor-not-allowed" : ""
+            }`}
         />
         <input
           type="text"
@@ -491,9 +491,8 @@ const AdSet = memo(function AdSet({
             handleChannelAudienceChange("size", inputValue)
           }}
           disabled={!isEditing}
-          className={`text-black text-sm font-semibold flex gap-4 items-center border border-[#D0D5DD] py-4 px-2 rounded-[10px] h-[52px] w-[100px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-            !isEditing ? "cursor-not-allowed" : ""
-          }`}
+          className={`text-black text-sm font-semibold flex gap-4 items-center border border-[#D0D5DD] py-4 px-2 rounded-[10px] h-[52px] w-[100px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${!isEditing ? "cursor-not-allowed" : ""
+            }`}
           inputMode="numeric"
           pattern="[0-9,]*"
         />
@@ -503,9 +502,8 @@ const AdSet = memo(function AdSet({
           value={channelAudience.description}
           onChange={(e) => handleChannelAudienceChange("description", e.target.value)}
           disabled={!isEditing}
-          className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[120px] ${
-            !isEditing ? "cursor-not-allowed" : ""
-          }`}
+          className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[120px] ${!isEditing ? "cursor-not-allowed" : ""
+            }`}
         />
       </div>
     )
@@ -563,9 +561,8 @@ const AdSet = memo(function AdSet({
                 <button
                   disabled={!isEditing}
                   onClick={() => handleDeleteExtraAudience(index)}
-                  className={`flex items-center justify-center rounded-full px-4 py-2 bg-[#FF5955] text-white ${
-                    !isEditing ? "cursor-not-allowed opacity-50" : ""
-                  }`}
+                  className={`flex items-center justify-center rounded-full px-4 py-2 bg-[#FF5955] text-white ${!isEditing ? "cursor-not-allowed opacity-50" : ""
+                    }`}
                 >
                   <MdDelete /> <span className="text-white font-bold">Delete</span>
                 </button>
@@ -573,11 +570,10 @@ const AdSet = memo(function AdSet({
             ))}
           </div>
           <button
-            className={`text-[14px] mt-2 font-semibold flex items-center gap-1 ${
-              canAddNewAudience && extraAudience?.length < 10
-                ? "text-[#3175FF] cursor-pointer"
-                : "text-gray-400 cursor-not-allowed"
-            }`}
+            className={`text-[14px] mt-2 font-semibold flex items-center gap-1 ${canAddNewAudience && extraAudience?.length < 10
+              ? "text-[#3175FF] cursor-pointer"
+              : "text-gray-400 cursor-not-allowed"
+              }`}
             onClick={() => {
               if (canAddNewAudience) {
                 const updated = [...extraAudience, { audience_type: "", name: "", size: "", description: "" }]
@@ -597,9 +593,8 @@ const AdSet = memo(function AdSet({
         value={name}
         onChange={handleNameChange}
         disabled={!isEditing}
-        className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[120px] ${
-          !isEditing ? "cursor-not-allowed" : ""
-        }`}
+        className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[120px] ${!isEditing ? "cursor-not-allowed" : ""
+          }`}
       />
       <input
         type="text"
@@ -607,9 +602,8 @@ const AdSet = memo(function AdSet({
         value={formatWithThousandSeparator(size)}
         onChange={handleSizeChange}
         disabled={!isEditing}
-        className={`text-black text-sm font-semibold flex gap-4 items-center border border-[#D0D5DD] py-4 px-2 rounded-[10px] h-[52px] w-[80px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-          !isEditing ? "cursor-not-allowed" : ""
-        }`}
+        className={`text-black text-sm font-semibold flex gap-4 items-center border border-[#D0D5DD] py-4 px-2 rounded-[10px] h-[52px] w-[80px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${!isEditing ? "cursor-not-allowed" : ""
+          }`}
         inputMode="numeric"
         pattern="[0-9,]*"
       />
@@ -619,17 +613,15 @@ const AdSet = memo(function AdSet({
         value={description}
         onChange={handleDescriptionChange}
         disabled={!isEditing}
-        className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[100px] ${
-          !isEditing ? "cursor-not-allowed" : ""
-        }`}
+        className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[100px] ${!isEditing ? "cursor-not-allowed" : ""
+          }`}
       />
       <div className="flex items-center gap-2">
         <button
           disabled={!isEditing}
           onClick={() => onDelete(adset.id)}
-          className={`flex items-center gap-2 rounded-full px-3 py-2 bg-[#FF5955] text-white text-sm font-bold ${
-            !isEditing ? "cursor-not-allowed opacity-50" : ""
-          }`}
+          className={`flex items-center gap-2 rounded-full px-3 py-2 bg-[#FF5955] text-white text-sm font-bold ${!isEditing ? "cursor-not-allowed opacity-50" : ""
+            }`}
         >
           <MdDelete /> <span>Delete</span>
         </button>
@@ -638,9 +630,8 @@ const AdSet = memo(function AdSet({
           <button
             onClick={onAddNewAdSet}
             disabled={adsets.length >= 10}
-            className={`flex gap-2 items-center text-white ${
-              adsets.length >= 10 ? "bg-gray-400" : "bg-[#3175FF]"
-            } px-3 py-2 rounded-full text-sm font-bold`}
+            className={`flex gap-2 items-center text-white ${adsets.length >= 10 ? "bg-gray-400" : "bg-[#3175FF]"
+              } px-3 py-2 rounded-full text-sm font-bold`}
             style={{ minWidth: 0 }}
           >
             <MdAdd />
@@ -721,11 +712,14 @@ const AudienceDropdownWithCallback = memo(function AudienceDropdownWithCallback(
 
   // Updated handleSaveCustomAudience to use PUT request to agencies endpoint
   const handleSaveCustomAudience = async () => {
-    if (!customValue.trim()) {
-      toast.error("Please enter a custom audience type", {
-        id: "custom-audience-error",
-      })
-      return
+    const value = customValue.trim();
+    if (value.length < 2) {
+      toast.error("Custom audience must be at least 2 characters.");
+      return;
+    }
+    if (!/[a-zA-Z]/.test(value)) {
+      toast.error("Custom audience must contain at least one alphabet.");
+      return;
     }
 
     setLoading(true)
@@ -967,7 +961,7 @@ const AdsetSettings = memo(function AdsetSettings({
     channelLevelAudienceState[stageName][outlet.outlet] = { ...channelAudienceState }
     // Update global reference for recap access
     if (typeof window !== "undefined") {
-      ;(window as any).channelLevelAudienceState = channelLevelAudienceState
+      ; (window as any).channelLevelAudienceState = channelLevelAudienceState
     }
     // Persist to sessionStorage
     const campaignId = campaignFormData?.id || campaignFormData?.media_plan_id
@@ -990,7 +984,7 @@ const AdsetSettings = memo(function AdsetSettings({
       })
       // Update global reference
       if (typeof window !== "undefined") {
-        ;(window as any).channelLevelAudienceState = channelLevelAudienceState
+        ; (window as any).channelLevelAudienceState = channelLevelAudienceState
       }
       // Update local state if this platform has stored data
       if (storedState[stageName] && storedState[stageName][outlet.outlet]) {
@@ -1522,9 +1516,9 @@ const AdsetSettings = memo(function AdsetSettings({
                       granularity === "channel"
                         ? { marginTop: 4, marginBottom: 4, paddingTop: 0, paddingBottom: 0 }
                         : {
-                            marginTop: index === 0 ? "20px" : "0px",
-                            marginBottom: "20px",
-                          }
+                          marginTop: index === 0 ? "20px" : "0px",
+                          marginBottom: "20px",
+                        }
                     }
                   >
                     <AdSet
@@ -1637,7 +1631,7 @@ const AdSetFlow = memo(function AdSetFlow({
         if (stored) {
           return JSON.parse(stored)
         }
-      } catch (e) {}
+      } catch (e) { }
     }
     return []
   })
@@ -1710,30 +1704,30 @@ const AdSetFlow = memo(function AdSetFlow({
         } = stage
 
         if (!platformsByStage[funnel_stage]) platformsByStage[funnel_stage] = []
-        ;[
-          search_engines,
-          display_networks,
-          social_media,
-          streaming,
-          mobile,
-          ooh,
-          broadcast,
-          in_game,
-          e_commerce,
-          messaging,
-          print,
-        ].forEach((platforms) => {
-          if (Array.isArray(platforms)) {
-            platforms.forEach((platform: any) => {
-              const icon = getPlatformIcon(platform?.platform_name)
-              platformsByStage[funnel_stage].push({
-                id: Math.floor(Math.random() * 1000000),
-                outlet: platform.platform_name,
-                icon: icon,
+          ;[
+            search_engines,
+            display_networks,
+            social_media,
+            streaming,
+            mobile,
+            ooh,
+            broadcast,
+            in_game,
+            e_commerce,
+            messaging,
+            print,
+          ].forEach((platforms) => {
+            if (Array.isArray(platforms)) {
+              platforms.forEach((platform: any) => {
+                const icon = getPlatformIcon(platform?.platform_name)
+                platformsByStage[funnel_stage].push({
+                  id: Math.floor(Math.random() * 1000000),
+                  outlet: platform.platform_name,
+                  icon: icon,
+                })
               })
-            })
-          }
-        })
+            }
+          })
       })
     return platformsByStage
   }, [campaignFormData, modalOpen])
@@ -1852,7 +1846,7 @@ const AdSetFlow = memo(function AdSetFlow({
         setIsEditing(false)
         onValidate()
       })
-      .catch((err) => {})
+      .catch((err) => { })
       .finally(() => {
         setLoading(false)
       })
@@ -1900,28 +1894,10 @@ const AdSetFlow = memo(function AdSetFlow({
       >
         {platformName
           ? platforms[stageName]
-              ?.filter((outlet) =>
-                Array.isArray(platformName) ? platformName.includes(outlet.outlet) : outlet.outlet === platformName,
-              )
-              .map((outlet) => (
-                <AdsetSettings
-                  key={outlet.id}
-                  outlet={outlet}
-                  stageName={stageName}
-                  onInteraction={handleInteraction}
-                  defaultOpen={autoOpen[stageName]?.includes(outlet.outlet)}
-                  isCollapsed={collapsedOutlets[outlet.outlet] ?? false}
-                  setCollapsed={(collapsed) =>
-                    setCollapsedOutlets((prev) => ({
-                      ...prev,
-                      [outlet.outlet]: collapsed,
-                    }))
-                  }
-                  granularity={granularity}
-                  onPlatformStateChange={onPlatformStateChange}
-                />
-              ))
-          : platforms[stageName]?.map((outlet) => (
+            ?.filter((outlet) =>
+              Array.isArray(platformName) ? platformName.includes(outlet.outlet) : outlet.outlet === platformName,
+            )
+            .map((outlet) => (
               <AdsetSettings
                 key={outlet.id}
                 outlet={outlet}
@@ -1938,7 +1914,25 @@ const AdSetFlow = memo(function AdSetFlow({
                 granularity={granularity}
                 onPlatformStateChange={onPlatformStateChange}
               />
-            ))}
+            ))
+          : platforms[stageName]?.map((outlet) => (
+            <AdsetSettings
+              key={outlet.id}
+              outlet={outlet}
+              stageName={stageName}
+              onInteraction={handleInteraction}
+              defaultOpen={autoOpen[stageName]?.includes(outlet.outlet)}
+              isCollapsed={collapsedOutlets[outlet.outlet] ?? false}
+              setCollapsed={(collapsed) =>
+                setCollapsedOutlets((prev) => ({
+                  ...prev,
+                  [outlet.outlet]: collapsed,
+                }))
+              }
+              granularity={granularity}
+              onPlatformStateChange={onPlatformStateChange}
+            />
+          ))}
       </div>
     </CustomAudienceTypesContext.Provider>
   )
