@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useCampaigns } from "../app/utils/CampaignsContext";
 import { FiLoader } from "react-icons/fi";
 import useCampaignHook from "../app/utils/useCampaignHook";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAppDispatch, useAppSelector } from "store/useStore";
 import AlertMain from "./Alert/AlertMain";
 import { getCreateClient } from "features/Client/clientSlice"; // Removed unused 'reset'
@@ -68,6 +68,8 @@ const Header = ({ setIsOpen, setIsView }) => {
 
   const [show, setShow] = useState(false);
   const [selected, setSelected] = useState("");
+
+  const latestFetchRef = useRef(null);
 
 
   const clients: any = getCreateClientData;
@@ -214,6 +216,26 @@ const Header = ({ setIsOpen, setIsView }) => {
                   setSelected(value?.value);
                   setSelectedId(value?.value);
                   setSelectedClient(value?.value);
+                  setClientCampaignData([]);
+                  setLoading(true);
+
+                  // Set a unique token for this fetch
+                  const fetchToken = Symbol();
+                  latestFetchRef.current = fetchToken;
+
+                  fetchClientCampaign(value.value, agencyId)
+                    .then((res) => {
+                      // Only update if this is the latest fetch
+                      if (latestFetchRef.current === fetchToken) {
+                        setClientCampaignData(res?.data?.data || []);
+                        setLoading(false);
+                      }
+                    })
+                    .catch(() => {
+                      if (latestFetchRef.current === fetchToken) {
+                        setLoading(false);
+                      }
+                    });
                 }
               }}
               value={(isAdmin ? clients?.data : profile?.clients)

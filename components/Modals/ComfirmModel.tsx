@@ -506,7 +506,7 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 								onClick={() => {
 									toast.info('Plan information modal closed.');
 									setShowPlanInfoModal(false);
-									setIsOpen(false); // Close the main modal as well
+									setIsOpen(false);
 								}}
 							>
 								Close
