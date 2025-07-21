@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import Skeleton from "react-loading-skeleton";
 import ClientSelection from "components/ClientSelection";
 import SaveProgressButton from "app/utils/SaveProgressButton";
+import { useActive } from "app/utils/ActiveContext";
 
 
 interface DropdownOption {
@@ -65,6 +66,7 @@ export const SetupScreen = () => {
   const lastFetchedClientId = useRef(null);
   const { data: session } = useSession()
   const { client_selection } = campaignFormData || {};
+  const { setActive } = useActive();
 
   const [alert, setAlert] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -358,6 +360,14 @@ export const SetupScreen = () => {
 
 
 
+  useEffect(() => {
+    // If form is already filled, stop loading immediately
+    if (campaignFormData?.media_plan && campaignFormData?.budget_details_currency?.id) {
+      setLoading(false);
+    }
+  }, [campaignFormData]);
+
+
   if (!campaignFormData) {
     return <div>Loading...</div>;
   }
@@ -475,6 +485,8 @@ export const SetupScreen = () => {
         </div>)
       }
 
+      {/* Add Next button and validation at the bottom */}
+      {/* Remove the Next button and validation at the bottom */}
     </div >
   );
 };

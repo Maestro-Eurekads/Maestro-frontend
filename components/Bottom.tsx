@@ -13,6 +13,7 @@ import { useEditing } from "app/utils/EditingContext"
 import { Toaster } from "react-hot-toast"
 import AskForApproval from "./ApprovalModals/AskforApporval"
 import ApprovalModals from "./ApprovalModals/ApprovalModals"
+import { toast } from "sonner";
 
 interface BottomProps {
   setIsOpen: (isOpen: boolean) => void
@@ -151,6 +152,72 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   }, [requiredFields, setIsStepZeroValid])
 
   const handleContinue = () => {
+    // Step 0 validation
+    if (active === 0) {
+      if (!campaignFormData?.media_plan) {
+        toast.error("Media Plan name is required");
+        return;
+      }
+      if (!campaignFormData?.budget_details_currency?.id) {
+        toast.error("Currency is required");
+        return;
+      }
+      setActive(1);
+      return;
+    }
+
+    // Step 2: Select channel mix - At least one channel mix selected
+    if (active === 2) {
+      const CHANNEL_KEYS = [
+        'social_media', 'display_networks', 'search_engines', 'streaming', 'ooh',
+        'broadcast', 'messaging', 'print', 'e_commerce', 'in_game', 'mobile'
+      ];
+      const hasSelectedChannel =
+        Array.isArray(campaignFormData?.channel_mix) &&
+        campaignFormData.channel_mix.some((mix) =>
+          CHANNEL_KEYS.some((key) => Array.isArray(mix?.[key]) && mix[key].length > 0)
+        );
+      if (!hasSelectedChannel) {
+        toast.error("Please select at least one channel mix before proceeding!");
+        return;
+      }
+      setActive(3);
+      return;
+    }
+
+    // Step 3: Configure ad sets and audiences - At least one ad set/audience must be configured
+    // if (active === 3) {
+    //   // Assume at least one channel mix entry with ad_sets or similar (customize as needed)
+    //   const hasAdSets = Array.isArray(campaignFormData?.channel_mix) &&
+    //     campaignFormData.channel_mix.some(
+    //       (mix) => Array.isArray(mix?.ad_sets) && mix.ad_sets.length > 0
+    //     );
+    //   if (!hasAdSets) {
+    //     toast.error("Please configure at least one ad set or audience before proceeding!");
+    //     return;
+    //   }
+    //   setActive(4);
+    //   return;
+    // }
+
+
+    // Step 7: Plan campaign schedule - Start and end dates must be selected
+    if (active === 7) {
+      const isValidDate = (d) => typeof d === 'string' && d.length === 10 && /^\d{4}-\d{2}-\d{2}$/.test(d);
+      if (!isValidDate(campaignFormData?.campaign_timeline_start_date) || !isValidDate(campaignFormData?.campaign_timeline_end_date)) {
+        toast.error("Please select both start and end dates before proceeding!");
+        return;
+      }
+      if (subStep < 1) {
+        setSubStep((prev) => prev + 1);
+        return;
+      } else {
+        setSubStep(0);
+        setActive(8);
+        return;
+      }
+    }
+
     // FIXED: Clear channel state when moving to step 3 (Adset and Audiences step)
     if (active === 3) {
       clearChannelStateForNewCampaign()
@@ -173,13 +240,17 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       setActive(1)
     } else if (active === 1) {
       setActive(2)
-    } else if (active === 2 || active === 3) {
+    } else if (active === 2) {
+      setActive(3)
+    } else if (active === 3) {
       setActive(4)
     } else if (active === 4) {
       setActive(5)
     } else if (active === 5) {
-      setActive(7) // Skip to step 7
-    } else if (active === 6 || active === 8) {
+      setActive(7)
+    } else if (active === 7) {
+      setActive(8)
+    } else if (active === 8) {
       setActive(9)
     } else if (active === 9) {
       setActive(10)

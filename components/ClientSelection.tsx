@@ -86,7 +86,17 @@ const Dropdown = ({
         onClick={toggleDropdown}
       >
         <span className="text-[#061237]">
-          {campaignFormData[formId]?.value || label}
+          {/* Show the label for the selected value, not the id */}
+          {
+            (() => {
+              const selected = options?.find(
+                (opt) =>
+                  opt.value === campaignFormData[formId]?.value ||
+                  opt.id === campaignFormData[formId]?.id
+              );
+              return selected ? selected.label : (campaignFormData[formId]?.value || label);
+            })()
+          }
         </span>
         <span className="ml-auto text-[#061237]">
           <Image src={down} alt="dropdown-icon" />
