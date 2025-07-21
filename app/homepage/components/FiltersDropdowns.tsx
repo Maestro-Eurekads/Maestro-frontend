@@ -152,8 +152,7 @@ const Dropdown = ({
 
 const FiltersDropdowns = ({ hideTitle, router }: Props) => {
   const dispatch = useAppDispatch();
-  const { isAdmin, isAgencyApprover, isFinancialApprover } =
-    useUserPrivileges();
+  const { isAdmin, isAgencyApprover, isFinancialApprover } = useUserPrivileges();
   useEffect(() => {
     const styleElement = document.createElement("style");
     styleElement.innerHTML = scrollbarStyles;
@@ -173,7 +172,8 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
     setClientCampaignData,
     allClients,
     jwt,
-    agencyId
+    agencyId,
+    selectedId // <-- Add selectedId from context
   } = useCampaigns();
   const { data: session } = useSession();
   // @ts-ignore
@@ -224,17 +224,16 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
     }
   }, [filterOptions]);
 
-
-
-
+  // FIX: Add selectedId as a dependency and use it for client selection
   useEffect(() => {
     const allEmpty = Object.values(selectedFilters).every((val) => !val)
+    // Prefer selectedId from context, fallback to localStorage, then allClients[0]
+    const clientID = selectedId || localStorage.getItem(userType.toString()) || allClients[0]?.id;
+
+    if (!clientID) return;
+
+    setLoading(true);
     const fetchData = async () => {
-      const clientID = localStorage.getItem(userType.toString()) || allClients[0]?.id;
-
-      if (!clientID) return;
-
-      setLoading(true);
       try {
         const res = allEmpty
           ? await fetchFilteredCampaigns(clientID, filters ?? {}, jwt)
@@ -248,7 +247,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
     if (jwt) {
       fetchData();
     }
-  }, [selectedFilters, allClients, userType, jwt]);
+  }, [selectedFilters, allClients, userType, jwt, selectedId]); // <-- Add selectedId here
 
   const isYearSelected = !!selectedFilters["year"];
 
