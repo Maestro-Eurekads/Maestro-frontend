@@ -5,10 +5,8 @@ import PageHeaderWrapper from '../../../components/PageHeaderWapper'
 import ObjectiveSelection from './ObjectiveSelection'
 import { useComments } from 'app/utils/CommentProvider';
 import SaveProgressButton from 'app/utils/SaveProgressButton';
-import { useActive } from 'app/utils/ActiveContext';
 
 const SetBuyObjectivesAndTypes = () => {
-	const { setChange } = useActive()
 	const { setIsDrawerOpen, setClose } = useComments();
 	useEffect(() => {
 		setIsDrawerOpen(false);

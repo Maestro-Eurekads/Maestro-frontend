@@ -112,95 +112,109 @@ const UploadModal: React.FC<UploadModalProps> = ({
 
   const updateGlobalState = useCallback(
     async (uploadedFiles: Array<{ id: string; url: string }>) => {
-      if (!campaignFormData?.channel_mix) {
-        throw new Error("campaignFormData or channel_mix is undefined")
-      }
-
-      const updatedChannelMix = [...campaignFormData.channel_mix]
-      const stage = updatedChannelMix.find((ch) => ch.funnel_stage === stageName)
-      if (!stage) {
-        throw new Error("Stage not found")
-      }
-
-      const platformKey = channel.toLowerCase().replace(/\s+/g, "_")
-      const platforms = stage[platformKey]
-      if (!platforms) {
-        throw new Error("Platform key not found")
-      }
-
-      const targetPlatform = platforms.find((pl) => pl.platform_name === platform)
-      if (!targetPlatform) {
-        throw new Error("Target platform not found")
-      }
-
-      const updatedPlatform = JSON.parse(JSON.stringify(targetPlatform))
-
-      if (adSetIndex !== undefined) {
-        if (!updatedPlatform.ad_sets?.[adSetIndex]) {
-          throw new Error(`Ad set not found at index ${adSetIndex}`)
-        }
-
-        const adSet = updatedPlatform.ad_sets[adSetIndex]
-        adSet.format = adSet.format || []
-
-        let targetFormatIndex = adSet.format.findIndex((fo: any) => fo.format_type === format)
-        if (targetFormatIndex === -1) {
-          adSet.format.push({
-            format_type: format,
-            num_of_visuals: quantities.toString(),
-            previews: [],
-          })
-          targetFormatIndex = adSet.format.length - 1
-        }
-
-        const validFiles = uploadedFiles.filter((file) => file !== null)
-        adSet.format[targetFormatIndex].previews = [...validFiles]
-      } else {
-        updatedPlatform.format = updatedPlatform.format || []
-
-        let targetFormatIndex = updatedPlatform.format.findIndex((fo: any) => fo.format_type === format)
-        if (targetFormatIndex === -1) {
-          updatedPlatform.format.push({
-            format_type: format,
-            num_of_visuals: quantities.toString(),
-            previews: [],
-          })
-          targetFormatIndex = updatedPlatform.format.length - 1
-        }
-
-        const validFiles = uploadedFiles.filter((file) => file !== null)
-        updatedPlatform.format[targetFormatIndex].previews = [...validFiles]
-      }
-
-      const platformIndex = platforms.findIndex((pl: any) => pl.platform_name === platform)
-      platforms[platformIndex] = updatedPlatform
-
-      const updatedState = {
-        ...campaignData,
-        channel_mix: updatedChannelMix,
-      }
-
-      // Optimistically update local state
-      setCampaignData(updatedState)
-
-      // Update Strapi in the background
       try {
-        const cleanData = removeKeysRecursively(
-          updatedState,
-          ["id", "documentId", "createdAt", "publishedAt", "updatedAt"],
-          ["previews"],
-        )
-        const { media_plan_details, user, ...rest } = cleanData
-        await updateCampaign(rest)
-        // await getActiveCampaign()
-      } catch (error) {
-        if (error?.response?.status === 401) {
-          const event = new Event("unauthorizedEvent");
-          window.dispatchEvent(event);
+        if (!campaignData || !stageName || !channel || !platform || !format) {
+          console.error("Missing required data for updateGlobalState:", {
+            campaignData: !!campaignData,
+            stageName,
+            channel,
+            platform,
+            format
+          })
+          throw new Error("Missing required campaign data")
         }
+
+        const copy = JSON.parse(JSON.stringify(campaignData))
+        const stageIndex = copy.channel_mix?.findIndex((ch: any) => ch?.funnel_stage === stageName)
+        if (stageIndex === -1) {
+          throw new Error(`Stage not found: ${stageName}`)
+        }
+
+        const channelKey = channel.toLowerCase().replace(/\s+/g, "_")
+        const platforms = copy.channel_mix[stageIndex][channelKey]
+        if (!platforms) {
+          throw new Error(`Channel not found: ${channelKey}`)
+        }
+
+        const platformIndex = platforms.findIndex((pl: any) => pl?.platform_name === platform)
+        if (platformIndex === -1) {
+          throw new Error(`Platform not found: ${platform}`)
+        }
+
+        const updatedPlatform = platforms[platformIndex]
+
+        if (adSetIndex !== undefined) {
+          if (!updatedPlatform.ad_sets?.[adSetIndex]) {
+            throw new Error(`Ad set not found at index ${adSetIndex}`)
+          }
+
+          const adSet = updatedPlatform.ad_sets[adSetIndex]
+          adSet.format = adSet.format || []
+
+          let targetFormatIndex = adSet.format.findIndex((fo: any) => fo.format_type === format)
+          if (targetFormatIndex === -1) {
+            adSet.format.push({
+              format_type: format,
+              num_of_visuals: quantities.toString(),
+              previews: [],
+            })
+            targetFormatIndex = adSet.format.length - 1
+          }
+
+          const validFiles = uploadedFiles.filter((file) => file !== null && file.id && file.url)
+          adSet.format[targetFormatIndex].previews = [...validFiles]
+        } else {
+          updatedPlatform.format = updatedPlatform.format || []
+
+          let targetFormatIndex = updatedPlatform.format.findIndex((fo: any) => fo.format_type === format)
+          if (targetFormatIndex === -1) {
+            updatedPlatform.format.push({
+              format_type: format,
+              num_of_visuals: quantities.toString(),
+              previews: [],
+            })
+            targetFormatIndex = updatedPlatform.format.length - 1
+          }
+
+          const validFiles = uploadedFiles.filter((file) => file !== null && file.id && file.url)
+          updatedPlatform.format[targetFormatIndex].previews = [...validFiles]
+        }
+
+        const platformIndex2 = platforms.findIndex((pl: any) => pl.platform_name === platform)
+        platforms[platformIndex2] = updatedPlatform
+
+        const updatedState = {
+          ...campaignData,
+          channel_mix: copy.channel_mix,
+        }
+
+        // Optimistically update local state
+        setCampaignData(updatedState)
+
+        // Update Strapi in the background
+        try {
+          const cleanData = removeKeysRecursively(
+            updatedState,
+            ["id", "documentId", "createdAt", "publishedAt", "updatedAt"],
+            ["previews"],
+          )
+          const { media_plan_details, user, ...rest } = cleanData
+          await updateCampaign(rest)
+        } catch (error) {
+          console.error("Failed to update campaign data:", error)
+          if (error?.response?.status === 401) {
+            const event = new Event("unauthorizedEvent");
+            window.dispatchEvent(event);
+          }
+          toast.error("Failed to save campaign data. Changes may not persist.")
+        } 
+      } catch (error) {
+        console.error("Error in updateGlobalState:", error)
+        toast.error("Failed to update campaign state. Please try again.")
+        throw error 
         toast.error("Failed to save campaign data. Changes may not persist.")
         // Revert optimistic update if needed
-        // await getActiveCampai gn()
+        // await getActiveCampai gn() 
       }
     },
     [

@@ -6,10 +6,8 @@ import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import { useEditing } from "../../utils/EditingContext";
 import { useComments } from "app/utils/CommentProvider";
 import SaveProgressButton from "app/utils/SaveProgressButton";
-import { useActive } from "app/utils/ActiveContext";
 
 const DefineAdSet = () => {
-  const { setChange } = useActive()
   const { setIsEditing } = useEditing();
   const { setIsDrawerOpen, setClose } = useComments();
   const [view, setView] = useState<"channel" | "adset">("channel");
@@ -21,7 +19,7 @@ const DefineAdSet = () => {
   }, [setIsDrawerOpen, setClose, setIsEditing]);
 
   const handleToggleChange = (newView: "channel" | "adset") => {
-    setChange(true)
+
     setView(newView);
   };
 

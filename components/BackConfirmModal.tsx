@@ -183,11 +183,9 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 				window.dispatchEvent(new Event("unauthorizedEvent"));
 			}
 			toast.error(error?.response?.data?.message || "Something went wrong. Please try again.");
-			setChange(false);
 			setShowModal(false);
 		} finally {
 			setLoading(false);
-			setChange(false);
 			setShowModal(false);
 		}
 	};

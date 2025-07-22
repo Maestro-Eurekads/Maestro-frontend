@@ -35,11 +35,7 @@ const EditInput = ({ setInputs, label, setAlert, initialData, isAgencyCreator, s
       parameters.length > 0 &&
       !parameters[parameters.length - 1].name.trim()
     ) {
-      setAlert({
-        variant: "error",
-        message: "Parameter name cannot be empty",
-        position: "bottom-right",
-      });
+      toast.error("Parameter name cannot be empty")
       return;
     }
 
@@ -62,11 +58,7 @@ const EditInput = ({ setInputs, label, setAlert, initialData, isAgencyCreator, s
     const param = parameters[index];
 
     if (!param.name.trim()) {
-      setAlert({
-        variant: "error",
-        message: "Please enter the parameter name first",
-        position: "bottom-right",
-      });
+      toast.error("Please enter the parameter name first")
       return;
     }
 
@@ -74,11 +66,7 @@ const EditInput = ({ setInputs, label, setAlert, initialData, isAgencyCreator, s
       param.subParameters.length > 0 &&
       !param.subParameters[param.subParameters.length - 1].trim()
     ) {
-      setAlert({
-        variant: "error",
-        message: "Sub-parameter cannot be empty",
-        position: "bottom-right",
-      });
+      toast.error("Sub-parameter cannot be empty")
       return;
     }
 
