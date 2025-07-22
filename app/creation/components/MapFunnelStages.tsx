@@ -22,7 +22,6 @@ import {
   Loader,
 } from "lucide-react";
 
-import toast from "react-hot-toast";
 
 import axios from "axios";
 import Skeleton from "react-loading-skeleton";
@@ -30,6 +29,7 @@ import { colorClassToHex, colorPalette } from "components/Options";
 import SaveProgressButton from "app/utils/SaveProgressButton";
 import { useSearchParams } from "next/navigation";
 import { useActive } from "app/utils/ActiveContext";
+import { toast } from "sonner";
 
 // Define type for funnel objects
 
@@ -576,9 +576,7 @@ const MapFunnelStages = () => {
       campaignFormData?.funnel_stages?.includes(id) &&
       campaignFormData.funnel_stages.length === 1
     ) {
-      toast.error("You must have at least one stage selected", {
-        duration: 3000,
-      });
+      toast.error("You must have at least one stage selected");
 
       return;
     }
@@ -626,10 +624,7 @@ const MapFunnelStages = () => {
     const error = validateFunnelName(name, false);
 
     if (error) {
-      toast.error(error, {
-        style: { background: "red", color: "white", textAlign: "center" },
-        duration: 3000,
-      });
+      toast.error(error);
 
       return;
     }
@@ -662,7 +657,7 @@ const MapFunnelStages = () => {
 
     setSelectedPreset(null);
 
-    toast.success("Funnel added successfully", { duration: 3000 });
+    toast.success("Funnel added successfully");
 
     setIsModalOpen(false);
 
@@ -677,12 +672,8 @@ const MapFunnelStages = () => {
     newColor: string
   ) => {
     const error = validateFunnelName(newName, true, oldId);
-    // console.log({oldId, newName, newColor})
     if (error) {
-      toast.error(error, {
-        style: { background: "red", color: "white", textAlign: "center" },
-        duration: 3000,
-      });
+      toast.error(error);
 
       return;
     }
@@ -721,7 +712,7 @@ const MapFunnelStages = () => {
 
     setSelectedPreset(null);
 
-    toast.success("Funnel updated successfully", { duration: 3000 });
+    toast.success("Funnel updated successfully");
 
     setIsModalOpen(false);
 
@@ -732,11 +723,7 @@ const MapFunnelStages = () => {
 
   const handleRemoveFunnel = (id: string) => {
     if (persistentCustomFunnels.length <= 1) {
-      toast.error("You must have at least one funnel stage", {
-        style: { background: "red", color: "white", textAlign: "center" },
-
-        duration: 3000,
-      });
+      toast.error("You must have at least one funnel stage");
 
       return;
     }
@@ -771,9 +758,9 @@ const MapFunnelStages = () => {
 
     setSelectedPreset(null);
 
-    toast.success("Funnel removed successfully", { duration: 3000 });
+    toast.success("Funnel removed successfully");
 
-    // console.debug("Removed funnel:", id);
+
   };
 
   // Handle drag and drop
@@ -950,7 +937,7 @@ const MapFunnelStages = () => {
 
     setHasChanges(true);
 
-    toast.success("Preset structure applied", { duration: 2000 });
+    toast.success("Preset structure applied");
 
     setDropdownOpen(false);
 
@@ -987,7 +974,7 @@ const MapFunnelStages = () => {
 
     setHasChanges(true);
 
-    toast.success("Funnel configuration applied", { duration: 2000 });
+    toast.success("Funnel configuration applied");
 
     setDropdownOpen(false);
 
@@ -999,11 +986,8 @@ const MapFunnelStages = () => {
   const handleSaveConfiguration = () => {
     setChange(true)
     if (!clientId) {
-      toast.error("Please select a client to save funnel configurations.", {
-        style: { background: "red", color: "white", textAlign: "center" },
 
-        duration: 3000,
-      });
+      toast.error("Please select a client to save funnel configurations.");
 
       return;
     }
@@ -1020,11 +1004,7 @@ const MapFunnelStages = () => {
     const error = validateConfigName(newConfigName);
 
     if (error) {
-      toast.error(error, {
-        style: { background: "red", color: "white", textAlign: "center" },
-
-        duration: 3000,
-      });
+      toast.error(error);
 
       return;
     }
@@ -1077,34 +1057,25 @@ const MapFunnelStages = () => {
           }
         );
 
-        toast.success(`"${newConfigName.trim()}" configuration saved!`, {
-          duration: 3000,
-        });
+        toast.success(`"${newConfigName.trim()}" configuration saved!`);
       } catch (err) {
         if (err) {
           const event = new Event("unauthorizedEvent");
           window.dispatchEvent(event);
         }
-        console.error("Failed to update funnel configs on Strapi:", err);
 
         toast.error(
-          "Failed to update funnel configs on server, saved locally",
-          {
-            duration: 3000,
-          }
+          "Failed to update funnel configs on server, saved locally"
         );
       } finally {
         setSavingConfig(false);
       }
     } else {
-      toast.success(`"${newConfigName.trim()}" configuration saved!`, {
-        duration: 3000,
-      });
+      toast.success(`"${newConfigName.trim()}" configuration saved!`);
     }
 
     setIsSaveConfigModalOpen(false);
 
-    // console.debug("Saved new config:", config);
   };
 
   // Open delete confirmation modal
@@ -1119,7 +1090,6 @@ const MapFunnelStages = () => {
   // Confirm delete configuration - Mark as deleted instead of removing
 
   const handleDeleteConfigConfirm = () => {
-    setChange(true)
     if (configToDelete === null) return;
 
     // Mark the configuration as deleted instead of removing it
@@ -1194,9 +1164,9 @@ const MapFunnelStages = () => {
         });
     }
 
-    toast.success("Configuration deleted successfully", { duration: 2000 });
+    toast.success("Configuration deleted successfully");
 
-    // console.debug("Marked config as deleted at index:", configToDelete);
+
 
     setIsDeleteModalOpen(false);
 

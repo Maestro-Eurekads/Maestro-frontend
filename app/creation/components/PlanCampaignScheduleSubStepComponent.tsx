@@ -7,10 +7,8 @@ import { useComments } from 'app/utils/CommentProvider';
 import { useEditing } from 'app/utils/EditingContext';
 import EnhancedMainSection from './organisms/main-section/enhanced-main-section';
 import SaveProgressButton from 'app/utils/SaveProgressButton';
-import { useActive } from 'app/utils/ActiveContext';
 
 const PlanCampaignScheduleSubStepComponent = () => {
-	const { setChange } = useActive()
 	const searchParams = useSearchParams();
 	const { setIsDrawerOpen, setClose } = useComments();
 	const { setIsEditing } = useEditing();
@@ -31,7 +29,7 @@ const PlanCampaignScheduleSubStepComponent = () => {
 
 	return (
 		<div>
-			<div className="creation_continer" style={{width: '100%', overflowX: 'auto' }}>
+			<div className="creation_continer" style={{ width: '100%', overflowX: 'auto' }}>
 				<div className='flex flex-row justify-between'>
 					<PageHeaderWrapper
 						t1={'Setup the timeline of your campaign?'}

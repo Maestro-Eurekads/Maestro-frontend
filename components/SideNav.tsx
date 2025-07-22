@@ -73,6 +73,7 @@ const SideNav: React.FC = () => {
   const handleCancel = () => {
     setShowModal(false);
     navigateBack();
+    setChange(false);
   };
 
   const handleSave = () => {

@@ -329,7 +329,6 @@ const TableView = () => {
   // }, [JSON.stringify(campaignFormData?.channel_mix)])
 
   const handleEditInfo = (stageName, channelName, platformName, fieldName, value, adSetIndex, extraAdSetindex) => {
-    setChange(true)
     setCampaignFormData((prevData) => {
       const updatedData = { ...prevData }
       const channelMix = updatedData.channel_mix?.find((ch) => ch.funnel_stage === stageName)

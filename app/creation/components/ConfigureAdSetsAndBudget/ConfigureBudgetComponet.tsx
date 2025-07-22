@@ -54,6 +54,8 @@ const ConfigureBudgetComponet = ({ show, t1, t2, funnelData }) => {
 		setChannelData(platforms);
 	}
 
+	console.log("campaignFormData----", campaignFormData)
+
 
 	function mapCampaignPhases(phases, campaignFormData) {
 		return phases?.map(phase => {
