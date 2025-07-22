@@ -54,8 +54,8 @@ const CreationFlow = ({ steps }) => {
                 });
               } else {
                 if (stepNumber === 7 || stepNumber === 8) {
-                  setSubStep(0)
                 }
+                setSubStep(0)
                 setActive(stepNumber);
               }
             }}

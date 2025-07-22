@@ -63,7 +63,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
           },
         }
       );
-      await getActiveCampaign()
+      // await getActiveCampaign()
       // //console.log("Campaign data updated successfully", response.data);
     } catch (error) {
       if (error?.response?.status === 401) {

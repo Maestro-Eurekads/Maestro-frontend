@@ -26,8 +26,8 @@ const CreationFlowActive = ({ steps, close }) => {
 
   const handleStepClick = (stepNumber: SetStateAction<number>) => {
     if(stepNumber === 7 || stepNumber === 8){
-      setSubStep(0)
     }
+    setSubStep(0)
     setActive(stepNumber);
   };
 
