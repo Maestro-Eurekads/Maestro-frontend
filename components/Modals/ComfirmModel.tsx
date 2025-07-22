@@ -202,7 +202,6 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 			setIsOpen(false);
 			setLoadings(false);
 			setShowSave(false);
-			setChange(false);
 			setShowVersionPrompt(false);
 		}
 	};

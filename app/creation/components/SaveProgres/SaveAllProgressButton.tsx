@@ -17,7 +17,6 @@ const SaveAllProgressButton = () => {
 	const [showSave, setShowSave] = useState(false)
 	const { active, subStep } = useActive();
 
-
 	const clearChannelStateForNewCampaign = () => {
 		if (typeof window === "undefined") return
 		try {
@@ -61,30 +60,106 @@ const SaveAllProgressButton = () => {
 		agencyId,
 	} = useCampaigns()
 
-
 	const cancelSave = () => {
 		setShowSave(false)
 	}
 
+	// Validate campaign data before saving
+	const validateCampaignData = (data) => {
+		if (!data) {
+			throw new Error("Campaign data is missing");
+		}
 
+		if (!data.client_selection?.id) {
+			throw new Error("Client selection is required");
+		}
 
+		if (!data.media_plan) {
+			throw new Error("Media plan name is required");
+		}
 
+		if (!data.budget_details_currency?.id) {
+			throw new Error("Currency is required");
+		}
+
+		if (!data.funnel_stages || data.funnel_stages.length === 0) {
+			throw new Error("At least one funnel stage is required");
+		}
+
+		if (!data.channel_mix || data.channel_mix.length === 0) {
+			throw new Error("Channel mix data is required");
+		}
+
+		// Validate channel mix structure
+		data.channel_mix.forEach((mix, index) => {
+			if (!mix.funnel_stage) {
+				throw new Error(`Funnel stage is missing for channel mix at index ${index}`);
+			}
+
+			// Ensure all required channel types exist
+			const requiredChannelTypes = [
+				'social_media', 'display_networks', 'search_engines', 'streaming', 'ooh',
+				'broadcast', 'messaging', 'print', 'e_commerce', 'in_game', 'mobile'
+			];
+
+			requiredChannelTypes.forEach(channelType => {
+				if (!Array.isArray(mix[channelType])) {
+					throw new Error(`Channel type '${channelType}' is not an array in stage '${mix.funnel_stage}'`);
+				}
+			});
+		});
+
+		return true;
+	};
+
+	// Clean and sanitize campaign data
+	const sanitizeCampaignData = (data) => {
+		try {
+			// Deep clone to avoid mutating original data
+			const cleanedData = JSON.parse(JSON.stringify(data));
+
+			// Ensure all required arrays exist
+			cleanedData.internal_approver = cleanedData?.internal_approver || [];
+			cleanedData.client_approver = cleanedData?.client_approver || [];
+			cleanedData.approved_by = cleanedData?.approved_by || [];
+
+			// Clean channel mix data
+			if (cleanedData.channel_mix) {
+				cleanedData.channel_mix = cleanedData.channel_mix.map(mix => {
+					const cleanedMix = { ...mix };
+
+					// Ensure all channel types exist
+					['social_media', 'display_networks', 'search_engines', 'streaming', 'ooh',
+						'broadcast', 'messaging', 'print', 'e_commerce', 'in_game', 'mobile'].forEach(channelType => {
+							if (!cleanedMix[channelType]) {
+								cleanedMix[channelType] = [];
+							}
+						});
+
+					return cleanedMix;
+				});
+			}
+
+			return cleanedData;
+		} catch (error) {
+			console.error("Error sanitizing campaign data:", error);
+			throw new Error("Failed to process campaign data");
+		}
+	};
 
 	const handleSaveAllSteps = async () => {
 		setLoading(true);
 
 		try {
-			// Clean up & transform fields from all steps
-			const cleanedFormData = {
-				...campaignFormData,
-				internal_approver: campaignFormData?.internal_approver || [],
-				client_approver: campaignFormData?.client_approver || [],
-				approved_by: campaignFormData?.approved_by || [],
-			};
+			// Validate and sanitize campaign data
+			const cleanedFormData = sanitizeCampaignData(campaignFormData);
+			validateCampaignData(cleanedFormData);
 
+			// Extract objectives and metrics
 			const objectives = await extractObjectives(cleanedFormData);
 			const selectedMetrics = await getFilteredMetrics(objectives);
 
+			// Clean channel mix data
 			const channelMixCleaned = removeKeysRecursively(cleanedFormData?.channel_mix, [
 				"id",
 				"isValidated",
@@ -94,15 +169,21 @@ const SaveAllProgressButton = () => {
 				"_aggregated",
 			]);
 
+			// Clean campaign budget data
 			const campaignBudgetCleaned = removeKeysRecursively(cleanedFormData?.campaign_budget, ["id"]);
 
 			const calcPercent = Math.ceil((active / 10) * 100);
 
 			// Normalize approved_by to array of IDs (support objects or IDs)
-			const existingApprovedByRaw = campaignFormData?.media_plan_details?.approved_by;
+			const existingApprovedByRaw = cleanedFormData?.media_plan_details?.approved_by;
 			const existingApprovedBy = Array.isArray(existingApprovedByRaw)
 				? existingApprovedByRaw.map((user: any) => (typeof user === "object" ? user.id : user))
 				: [];
+
+			// Validate user IDs
+			const validateUserIds = (users) => {
+				return users.filter(user => user && !isNaN(Number(user))).map(user => Number(user));
+			};
 
 			const payload = {
 				data: {
@@ -114,10 +195,9 @@ const SaveAllProgressButton = () => {
 					},
 					media_plan_details: {
 						plan_name: cleanedFormData?.media_plan,
-						internal_approver: cleanedFormData.internal_approver.map((item: any) => Number(item.id)),
-						client_approver: cleanedFormData.client_approver.map((item: any) => Number(item.id)),
-						approved_by: cleanedFormData.approved_by.map((item: any) => Number(item.id)),
-						// approved_by: [String(loggedInUser?.id)],
+						internal_approver: validateUserIds(cleanedFormData.internal_approver.map((item: any) => item.id)),
+						client_approver: validateUserIds(cleanedFormData.client_approver.map((item: any) => item.id)),
+						approved_by: validateUserIds(cleanedFormData.approved_by.map((item: any) => item.id)),
 					},
 					budget_details: {
 						currency: cleanedFormData?.budget_details_currency?.id || "EUR",
@@ -178,23 +258,29 @@ const SaveAllProgressButton = () => {
 			setChange(false);
 			setShowSave(false);
 		} catch (error: any) {
+			console.error("Save error:", error);
+
 			if (error?.response?.status === 401) {
 				window.dispatchEvent(new Event("unauthorizedEvent"));
+			} else if (error?.response?.status === 400) {
+				toast.error(error?.response?.data?.error?.message || "Invalid data provided. Please check your inputs.");
+			} else if (error?.response?.status === 422) {
+				toast.error("Validation failed. Please check your campaign data.");
+			} else if (error?.response?.status >= 500) {
+				toast.error("Server error. Please try again later.");
+			} else if (error?.message) {
+				toast.error(error.message);
+			} else {
+				toast.error("Something went wrong. Please try again.");
 			}
-			toast.error(error?.response?.data?.message || "Something went wrong. Please try again.");
+
 			setLoading(false);
 			setShowSave(false);
-			setChange(false);
 		} finally {
 			setLoading(false);
 			setShowSave(false);
-			setChange(false);
 		}
 	};
-
-
-
-
 
 	return (
 		<div >

@@ -137,23 +137,28 @@ const SaveProgressButton = ({ setIsOpen }) => {
 			const stageData = campaignFormData?.channel_mix?.find((mix) => mix?.funnel_stage === stage)
 
 			if (stageData) {
-				const hasFormatSelected = [
-					...(stageData.social_media || []),
-					...(stageData.display_networks || []),
-					...(stageData.search_engines || []),
-					...(stageData.streaming || []),
-					...(stageData.ooh || []),
-					...(stageData.broadcast || []),
-					...(stageData.messaging || []),
-					...(stageData.print || []),
-					...(stageData.e_commerce || []),
-					...(stageData.in_game || []),
-					...(stageData.mobile || []),
-				].some(
-					(platform) =>
-						(platform.format?.length > 0 && platform.format.some((f) => f.format_type && f.num_of_visuals)) ||
-						platform.ad_sets?.some((adset) => adset.format?.some((f) => f.format_type && f.num_of_visuals)),
-				)
+				// Check all channel types for formats
+				const channelTypes = [
+					'social_media', 'display_networks', 'search_engines', 'streaming', 'ooh',
+					'broadcast', 'messaging', 'print', 'e_commerce', 'in_game', 'mobile'
+				];
+
+				const hasFormatSelected = channelTypes.some(channelType => {
+					const platforms = stageData[channelType] || [];
+					return platforms.some(platform => {
+						// Check if platform has formats at channel level
+						const hasChannelFormats = platform?.format?.length > 0 &&
+							platform.format.some(f => f.format_type && f.num_of_visuals);
+
+						// Check if platform has formats at adset level
+						const hasAdsetFormats = platform?.ad_sets?.some(adset =>
+							adset?.format?.length > 0 &&
+							adset.format.some(f => f.format_type && f.num_of_visuals)
+						);
+
+						return hasChannelFormats || hasAdsetFormats;
+					});
+				});
 
 				const isStageValidated = validatedStages[stage]
 				if (hasFormatSelected || isStageValidated) {

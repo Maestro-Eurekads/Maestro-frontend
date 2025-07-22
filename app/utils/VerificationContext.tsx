@@ -99,7 +99,7 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
 	// Validate a step using predefined rules
 	const validateStep = (step: string, data: any, docId: string) => {
-		const stepKey = step.toLowerCase().replace(" ", ""); // Convert "Step 1" -> "step1"
+		const stepKey = step.toLowerCase().replace(" ", "");
 		const isValid = validationRules[stepKey]?.(data) || false;
 		verifyStep(stepKey, isValid, docId);
 		return isValid;

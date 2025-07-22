@@ -176,7 +176,7 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
         <button
           className={`flex items-center gap-3 `}
           onClick={() => setMonthOffset(monthOffset - 1)}
-          // disabled={!isEditing}
+        // disabled={!isEditing}
         >
           <Image src={left} alt="left" />
           <h6 className="font-semibold text-[16px] text-[#061237]">
@@ -186,7 +186,7 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
         <button
           className={`flex items-center gap-3 `}
           onClick={() => setMonthOffset(monthOffset + 1)}
-          // disabled={!isEditing}
+        // disabled={!isEditing}
         >
           <h6 className="font-semibold text-[16px] text-[#061237]">
             {months[1].name}
@@ -200,9 +200,8 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
         {months.map((month, monthIndex) => (
           <div
             key={monthIndex}
-            className={`w-1/2 p-2 ${
-              monthIndex === 1 ? "border-l border-gray-200" : ""
-            }`}
+            className={`w-1/2 p-2 ${monthIndex === 1 ? "border-l border-gray-200" : ""
+              }`}
           >
             {/* Weekdays */}
             <div className="grid grid-cols-7 gap-2 text-center font-semibold text-gray-700">
@@ -261,8 +260,8 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
             <button className="reset_dates_move">
               {fromDate
                 ? `${String(fromDate.day).padStart(2, "0")}-${String(
-                    fromDate.month + 1
-                  ).padStart(2, "0")}-${fromDate.year}`
+                  fromDate.month + 1
+                ).padStart(2, "0")}-${fromDate.year}`
                 : "Select date"}
             </button>
           </div>
@@ -272,8 +271,8 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
             <button className="reset_dates_move">
               {toDate
                 ? `${String(toDate.day).padStart(2, "0")}-${String(
-                    toDate.month + 1
-                  ).padStart(2, "0")}-${toDate.year}`
+                  toDate.month + 1
+                ).padStart(2, "0")}-${toDate.year}`
                 : "Select date"}
             </button>
           </div>
@@ -282,7 +281,7 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
           type="button"
           className={`reset_dates `}
           onClick={resetDates}
-          // disabled={!isEditing}
+        // disabled={!isEditing}
         >
           Reset dates
         </button>
