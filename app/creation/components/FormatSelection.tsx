@@ -1197,6 +1197,7 @@ export const Platforms = ({
       format: string,
       updatedPreviews: Array<{ id: string; url: string }>,
       adSetIndex?: number,
+      onUploadSuccess?: () => void // <-- add callback
     ) => {
       if (!campaignFormData?.channel_mix) {
         throw new Error("campaignFormData or channel_mix is undefined")
@@ -1239,6 +1240,7 @@ export const Platforms = ({
           targetFormatIndex = adSet.format.length - 1
         }
 
+        // Always assign a new array
         adSet.format[targetFormatIndex].previews = [...updatedPreviews]
       } else {
         updatedPlatform.format = updatedPlatform.format || []
@@ -1253,17 +1255,23 @@ export const Platforms = ({
           targetFormatIndex = updatedPlatform.format.length - 1
         }
 
+        // Always assign a new array
         updatedPlatform.format[targetFormatIndex].previews = [...updatedPreviews]
       }
 
       const platformIndex = platforms.findIndex((pl: any) => pl.platform_name === platformName)
       platforms[platformIndex] = updatedPlatform
 
+      // Update local state immediately
       setCampaignFormData((prev) => ({
         ...prev,
         channel_mix: updatedChannelMix,
       }))
 
+      // Optionally call the callback to close the modal after state update
+      if (onUploadSuccess) onUploadSuccess();
+
+      // Backend update can be debounced, but local state update is immediate
       await uploadUpdatedCampaignToStrapi({
         ...campaignData,
         channel_mix: updatedChannelMix,
@@ -1537,8 +1545,18 @@ export const Platforms = ({
           stageName={stageName}
           adSetIndex={modalContext.adSetIndex}
           onUploadSuccess={() => {
-            setIsModalOpen(false)
-            setModalContext(null)
+            // Call updateGlobalState with the callback to close the modal after state update
+            updateGlobalState(
+              modalContext.platform,
+              modalContext.channel,
+              modalContext.format,
+              modalContext.previews,
+              modalContext.adSetIndex,
+              () => {
+                setIsModalOpen(false)
+                setModalContext(null)
+              }
+            )
           }}
         />
       )}
