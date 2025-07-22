@@ -207,11 +207,14 @@ const UploadModal: React.FC<UploadModalProps> = ({
             window.dispatchEvent(event);
           }
           toast.error("Failed to save campaign data. Changes may not persist.")
-        }
+        } 
       } catch (error) {
         console.error("Error in updateGlobalState:", error)
         toast.error("Failed to update campaign state. Please try again.")
-        throw error
+        throw error 
+        toast.error("Failed to save campaign data. Changes may not persist.")
+        // Revert optimistic update if needed
+        // await getActiveCampai gn() 
       }
     },
     [
