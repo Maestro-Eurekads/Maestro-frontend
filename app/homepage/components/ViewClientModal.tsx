@@ -182,7 +182,7 @@ const ViewClientModal = ({ isView, setIsView }) => {
 
     const input = section === 'agencyAccess' ? agencyInput : clientInput;
     const { name, email, roles } = input;
-    const trimmedEmail = email.trim();
+    const trimmedEmail = email.trim().toLowerCase(); // Always lowercase
     const trimmedName = name.trim();
     const username = `${trimmedName.replace(' ', '-')}-${uuidv4().slice(0, 4)}`.toLowerCase();
     const tempPassword = '123456789'; // TODO: Replace with secure password
@@ -238,7 +238,7 @@ const ViewClientModal = ({ isView, setIsView }) => {
     const section = editingUser?.section;
     const input = section === 'agencyAccess' ? agencyInput : clientInput;
     const { name, email, roles } = input;
-    const trimmedEmail = email.trim();
+    const trimmedEmail = email.trim().toLowerCase(); // Always lowercase
     const trimmedName = name.trim();
     const userId = editingUser?.user?.id;
 
