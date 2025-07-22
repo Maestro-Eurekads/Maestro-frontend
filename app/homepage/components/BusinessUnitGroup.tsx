@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import blueSmallPlue from "../../../public/blueSmallPlue.svg";
 import Image from "next/image";
 import { MdOutlineCancel } from "react-icons/md";
+import { toast } from "sonner";
 
 const BusinessUnitGroup = ({ onUpdate, setAlert, label, initial = [], onRemove }) => {
 	const [fields, setFields] = useState(
@@ -16,19 +17,11 @@ const BusinessUnitGroup = ({ onUpdate, setAlert, label, initial = [], onRemove }
 
 	const handleAddField = () => {
 		if (fields.length >= 5) {
-			setAlert({
-				variant: "warning",
-				message: "Maximum 5 Client Architecture allowed",
-				position: "bottom-right",
-			});
+			toast.error("Maximum 5 Client Architecture allowed")
 			return;
 		}
 		if (!fields[fields.length - 1].text.trim()) {
-			setAlert({
-				variant: "error",
-				message: "Client Architecture name cannot be empty",
-				position: "bottom-right",
-			});
+			toast.error("Client Architecture name cannot be empty")
 			return;
 		}
 		setFields((prev) => [...prev, { id: prev.length + 1, text: "" }]);
