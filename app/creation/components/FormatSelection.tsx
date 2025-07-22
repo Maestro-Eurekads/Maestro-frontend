@@ -14,7 +14,6 @@ import Switch from "react-switch"
 import PageHeaderWrapper from "../../../components/PageHeaderWapper"
 import { useComments } from "app/utils/CommentProvider"
 import { useActive } from "app/utils/ActiveContext"
-import SaveProgressButton from "app/utils/SaveProgressButton"
 import SaveAllProgressButton from "./SaveProgres/SaveAllProgressButton"
 import { CHANNEL_TYPES, DEFAULT_MEDIA_OPTIONS } from "components/Options"
 
@@ -173,7 +172,7 @@ const CreativesModal = ({
                     {fileType === "image" && preview.url ? (
                       <div className="relative aspect-square w-[155px]">
                         <Image
-                          src={preview.url || "/placeholder.svg"}
+                          src={preview.url}
                           alt={`Preview ${idx + 1}`}
                           fill
                           className="object-cover rounded"
@@ -245,7 +244,7 @@ const CreativesModal = ({
                       <div className="flex items-center gap-2 mb-3">
                         {platformIcons[platform.platform_name] && (
                           <Image
-                            src={getPlatformIcon(platform.platform_name) || "/placeholder.svg"}
+                            src={getPlatformIcon(platform.platform_name)}
                             alt={platform.platform_name}
                             width={24}
                             height={24}
@@ -264,7 +263,7 @@ const CreativesModal = ({
                       <div className="flex items-center gap-2 mb-3">
                         {platformIcons[platform.platform_name] && (
                           <Image
-                            src={getPlatformIcon(platform.platform_name) || "/placeholder.svg"}
+                            src={getPlatformIcon(platform.platform_name)}
                             alt={platform.platform_name}
                             width={24}
                             height={24}
@@ -420,7 +419,7 @@ const MediaOption = ({
               transition: "background 0.15s, border-color 0.15s, box-shadow 0.15s",
             }}
           >
-            <Image src={option.icon || "/placeholder.svg"} width={168} height={132} alt={option.name} />
+            <Image src={option.icon} width={168} height={132} alt={option.name} />
             <p className="text-sm font-medium text-gray-700 mt-2">{option.name}</p>
             {isSelected && (
               <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
@@ -468,27 +467,27 @@ const MediaOption = ({
             Uploaded Previews ({localPreviews.length}/{quantity})
           </p>
           <div className="grid grid-cols-2 gap-3 flex-wrap">
-            {localPreviews.map((prv, index) => (
-              <div key={prv.id || index} className="relative">
+            {localPreviews?.map((prv, index) => (
+              <div key={prv?.id || index} className="relative">
                 <a
-                  href={prv.url}
+                  href={prv?.url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-[225px] h-[150px] rounded-lg flex items-center justify-center hover:border-blue-500 transition-colors border border-gray-500 cursor-pointer"
                 >
                   {renderUploadedFile(
-                    localPreviews.map((lp) => lp.url),
-                    option.name,
+                    localPreviews?.map((lp) => lp.url),
+                    option?.name,
                     index,
                   )}
                 </a>
                 <button
-                  className={`absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center ${deletingPreviewId === prv.id ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                  className={`absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center ${deletingPreviewId === prv?.id ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
                     }`}
-                  onClick={() => handleDelete(prv.id)}
-                  disabled={deletingPreviewId === prv.id}
+                  onClick={() => handleDelete(prv?.id)}
+                  disabled={deletingPreviewId === prv?.id}
                 >
-                  {deletingPreviewId === prv.id ? (
+                  {deletingPreviewId === prv?.id ? (
                     <FaSpinner color="white" className="animate-spin" size={10} />
                   ) : (
                     <Trash color="white" size={10} />
@@ -773,7 +772,7 @@ const PlatformItem = ({
         <div className="flex items-center gap-[8px] font-[500] border p-3 rounded-[10px] min-w-[150px] max-w-[180px] w-full">
           {platformIcons[platform.platform_name] && (
             <Image
-              src={getPlatformIcon(platform.platform_name) || "/placeholder.svg"}
+              src={getPlatformIcon(platform.platform_name)}
               alt={platform.platform_name}
               width={20}
               height={20}
@@ -1727,7 +1726,7 @@ export const FormatSelection = ({
                     {stage.icon && (
                       <Image
                         loading="lazy"
-                        src={stage.icon || "/placeholder.svg"}
+                        src={stage.icon}
                         alt={`${stage.name} icon`}
                         width={24}
                         height={24}
