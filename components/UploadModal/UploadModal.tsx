@@ -9,6 +9,7 @@ import Link from "next/link"
 import { useCampaigns } from "app/utils/CampaignsContext"
 import { removeKeysRecursively } from "utils/removeID"
 import { renderUploadedFile } from "components/data"
+import { useActive } from "app/utils/ActiveContext"
 
 interface UploadModalProps {
   isOpen: boolean
@@ -36,6 +37,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
   onUploadSuccess,
 }) => {
   const { campaignFormData, updateCampaign, getActiveCampaign, campaignData, setCampaignData, jwt } = useCampaigns()
+  const { active } = useActive()
   const [uploads, setUploads] = useState<Array<File | null>>([])
   const [uploadBlobs, setUploadBlobs] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
@@ -97,7 +99,9 @@ const UploadModal: React.FC<UploadModalProps> = ({
           ["previews"],
         )
         await updateCampaign(cleanData)
-        await getActiveCampaign()
+        if(active !== 7){
+          await getActiveCampaign()
+        }
       } catch (error) {
         if (error?.response?.status === 401) {
           const event = new Event("unauthorizedEvent");
@@ -192,7 +196,9 @@ const UploadModal: React.FC<UploadModalProps> = ({
         )
         const { media_plan_details, user, ...rest } = cleanData
         await updateCampaign(rest)
-        await getActiveCampaign()
+        if(active !== 7){
+          await getActiveCampaign()
+        }
       } catch (error) {
         if (error?.response?.status === 401) {
           const event = new Event("unauthorizedEvent");
