@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
@@ -15,6 +14,19 @@ interface Props {
 	setCampaignFormData: React.Dispatch<React.SetStateAction<any>>;
 }
 
+// Helper to normalize value to array of strings
+function normalizeValue(val: any): string[] {
+	if (Array.isArray(val)) {
+		// If array of objects, extract string values
+		if (val.length > 0 && typeof val[0] === 'object' && val[0] !== null) {
+			return val.map(v => v.value || v.label || v.id || "");
+		}
+		// If array of strings, return as is
+		return val;
+	}
+	return [];
+}
+
 const TreeDropdown: React.FC<Props> = ({
 	data,
 	formId,
@@ -24,10 +36,17 @@ const TreeDropdown: React.FC<Props> = ({
 }) => {
 	const { setChange } = useActive()
 	const [treeOptions, setTreeOptions] = useState<any[]>([]);
-	const [value, setValue] = useState<string[]>([]);
+	const [value, setValue] = useState<string[]>(normalizeValue(campaignFormData?.[formId]?.value));
 	const hasSetInitialValue = useRef(false);
 	const loadAttempts = useRef(0);
 	const nested = convertToNestedStructure(campaignFormData?.[formId]?.value);
+
+
+	// console.log('---campaignFormData', campaignFormData)
+	// console.log('---nested', nested)
+	// console.log('---treeOptions', treeOptions)
+	// console.log('---value', value)
+
 
 	// Build tree when data is ready
 	useEffect(() => {
@@ -49,11 +68,20 @@ const TreeDropdown: React.FC<Props> = ({
 					? param.subParameters.map((sub: string) => `${param.name.trim()}-${sub.trim()}`)
 					: [`${param.name.trim()}`]
 			);
-
-			setValue(selected);
+			if (JSON.stringify(value) !== JSON.stringify(selected)) {
+				setValue(selected);
+			}
 			loadAttempts.current += 1;
 		}
-	}, [treeOptions, nested]);
+		// Only update if the normalized value is different
+		else if (campaignFormData?.[formId]?.value) {
+			const normalized = normalizeValue(campaignFormData[formId].value);
+			if (JSON.stringify(value) !== JSON.stringify(normalized)) {
+				setValue(normalized);
+			}
+		}
+		// eslint-disable-next-line
+	}, [treeOptions, nested, formId]);
 
 	const onChange = (newValue: string[]) => {
 		setChange(true)
@@ -62,7 +90,7 @@ const TreeDropdown: React.FC<Props> = ({
 			...prev,
 			[formId]: {
 				id: data?.title || '',
-				value: newValue,
+				value: newValue, // always an array of strings
 			},
 		}));
 	};

@@ -20,6 +20,7 @@ import Skeleton from "react-loading-skeleton";
 import ClientSelection from "components/ClientSelection";
 import SaveProgressButton from "app/utils/SaveProgressButton";
 import { useActive } from "app/utils/ActiveContext";
+import BackConfirmModal from "../../../components/BackConfirmModal";
 
 
 interface DropdownOption {
@@ -34,9 +35,7 @@ interface SelectedItem {
   clientId?: string;
 }
 export const SetupScreen = () => {
-  const router: any = useRouter();
-
-
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const {
     createCampaign,
@@ -59,7 +58,6 @@ export const SetupScreen = () => {
     selectedId,
     selectedOption,
     setSelectedOption
-
   } = useCampaigns();
   const query = useSearchParams();
   const documentId = query.get("campaignId");
@@ -67,7 +65,6 @@ export const SetupScreen = () => {
   const { data: session } = useSession()
   const { client_selection } = campaignFormData || {};
   const { setActive } = useActive();
-
   const [alert, setAlert] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [users, setUsers] = useState({ agencyAccess: [], clientAccess: [] });
@@ -78,6 +75,61 @@ export const SetupScreen = () => {
   const [level1Options, setlevel1Options] = useState<DropdownOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [clientId, setClientId] = useState(null);
+
+  // --- Navigation/modal logic (moved here to fix linter errors) ---
+  const { change, setChange, showModal, setShowModal } = useActive();
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+  const [showBackModal, setShowBackModal] = useState(false);
+
+  // Intercept in-app navigation (Back to Dashboard button)
+  const handleBackToDashboard = (e?: React.MouseEvent) => {
+    if (change) {
+      e?.preventDefault();
+      setPendingNavigation("/dashboard"); // or your dashboard route
+      setShowBackModal(true);
+    } else {
+      router.push("/dashboard");
+    }
+  };
+
+  // Intercept browser back/route changes (SPA navigation)
+  useEffect(() => {
+    const handleRouteChange = (url: string) => {
+      if (change) {
+        setPendingNavigation(url);
+        setShowBackModal(true);
+        throw "Route change aborted by unsaved changes modal"; // Block navigation
+      }
+    };
+    // Next.js App Router does not have router.events, so this is a workaround for SPA navigation
+    window.onpopstate = (event) => {
+      if (change) {
+        setPendingNavigation(document.referrer || "/dashboard");
+        setShowBackModal(true);
+        window.history.pushState(null, "", window.location.href); // Prevent back
+      }
+    };
+    return () => {
+      window.onpopstate = null;
+    };
+  }, [change]);
+
+  // Handle navigation after modal
+  const handleNavigate = () => {
+    setChange(false);
+    setShowBackModal(false);
+    if (pendingNavigation) {
+      router.push(pendingNavigation);
+      setPendingNavigation(null);
+    }
+  };
+
+  // Prevent BackConfirmModal from showing after leaving
+  useEffect(() => {
+    if (!showBackModal) {
+      setPendingNavigation(null);
+    }
+  }, [showBackModal]);
 
 
   useEffect(() => {
@@ -183,9 +235,6 @@ export const SetupScreen = () => {
             label: user?.client_user?.full_name,
           })) || [];
 
-
-
-
       setInternalApproverOptions(agencyUserOptions);
       setClientApprovalOptions(clientUserOptions);
       setClientUsers(FC || []);
@@ -198,6 +247,7 @@ export const SetupScreen = () => {
           id: selectedClient || FC?.id,
           value: FC?.client_name || '',
         },
+        level_1: prev.level_1 || campaignFormData?.level_1, // always preserve if present
       }));
     }
   }, [FC, selectedClient, users]);
@@ -244,25 +294,29 @@ export const SetupScreen = () => {
 
   useEffect(() => {
     if (documentId === null && !isInitialized) {
-      const initialFormData = {
-        client_selection: {
-          id: selectedClient || FC?.id,
-          value: FC?.client_name || '',
-        },
-        media_plan: "",
-        internal_approver: [],
-        client_approver: [],
-        approver_id: [],
-        budget_details_currency: {},
-        country_details: {},
-        budget_details_fee_type: {},
-        budget_details_value: "",
-        level_1: {},
-        campaign_version: "V1",
-      };
-
-      setCampaignFormData(initialFormData);
-      localStorage.setItem("campaignFormData", JSON.stringify(initialFormData));
+      const savedFormData = localStorage.getItem("campaignFormData");
+      if (savedFormData) {
+        setCampaignFormData(JSON.parse(savedFormData));
+      } else {
+        const initialFormData = {
+          client_selection: {
+            id: selectedClient || FC?.id,
+            value: FC?.client_name || '',
+          },
+          media_plan: "",
+          internal_approver: [],
+          client_approver: [],
+          approver_id: [],
+          budget_details_currency: {},
+          country_details: {},
+          budget_details_fee_type: {},
+          budget_details_value: "",
+          level_1: {},
+          campaign_version: "V1",
+        };
+        setCampaignFormData(initialFormData);
+        localStorage.setItem("campaignFormData", JSON.stringify(initialFormData));
+      }
       setIsInitialized(true);
     } else if (documentId === null && isInitialized) {
       // Only update client_selection if already initialized
@@ -487,6 +541,12 @@ export const SetupScreen = () => {
 
       {/* Add Next button and validation at the bottom */}
       {/* Remove the Next button and validation at the bottom */}
+      <BackConfirmModal
+        isOpen={showBackModal}
+        onClose={() => setShowBackModal(false)}
+        onConfirm={() => { }}
+        onNavigate={handleNavigate}
+      />
     </div >
   );
 };
