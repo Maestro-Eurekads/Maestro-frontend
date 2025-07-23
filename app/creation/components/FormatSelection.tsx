@@ -2379,37 +2379,37 @@ const MediaSelectionGrid = ({
   return (
     <div className="w-full h-full overflow-x-auto overflow-y-clip">
       <div className="flex gap-4" style={{ minWidth: "max-content" }}>
-        {mediaOptions.map((option, index) => {
+        {mediaOptions?.map((option, index) => {
           const isSelected =
             adSet && view === "adset"
-              ? adSet.format?.some((f) => f.format_type === option.name)
-              : platform?.format?.some((f) => f.format_type === option.name)
+              ? adSet.format?.some((f) => f?.format_type === option?.name)
+              : platform?.format?.some((f) => f?.format_type === option?.name)
 
           const previews =
             adSet && view === "adset"
-              ? adSet.format?.find((f) => f.format_type === option.name)?.previews || []
-              : platform?.format?.find((f) => f.format_type === option.name)?.previews || []
+              ? adSet.format?.find((f) => f?.format_type === option?.name)?.previews || []
+              : platform?.format?.find((f) => f?.format_type === option?.name)?.previews || []
 
           const q =
             adSet && view === "adset"
-              ? adSet.format?.find((f) => f.format_type === option.name)?.num_of_visuals
-              : platform?.format?.find((f) => f.format_type === option.name)?.num_of_visuals
+              ? adSet.format?.find((f) => f?.format_type === option?.name)?.num_of_visuals
+              : platform?.format?.find((f) => f?.format_type === option?.name)?.num_of_visuals
 
           return (
             <div key={index}>
               <MediaOption
                 option={option}
                 isSelected={!!isSelected}
-                quantity={quantities[option.name] || Number.parseInt(q) || 1}
+                quantity={quantities[option?.name] || Number.parseInt(q) || 1}
                 onSelect={() => onFormatSelect(index, adSetIndex)}
-                onQuantityChange={(change) => onQuantityChange(option.name, change)}
+                onQuantityChange={(change) => onQuantityChange(option?.name, change)}
                 onOpenModal={(previews) =>
                   memoizedOnOpenModal(
                     platformName,
                     channelName,
-                    option.name,
+                    option?.name,
                     previews,
-                    quantities[option.name] || Number.parseInt(q) || 1,
+                    quantities[option?.name] || Number.parseInt(q) || 1,
                     adSetIndex,
                   )
                 }
@@ -2417,9 +2417,9 @@ const MediaSelectionGrid = ({
                 channelName={channelName}
                 previews={previews}
                 stageName={stageName}
-                format={option.name}
+                format={option?.name}
                 adSetIndex={adSetIndex}
-                onPreviewsUpdate={(previews) => handlePreviewsUpdate(option.name, previews)}
+                onPreviewsUpdate={(previews) => handlePreviewsUpdate(option?.name, previews)}
                 onDeletePreview={onDeletePreview}
                 completedDeletions={completedDeletions}
               />
@@ -2788,12 +2788,12 @@ const StageRecapLine = ({
       const platformsStr = items
         .map((item) => {
           return (
-            <span key={item.platform}>
-              <span className="font-medium">{item.platform}</span>
+            <span key={item?.platform}>
+              <span className="font-medium">{item?.platform}</span>
               {": "}
               <span>
-                {item.formats.length > 0 ? (
-                  item.formats.join(", ")
+                {item?.formats?.length > 0 ? (
+                  item?.formats?.join(", ")
                 ) : (
                   <span className="italic text-gray-400">No formats</span>
                 )}
@@ -2803,7 +2803,7 @@ const StageRecapLine = ({
         })
         .reduce((acc: any[], curr, idx, arr) => {
           acc.push(curr)
-          if (idx < arr.length - 1) acc.push(<span key={`sep-${idx}`}> | </span>)
+          if (idx < arr?.length - 1) acc.push(<span key={`sep-${idx}`}> | </span>)
           return acc
         }, [])
       return (
@@ -3447,7 +3447,7 @@ export const FormatSelection = ({
             t2="Select the creative formats you want to use for your campaign. Specify the number of visuals for each format. Multiple formats can be selected per channel or Ad set"
           />
         )}
-        <SaveAllProgressButton />
+        {active === 4 && <SaveAllProgressButton />}
       </div>
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
         {!stageName && (

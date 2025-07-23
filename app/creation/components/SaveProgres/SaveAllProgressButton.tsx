@@ -258,8 +258,6 @@ const SaveAllProgressButton = () => {
 			setChange(false);
 			setShowSave(false);
 		} catch (error: any) {
-			console.error("Save error:", error);
-
 			if (error?.response?.status === 401) {
 				window.dispatchEvent(new Event("unauthorizedEvent"));
 			} else if (error?.response?.status === 400) {
