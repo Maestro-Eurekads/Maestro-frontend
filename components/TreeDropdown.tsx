@@ -42,10 +42,6 @@ const TreeDropdown: React.FC<Props> = ({
 	const nested = convertToNestedStructure(campaignFormData?.[formId]?.value);
 
 
-	// console.log('---campaignFormData', campaignFormData)
-	// console.log('---nested', nested)
-	// console.log('---treeOptions', treeOptions)
-	// console.log('---value', value)
 
 
 	// Build tree when data is ready
