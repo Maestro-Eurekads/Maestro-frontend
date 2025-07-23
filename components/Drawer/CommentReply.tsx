@@ -11,6 +11,9 @@ const CommentReply = ({ documentId, contrastingColor }) => {
 		setReplies(comment?.replies || []);
 	}, [comments, documentId]);
 
+
+
+
 	return (
 		<div className="w-full flex flex-col">
 			{replies?.length > 0 && (
@@ -36,11 +39,8 @@ const CommentReply = ({ documentId, contrastingColor }) => {
 							<div>
 								<h3 className="font-medium text-[14px] text-[#292929]">{reply?.name || "?"}</h3>
 								<div className="flex gap-2 text-[11px] text-[#292929]">
-									<p>
-										{moment(reply.date, "DD/MM/YYYY").format("MM/DD/YYYY")}
-									</p>
-
-									<p>{reply?.time ? moment(reply.time, "HH:mm").format("hh:mm A") : "-"}</p>
+									<p>{moment(reply.createdAt).format("MM/DD/YYYY")} 	</p>
+									<p>{reply?.time ? moment(reply.time, "hh:mm A").format("hh:mm A") : "-"}</p>
 								</div>
 							</div>
 						</div>
