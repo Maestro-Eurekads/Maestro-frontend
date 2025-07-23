@@ -123,7 +123,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   // Save form data to localStorage with debounce
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const {campaign_timeline_start_date, campaign_timeline_end_date, ...rest} = campaignFormData
+      const { campaign_timeline_start_date, campaign_timeline_end_date, ...rest } = campaignFormData
       const timeout = setTimeout(() => {
         localStorage.setItem(
           "campaignFormData",
@@ -195,10 +195,16 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             id: data?.client?.documentId ?? prev?.client_selection?.id,
             value: data?.client?.client_name ?? prev?.client_selection?.value,
           },
-          level_1: {
-            id: data?.client_selection?.level_1 ?? prev.level_1?.id,
-            value: data?.client_selection?.level_1 ?? prev.level_1?.value,
-          },
+          level_1: (
+            data?.client_selection?.level_1 &&
+            ((Array.isArray(data?.client_selection?.level_1.value) && data?.client_selection?.level_1.value.length > 0) ||
+              (typeof data?.client_selection?.level_1.value === 'string' && data?.client_selection?.level_1.value))
+          )
+            ? {
+              id: data?.client_selection?.level_1.id ?? prev.level_1?.id,
+              value: data?.client_selection?.level_1.value ?? prev.level_1?.value,
+            }
+            : prev.level_1,
           media_plan: data?.media_plan_details?.plan_name ?? prev.media_plan,
           budget_details_currency: {
             id: data?.budget_details?.currency,
