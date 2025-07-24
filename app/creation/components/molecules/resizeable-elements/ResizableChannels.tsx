@@ -69,6 +69,7 @@ interface ChannelState {
   width: number
   startDate?: string
   endDate?: string
+  id?: string
 }
 
 const DEFAULT_MEDIA_OPTIONS = [
@@ -170,6 +171,14 @@ const ResizableChannels = ({
   } | null>(null)
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
+    if (rrange === "Year") {
+      // Year view - snap to month boundaries
+      const monthWidth = containerWidth / 12;
+      const monthIndex = Math.round(currentPosition / monthWidth);
+      return Math.min(monthIndex * monthWidth, containerWidth);
+    }
+
+    // Day, Week, Month view - snap to daily boundaries
     const baseStep = dailyWidth;
     const adjustmentPerStep = 0;
     const snapPoints = [];
@@ -202,19 +211,39 @@ const ResizableChannels = ({
   ) => {
     if (!dateList || dateList.length === 0) return;
 
-    const totalDays = dateList.length - 1;
+    let startDateValue, endDateValue;
 
-    const dayStartIndex = Math.min(
-      totalDays,
-      Math.max(0, Math.round((startPixel / parentWidth) * totalDays))
-    );
-    const dayEndIndex = Math.min(
-      totalDays,
-      Math.max(0, Math.round((endPixel / parentWidth) * totalDays))
-    );
+    if (rrange === "Year") {
+      // Year view - calculate based on months
+      const totalMonths = 12;
+      const monthStartIndex = Math.min(
+        totalMonths - 1,
+        Math.max(0, Math.round((startPixel / parentWidth) * totalMonths))
+      );
+      const monthEndIndex = Math.min(
+        totalMonths - 1,
+        Math.max(0, Math.round((endPixel / parentWidth) * totalMonths))
+      );
 
-    const startDateValue = dateList[dayStartIndex] || startDate;
-    const endDateValue = dateList[dayEndIndex] || endDate;
+      const year = startDate?.getFullYear() || new Date().getFullYear();
+      startDateValue = new Date(year, monthStartIndex, 1);
+      endDateValue = new Date(year, monthEndIndex + 1, 0);
+    } else {
+      // Day, Week, Month view - calculate based on days
+      const totalDays = dateList.length - 1;
+
+      const dayStartIndex = Math.min(
+        totalDays,
+        Math.max(0, Math.round((startPixel / parentWidth) * totalDays))
+      );
+      const dayEndIndex = Math.min(
+        totalDays,
+        Math.max(0, Math.round((endPixel / parentWidth) * totalDays))
+      );
+
+      startDateValue = dateList[dayStartIndex] || startDate;
+      endDateValue = dateList[dayEndIndex] || endDate;
+    }
 
     const formattedStartDate = format(startDateValue, "MMM dd");
     const formattedEndDate = format(endDateValue, "MMM dd");
@@ -278,15 +307,18 @@ const ResizableChannels = ({
     let newWidth = initialState.width
     let newLeft = initialState.left
 
+    // Define minimum width based on view type
+    const minWidth = rrange === "Year" ? dailyWidth : 50; // For year view, minimum is one month width
+
     if (direction === "left") {
       // Left edge resize - adjust position and width
       const proposedLeft = Math.max(parentLeft, initialState.left + deltaX)
       const proposedWidth = initialState.width - (proposedLeft - initialState.left)
 
       // Ensure minimum width
-      if (proposedWidth < 50) {
-        newWidth = 50
-        newLeft = initialState.left + initialState.width - 50
+      if (proposedWidth < minWidth) {
+        newWidth = minWidth
+        newLeft = initialState.left + initialState.width - minWidth
       } else {
         newLeft = proposedLeft
         newWidth = proposedWidth
@@ -309,7 +341,7 @@ const ResizableChannels = ({
     } else {
       // Right edge resize - keep left position fixed, adjust width only
       newLeft = initialState.left // Always use initial left position
-      const proposedWidth = Math.max(50, initialState.width + deltaX)
+      const proposedWidth = Math.max(minWidth, initialState.width + deltaX)
 
       // Calculate the right edge position
       const rightEdgePos = newLeft + proposedWidth
@@ -321,7 +353,7 @@ const ResizableChannels = ({
       const finalRightEdge = Math.min(snappedRightEdge, parentRightEdge)
 
       // Calculate final width based on the constrained right edge
-      newWidth = Math.max(50, finalRightEdge - newLeft)
+      newWidth = Math.max(minWidth, finalRightEdge - newLeft)
     }
 
     // Convert pixels to dates
@@ -463,17 +495,37 @@ const ResizableChannels = ({
   }, [startDate, endDate]);
 
   const pixelToDate = (pixel, containerWidth, index, fieldName) => {
-    const totalDays =
-      fieldName === "endDate" ? dRange?.length - 1 : dRange?.length;
-    const dayIndex = Math.min(
-      totalDays,
-      Math.max(0, Math.floor((pixel / containerWidth) * totalDays))
-    );
+    let calculatedDate;
 
-    console.log(dayIndex)
+    if (rrange === "Year") {
+      // Year view - calculate based on months
+      const totalMonths = 12;
+      const monthIndex = Math.min(
+        totalMonths - 1,
+        Math.max(0, Math.floor((pixel / containerWidth) * totalMonths))
+      );
 
-    const calculatedDate = new Date(startDate);
-    calculatedDate.setDate(startDate?.getDate() + dayIndex);
+      const year = startDate?.getFullYear() || new Date().getFullYear();
+      
+      if (fieldName === "endDate") {
+        // Last day of the target month
+        calculatedDate = new Date(year, monthIndex + 1, 0);
+      } else {
+        // First day of the target month
+        calculatedDate = new Date(year, monthIndex, 1);
+      }
+    } else {
+      // Day, Week, Month view - calculate based on days
+      const totalDays =
+        fieldName === "endDate" ? dRange?.length - 1 : dRange?.length;
+      const dayIndex = Math.min(
+        totalDays,
+        Math.max(0, Math.floor((pixel / containerWidth) * totalDays))
+      );
+
+      calculatedDate = new Date(startDate);
+      calculatedDate.setDate(startDate?.getDate() + dayIndex);
+    }
 
     const updatedCampaignFormData = { ...campaignFormData };
 
@@ -514,7 +566,7 @@ const ResizableChannels = ({
     });
 
     const startPixel = (channelState[index]?.left || parentLeft) - parentLeft;
-    const endPixel = startPixel + (channelState[index]?.width || 50);
+          const endPixel = startPixel + (channelState[index]?.width || (rrange === "Year" ? dailyWidth : 50));
     updateTooltipWithDates(
       startPixel,
       endPixel,
@@ -538,7 +590,7 @@ const ResizableChannels = ({
 
       const deltaX = event.clientX - startX;
       let newLeft = startLeft + deltaX;
-      const channelWidth = channelState[index]?.width || 50;
+      const channelWidth = channelState[index]?.width || (rrange === "Year" ? dailyWidth : 50);
 
       newLeft = Math.max(
         parentLeft,
@@ -681,13 +733,20 @@ const ResizableChannels = ({
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`,
         {
           data: {
+            ...removeKeysRecursively(campaignData, [
+              "id",
+              "documentId",
+              "createdAt",
+              "publishedAt",
+              "updatedAt",
+              "_aggregated",
+            ]),
             channel_mix: removeKeysRecursively(updatedData?.channel_mix, [
               "id",
               "isValidated",
               "validatedStages",
               "documentId",
               "_aggregated",
-              "user"
             ]),
           },
         },
@@ -712,7 +771,6 @@ const ResizableChannels = ({
   useEffect(() => {
     if (initialChannels && initialChannels.length > 0) {
       setChannels(initialChannels);
-      console.log("triggered")
       setChannelState((prev) => {
         const findMix = campaignFormData?.channel_mix?.find(
           (chhh) => chhh?.funnel_stage === parentId
@@ -721,70 +779,73 @@ const ResizableChannels = ({
           const findChannel = findMix[ch?.channelName]?.find(
             (plt) => plt?.platform_name === ch?.name
           );
-
+  
           const stageStartDate = findChannel?.campaign_start_date
             ? parseISO(findChannel?.campaign_start_date)
             : null;
-
+  
           const adjustedStageStartDate =
             stageStartDate && stageStartDate < startDate
               ? stageStartDate
               : stageStartDate < startDate
                 ? startDate
                 : stageStartDate;
-
+  
           const stageEndDate = findChannel?.campaign_end_date
             ? parseISO(findChannel?.campaign_end_date)
             : null;
-
+  
           const isEndDateExceeded =
             stageEndDate && endDate && stageEndDate > endDate;
-
+  
           const adjustedStageEndDate = isEndDateExceeded
             ? endDate
             : stageEndDate;
-
-          const startDateIndex = adjustedStageStartDate
-            ? dateList?.findIndex((date) =>
-              isEqual(date, adjustedStageStartDate)
-            ) * dailyWidth
-            : 0;
-
-          let daysBetween;
-          if (adjustedStageStartDate && adjustedStageEndDate) {
-            daysBetween = eachDayOfInterval({
-              start: adjustedStageStartDate,
-              end: adjustedStageEndDate,
-            })?.length;
+  
+          let left, width;
+  
+          if (rrange === "Year") {
+            // Year view calculations - based on months, not days
+            if (adjustedStageStartDate && adjustedStageEndDate) {
+              const startMonth = adjustedStageStartDate.getMonth();
+              const endMonth = adjustedStageEndDate.getMonth();
+              const monthsBetween = endMonth - startMonth + 1;
+              
+              left = startMonth * dailyWidth;
+              width = monthsBetween * dailyWidth;
+            } else {
+              left = parentLeft;
+              width = dailyWidth; // Default to one month width
+            }
           } else {
-            daysBetween = eachDayOfInterval({
-              start: new Date(findChannel?.campaign_start_date) || null,
-              end: isEndDateExceeded
-                ? endDate
-                : new Date(findChannel?.campaign_end_date) || null,
-            })?.length;
+            // Day, Week, Month view calculations - based on days
+            const startDateIndex = adjustedStageStartDate
+              ? dateList?.findIndex((date) =>
+                  isEqual(date, adjustedStageStartDate)
+                ) * dailyWidth
+              : 0;
+  
+            let daysBetween;
+            if (adjustedStageStartDate && adjustedStageEndDate) {
+              daysBetween = eachDayOfInterval({
+                start: adjustedStageStartDate,
+                end: adjustedStageEndDate,
+              })?.length;
+            } else {
+              daysBetween = eachDayOfInterval({
+                start: new Date(findChannel?.campaign_start_date) || null,
+                end: isEndDateExceeded
+                  ? endDate
+                  : new Date(findChannel?.campaign_end_date) || null,
+              })?.length;
+            }
+  
+            left = Math.abs(startDateIndex < 0 ? 0 : startDateIndex);
+            width = daysBetween > 0 ? dailyWidth * daysBetween : parentWidth;
           }
-
-          let left =
-            Math.abs(startDateIndex < 0 ? 0 : startDateIndex);
-
-          let width =
-            rrange === "Day"
-              ? daysBetween > 0
-                ? dailyWidth * daysBetween
-                : parentWidth
-              : rrange === "Week"
-                ? daysBetween > 0
-                  ? dailyWidth * daysBetween
-                  : parentWidth
-                : rrange === "Month"
-                  ? daysBetween > 0
-                    ? dailyWidth * daysBetween
-                    : parentWidth
-                  : parentWidth;
-
+  
           width = Math.min(width, parentWidth);
-
+  
           if (left + width > parentLeft + parentWidth) {
             if (width <= parentWidth) {
               left = parentLeft + parentWidth - width;
@@ -793,27 +854,25 @@ const ResizableChannels = ({
               left = parentLeft;
             }
           }
-
-          // console.log("left position here, and data", {left, width, parentLeft, parentWidth, startDateIndex, stageStartDate, adjustedStageStartDate, dateList})
-          //@ts-ignore
-          const existingState = prev.find((state) => state.id === ch.id);
-
+  
+          const existingState = prev[index];
+  
           return existingState
             ? {
-              ...existingState,
-              left: left,
-              width: width,
-            }
+                ...existingState,
+                left: left,
+                width: width,
+              }
             : {
-              left: parentLeft,
-              width: Math.min(width, 50),
-            };
+                left: parentLeft,
+                width: Math.min(width, rrange === "Year" ? dailyWidth : 50),
+              };
         });
-
+  
         return newState;
       });
     }
-  }, [initialChannels, parentLeft, parentWidth, campaignFormData, isResizing]);
+  }, [initialChannels, parentLeft, parentWidth, campaignFormData, isResizing, rrange]);
 
   useEffect(() => {
     if (!dragging) return;
@@ -833,8 +892,9 @@ const ResizableChannels = ({
             newLeft = state.left;
 
           if (direction === "left") {
+            const minWidth = rrange === "Year" ? dailyWidth : 50;
             newWidth = Math.max(
-              50,
+              minWidth,
               Math.min(
                 state.width - deltaX,
                 parentWidth - (state.left - parentLeft)
@@ -853,8 +913,9 @@ const ResizableChannels = ({
             const maxRightEdge = parentLeft + parentWidth;
             const adjustedRightEdge = Math.min(rightEdge, maxRightEdge);
 
+            const minWidth = rrange === "Year" ? dailyWidth : 50;
             newWidth = Math.max(
-              50,
+              minWidth,
               Math.min(
                 adjustedRightEdge - state.left,
                 parentWidth - (state.left - parentLeft)
