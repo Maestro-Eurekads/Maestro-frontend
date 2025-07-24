@@ -22,9 +22,10 @@ interface BackConfirmModalProps {
 	isOpen: boolean;
 	onClose: () => void;
 	onConfirm: () => void;
+	onNavigate?: (url?: string) => void; // optional navigation handler
 }
 
-const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, onConfirm }) => {
+const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, onConfirm, onNavigate }) => {
 	const { isClient, loggedInUser } = useUserPrivileges();
 	const [loading, setLoading] = useState(false);
 	const { change, setChange, showModal, setShowModal } = useActive();
@@ -194,11 +195,9 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 	useEffect(() => {
 		const handleBeforeUnload = (event: BeforeUnloadEvent) => {
 			if (change) {
-				// Prevent default refresh behavior
 				event.preventDefault();
-				// Show the modal
-				setShowModal(true);
-				// Do not set event.returnValue to avoid browser prompt
+				event.returnValue = "You have unsaved changes. Save before leaving?";
+				// The string is ignored in most browsers, but the modal will appear
 			}
 		};
 
@@ -209,15 +208,17 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 		return () => {
 			window.removeEventListener("beforeunload", handleBeforeUnload);
 		};
-	}, [change, setShowModal]);
+	}, [change]);
 
-	// Handle "No" button to allow refresh
+	// Handle "No" button to allow navigation without saving
 	const handleNoClick = () => {
 		setChange(false); // Reset change state
 		setShowModal(false); // Close modal
+		localStorage.removeItem("campaignFormData"); // Clear the draft
 		onClose(); // Call original onClose
-		// Programmatically refresh the page
-		window.location.reload();
+		if (onNavigate) {
+			onNavigate(); // Navigate to intended route if provided
+		}
 	};
 
 	if (!isOpen) return null;

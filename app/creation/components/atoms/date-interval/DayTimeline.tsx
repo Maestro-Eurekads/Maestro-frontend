@@ -69,7 +69,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
               const style =
                 platformStyles.find((style) => style.name === platformName) ||
                 platformStyles[
-                  Math.floor(Math.random() * platformStyles.length)
+                Math.floor(Math.random() * platformStyles.length)
                 ];
               platforms.push({
                 platform_name: platformName,
@@ -128,11 +128,11 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
               }}
             >
               <div
-                className={`${
-                  expanded[index]
-                    ? 'border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] flex justify-between items-center p-4    h-[77px] bg-[#F9FAFB]  "'
-                    : "flex justify-between items-center p-4"
-                } `}
+                onClick={() => toggleShow(index)}
+                className={`cursor-pointer ${expanded[index]
+                  ? 'border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] flex justify-between items-center p-4    h-[77px] bg-[#F9FAFB]  "'
+                  : "flex justify-between items-center p-4"
+                  } `}
               >
                 <div>
                   <h3 className="text-[#061237] font-semibold text-[16px] leading-[22px]  ">
@@ -141,13 +141,13 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                   <p className="text-[#061237] font-medium text-[14px]">
                     {/* 250,000 € */}
                     {budget?.startsWith("null") ||
-                    budget?.startsWith("undefined")
+                      budget?.startsWith("undefined")
                       ? 0
                       : `${Number(
-                          budget.replace(/[^\d.-]/g, "")
-                        ).toLocaleString()} ${budget
-                          .replace(/[\d\s.,-]/g, "")
-                          .trim()}`}
+                        budget.replace(/[^\d.-]/g, "")
+                      ).toLocaleString()} ${budget
+                        .replace(/[\d\s.,-]/g, "")
+                        .trim()}`}
                   </p>
                 </div>
                 <button onClick={() => toggleShow(index)}>
@@ -197,15 +197,14 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                         >
                           <div
                             onClick={() => toggleOpen(index, name)}
-                            className={`mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${
-                              name === "Awareness"
-                                ? "bg-[#3175FF]"
-                                : name === "Consideration"
+                            className={`mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${name === "Awareness"
+                              ? "bg-[#3175FF]"
+                              : name === "Consideration"
                                 ? "bg-[#34A853]"
                                 : name === "Conversion"
-                                ? "bg-[#ff9037]"
-                                : "bg-[#F05406]"
-                            } text-white`}
+                                  ? "bg-[#ff9037]"
+                                  : "bg-[#F05406]"
+                              } text-white`}
                             style={{
                               gridColumnStart: start ? start : 1,
                               gridColumnEnd: end + 1,
@@ -228,13 +227,13 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                             </div>
                             <button className="justify-self-end px-3 py-[10px] text-[16px] font-[500] bg-white/25 rounded-[5px]">
                               {budget?.startsWith("null") ||
-                              budget?.startsWith("undefined")
+                                budget?.startsWith("undefined")
                                 ? 0
                                 : `${Number(
-                                    budget.replace(/[^\d.-]/g, "")
-                                  ).toLocaleString()} ${budget
-                                    .replace(/[\d\s.,-]/g, "")
-                                    .trim()}`}
+                                  budget.replace(/[^\d.-]/g, "")
+                                ).toLocaleString()} ${budget
+                                  .replace(/[\d\s.,-]/g, "")
+                                  .trim()}`}
                             </button>
                           </div>
 
@@ -258,7 +257,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                                   }) => {
                                     const { startDateIndex, endDateIndex } =
                                       calculateGridColumns(startDate, endDate);
-                                      console.log({startDateIndex, endDateIndex, startDate, endDate})
+                                    console.log({ startDateIndex, endDateIndex, startDate, endDate })
                                     return (
                                       <div
                                         key={platform_name}
@@ -270,7 +269,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                                         <div
                                           className={`py-1 text-[15px] font-[500] border my-5 w-full rounded-[10px] flex items-center justify-between`}
                                           style={{
-                                            gridColumnStart: startDateIndex ? startDateIndex: 1,
+                                            gridColumnStart: startDateIndex ? startDateIndex : 1,
                                             gridColumnEnd: endDateIndex + 1,
                                             backgroundColor: bg,
                                           }}
