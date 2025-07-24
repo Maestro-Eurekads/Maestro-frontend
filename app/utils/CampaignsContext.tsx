@@ -122,14 +122,17 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
 
   // Save form data to localStorage with debounce
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const { campaign_timeline_start_date, campaign_timeline_end_date, ...rest } = campaignFormData
+    if (typeof window !== "undefined" && campaignFormData) {
       const timeout = setTimeout(() => {
-        localStorage.setItem(
-          "campaignFormData",
-          JSON.stringify(campaignFormData)
-        );
-      }, 300);
+        try {
+          localStorage.setItem(
+            "campaignFormData",
+            JSON.stringify(campaignFormData)
+          );
+        } catch (error) {
+          console.error("Error saving to localStorage:", error);
+        }
+      }, 500); // Increased debounce time to 500ms
       return () => clearTimeout(timeout);
     }
   }, [campaignFormData]);
@@ -189,63 +192,69 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         // const sMetrics = await getFilteredMetrics(obj)
         setCampaignData(data);
         setHeaderData(data?.table_headers || {});
-        setCampaignFormData((prev) => ({
-          ...prev,
-          client_selection: {
-            id: data?.client?.documentId ?? prev?.client_selection?.id,
-            value: data?.client?.client_name ?? prev?.client_selection?.value,
-          },
-          level_1: (
-            data?.client_selection?.level_1 &&
-            ((Array.isArray(data?.client_selection?.level_1.value) && data?.client_selection?.level_1.value.length > 0) ||
-              (typeof data?.client_selection?.level_1.value === 'string' && data?.client_selection?.level_1.value))
-          )
-            ? {
-              id: data?.client_selection?.level_1.id ?? prev.level_1?.id,
-              value: data?.client_selection?.level_1.value ?? prev.level_1?.value,
-            }
-            : prev.level_1,
-          media_plan: data?.media_plan_details?.plan_name ?? prev.media_plan,
-          budget_details_currency: {
-            id: data?.budget_details?.currency,
-            value: data?.budget_details?.currency,
-          },
-          country_details: {
-            id: data?.budget_details?.value,
-            value: data?.budget_details?.value,
-          },
-          internal_approver:
-            data?.media_plan_details?.internal_approver ??
-            prev.internal_approver,
-          client_approver:
-            data?.media_plan_details?.client_approver ?? prev.client_approver,
-          approved_by:
-            data?.media_plan_details?.approved_by ?? prev.approved_by,
-          campaign_objectives:
-            data?.campaign_objective ?? prev.campaign_objectives,
-          funnel_stages: data?.funnel_stages ?? prev.funnel_stages,
-          channel_mix: data?.channel_mix ?? prev.channel_mix,
-          campaign_timeline_start_date:
-            data?.campaign_timeline_start_date ??
-            "",
-          campaign_timeline_end_date:
-            data?.campaign_timeline_end_date ?? "",
-          campaign_budget: data?.campaign_budget ?? prev.campaign_budget,
-          goal_level: data?.goal_level ?? prev.goal_level,
-          progress_percent: data?.progress_percent ?? prev.progress_percent,
-          custom_funnels: data?.custom_funnels ?? prev.custom_funnels,
-          campaign_builder: data?.campaign_builder ?? prev.campaign_builder,
-          user: data?.user ?? prev.user,
-          campaign_id: data?.id ?? prev.id,
-          cId: cId,
-          campaign_version: data?.campaign_version ?? prev.campaign_version,
-          isApprove: data?.isApprove,
-          table_headers:
-            ((data?.table_headers || {}) ??
-              (prev?.table_headers)) ||
-            {},
-          selected_metrics: ((data?.selected_metrics || {}) ?? (prev?.selected_metrics)) || {},
-        }));
+        setCampaignFormData((prev) => {
+          // Preserve local form data if it exists and has content
+          const hasLocalData = prev && Object.keys(prev).length > 0;
+
+          return {
+            ...prev,
+            client_selection: {
+              id: data?.client?.documentId ?? prev?.client_selection?.id,
+              value: data?.client?.client_name ?? prev?.client_selection?.value,
+            },
+            level_1: (
+              data?.client_selection?.level_1 &&
+              ((Array.isArray(data?.client_selection?.level_1.value) && data?.client_selection?.level_1.value.length > 0) ||
+                (typeof data?.client_selection?.level_1.value === 'string' && data?.client_selection?.level_1.value))
+            )
+              ? {
+                id: data?.client_selection?.level_1.id ?? prev.level_1?.id,
+                value: data?.client_selection?.level_1.value ?? prev.level_1?.value,
+              }
+              : prev.level_1,
+            media_plan: hasLocalData && prev.media_plan ? prev.media_plan : (data?.media_plan_details?.plan_name ?? prev.media_plan),
+            budget_details_currency: {
+              id: data?.budget_details?.currency,
+              value: data?.budget_details?.currency,
+            },
+            country_details: {
+              id: data?.budget_details?.value,
+              value: data?.budget_details?.value,
+            },
+            internal_approver:
+              data?.media_plan_details?.internal_approver ??
+              prev.internal_approver,
+            client_approver:
+              data?.media_plan_details?.client_approver ?? prev.client_approver,
+            approved_by:
+              data?.media_plan_details?.approved_by ?? prev.approved_by,
+            campaign_objectives:
+              data?.campaign_objective ?? prev.campaign_objectives,
+            funnel_stages: hasLocalData && prev.funnel_stages && prev.funnel_stages.length > 0 ? prev.funnel_stages : (data?.funnel_stages ?? prev.funnel_stages),
+            channel_mix: hasLocalData && prev.channel_mix && Object.keys(prev.channel_mix).length > 0 ? prev.channel_mix : (data?.channel_mix ?? prev.channel_mix),
+            campaign_timeline_start_date:
+              hasLocalData && prev.campaign_timeline_start_date ? prev.campaign_timeline_start_date : (data?.campaign_timeline_start_date ?? ""),
+            campaign_timeline_end_date:
+              hasLocalData && prev.campaign_timeline_end_date ? prev.campaign_timeline_end_date : (data?.campaign_timeline_end_date ?? ""),
+            campaign_budget: prev.campaign_budget && Object.keys(prev.campaign_budget).length > 0
+              ? prev.campaign_budget
+              : (data?.campaign_budget ?? prev.campaign_budget),
+            goal_level: data?.goal_level ?? prev.goal_level,
+            progress_percent: data?.progress_percent ?? prev.progress_percent,
+            custom_funnels: data?.custom_funnels ?? prev.custom_funnels,
+            campaign_builder: data?.campaign_builder ?? prev.campaign_builder,
+            user: data?.user ?? prev.user,
+            campaign_id: data?.id ?? prev.id,
+            cId: cId,
+            campaign_version: data?.campaign_version ?? prev.campaign_version,
+            isApprove: data?.isApprove,
+            table_headers:
+              ((data?.table_headers || {}) ??
+                (prev?.table_headers)) ||
+              {},
+            selected_metrics: ((data?.selected_metrics || {}) ?? (prev?.selected_metrics)) || {},
+          };
+        });
         setLoadingCampaign(false);
       } catch (error) {
         if (error?.response?.status === 401) {

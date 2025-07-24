@@ -12,11 +12,51 @@ interface Campaign {
 	campaign_budget?: {
 		amount?: string;
 		currency?: string;
+		budget_type?: string;
+		sub_budget_type?: string;
+		budget_fees?: Array<{ value: number }>;
 	};
 }
 
 const General = ({ campaign = {} as Campaign, loading, isLoadingCampaign }: { campaign?: Campaign; loading: boolean; isLoadingCampaign: boolean }) => {
-	const budget = campaign?.campaign_budget?.amount ?? "0";
+	// Calculate total campaign budget using the same logic as CampaignBudget component
+	const calculateTotalBudget = () => {
+		if (!campaign?.campaign_budget) return 0
+
+		const budgetAmount = Number(campaign?.campaign_budget?.amount) || 0
+		const budgetType = campaign?.campaign_budget?.budget_type // "top_down" or "bottom_up"
+		const subBudgetType = campaign?.campaign_budget?.sub_budget_type // "gross" or "net"
+		const fees = campaign?.campaign_budget?.budget_fees || []
+
+		if (budgetType === "bottom_up") {
+			// For bottom-up: Total campaign budget is the sum of all stage budgets
+			const stageBudgetsSum =
+				campaign?.channel_mix?.reduce(
+					(acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
+					0,
+				) || 0
+
+			if (subBudgetType === "gross") {
+				// If gross, the stage budgets sum is the gross amount
+				return stageBudgetsSum
+			} else if (subBudgetType === "net") {
+				// If net, gross = net (stage budgets sum) + fees
+				const totalFees = fees.reduce((total, fee) => total + Number(fee.value || 0), 0)
+				return Number((stageBudgetsSum + totalFees).toFixed(2))
+			}
+		} else {
+			// For top-down: Total campaign budget is the entered amount
+			if (subBudgetType === "gross") {
+				return budgetAmount
+			} else if (subBudgetType === "net") {
+				const totalFees = fees.reduce((total, fee) => total + Number(fee.value || 0), 0)
+				return Number((budgetAmount + totalFees).toFixed(2))
+			}
+		}
+		return budgetAmount // fallback to original amount
+	}
+
+	const budget = calculateTotalBudget();
 	const currency = getCurrencySymbol(campaign?.campaign_budget?.currency) ?? "";
 
 	// Extract and calculate total impressions and average CPM
