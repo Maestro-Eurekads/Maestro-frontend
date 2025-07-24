@@ -21,11 +21,10 @@ import { reset } from "features/Client/clientSlice";
 interface BackConfirmModalProps {
 	isOpen: boolean;
 	onClose: () => void;
-	onConfirm: () => void;
 	onNavigate?: (url?: string) => void; // optional navigation handler
 }
 
-const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, onConfirm, onNavigate }) => {
+const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, onNavigate }) => {
 	const { isClient, loggedInUser } = useUserPrivileges();
 	const [loading, setLoading] = useState(false);
 	const { change, setChange, showModal, setShowModal } = useActive();
@@ -76,7 +75,18 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 	} = useCampaigns();
 
 	const handleSaveAllSteps = async () => {
+		// Use the same validation logic as Bottom component handleContinue
+		// Step 0 validation (Setup Screen)
+		if (!campaignFormData?.media_plan) {
+			toast.error("Media Plan name is required");
+			return;
+		}
+		if (!campaignFormData?.budget_details_currency?.id) {
+			toast.error("Currency is required");
+			return;
+		}
 		setLoading(true);
+
 		try {
 			const cleanedFormData = {
 				...campaignFormData,
@@ -221,11 +231,19 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 		}
 	};
 
+	// Handle clicking outside the modal to just close it
+	const handleOutsideClick = (e: React.MouseEvent) => {
+		if (e.target === e.currentTarget) {
+			setShowModal(false);
+			// Don't call onClose() to avoid navigation
+		}
+	};
+
 	if (!isOpen) return null;
 
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-			<div className="bg-white rounded-2xl p-6 w-[90%] max-w-md shadow-lg">
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={handleOutsideClick}>
+			<div className="bg-white rounded-2xl p-6 w-[90%] max-w-md shadow-lg" onClick={(e) => e.stopPropagation()}>
 				<h2 className="text-lg font-semibold text-gray-800 mb-2 text-center">Unsaved Changes</h2>
 				<p className="text-sm text-gray-600 mb-1 text-center">If you leave the plan, the progress will be lost</p>
 				<p className="text-sm text-gray-600 mb-8 text-center">Would you like to save your progress?</p>

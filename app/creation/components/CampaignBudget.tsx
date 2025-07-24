@@ -111,13 +111,26 @@ const CampaignBudget = () => {
     setChange(true)
     if (!isEditing) return
 
-    setCampaignFormData((prev) => ({
-      ...prev,
-      campaign_budget: {
-        ...prev?.campaign_budget,
-        [param]: type?.toString(),
-      },
-    }))
+    setCampaignFormData((prev) => {
+      const updatedData = {
+        ...prev,
+        campaign_budget: {
+          ...prev?.campaign_budget,
+          [param]: type?.toString(),
+        },
+      }
+
+      // Immediately save to localStorage for critical budget updates
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("campaignFormData", JSON.stringify(updatedData))
+        } catch (error) {
+          console.error("Error saving budget to localStorage:", error)
+        }
+      }
+
+      return updatedData
+    })
 
     if (param === "budget_type") {
       setStep(1)
@@ -502,13 +515,26 @@ const CampaignBudget = () => {
                           onClick={() => {
                             setStep(3)
                             setShowLevelCards(false)
-                            setCampaignFormData((prev) => ({
-                              ...prev,
-                              campaign_budget: {
-                                ...prev.campaign_budget,
-                                level: item.label,
-                              },
-                            }))
+                            setCampaignFormData((prev) => {
+                              const updatedData = {
+                                ...prev,
+                                campaign_budget: {
+                                  ...prev.campaign_budget,
+                                  level: item.label,
+                                },
+                              }
+
+                              // Immediately save to localStorage for critical budget updates
+                              if (typeof window !== "undefined") {
+                                try {
+                                  localStorage.setItem("campaignFormData", JSON.stringify(updatedData))
+                                } catch (error) {
+                                  console.error("Error saving budget level to localStorage:", error)
+                                }
+                              }
+
+                              return updatedData
+                            })
                           }}
                         >
                           Select
@@ -648,13 +674,26 @@ const CampaignBudget = () => {
                           onClick={() => {
                             setStep(3)
                             setShowLevelCards(false)
-                            setCampaignFormData((prev) => ({
-                              ...prev,
-                              campaign_budget: {
-                                ...prev.campaign_budget,
-                                level: item.label,
-                              },
-                            }))
+                            setCampaignFormData((prev) => {
+                              const updatedData = {
+                                ...prev,
+                                campaign_budget: {
+                                  ...prev.campaign_budget,
+                                  level: item.label,
+                                },
+                              }
+
+                              // Immediately save to localStorage for critical budget updates
+                              if (typeof window !== "undefined") {
+                                try {
+                                  localStorage.setItem("campaignFormData", JSON.stringify(updatedData))
+                                } catch (error) {
+                                  console.error("Error saving budget level to localStorage:", error)
+                                }
+                              }
+
+                              return updatedData
+                            })
                           }}
                         >
                           Select

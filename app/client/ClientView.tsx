@@ -72,7 +72,7 @@ const ClientView = () => {
 	const campaignId = campaign?.documentId
 	const { getKpis, isLoadingKpis, kpiCategory, setkpiCategory } = useKpis();
 
-	console.log('campaignData', campaignData)
+
 
 
 
@@ -169,14 +169,14 @@ const ClientView = () => {
 				<main className="!px-0 mt-[30px] bg-[#F9FAFB]">
 					<div className={`px-[20px]  ${isDrawerOpen ? 'md:px-[50px]' : 'xl:px-[100px]'}`}>
 						<div className='flex	flex-col gap-[24px]'>
-							<ApproverContainer campaign={campaignData} loading={loading} isLoadingCampaign={isLoadingCampaign} />
+							<ApproverContainer campaign={campaignFormData} loading={loading} isLoadingCampaign={isLoadingCampaign} />
 							<General
-								campaign={Array.isArray(campaignFormData) ? campaignFormData[0] || {} : campaignFormData || {}}
+								campaign={campaignFormData || {}}
 								loading={loading}
 								isLoadingCampaign={isLoadingCampaign}
 							/>
 
-							<BrandAwareness statsData={statsData} aggregatedStats={aggregatedStats} loading={isLoadingKpis} isLoadingCampaign={isLoadingCampaign} campaign={campaignData} />
+							<BrandAwareness statsData={statsData} aggregatedStats={aggregatedStats} loading={isLoadingKpis} isLoadingCampaign={isLoadingCampaign} campaign={campaignFormData} />
 							<ClientMessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} campaign={campaign} />
 							<div className="mt-[50px] flex flex-col justify-between gap-4 md:flex-row">
 								<div></div>

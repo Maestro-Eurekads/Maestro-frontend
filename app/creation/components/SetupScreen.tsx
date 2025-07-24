@@ -48,6 +48,7 @@ export const SetupScreen = () => {
     setCampaignFormData,
     profile,
     setRequiredFields,
+    requiredFields,
     setCurrencySign,
     selectedClient,
     setClientUsers,
@@ -68,6 +69,7 @@ export const SetupScreen = () => {
   const [alert, setAlert] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [users, setUsers] = useState({ agencyAccess: [], clientAccess: [] });
+  const [validateStep, setValidateStep] = useState(false);
   const { setIsDrawerOpen, setClose } = useComments();
   const { isAdmin, userID } = useUserPrivileges();
   const [internalapproverOptions, setInternalApproverOptions] = useState<DropdownOption[]>([]);
@@ -118,11 +120,16 @@ export const SetupScreen = () => {
   const handleNavigate = () => {
     setChange(false);
     setShowBackModal(false);
+    // Clear any pending save operations by resetting the form state
     if (pendingNavigation) {
+      // Clear the form data to prevent saving incomplete data
+      localStorage.removeItem("campaignFormData");
       router.push(pendingNavigation);
       setPendingNavigation(null);
     }
   };
+
+
 
   // Prevent BackConfirmModal from showing after leaving
   useEffect(() => {
@@ -342,6 +349,13 @@ export const SetupScreen = () => {
     }
   }, [alert]);
 
+  useEffect(() => {
+    if (validateStep) {
+      const timer = setTimeout(() => setValidateStep(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [validateStep]);
+
 
 
 
@@ -434,6 +448,15 @@ export const SetupScreen = () => {
         <SaveProgressButton setIsOpen={undefined} />
       </div>
       {alert && <AlertMain alert={alert} />}
+      {validateStep && (
+        <AlertMain
+          alert={{
+            variant: "error",
+            message: "All fields must be filled before proceeding!",
+            position: "bottom-right",
+          }}
+        />
+      )}
 
       {loading ? (
         <div className="flex flex-col gap-6 mt-5">
@@ -539,14 +562,7 @@ export const SetupScreen = () => {
         </div>)
       }
 
-      {/* Add Next button and validation at the bottom */}
-      {/* Remove the Next button and validation at the bottom */}
-      <BackConfirmModal
-        isOpen={showBackModal}
-        onClose={() => setShowBackModal(false)}
-        onConfirm={() => { }}
-        onNavigate={handleNavigate}
-      />
+
     </div >
   );
 };

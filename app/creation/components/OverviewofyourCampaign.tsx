@@ -314,13 +314,13 @@ const OverviewofyourCampaign = () => {
 
 
           <BusinessApproverContainer
-            campaign={campaignData}
+            campaign={campaignFormData}
             loading={undefined}
             isLoadingCampaign={loadingCampaign}
             campaignFormData={campaignFormData}
           />
           <BusinessGeneral
-            campaign={campaignData}
+            campaign={campaignFormData}
             loading={undefined}
             isLoadingCampaign={loadingCampaign}
             campaign_id={commentId}
@@ -330,7 +330,7 @@ const OverviewofyourCampaign = () => {
             aggregatedStats={aggregatedStats}
             loading={isLoadingKpis}
             isLoadingCampaign={loadingCampaign}
-            campaign={campaignData}
+            campaign={campaignFormData}
           />
           <MessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} />
           <div className="mt-[50px] flex flex-col justify-between gap-4 md:flex-row">

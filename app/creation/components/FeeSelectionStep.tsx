@@ -43,13 +43,26 @@ function FeeSelectionStep({
   const [fees, setFees] = useState([])
 
   const handleBudgetEdit = (param, type) => {
-    setCampaignFormData((prev) => ({
-      ...prev,
-      campaign_budget: {
-        ...prev?.campaign_budget,
-        [param]: type?.toString(),
-      },
-    }))
+    setCampaignFormData((prev) => {
+      const updatedData = {
+        ...prev,
+        campaign_budget: {
+          ...prev?.campaign_budget,
+          [param]: type?.toString(),
+        },
+      }
+
+      // Immediately save to localStorage for critical budget updates
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("campaignFormData", JSON.stringify(updatedData))
+        } catch (error) {
+          console.error("Error saving budget to localStorage:", error)
+        }
+      }
+
+      return updatedData
+    })
   }
 
   const calculateNetAmount = () => {
@@ -167,13 +180,26 @@ function FeeSelectionStep({
       percentValue: fee.percentValue,
     }))
 
-    setCampaignFormData((prev) => ({
-      ...prev,
-      campaign_budget: {
-        ...prev?.campaign_budget,
-        budget_fees: budgetFees,
-      },
-    }))
+    setCampaignFormData((prev) => {
+      const updatedData = {
+        ...prev,
+        campaign_budget: {
+          ...prev?.campaign_budget,
+          budget_fees: budgetFees,
+        },
+      }
+
+      // Immediately save to localStorage for critical budget updates
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("campaignFormData", JSON.stringify(updatedData))
+        } catch (error) {
+          console.error("Error saving budget fees to localStorage:", error)
+        }
+      }
+
+      return updatedData
+    })
 
     updateNetAmount(updatedFees)
     setFeeType(null)
@@ -226,13 +252,26 @@ function FeeSelectionStep({
 
       updateNetAmount(updatedFees)
 
-      setCampaignFormData((prev) => ({
-        ...prev,
-        campaign_budget: {
-          ...prev?.campaign_budget,
-          budget_fees: budgetFees,
-        },
-      }))
+      setCampaignFormData((prev) => {
+        const updatedData = {
+          ...prev,
+          campaign_budget: {
+            ...prev?.campaign_budget,
+            budget_fees: budgetFees,
+          },
+        }
+
+        // Immediately save to localStorage for critical budget updates
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem("campaignFormData", JSON.stringify(updatedData))
+          } catch (error) {
+            console.error("Error saving budget fees to localStorage:", error)
+          }
+        }
+
+        return updatedData
+      })
     }
   }, [campaignFormData?.campaign_budget?.amount, active])
 
@@ -493,13 +532,26 @@ function FeeSelectionStep({
                                     isPercent: fee.isPercent,
                                     percentValue: fee.percentValue,
                                   }))
-                                  setCampaignFormData((prev) => ({
-                                    ...prev,
-                                    campaign_budget: {
-                                      ...prev?.campaign_budget,
-                                      budget_fees: budgetFees,
-                                    },
-                                  }))
+                                  setCampaignFormData((prev) => {
+                                    const updatedData = {
+                                      ...prev,
+                                      campaign_budget: {
+                                        ...prev?.campaign_budget,
+                                        budget_fees: budgetFees,
+                                      },
+                                    }
+
+                                    // Immediately save to localStorage for critical budget updates
+                                    if (typeof window !== "undefined") {
+                                      try {
+                                        localStorage.setItem("campaignFormData", JSON.stringify(updatedData))
+                                      } catch (error) {
+                                        console.error("Error saving budget fees to localStorage:", error)
+                                      }
+                                    }
+
+                                    return updatedData
+                                  })
                                   updateNetAmount(updatedFees)
                                 }}
                                 aria-label={`Remove ${fee.label} fee`}
@@ -649,13 +701,26 @@ function FeeSelectionStep({
                                       isPercent: fee.isPercent,
                                       percentValue: fee.percentValue,
                                     }))
-                                    setCampaignFormData((prev) => ({
-                                      ...prev,
-                                      campaign_budget: {
-                                        ...prev?.campaign_budget,
-                                        budget_fees: budgetFees,
-                                      },
-                                    }))
+                                    setCampaignFormData((prev) => {
+                                      const updatedData = {
+                                        ...prev,
+                                        campaign_budget: {
+                                          ...prev?.campaign_budget,
+                                          budget_fees: budgetFees,
+                                        },
+                                      }
+
+                                      // Immediately save to localStorage for critical budget updates
+                                      if (typeof window !== "undefined") {
+                                        try {
+                                          localStorage.setItem("campaignFormData", JSON.stringify(updatedData))
+                                        } catch (error) {
+                                          console.error("Error saving budget fees to localStorage:", error)
+                                        }
+                                      }
+
+                                      return updatedData
+                                    })
                                     updateNetAmount(updatedFees)
                                   }}
                                   aria-label={`Remove ${fee.label} fee`}

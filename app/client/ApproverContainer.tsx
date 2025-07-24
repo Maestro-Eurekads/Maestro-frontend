@@ -21,16 +21,16 @@ const ApproverContainer = ({ campaign, loading, isLoadingCampaign }) => {
 		}
 	}, [dispatch, isdocumentId]);
 
-	const internalApprovers = campaign?.media_plan_details
-		?.internal_approver?.map(a => cleanName(a?.username)) || ["-"];
-	const clientApprovers = campaign?.media_plan_details?.client_approver?.map(a => cleanName(a?.username)) || ["-"];
+	// Extract approver names from campaignFormData structure
+	const internalApprovers = campaign?.internal_approver?.map(a => cleanName(a?.label || a?.value)) || ["-"];
+	const clientApprovers = campaign?.client_approver?.map(a => cleanName(a?.label || a?.value)) || ["-"];
 
 	const items = [
 		{
 			label: "Agency",
-			name: cleanName(campaign?.client_selection?.client) || "-",
-			nameList: [campaign?.client_selection?.client || "-"],
-			initials: getInitials(cleanName(campaign?.client_selection?.client)),
+			name: cleanName(campaign?.client_selection?.value) || "-",
+			nameList: [campaign?.client_selection?.value || "-"],
+			initials: getInitials(cleanName(campaign?.client_selection?.value)),
 		},
 		{
 			label: "Client approver",
@@ -46,9 +46,9 @@ const ApproverContainer = ({ campaign, loading, isLoadingCampaign }) => {
 		},
 		{
 			label: "Campaign builder",
-			name: cleanName(campaign?.campaign_builder?.username) || "-",
-			nameList: [campaign?.campaign_builder?.username || "-"],
-			initials: getInitials(cleanName(campaign?.campaign_builder?.username)),
+			name: cleanName(campaign?.campaign_builder?.username || campaign?.campaign_builder?.label) || "-",
+			nameList: [campaign?.campaign_builder?.username || campaign?.campaign_builder?.label || "-"],
+			initials: getInitials(cleanName(campaign?.campaign_builder?.username || campaign?.campaign_builder?.label)),
 		},
 	];
 

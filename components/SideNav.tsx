@@ -22,6 +22,8 @@ import { useAppDispatch } from "store/useStore";
 import { reset } from "features/Comment/commentSlice";
 import Skeleton from "react-loading-skeleton";
 import BackConfirmModal from "./BackConfirmModal";
+import { toast } from "sonner";
+import axios from "axios";
 
 const SideNav: React.FC = () => {
   const { change, setChange, showModal, setShowModal } = useActive()
@@ -29,7 +31,7 @@ const SideNav: React.FC = () => {
   const router = useRouter();
   const { setActive, setSubStep, active, subStep } = useActive();
   const dispatch = useAppDispatch();
-  const { campaignData, setCampaignData, loadingCampaign } = useCampaigns();
+  const { campaignData, setCampaignData, loadingCampaign, requiredFields, campaignFormData } = useCampaigns();
 
 
 
@@ -58,17 +60,17 @@ const SideNav: React.FC = () => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (change) {
+    // Check if there are incomplete required fields
+    const hasIncompleteFields = requiredFields && !requiredFields.every(Boolean);
+
+    if (change || hasIncompleteFields) {
       setShowModal(true);
     } else {
       navigateBack();
     }
   };
 
-  const handleConfirmSave = () => {
-    handleSave(); // trigger save
-    setShowModal(false);
-  };
+
 
   const handleCancel = () => {
     setShowModal(false);
@@ -76,10 +78,7 @@ const SideNav: React.FC = () => {
     setChange(false);
   };
 
-  const handleSave = () => {
-    // Simulate save logic
-    setChange(false);
-  };
+
 
   const navigateBack = () => {
     dispatch(reset());
@@ -256,7 +255,6 @@ const SideNav: React.FC = () => {
       <BackConfirmModal
         isOpen={showModal}
         onClose={handleCancel}
-        onConfirm={handleConfirmSave}
       />
     </div>
   );
