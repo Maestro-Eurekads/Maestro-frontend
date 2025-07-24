@@ -72,7 +72,7 @@ const ClientView = () => {
 	const campaignId = campaign?.documentId
 	const { getKpis, isLoadingKpis, kpiCategory, setkpiCategory } = useKpis();
 
-	console.log('campaignData', campaignData)
+
 
 
 

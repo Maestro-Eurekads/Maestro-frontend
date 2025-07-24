@@ -288,9 +288,11 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 				date: new Date().toISOString(),
 			};
 
+			// Always keep isApprove true once shared_with_client or approved
+			const shouldApprove = stage === 'shared_with_client' || stage === 'approved';
 			const basePatchData: any = {
 				isStatus: newStatus,
-				...(stage === 'shared_with_client' && { isApprove: true }),
+				...(shouldApprove && { isApprove: true }),
 			};
 
 			if (stage === 'internally_approved') {
