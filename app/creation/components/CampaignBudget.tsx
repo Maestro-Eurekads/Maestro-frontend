@@ -40,6 +40,9 @@ const CampaignBudget = () => {
     setIsEditing(true)
   }, [])
 
+
+
+
   const [selectedOption, setSelectedOption] = useState({
     value: "EUR",
     label: "EUR",
@@ -49,6 +52,10 @@ const CampaignBudget = () => {
   const [feeAmount, setFeeAmount] = useState("")
 
   const { campaignFormData, setCampaignFormData, campaignData, getActiveCampaign } = useCampaigns()
+
+
+  console.log('campaignFormData---', campaignFormData)
+
 
   useEffect(() => {
     setIsDrawerOpen(false)

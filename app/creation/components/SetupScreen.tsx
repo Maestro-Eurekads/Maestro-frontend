@@ -273,56 +273,62 @@ export const SetupScreen = () => {
 
 
   useEffect(() => {
-    const savedFormData = localStorage.getItem("campaignFormData");
-    if (savedFormData) {
-      const parsedData = JSON.parse(savedFormData);
+    // Only load from localStorage if campaignFormData is empty/null
+    if (!campaignFormData || Object.keys(campaignFormData).length === 0) {
+      const savedFormData = localStorage.getItem("campaignFormData");
+      if (savedFormData) {
+        const parsedData = JSON.parse(savedFormData);
 
-      const normalizeApprovers = (approvers: any[]) =>
-        Array.isArray(approvers)
-          ? approvers?.map((val: any) =>
-            typeof val === "string"
-              ? { id: "", clientId: "", value: val }
-              : {
-                id: val?.id ?? "",
-                clientId: val?.clientId ?? "",
-                value: val?.value ?? "",
-              }
-          )
-          : [];
+        const normalizeApprovers = (approvers: any[]) =>
+          Array.isArray(approvers)
+            ? approvers?.map((val: any) =>
+              typeof val === "string"
+                ? { id: "", clientId: "", value: val }
+                : {
+                  id: val?.id ?? "",
+                  clientId: val?.clientId ?? "",
+                  value: val?.value ?? "",
+                }
+            )
+            : [];
 
-      setCampaignFormData({
-        ...parsedData,
-        internal_approver: normalizeApprovers(parsedData?.internal_approver),
-        client_approver: normalizeApprovers(parsedData?.client_approver),
-      });
+        setCampaignFormData({
+          ...parsedData,
+          internal_approver: normalizeApprovers(parsedData?.internal_approver),
+          client_approver: normalizeApprovers(parsedData?.client_approver),
+        });
+      }
     }
-  }, [setCampaignFormData]);
+  }, [setCampaignFormData, campaignFormData]);
 
 
   useEffect(() => {
     if (documentId === null && !isInitialized) {
-      const savedFormData = localStorage.getItem("campaignFormData");
-      if (savedFormData) {
-        setCampaignFormData(JSON.parse(savedFormData));
-      } else {
-        const initialFormData = {
-          client_selection: {
-            id: selectedClient || FC?.id,
-            value: FC?.client_name || '',
-          },
-          media_plan: "",
-          internal_approver: [],
-          client_approver: [],
-          approver_id: [],
-          budget_details_currency: {},
-          country_details: {},
-          budget_details_fee_type: {},
-          budget_details_value: "",
-          level_1: {},
-          campaign_version: "V1",
-        };
-        setCampaignFormData(initialFormData);
-        localStorage.setItem("campaignFormData", JSON.stringify(initialFormData));
+      // Only load from localStorage if campaignFormData is empty/null
+      if (!campaignFormData || Object.keys(campaignFormData).length === 0) {
+        const savedFormData = localStorage.getItem("campaignFormData");
+        if (savedFormData) {
+          setCampaignFormData(JSON.parse(savedFormData));
+        } else {
+          const initialFormData = {
+            client_selection: {
+              id: selectedClient || FC?.id,
+              value: FC?.client_name || '',
+            },
+            media_plan: "",
+            internal_approver: [],
+            client_approver: [],
+            approver_id: [],
+            budget_details_currency: {},
+            country_details: {},
+            budget_details_fee_type: {},
+            budget_details_value: "",
+            level_1: {},
+            campaign_version: "V1",
+          };
+          setCampaignFormData(initialFormData);
+          localStorage.setItem("campaignFormData", JSON.stringify(initialFormData));
+        }
       }
       setIsInitialized(true);
     } else if (documentId === null && isInitialized) {
@@ -339,7 +345,7 @@ export const SetupScreen = () => {
         return updated;
       });
     }
-  }, [documentId, isInitialized, selectedClient, FC, setCampaignFormData]);
+  }, [documentId, isInitialized, selectedClient, FC, setCampaignFormData, campaignFormData]);
 
 
   useEffect(() => {

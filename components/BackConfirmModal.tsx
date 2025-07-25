@@ -32,9 +32,10 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 	const router = useRouter();
 	const dispatch = useAppDispatch();
 
-	const clearChannelStateForNewCampaign = () => {
+	const clearAllCampaignData = () => {
 		if (typeof window === "undefined") return;
 		try {
+			// Clear sessionStorage for channel state
 			const keysToRemove: string[] = [];
 			for (let i = 0; i < sessionStorage.length; i++) {
 				const key = sessionStorage.key(i);
@@ -43,14 +44,70 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 				}
 			}
 			keysToRemove.forEach((key) => sessionStorage.removeItem(key));
+
+			// Clear window channel state
 			if ((window as any).channelLevelAudienceState) {
 				Object.keys((window as any).channelLevelAudienceState).forEach((stageName) => {
 					delete (window as any).channelLevelAudienceState[stageName];
 				});
 			}
-			console.log("Cleared all channel state for new campaign");
+
+			// Clear all localStorage items related to campaign creation
+			const localStorageKeysToRemove = [
+				"campaignFormData",
+				"filteredClient",
+				"selectedOptions",
+				"funnelStageStatuses",
+				"seenFunnelStages",
+				"formatSelectionOpenTabs",
+				"step1_validated",
+				"active",
+				"change",
+				"comments",
+				"subStep",
+				"verifybeforeMove"
+			];
+
+			// Remove campaign-specific localStorage items
+			localStorageKeysToRemove.forEach(key => {
+				localStorage.removeItem(key);
+			});
+
+			// Remove quantities-related localStorage items (format selection)
+			Object.keys(localStorage).forEach(key => {
+				if (key.startsWith("quantities_")) {
+					localStorage.removeItem(key);
+				}
+			});
+
+			// Remove modal dismissal keys
+			Object.keys(localStorage).forEach(key => {
+				if (key.includes("modal_dismissed") || key.includes("goalLevelModalDismissed")) {
+					localStorage.removeItem(key);
+				}
+			});
+
+			// Remove format error trigger keys
+			Object.keys(localStorage).forEach(key => {
+				if (key.startsWith("triggerFormatError_")) {
+					localStorage.removeItem(key);
+				}
+			});
+
+			// Remove channel mix related localStorage items
+			Object.keys(localStorage).forEach(key => {
+				if (key.includes("openItems") ||
+					key.includes("selected") ||
+					key.includes("stageStatuses") ||
+					key.includes("showMoreMap") ||
+					key.includes("openChannelTypes")) {
+					localStorage.removeItem(key);
+				}
+			});
+
+			console.log("Cleared all campaign data from localStorage and sessionStorage");
 		} catch (error) {
-			console.error("Error clearing channel state:", error);
+			console.error("Error clearing campaign data:", error);
 		}
 	};
 
@@ -160,7 +217,7 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 				setViewcommentsId("");
 				setCampaignData(null);
 				router.push("/");
-				clearChannelStateForNewCampaign?.();
+				clearAllCampaignData?.();
 			} else {
 				const response = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`, payload, config);
 
@@ -187,7 +244,7 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 				setViewcommentsId("");
 				setCampaignData(null);
 				router.push("/");
-				clearChannelStateForNewCampaign?.();
+				clearAllCampaignData?.();
 			}
 		} catch (error: any) {
 			if (error?.response?.status === 401) {
@@ -224,7 +281,7 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 	const handleNoClick = () => {
 		setChange(false); // Reset change state
 		setShowModal(false); // Close modal
-		localStorage.removeItem("campaignFormData"); // Clear the draft
+		clearAllCampaignData(); // Clear all campaign data
 		onClose(); // Call original onClose
 		if (onNavigate) {
 			onNavigate(); // Navigate to intended route if provided
