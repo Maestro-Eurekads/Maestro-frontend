@@ -1,14 +1,18 @@
 "use client";
 import { useCampaigns } from "../../utils/CampaignsContext";
-
-// Helper to check if a string is a valid hex color
-const isHexColor = (color: string) => /^#[0-9A-Fa-f]{6}$/.test(color);
+import { isHexColor } from "utils/funnelColorUtils";
 
 const CampaignPhases = ({ campaignPhases }) => {
   const { campaignFormData } = useCampaigns();
 
   // Map campaignPhases to include the color from custom_funnels
   const phasesWithColors = campaignPhases?.map((phase) => {
+    // First try to get color from the phase object itself (passed from Dashboard)
+    if (phase.color) {
+      return phase;
+    }
+
+    // Fallback to campaignFormData custom_funnels
     const funnel = campaignFormData?.custom_funnels?.find(
       (f) => f.name === phase.name
     );
@@ -23,6 +27,7 @@ const CampaignPhases = ({ campaignPhases }) => {
     if (isHexColor(color)) {
       return { className: "", style: { backgroundColor: color } };
     }
+    // If it's not a hex color, assume it's a Tailwind class
     return { className: color, style: {} };
   };
 
