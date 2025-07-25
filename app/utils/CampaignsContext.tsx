@@ -236,9 +236,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
               hasLocalData && prev.campaign_timeline_start_date ? prev.campaign_timeline_start_date : (data?.campaign_timeline_start_date ?? ""),
             campaign_timeline_end_date:
               hasLocalData && prev.campaign_timeline_end_date ? prev.campaign_timeline_end_date : (data?.campaign_timeline_end_date ?? ""),
-            campaign_budget: prev.campaign_budget && Object.keys(prev.campaign_budget).length > 0
-              ? prev.campaign_budget
-              : (data?.campaign_budget ?? prev.campaign_budget),
+            campaign_budget: prev.campaign_budget ? prev.campaign_budget : data?.campaign_budget,
             goal_level: data?.goal_level ?? prev.goal_level,
             progress_percent: data?.progress_percent ?? prev.progress_percent,
             custom_funnels: data?.custom_funnels ?? prev.custom_funnels,
