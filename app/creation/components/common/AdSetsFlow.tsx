@@ -1742,17 +1742,17 @@ const AdSetFlow = memo(function AdSetFlow({
         // Existing adset logic
         for (const stage of campaignFormData.channel_mix) {
           const platformsWithAdsets = [
-            ...stage.search_engines,
-            ...stage.display_networks,
-            ...stage.social_media,
-            ...stage.streaming,
-            ...stage.ooh,
-            ...stage.broadcast,
-            ...stage.messaging,
-            ...stage.print,
-            ...stage.e_commerce,
-            ...stage.in_game,
-            ...stage.mobile,
+            ...(Array.isArray(stage.search_engines) ? stage.search_engines : []),
+            ...(Array.isArray(stage.display_networks) ? stage.display_networks : []),
+            ...(Array.isArray(stage.social_media) ? stage.social_media : []),
+            ...(Array.isArray(stage.streaming) ? stage.streaming : []),
+            ...(Array.isArray(stage.ooh) ? stage.ooh : []),
+            ...(Array.isArray(stage.broadcast) ? stage.broadcast : []),
+            ...(Array.isArray(stage.messaging) ? stage.messaging : []),
+            ...(Array.isArray(stage.print) ? stage.print : []),
+            ...(Array.isArray(stage.e_commerce) ? stage.e_commerce : []),
+            ...(Array.isArray(stage.in_game) ? stage.in_game : []),
+            ...(Array.isArray(stage.mobile) ? stage.mobile : []),
           ]
             .filter((p) => p.ad_sets && p.ad_sets.length > 0)
             .map((p) => p.platform_name)
