@@ -406,7 +406,7 @@ const AdSet = memo(function AdSet({
       setSize(inputValue)
       // Immediate update with debouncing
       setTimeout(() => {
-        onUpdate(adset.id, { size: inputValue })
+        onUpdate(adset?.id, { size: inputValue })
       }, 0)
       onInteraction()
     },
@@ -419,7 +419,7 @@ const AdSet = memo(function AdSet({
       setDescription(newDescription)
       // Immediate update with debouncing
       setTimeout(() => {
-        onUpdate(adset.id, { description: newDescription })
+        onUpdate(adset?.id, { description: newDescription })
       }, 0)
       onInteraction()
     },
@@ -444,17 +444,17 @@ const AdSet = memo(function AdSet({
 
   // --- Channel-level add audience logic ---
   const isChannelParentFilled =
-    channelAudience.name.trim() !== "" &&
-    channelAudience.audience_type.trim() !== "" &&
-    channelAudience.size.trim() !== ""
+    channelAudience?.name.trim() !== "" &&
+    channelAudience?.audience_type.trim() !== "" &&
+    channelAudience?.size.trim() !== ""
 
   // --- Adset-level add audience logic ---
   const isParentFilled = name.trim() !== "" && audience.trim() !== "" && size.trim() !== ""
 
   const canAddNewAudience =
     isParentFilled &&
-    (extraAudience.length === 0 ||
-      (extraAudience.length > 0 && extraAudience[extraAudience.length - 1]?.audience_type?.trim()))
+    (extraAudience?.length === 0 ||
+      (extraAudience?.length > 0 && extraAudience[extraAudience?.length - 1]?.audience_type?.trim()))
 
   // COMPLETE SEPARATION: Channel level shows only channel fields, no ad set numbers or extra audiences
   if (granularity === "channel") {
@@ -468,8 +468,8 @@ const AdSet = memo(function AdSet({
         <div className="w-[200px]">
           <AudienceDropdownWithCallback
             onSelect={(val) => handleChannelAudienceChange("audience_type", val)}
-            initialValue={channelAudience.audience_type}
-            dropdownId={adset.id + "-channel"}
+            initialValue={channelAudience?.audience_type}
+            dropdownId={adset?.id + "-channel"}
           />
         </div>
         <input
@@ -484,7 +484,7 @@ const AdSet = memo(function AdSet({
         <input
           type="text"
           placeholder="Enter size"
-          value={formatWithThousandSeparator(channelAudience.size)}
+          value={formatWithThousandSeparator(channelAudience?.size)}
           onChange={(e) => {
             const inputValue = e.target.value.replace(/,/g, "")
             if (!/^\d*\.?\d*$/.test(inputValue)) return
@@ -514,19 +514,19 @@ const AdSet = memo(function AdSet({
     <div className="flex gap-2 items-start w-full px-4">
       <div className="relative">
         <p className="relative z-[1] text-[#3175FF] text-sm whitespace-nowrap font-bold flex gap-4 items-center bg-[#F9FAFB] border border-[#0000001A] py-4 px-2 rounded-[10px]">
-          {`Ad set n°${adset.addsetNumber}`}
+          {`Ad set n°${adset?.addsetNumber}`}
         </p>
       </div>
       <div className="w-[200px]">
-        <AudienceDropdownWithCallback onSelect={handleAudienceSelect} initialValue={audience} dropdownId={adset.id} />
+        <AudienceDropdownWithCallback onSelect={handleAudienceSelect} initialValue={audience} dropdownId={adset?.id} />
         <div className="mt-4 space-y-2">
           <div>
             {extraAudience?.map((audi, index) => (
-              <div key={`${adset.id}-${index}`} className="flex items-center justify-between gap-4 mb-2">
+              <div key={`${adset?.id}-${index}`} className="flex items-center justify-between gap-4 mb-2">
                 <AudienceDropdownWithCallback
                   onSelect={(value: string) => handleExtraAudienceSelect(value, index)}
                   initialValue={audi?.audience_type}
-                  dropdownId={`${adset.id}-${index}`}
+                  dropdownId={`${adset?.id}-${index}`}
                 />
                 <input
                   type="text"
@@ -543,7 +543,7 @@ const AdSet = memo(function AdSet({
                 <input
                   type="text"
                   placeholder="Size"
-                  value={formatWithThousandSeparator(audi.size || "")}
+                  value={formatWithThousandSeparator(audi?.size || "")}
                   onChange={(e) => handleExtraAudienceSizeChange(e, index)}
                   disabled={!isEditing}
                   className="text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[80px]"
@@ -553,7 +553,7 @@ const AdSet = memo(function AdSet({
                 <input
                   type="text"
                   placeholder="Description"
-                  value={audi.description || ""}
+                  value={audi?.description || ""}
                   onChange={(e) => handleExtraAudienceDescriptionChange(e, index)}
                   disabled={!isEditing}
                   className="text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[100px]"
@@ -619,7 +619,7 @@ const AdSet = memo(function AdSet({
       <div className="flex items-center gap-2">
         <button
           disabled={!isEditing}
-          onClick={() => onDelete(adset.id)}
+          onClick={() => onDelete(adset?.id)}
           className={`flex items-center gap-2 rounded-full px-3 py-2 bg-[#FF5955] text-white text-sm font-bold ${!isEditing ? "cursor-not-allowed opacity-50" : ""
             }`}
         >
@@ -629,13 +629,13 @@ const AdSet = memo(function AdSet({
         {onAddNewAdSet && (
           <button
             onClick={onAddNewAdSet}
-            disabled={adsets.length >= 10}
-            className={`flex gap-2 items-center text-white ${adsets.length >= 10 ? "bg-gray-400" : "bg-[#3175FF]"
+            disabled={adsets?.length >= 10}
+            className={`flex gap-2 items-center text-white ${adsets?.length >= 10 ? "bg-gray-400" : "bg-[#3175FF]"
               } px-3 py-2 rounded-full text-sm font-bold`}
             style={{ minWidth: 0 }}
           >
             <MdAdd />
-            <span>{adsets.length >= 10 ? "Max" : "New ad set"}</span>
+            <span>{adsets?.length >= 10 ? "Max" : "New ad set"}</span>
           </button>
         )}
       </div>

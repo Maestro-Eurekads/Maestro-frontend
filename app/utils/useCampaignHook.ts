@@ -160,10 +160,10 @@ const fetchClientCampaign = useCallback(
           }
         );
       } catch (err) {
-       if (err) {
-          const event = new Event("unauthorizedEvent");
-          window.dispatchEvent(event);
-        } 
+         if (err?.response?.status === 401) {
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
+      }
         throw err;
       }
     },
@@ -182,10 +182,10 @@ const fetchClientCampaign = useCallback(
         },
       });
     } catch (err) {
-     if (err) {
-          const event = new Event("unauthorizedEvent");
-          window.dispatchEvent(event);
-        }
+      if (err?.response?.status === 401) {
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
+      }
       throw err;
     }
   };

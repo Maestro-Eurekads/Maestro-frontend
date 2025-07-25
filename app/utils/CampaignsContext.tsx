@@ -479,7 +479,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       );
       setBuyObj(res?.data?.data);
     } catch (err) {
-      console.error("Error fetching buy objectives:", err);
       if (err?.response?.status === 401) {
         const event = new Event("unauthorizedEvent");
         window.dispatchEvent(event);
