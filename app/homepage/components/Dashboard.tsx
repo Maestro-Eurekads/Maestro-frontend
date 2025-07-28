@@ -24,6 +24,7 @@ import Range from "app/creation/components/atoms/date-range/dashboard-date-range
 import TimelineContainer from "app/creation/components/atoms/date-interval/TimelineContainer"
 import DashboradDoughnutChat from "components/DashboradDoughnutChat"
 import { getFunnelColorFromCampaign } from "utils/funnelColorUtils"
+import DashboardCampaignPhases from "app/creation/components/DashboardCampaignPhases"
 
 const Dashboard = () => {
   const [channels, setChannels] = useState<IChannel[]>([])
@@ -179,9 +180,18 @@ const Dashboard = () => {
 
   // Helper to get data values for DoughnutChat
   function getStagePercentages(campaign) {
-    return campaign?.channel_mix?.map((ch) =>
+    const percentages = campaign?.channel_mix?.map((ch) =>
       Number(ch?.stage_budget?.percentage_value || 0)
     ) || []
+
+    // If all percentages are 0 or empty, distribute equally
+    const totalPercentage = percentages.reduce((sum, val) => sum + val, 0)
+    if (totalPercentage === 0 && percentages.length > 0) {
+      const equalPercentage = 100 / percentages.length
+      return percentages.map(() => equalPercentage)
+    }
+
+    return percentages
   }
   // const dataValues = funnelStages.length > 0
   //   ? campaignFormData?.channel_mix?.map((st: any) => st?.stage_budget?.percentage_value || 0)
@@ -216,6 +226,13 @@ const Dashboard = () => {
 
         // Prepare data values for DoughnutChat
         const dataValues = getStagePercentages(campaign)
+        console.log('Dashboard dataValues---->', dataValues)
+        console.log('Dashboard campaign channel_mix---->', campaign?.channel_mix)
+        console.log('Dashboard campaign stage_budget details---->', campaign?.channel_mix?.map(ch => ({
+          funnel_stage: ch?.funnel_stage,
+          stage_budget: ch?.stage_budget,
+          percentage_value: ch?.stage_budget?.percentage_value
+        })))
 
         return (
           <div
@@ -251,12 +268,15 @@ const Dashboard = () => {
                   dataValues={dataValues}
                 />
                 {/* Campaign Phases */}
-                <CampaignPhases
-                  campaignPhases={campaign?.channel_mix?.map((ch) => ({
-                    name: ch?.funnel_stage,
-                    percentage: Number(ch?.stage_budget?.percentage_value || 0)?.toFixed(0),
-                    color: getFunnelColor(ch?.funnel_stage),
-                  }))}
+                <DashboardCampaignPhases
+                  campaignPhases={campaign?.channel_mix?.map((ch) => {
+                    const percentage = Number(ch?.stage_budget?.percentage_value || 0)
+                    return {
+                      name: ch?.funnel_stage,
+                      percentage: percentage > 0 ? percentage.toFixed(0) : (100 / (campaign?.channel_mix?.length || 1)).toFixed(0),
+                      color: getFunnelColor(ch?.funnel_stage),
+                    }
+                  })}
                 />
               </div>
             </div>
