@@ -19,11 +19,12 @@ const BusinessGeneral = ({ campaign, loading, isLoadingCampaign, campaign_id }) 
 
 		if (budgetType === "bottom_up") {
 			// For bottom-up: Total campaign budget is the sum of all stage budgets
-			const stageBudgetsSum =
-				campaign?.channel_mix?.reduce(
+			const stageBudgetsSum = Array.isArray(campaign?.channel_mix)
+				? campaign.channel_mix.reduce(
 					(acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
 					0,
-				) || 0
+				)
+				: 0
 
 			if (subBudgetType === "gross") {
 				// If gross, the stage budgets sum is the gross amount
@@ -65,13 +66,17 @@ const BusinessGeneral = ({ campaign, loading, isLoadingCampaign, campaign_id }) 
 			});
 		};
 
-		campaign?.channel_mix?.forEach((channel) => {
-			Object.keys(channel).forEach((channelType) => {
-				if (Array.isArray(channel[channelType])) {
-					parseChannels(channel[channelType]);
+		if (Array.isArray(campaign?.channel_mix)) {
+			campaign.channel_mix.forEach((channel) => {
+				if (channel && typeof channel === 'object') {
+					Object.keys(channel).forEach((channelType) => {
+						if (Array.isArray(channel[channelType])) {
+							parseChannels(channel[channelType]);
+						}
+					});
 				}
 			});
-		});
+		}
 
 		const avgCpm =
 			cpmValues.length > 0

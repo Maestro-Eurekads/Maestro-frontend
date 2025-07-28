@@ -41,13 +41,6 @@ const CampaignBudget = () => {
   }, [])
 
 
-
-
-  const [selectedOption, setSelectedOption] = useState({
-    value: "EUR",
-    label: "EUR",
-  })
-
   const [feeType, setFeeType] = useState(null)
   const [feeAmount, setFeeAmount] = useState("")
 
@@ -68,14 +61,7 @@ const CampaignBudget = () => {
     }
   }, [campaignId])
 
-  const selectCurrency = [
-    { value: "USD", label: "USD" },
-    { value: "EUR", label: "EUR" },
-    { value: "GBP", label: "GBP" },
-    { value: "NGN", label: "NGN" },
-    { value: "JPY", label: "JPY" },
-    { value: "CAD", label: "CAD" },
-  ]
+
 
   // Calculate total campaign budget (gross amount for display)
   const calculateTotalBudget = () => {
@@ -695,7 +681,6 @@ const CampaignBudget = () => {
                                 try {
                                   localStorage.setItem("campaignFormData", JSON.stringify(updatedData))
                                 } catch (error) {
-                                  console.error("Error saving budget level to localStorage:", error)
                                 }
                               }
 

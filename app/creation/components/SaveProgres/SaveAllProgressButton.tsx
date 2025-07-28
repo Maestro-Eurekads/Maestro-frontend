@@ -112,6 +112,35 @@ const SaveAllProgressButton = () => {
 		return true;
 	};
 
+	// Validate and format dates
+	const validateAndFormatDates = (data) => {
+		const isValidDate = (d) => {
+			if (!d || d === "" || d === null || d === undefined) {
+				return null;
+			}
+			// Check if it's already in yyyy-MM-dd format
+			if (typeof d === 'string' && d.length === 10 && /^\d{4}-\d{2}-\d{2}$/.test(d)) {
+				return d;
+			}
+			// Try to parse and format the date
+			try {
+				const date = new Date(d);
+				if (isNaN(date.getTime())) {
+					return null;
+				}
+				return date.toISOString().split('T')[0]; // Convert to yyyy-MM-dd format
+			} catch (error) {
+				return null;
+			}
+		};
+
+		return {
+			...data,
+			campaign_timeline_start_date: isValidDate(data?.campaign_timeline_start_date),
+			campaign_timeline_end_date: isValidDate(data?.campaign_timeline_end_date),
+		};
+	};
+
 	// Clean and sanitize campaign data
 	const sanitizeCampaignData = (data) => {
 		try {
@@ -153,14 +182,15 @@ const SaveAllProgressButton = () => {
 		try {
 			// Validate and sanitize campaign data
 			const cleanedFormData = sanitizeCampaignData(campaignFormData);
-			validateCampaignData(cleanedFormData);
+			const dataWithValidatedDates = validateAndFormatDates(cleanedFormData);
+			validateCampaignData(dataWithValidatedDates);
 
 			// Extract objectives and metrics
 			const objectives = await extractObjectives(cleanedFormData);
 			const selectedMetrics = await getFilteredMetrics(objectives);
 
 			// Clean channel mix data
-			const channelMixCleaned = removeKeysRecursively(cleanedFormData?.channel_mix, [
+			const channelMixCleaned = removeKeysRecursively(dataWithValidatedDates?.channel_mix, [
 				"id",
 				"isValidated",
 				"formatValidated",
@@ -170,12 +200,12 @@ const SaveAllProgressButton = () => {
 			]);
 
 			// Clean campaign budget data
-			const campaignBudgetCleaned = removeKeysRecursively(cleanedFormData?.campaign_budget, ["id"]);
+			const campaignBudgetCleaned = removeKeysRecursively(dataWithValidatedDates?.campaign_budget, ["id"]);
 
 			const calcPercent = Math.ceil((active / 10) * 100);
 
 			// Normalize approved_by to array of IDs (support objects or IDs)
-			const existingApprovedByRaw = cleanedFormData?.media_plan_details?.approved_by;
+			const existingApprovedByRaw = dataWithValidatedDates?.media_plan_details?.approved_by;
 			const existingApprovedBy = Array.isArray(existingApprovedByRaw)
 				? existingApprovedByRaw.map((user: any) => (typeof user === "object" ? user.id : user))
 				: [];
@@ -188,38 +218,38 @@ const SaveAllProgressButton = () => {
 			const payload = {
 				data: {
 					campaign_builder: loggedInUser?.id,
-					client: cleanedFormData?.client_selection?.id,
+					client: dataWithValidatedDates?.client_selection?.id,
 					client_selection: {
-						client: cleanedFormData?.client_selection?.value,
-						level_1: cleanedFormData?.level_1,
+						client: dataWithValidatedDates?.client_selection?.value,
+						level_1: dataWithValidatedDates?.level_1,
 					},
 					media_plan_details: {
-						plan_name: cleanedFormData?.media_plan,
-						internal_approver: validateUserIds(cleanedFormData.internal_approver.map((item: any) => item.id)),
-						client_approver: validateUserIds(cleanedFormData.client_approver.map((item: any) => item.id)),
-						approved_by: validateUserIds(cleanedFormData.approved_by.map((item: any) => item.id)),
+						plan_name: dataWithValidatedDates?.media_plan,
+						internal_approver: validateUserIds(dataWithValidatedDates.internal_approver.map((item: any) => item.id)),
+						client_approver: validateUserIds(dataWithValidatedDates.client_approver.map((item: any) => item.id)),
+						approved_by: validateUserIds(dataWithValidatedDates.approved_by.map((item: any) => item.id)),
 					},
 					budget_details: {
-						currency: cleanedFormData?.budget_details_currency?.id || "EUR",
-						value: cleanedFormData?.country_details?.id,
+						currency: dataWithValidatedDates?.budget_details_currency?.id || "EUR",
+						value: dataWithValidatedDates?.country_details?.id,
 					},
 					campaign_budget: {
 						...campaignBudgetCleaned,
-						currency: cleanedFormData?.budget_details_currency?.id || "EUR",
+						currency: dataWithValidatedDates?.budget_details_currency?.id || "EUR",
 					},
-					funnel_stages: cleanedFormData?.funnel_stages,
+					funnel_stages: dataWithValidatedDates?.funnel_stages,
 					channel_mix: channelMixCleaned,
-					custom_funnels: cleanedFormData?.custom_funnels,
-					funnel_type: cleanedFormData?.funnel_type,
+					custom_funnels: dataWithValidatedDates?.custom_funnels,
+					funnel_type: dataWithValidatedDates?.funnel_type,
 					table_headers: objectives || {},
 					selected_metrics: selectedMetrics || {},
-					goal_level: cleanedFormData?.goal_level,
-					campaign_timeline_start_date: cleanedFormData?.campaign_timeline_start_date,
-					campaign_timeline_end_date: cleanedFormData?.campaign_timeline_end_date,
+					goal_level: dataWithValidatedDates?.goal_level,
+					campaign_timeline_start_date: dataWithValidatedDates?.campaign_timeline_start_date,
+					campaign_timeline_end_date: dataWithValidatedDates?.campaign_timeline_end_date,
 					agency_profile: agencyId,
 					progress_percent:
 						campaignFormData?.progress_percent > calcPercent ? campaignFormData?.progress_percent : calcPercent,
-					campaign_version: cleanedFormData?.campaign_version || "V1",
+					campaign_version: dataWithValidatedDates?.campaign_version || "V1",
 				},
 			};
 
@@ -243,8 +273,8 @@ const SaveAllProgressButton = () => {
 				await updateUsersWithCampaign(
 					[
 						...(Array.isArray(loggedInUser?.id) ? loggedInUser?.id : [loggedInUser?.id]),
-						...cleanedFormData.internal_approver.map((item: any) => String(item.id)),
-						...cleanedFormData.client_approver.map((item: any) => String(item.id)),
+						...dataWithValidatedDates.internal_approver.map((item: any) => String(item.id)),
+						...dataWithValidatedDates.client_approver.map((item: any) => String(item.id)),
 					],
 					response?.data?.data?.id,
 					jwt
