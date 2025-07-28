@@ -18,6 +18,7 @@ import TableView from "./EstablishedGoals/table-view/table-view";
 import ChannelDistributionChatTwo from "components/ChannelDistribution/ChannelDistributionChatTwo";
 import { getCurrencySymbol, mediaTypes } from "components/data";
 import CampaignPhases from "./CampaignPhases";
+import { getFunnelColorFromCampaign } from "utils/funnelColorUtils";
 import DoughnutChart from "components/DoughnutChat";
 import { useComments } from "app/utils/CommentProvider";
 import SaveProgressButton from "app/utils/SaveProgressButton";
@@ -156,14 +157,7 @@ export const EstablishedGoals = () => {
                         percentage: Number(
                           ch?.stage_budget?.percentage_value
                         )?.toFixed(0),
-                        color:
-                          ch?.funnel_stage === "Awareness"
-                            ? "#3175FF"
-                            : ch?.funnel_stage === "Consideration"
-                              ? "#00A36C"
-                              : ch?.funnel_stage === "Conversion"
-                                ? "#FF9037"
-                                : "#F05406",
+                        color: getFunnelColorFromCampaign(ch?.funnel_stage, { custom_funnels: campaignFormData?.custom_funnels }),
                       }))}
                   />
                 </div>

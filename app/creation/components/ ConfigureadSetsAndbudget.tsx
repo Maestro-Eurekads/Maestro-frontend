@@ -5,6 +5,7 @@ import PageHeaderWrapper from "../../../components/PageHeaderWapper"
 import DoughnutChat from "../../../components/DoughnutChat"
 import ChannelDistributionChatTwo from "../../../components/ChannelDistribution/ChannelDistributionChatTwo"
 import CampaignPhases from "./CampaignPhases"
+import { getFunnelColorFromCampaign } from "utils/funnelColorUtils"
 import { useCampaigns } from "app/utils/CampaignsContext"
 import { useComments } from "app/utils/CommentProvider"
 import { getCurrencySymbol, mediaTypes, formatNumberWithCommas } from "components/data"
@@ -520,7 +521,17 @@ export const BudgetOverviewSection = () => {
                   <div className="campaign_phases_container_one">
                     <DoughnutChat insideText={insideText} />
                   </div>
-                  <CampaignPhases campaignPhases={campaignPhases} />
+                  <CampaignPhases
+                    campaignPhases={campaignFormData?.channel_mix
+                      ?.filter((c) => Number(c?.stage_budget?.percentage_value) > 0)
+                      ?.map((ch) => ({
+                        name: ch?.funnel_stage,
+                        percentage: Number(
+                          ch?.stage_budget?.percentage_value
+                        )?.toFixed(0),
+                        color: getFunnelColorFromCampaign(ch?.funnel_stage, { custom_funnels: campaignFormData?.custom_funnels }),
+                      }))}
+                  />
                 </div>
                 <PhasedistributionProgress insideText={insideText} />
               </>
