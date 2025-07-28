@@ -21,34 +21,37 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
   funnelData,
 }) => {
   const [monthNames, setSetMonthName] = useState([])
-  const [daysInMonth, setDaysInEachMonth] = useState([])
+  const [daysInMonth, setDaysInEachMonth] = useState<Record<string, number>>({})
   const { campaignFormData } = useCampaigns()
   const [containerWidth, setContainerWidth] = useState(0)
 
   useEffect(() => {
     if (getDaysInEachMonth) {
-      setDaysInEachMonth(getDaysInEachMonth())
+      const daysData = getDaysInEachMonth()
+      setDaysInEachMonth(daysData)
     }
   }, [getDaysInEachMonth])
 
-  // Optimized grid template columns calculation
-  const totalDays = Object.values(daysInMonth || {}).reduce((acc, days) => acc + (days as number), 0)
-
+  // Calculate total days and month count
+  const totalDays = Object.values(daysInMonth || {}).reduce((acc, days) => acc + days, 0)
   const monthCount = Object.keys(daysInMonth || {}).length
 
-  const gridTemplateColumns = (() => {
+  // Calculate grid template columns based on actual days in each month
+  const gridTemplateColumns = useCallback(() => {
+    if (monthCount === 0) return "1fr"
+    
     if (monthCount > 2) {
-      // When more than 2 months, each month takes 30% of container
-      return Object.keys(daysInMonth || {})
-        .map(() => `20%`)
+      // When more than 2 months, use proportional sizing based on actual days
+      return Object.values(daysInMonth)
+        .map((days) => `${Math.round((days / totalDays) * 100)}%`)
         .join(" ")
     } else {
-      // Original proportional logic for 1-2 months
-      return Object.values(daysInMonth || {})
-        .map((days) => `${Math.round(((days as number) / totalDays) * 100)}%`)
+      // For 1-2 months, use proportional logic
+      return Object.values(daysInMonth)
+        .map((days) => `${Math.round((days / totalDays) * 100)}%`)
         .join(" ")
     }
-  })()
+  }, [daysInMonth, monthCount, totalDays])
 
   useEffect(() => {
     if (campaignFormData) {
@@ -71,7 +74,7 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
     }
   }, [campaignFormData])
 
-  useEffect(()=>{
+  useEffect(() => {
     const getViewportWidth = () => {
       return window.innerWidth || document.documentElement.clientWidth || 0
     }
@@ -79,7 +82,7 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
     const screenWidth = getViewportWidth()
     const contWidth = screenWidth - (disableDrag ? 80 : 367)
     setContainerWidth(contWidth)
-  }, [])
+  }, [disableDrag])
 
   const calculateDailyWidth = useCallback(() => {
     const getViewportWidth = () => {
@@ -91,13 +94,11 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
 
     let dailyWidth: number
 
-    if (monthCount > 2) {
-      // When more than 2 months, each month takes 30% of container
-      const monthWidth = contWidth
-      const avgDaysPerMonth = totalDays / monthCount
-      dailyWidth = monthWidth / avgDaysPerMonth
+    if (monthCount > 0) {
+      // Use actual total days from the data
+      dailyWidth = contWidth / totalDays
     } else {
-      // Original logic for 1-2 months
+      // Fallback to funnel data
       const totalDays = funnelData?.endDay || 30
       dailyWidth = contWidth / totalDays
     }
@@ -110,46 +111,47 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
 
   const dailyWidth = calculateDailyWidth()
 
-  // Calculate background size based on month count
+  // Calculate background size based on actual month data
   const getBackgroundSize = useCallback(() => {
-    const getViewportWidth = () => {
-      return window.innerWidth || document.documentElement.clientWidth || 0
-    }
-
-    const screenWidth = getViewportWidth()
-    const contWidth = screenWidth - (disableDrag ? 80 : 367)
+    if (monthCount === 0) return "100% 100%"
     
-    if (monthCount > 2) {
-      // For multiple months with 30% each, create appropriate grid lines
-      const monthWidth = 20 // 30% per month
-      return `20% 100%`
-    } else {
-      // Original background sizing for 1-2 months
-      return `100% 100%`
-    }
+    // No daily grid lines for month view - only month boundaries
+    return "100% 100%"
   }, [monthCount])
+
+  // Only render if we have data
+  if (monthCount === 0) {
+    return (
+      <div className="w-full border-y">
+        <div className="flex items-center justify-center py-4">
+          <span className="text-gray-500">Loading month view...</span>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="w-full border-y">
       <div
         style={{
           display: "grid",
-          gridTemplateColumns,
-          backgroundImage: `linear-gradient(to right, rgba(0,0,255,0.2) 1px, transparent 1px)`,
+          gridTemplateColumns: gridTemplateColumns(),
+          backgroundImage: `linear-gradient(to right, rgba(0,0,255,0.3) 2px, transparent 2px)`,
           backgroundSize: getBackgroundSize(),
         }}
       >
-        {Object.entries(daysInMonth || {}).map(([monthName], i) => (
+        {Object.entries(daysInMonth).map(([monthName, daysCount], i) => (
           <div
             key={i}
-            className="flex flex-col items-center relative py-3 border-r border-blue-200 last:border-r-0"
-            style={{
-              // Ensure consistent spacing within each month column
-              minWidth: monthCount > 2 ?`20%` : "auto",
-            }}
+            className=" relative pt-3 border-r border-blue-200 last:border-r-0"
           >
-            <div className="flex flex-row gap-2 items-center">
-              <span className="font-[500] text-[13px] text-[rgba(0,0,0,0.5)]">{monthName}</span>
+            <div className="flex flex-col gap-2 items-center">
+              <p className="font-[500] text-[13px] text-[rgba(0,0,0,0.5)]">
+                {monthName}
+              </p>
+              <p className="text-[11px] text-gray-400">
+                ({daysCount} days)
+              </p>
             </div>
           </div>
         ))}

@@ -34,10 +34,13 @@ const MainSection = ({
   view?: boolean
 }) => {
   const { clientCampaignData, campaignFormData } = useCampaigns()
-  const { range: rrange } = useRange()
+  const { range: dateRange } = useRange()
   const [daysInEachMonth, setDaysInEachMonth] = useState<Record<any, any>>({})
   const { range } = useDateRange()
   const [isOpen, setIsOpen] = useState(false)
+  
+  // Use the date range directly
+  const currentRange = dateRange
   const [selectedStage, setSelectedStage] = useState("")
   const { active, subStep } = useActive()
   const { setClose } = useComments()
@@ -144,7 +147,7 @@ const MainSection = ({
 
   function getDaysInEachMonth(): Record<string, number> {
     const daysInMonth: Record<string, number> = {}
-    rrange?.forEach((date) => {
+    currentRange?.forEach((date) => {
       const monthYear = format(date, "MMMM yyyy")
       daysInMonth[monthYear] = (daysInMonth[monthYear] || 0) + 1
     })
@@ -161,7 +164,7 @@ const MainSection = ({
 
   function getDaysInEachYear(): Record<string, number> {
     const daysInYear: Record<string, number> = {}
-    rrange?.forEach((date) => {
+    currentRange?.forEach((date) => {
       const year = format(date, "yyyy")
       daysInYear[year] = (daysInYear[year] || 0) + 1
     })
