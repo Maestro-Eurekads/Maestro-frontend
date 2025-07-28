@@ -73,7 +73,7 @@ const ConfigureBudgetComponet = ({ show, t1, t2, funnelData }) => {
 			return {
 				name: phase?.name,
 				percentage: isNaN(percentage) ? 0 : Number(percentage.toFixed(0)),
-				colorClass: phase?.color,
+				color: phase?.color,
 			};
 		});
 	}
@@ -81,7 +81,7 @@ const ConfigureBudgetComponet = ({ show, t1, t2, funnelData }) => {
 
 
 	const filteredPhases = mapCampaignPhases(campaignFormData?.custom_funnels, campaignFormData);
-	const colors = filteredPhases?.map((phase) => phase.colorClass);
+	const colors = filteredPhases?.map((phase) => phase.color);
 	const campaignPhases = filteredPhases?.filter(phase => funnelData.hasOwnProperty(phase.name));
 
 
