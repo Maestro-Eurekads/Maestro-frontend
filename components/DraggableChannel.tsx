@@ -104,30 +104,23 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
     const startDate = dateList[0]
     const totalDays = dateList.length - 1
-// debugger;
     if (range === "Year") {
       const totalMonths = 12
       const clampedPixel = Math.max(0, Math.min(pixel, containerWidth))
       const monthFraction = clampedPixel / containerWidth
       const monthIndex = Math.floor(monthFraction * totalMonths)
       const year = startDate.getFullYear()
-      // debugger;
       if (fieldName === "endDate") {
-        // Last day of the target month
         return new Date(year, Math.min(11, monthIndex), 0)
-      } else  if (fieldName === "startDate"){
-        // First day of the target month
+      } else if (fieldName === "startDate") {
         return new Date(year, Math.min(11, monthIndex), 1)
       }
-    } else{
-
+    } else {
       const dayIndex = Math.min(totalDays, Math.max(0, Math.round((pixel / containerWidth) * totalDays)))
       const calculatedDate = new Date(startDate)
       calculatedDate.setDate(startDate.getDate() + dayIndex)
-  
       return calculatedDate
     }
-
   }
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
@@ -169,11 +162,9 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     let endDateValue: Date
 
     if (range === "Year") {
-      // Use the same logic as pixelToDate for year view
       startDateValue = pixelToDate(startPixel, containerWidth)
       endDateValue = pixelToDate(endPixel, containerWidth, "endDate")
     } else {
-      // Day view logic
       const totalDays = dateList.length - 1
       const dayStartIndex = Math.min(totalDays, Math.max(0, Math.round((startPixel / containerWidth) * totalDays)))
       const dayEndIndex = Math.min(totalDays, Math.max(0, Math.round((endPixel / containerWidth) * totalDays)))
@@ -213,7 +204,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     e.preventDefault()
     e.stopPropagation()
 
-    // Close the phase when resizing starts
+    // Close channels when handle is clicked
     setOpenChannel?.(false)
 
     const startPixel = position
@@ -233,18 +224,6 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   const handleMouseMoveResize = (e: MouseEvent) => {
     if (!isResizing.current) return
     const { startX, startWidth, startPos, direction } = isResizing.current
-
-    // Check if we've moved enough to consider this a resize operation
-    if (dragStartRef.current) {
-      const deltaX = Math.abs(e.clientX - dragStartRef.current.x)
-      const deltaY = Math.abs(e.clientY - dragStartRef.current.y)
-      
-      // If we've moved more than 5 pixels, consider it a resize and close the phase
-      if (deltaX > 5 || deltaY > 5) {
-        setOpenChannel?.(false)
-        dragStartRef.current = null // Clear the reference to prevent multiple calls
-      }
-    }
 
     const gridContainer = document.querySelector(".grid-container")
     if (!gridContainer) return
@@ -290,7 +269,6 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     const startDate = pixelToDate(newPos, containerRect.width, "startDate")
     const endDate = pixelToDate(newPos + newWidth, containerRect.width, "endDate")
 
-    // Buffer the new dates
     newDatesRef.current = { startDate, endDate }
 
     setParentWidth(newWidth)
@@ -304,7 +282,6 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     if (disableDrag) return
     e.preventDefault()
 
-    // Store the initial mouse position to detect if this is a drag or click
     dragStartRef.current = { x: e.clientX, y: e.clientY }
 
     const startPixel = position
@@ -320,15 +297,13 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     if (!isDragging.current) return
     const { startX, startPos } = isDragging.current
 
-    // Check if we've moved enough to consider this a drag operation
     if (dragStartRef.current) {
       const deltaX = Math.abs(e.clientX - dragStartRef.current.x)
       const deltaY = Math.abs(e.clientY - dragStartRef.current.y)
       
-      // If we've moved more than 5 pixels, consider it a drag and close the phase
       if (deltaX > 5 || deltaY > 5) {
         setOpenChannel?.(false)
-        dragStartRef.current = null // Clear the reference to prevent multiple calls
+        dragStartRef.current = null
       }
     }
 
@@ -367,7 +342,6 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     const startDate = pixelToDate(newPosition, containerRect.width, "startDate")
     const endDate = pixelToDate(newPosition + parentWidth, containerRect.width, "endDate")
 
-    // Buffer the new dates
     newDatesRef.current = { startDate, endDate }
 
     setParentLeft(newPosition)
@@ -379,7 +353,6 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   const handleMouseUp = () => {
     setTooltip((prev) => ({ ...prev, visible: false }))
 
-    // Clear the drag start reference
     dragStartRef.current = null
 
     if (newDatesRef.current.startDate && newDatesRef.current.endDate) {
@@ -452,7 +425,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
   return (
     <div
-      className={`relative px-[1px] w-full ${disableDrag ? "h-auto" : "h-14"}  flex select-none rounded-[10px] cont-${id?.replaceAll(" ", "_")}`}
+      className={`relative px-[1px] w-full ${disableDrag ? "h-auto" : "h-14"} flex select-none rounded-[10px] cont-${id?.replaceAll(" ", "_")}`}
       style={{
         transform: `translateX(${position + (range === "Month" ? 4 : 0)}px)`,
       }}
@@ -472,23 +445,26 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         </div>
       )}
       <div
-        className={`relative ${color} ${disableDrag ? "min-h-14" : "h-14"} flex ${disableDrag&& range === "Year" && parentWidth < 150 ? "flex-col" : "flex-row"}  justify-between items-center text-white px-4 py-[10px] gap-2 border shadow-md min-w-[50px] ${
+        className={`relative ${color} ${disableDrag ? "min-h-14" : "h-14"} flex ${disableDrag && range === "Year" && parentWidth < 150 ? "flex-col" : "flex-row"} justify-between items-center text-white px-4 py-[10px] gap-2 border shadow-md min-w-[50px] ${
           disableDrag ? "cursor-default relative" : "cursor-pointer"
-        } rounded-[10px] cont-${id?.replaceAll(" ", "_")}`}
+        } rounded-[10px] cont-${id?.replaceAll(" ", "_")} z-10`}
         style={{
           width: disableDrag ? `${parentWidth + (range === "Month" ? 0 : 0)}px` : parentWidth,
           backgroundColor: color,
           transition: "transform 0.2s ease-out",
         }}
-        onClick={() => setOpenChannel?.(!openChannel)}
         onMouseDown={disableDrag || openItems ? undefined : handleMouseDownDrag}
       >
         {range === "Month" ? (
           <div
             className={`absolute left-0 w-5 h-1/2 bg-opacity-80 ${
               disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
-            } rounded-l-lg text-white flex items-center justify-center`}
-            onMouseDown={(e) => (disableDrag || openItems ? undefined : handleMouseDownResize(e, "left"))}
+            } rounded-l-lg text-white flex items-center justify-center z-50`}
+            onMouseDown={(e) => {
+              if (disableDrag) return
+              setOpenChannel?.(false)
+              handleMouseDownResize(e, "left")
+            }}
           >
             <MdDragHandle className="rotate-90" />
           </div>
@@ -496,21 +472,32 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
           <div
             className={`absolute left-0 w-5 h-full bg-opacity-80 bg-black ${
               disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
-            } rounded-l-lg text-white flex items-center justify-center`}
-            onMouseDown={(e) => (disableDrag || openItems ? undefined : handleMouseDownResize(e, "left"))}
+            } rounded-l-lg text-white flex items-center justify-center z-50`}
+            onMouseDown={(e) => {
+              if (disableDrag) return
+              setOpenChannel?.(false)
+              handleMouseDownResize(e, "left")
+            }}
           >
             <MdDragHandle className="rotate-90" />
           </div>
         )}
         <div />
-        <button className="flex items-center gap-3 w-fit">
+        <button
+          className="flex justify-center items-center gap-5 w-full"
+          onClick={() => {
+            if (!disableDrag) {
+              setOpenChannel?.(!openChannel)
+            }
+          }}
+        >
           {Icon?.src ? <Image src={Icon?.src || "/placeholder.svg"} alt="" width={20} height={20} /> : Icon}
           <span className="font-medium">{description}</span>
           <MdOutlineKeyboardArrowDown />
         </button>
         {!disableDrag && parentWidth && parentWidth >= 350 ? (
           <button
-            className="channel-btn mr-10"
+            className="channel-btn mr-2 w-fit shrink-0"
             onClick={() => {
               setIsOpen?.(true)
               setSelectedStage(description)
@@ -533,7 +520,11 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
             className={`absolute right-0 w-5 h-1/2 bg-opacity-80 ${
               disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
             } rounded-r-lg text-white flex items-center justify-center`}
-            onMouseDown={(e) => (disableDrag || openItems ? undefined : handleMouseDownResize(e, "right"))}
+            onMouseDown={(e) => {
+              if (disableDrag || openItems) return
+              setOpenChannel?.(false)
+              handleMouseDownResize(e, "right")
+            }}
           >
             <MdDragHandle className="rotate-90" />
           </div>
@@ -542,7 +533,11 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
             className={`absolute right-0 w-5 h-full bg-opacity-80 bg-black ${
               disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
             } rounded-r-lg text-white flex items-center justify-center`}
-            onMouseDown={(e) => (disableDrag || openItems ? undefined : handleMouseDownResize(e, "right"))}
+            onMouseDown={(e) => {
+              if (disableDrag || openItems) return
+              setOpenChannel?.(false)
+              handleMouseDownResize(e, "right")
+            }}
           >
             <MdDragHandle className="rotate-90" />
           </div>

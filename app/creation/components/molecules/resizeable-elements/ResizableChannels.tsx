@@ -312,7 +312,7 @@ const ResizableChannels = ({
 
     // Define minimum width based on view type
     const minWidth = rrange === "Year" ? dailyWidth : 50; // For year view, minimum is one month width
-
+ 
     if (direction === "left") {
       // Left edge resize - adjust position and width
       const proposedLeft = Math.max(parentLeft, initialState.left + deltaX)
