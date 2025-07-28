@@ -288,6 +288,12 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 		}
 	};
 
+	// Handle staying on the current page
+	const handleStayOnPage = () => {
+		setShowModal(false); // Close modal
+		onClose(); // Call original onClose
+	};
+
 	// Handle clicking outside the modal to just close it
 	const handleOutsideClick = (e: React.MouseEvent) => {
 		if (e.target === e.currentTarget) {
@@ -302,14 +308,17 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={handleOutsideClick}>
 			<div className="bg-white rounded-2xl p-6 w-[90%] max-w-md shadow-lg" onClick={(e) => e.stopPropagation()}>
 				<h2 className="text-lg font-semibold text-gray-800 mb-2 text-center">Unsaved Changes</h2>
-				<p className="text-sm text-gray-600 mb-1 text-center">If you leave the plan, the progress will be lost</p>
-				<p className="text-sm text-gray-600 mb-8 text-center">Would you like to save your progress?</p>
-				<div className="flex flex-row gap-4">
-					<button className="btn_model_outline w-full" onClick={handleNoClick}>
-						No
-					</button>
+				<p className="text-sm text-gray-600 mb-1 text-center">You have unsaved changes that will be lost if you leave this page.</p>
+				<p className="text-sm text-gray-600 mb-8 text-center">What would you like to do?</p>
+				<div className="flex flex-col gap-3">
 					<button className="btn_model_active w-full" onClick={handleSaveAllSteps}>
-						{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> : "Save"}
+						{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> : "Save & Continue"}
+					</button>
+					<button className="btn_model_outline w-full" onClick={handleNoClick}>
+						Leave Without Saving
+					</button>
+					<button className="btn_model_outline w-full" onClick={handleStayOnPage}>
+						Stay on This Page
 					</button>
 				</div>
 			</div>
