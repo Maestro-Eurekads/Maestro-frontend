@@ -40,13 +40,17 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
   const gridTemplateColumns = useCallback(() => {
     if (monthCount === 0) return "1fr"
     
-    if (monthCount > 2) {
-      // When more than 2 months, use proportional sizing based on actual days
+    if (monthCount > 3) {
+      // When more than 3 months, each month takes at least 20% of container
       return Object.values(daysInMonth)
-        .map((days) => `${Math.round((days / totalDays) * 100)}%`)
+        .map((days) => {
+          const proportionalWidth = (days / totalDays) * 100;
+          const monthWidth = Math.max(proportionalWidth, 20); // Minimum 20%
+          return `${Math.round(monthWidth)}%`;
+        })
         .join(" ")
     } else {
-      // For 1-2 months, use proportional logic
+      // For 3 or fewer months, use proportional logic
       return Object.values(daysInMonth)
         .map((days) => `${Math.round((days / totalDays) * 100)}%`)
         .join(" ")

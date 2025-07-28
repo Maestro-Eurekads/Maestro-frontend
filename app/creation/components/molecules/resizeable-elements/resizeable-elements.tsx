@@ -358,52 +358,36 @@ const ResizeableElements = ({
       const months = eachMonthOfInterval({ start: startDate, end: endDate });
       return `repeat(${months.length}, ${dailyWidth}px)`;
     } else {
-      // Month view logic (existing)
-      if (Object.keys(monthsByYear).length > 0) {
-        const columnDefinitions: string[] = [];
-        const sortedYears = Object.keys(monthsByYear).sort();
-
-        sortedYears.forEach((year) => {
-          const monthsInYear = monthsByYear[year];
-          const monthOrder = [
-            "January",
-            "February",
-            "March",
-            "April",
-            "May",
-            "June",
-            "July",
-            "August",
-            "September",
-            "October",
-            "November",
-            "December",
-          ];
-
-          monthOrder.forEach((month) => {
-            if (monthsInYear[month]) {
-              const daysInThisMonth = monthsInYear[month];
-              for (let i = 0; i < daysInThisMonth; i++) {
-                columnDefinitions.push(`${dailyWidth}px`);
-              }
-            }
-          });
-        });
-
-        return columnDefinitions.join(" ");
-      }
-
+      // Month view - use proportional logic like MonthInterval
       const months = Object.keys(daysInEachMonth);
       if (months.length === 0)
         return `repeat(${funnelData?.endDay || 30}, ${dailyWidth}px)`;
 
+      // Calculate total days for proportional sizing (same as MonthInterval)
+      const totalDays = Object.values(daysInEachMonth).reduce(
+        (sum: number, days: number) => sum + days,
+        0
+      );
+
+      // Generate proportional column definitions with minimum width constraint
       const columnDefinitions: string[] = [];
-      months.forEach((month) => {
-        const daysInThisMonth = daysInEachMonth[month];
-        for (let i = 0; i < daysInThisMonth; i++) {
-          columnDefinitions.push(`${dailyWidth}px`);
-        }
-      });
+      
+      if (months.length > 3) {
+        // When more than 3 months, each month takes at least 20% of container
+        months.forEach((month) => {
+          const daysInThisMonth = daysInEachMonth[month];
+          const proportionalWidth = (daysInThisMonth / totalDays) * 100;
+          const monthWidth = Math.max(proportionalWidth, 20); // Minimum 20%
+          columnDefinitions.push(`${Math.round(monthWidth)}%`);
+        });
+      } else {
+        // For 3 or fewer months, use proportional sizing
+        months.forEach((month) => {
+          const daysInThisMonth = daysInEachMonth[month];
+          const monthWidth = Math.round((daysInThisMonth / totalDays) * 100);
+          columnDefinitions.push(`${monthWidth}%`);
+        });
+      }
 
       return columnDefinitions.join(" ");
     }
@@ -427,12 +411,9 @@ const ResizeableElements = ({
       const months = eachMonthOfInterval({ start: startDate, end: endDate });
       return months; // 12 months
     } else {
-      // Month view
-      const totalDays = Object.values(daysInEachMonth).reduce(
-        (sum: number, days: number) => sum + days,
-        0
-      );
-      return totalDays || funnelData?.endDay || 30;
+      // Month view - return number of months for proportional grid
+      const months = Object.keys(daysInEachMonth);
+      return months.length || 1;
     }
   }, [rrange, funnelData?.endDay, funnelData?.endWeek, daysInEachMonth]);
 
@@ -602,31 +583,53 @@ const ResizeableElements = ({
                 return `${dailyGridSize}, calc(${dailyWidth * totalDays
                   }px) 100%`;
               } else if (rrange === "Month") {
-                // Month view - calculate month boundary positions
+                // Month view - calculate month boundary positions using proportional logic
                 const months = Object.keys(daysInEachMonth);
                 if (months.length === 0) {
-                  return `${dailyWidth}px 100%`;
+                  return `100% 100%`;
                 }
 
-                let cumulativeDays = 0;
+                // Calculate total days for proportional sizing (same as MonthInterval)
+                const totalDays = Object.values(daysInEachMonth).reduce(
+                  (sum: number, days: number) => sum + days,
+                  0
+                );
+
+                let cumulativePercentage = 0;
                 const monthBoundaryPositions: string[] = [];
 
-                months.forEach((month, index) => {
-                  const daysInThisMonth = daysInEachMonth[month];
-                  cumulativeDays += daysInThisMonth;
+                if (months.length > 3) {
+                  // When more than 3 months, each month takes at least 20%
+                  months.forEach((month, index) => {
+                    const daysInThisMonth = daysInEachMonth[month];
+                    const proportionalWidth = (daysInThisMonth / totalDays) * 100;
+                    const monthPercentage = Math.max(proportionalWidth, 20); // Minimum 20%
+                    cumulativePercentage += monthPercentage;
 
-                  if (index < months.length - 1) {
-                    // Calculate the position where this month ends
-                    const monthEndPosition = cumulativeDays * dailyWidth;
-                    monthBoundaryPositions.push(`${monthEndPosition - 5}px 100%`);
-                  }
-                });
+                    if (index < months.length - 1) {
+                      // Calculate the position where this month ends using percentage
+                      monthBoundaryPositions.push(`${Math.round(cumulativePercentage)}% 100%`);
+                    }
+                  });
+                } else {
+                  // For 3 or fewer months, use proportional sizing
+                  months.forEach((month, index) => {
+                    const daysInThisMonth = daysInEachMonth[month];
+                    const monthPercentage = (daysInThisMonth / totalDays) * 100;
+                    cumulativePercentage += monthPercentage;
+
+                    if (index < months.length - 1) {
+                      // Calculate the position where this month ends using percentage
+                      monthBoundaryPositions.push(`${cumulativePercentage}% 100%`);
+                    }
+                  });
+                }
 
                 return monthBoundaryPositions.length > 0 
                   ? monthBoundaryPositions.join(", ")
-                  : `${dailyWidth -10}px 100%`;
+                  : `100% 100%`;
               } else {
-                return `${dailyWidth -10}px 100%`;
+                return `${dailyWidth}px 100%`;
               }
             })(),
           }),
