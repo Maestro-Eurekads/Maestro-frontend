@@ -85,6 +85,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   const { campaignFormData, setCampaignFormData } = useCampaigns()
   const { range } = useDRange()
   const { range: rrange, extendRange } = useDateRange()
+  const dragStartRef = useRef<{ x: number; y: number } | null>(null)
 
   const [tooltip, setTooltip] = useState<TooltipState>({
     visible: false,
@@ -212,6 +213,9 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     e.preventDefault()
     e.stopPropagation()
 
+    // Close the phase when resizing starts
+    setOpenChannel?.(false)
+
     const startPixel = position
     const endPixel = startPixel + (parentWidth || 0)
     updateTooltipWithDates(startPixel, endPixel, e.clientX, e.clientY, "resize")
@@ -229,6 +233,18 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   const handleMouseMoveResize = (e: MouseEvent) => {
     if (!isResizing.current) return
     const { startX, startWidth, startPos, direction } = isResizing.current
+
+    // Check if we've moved enough to consider this a resize operation
+    if (dragStartRef.current) {
+      const deltaX = Math.abs(e.clientX - dragStartRef.current.x)
+      const deltaY = Math.abs(e.clientY - dragStartRef.current.y)
+      
+      // If we've moved more than 5 pixels, consider it a resize and close the phase
+      if (deltaX > 5 || deltaY > 5) {
+        setOpenChannel?.(false)
+        dragStartRef.current = null // Clear the reference to prevent multiple calls
+      }
+    }
 
     const gridContainer = document.querySelector(".grid-container")
     if (!gridContainer) return
@@ -288,6 +304,9 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     if (disableDrag) return
     e.preventDefault()
 
+    // Store the initial mouse position to detect if this is a drag or click
+    dragStartRef.current = { x: e.clientX, y: e.clientY }
+
     const startPixel = position
     const endPixel = startPixel + parentWidth
     updateTooltipWithDates(startPixel, endPixel, e.clientX, e.clientY, "drag")
@@ -300,6 +319,18 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   const handleMouseMoveDrag = (e: MouseEvent) => {
     if (!isDragging.current) return
     const { startX, startPos } = isDragging.current
+
+    // Check if we've moved enough to consider this a drag operation
+    if (dragStartRef.current) {
+      const deltaX = Math.abs(e.clientX - dragStartRef.current.x)
+      const deltaY = Math.abs(e.clientY - dragStartRef.current.y)
+      
+      // If we've moved more than 5 pixels, consider it a drag and close the phase
+      if (deltaX > 5 || deltaY > 5) {
+        setOpenChannel?.(false)
+        dragStartRef.current = null // Clear the reference to prevent multiple calls
+      }
+    }
 
     const gridContainer = document.querySelector(".grid-container")
     if (!gridContainer) return
@@ -347,6 +378,9 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
   const handleMouseUp = () => {
     setTooltip((prev) => ({ ...prev, visible: false }))
+
+    // Clear the drag start reference
+    dragStartRef.current = null
 
     if (newDatesRef.current.startDate && newDatesRef.current.endDate) {
       const { startDate, endDate } = newDatesRef.current

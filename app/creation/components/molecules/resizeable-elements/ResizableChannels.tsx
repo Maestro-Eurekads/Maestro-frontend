@@ -276,6 +276,9 @@ const ResizableChannels = ({
     e.preventDefault()
     e.stopPropagation()
 
+    // Close the adset modal when resizing starts
+    setOpenAdset(false)
+
     // Store the initial state for this resize operation
     isResizing.current = {
       startX: e.clientX,
@@ -559,6 +562,10 @@ const ResizableChannels = ({
   const handleDragStart = (index) => (event) => {
     if (disableDrag) return;
     event.preventDefault();
+    
+    // Close the adset modal when dragging starts
+    setOpenAdset(false);
+    
     setDraggingPosition({
       index,
       startX: event.clientX,
