@@ -266,9 +266,8 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
             </div>
             <div className="flex-1 flex justify-end">
               <p
-                className={`font-[600] text-[22px] leading-[20px] ${
-                  Number(calculateRemainingBudget()) < 1 ? "text-red-500" : "text-[#00A36C]"
-                }`}
+                className={`font-[600] text-[22px] leading-[20px] ${Number(calculateRemainingBudget()) < 1 ? "text-red-500" : "text-[#00A36C]"
+                  }`}
               >
                 Remaining budget: {getCurrencySymbol(selectedOption.value)}
                 {formatNumberWithCommas(calculateRemainingBudget())}
@@ -305,7 +304,9 @@ export const BudgetOverviewSection = () => {
 
   function extractPlatforms(data) {
     const platforms = []
-    data?.channel_mix?.forEach((stage) => {
+    if (!Array.isArray(data?.channel_mix)) return;
+
+    data.channel_mix.forEach((stage) => {
       const stageName = stage?.funnel_stage
       const stageBudget = Number.parseFloat(stage?.stage_budget?.fixed_value)
       mediaTypes?.forEach((channelType) => {
@@ -358,10 +359,9 @@ export const BudgetOverviewSection = () => {
   }, [campaignFormData])
 
   const allocatedBudget = useMemo(() => {
-    return (
-      campaignFormData?.channel_mix?.reduce((acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0), 0) ||
-      0
-    )
+    return Array.isArray(campaignFormData?.channel_mix)
+      ? campaignFormData.channel_mix.reduce((acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0), 0)
+      : 0
   }, [campaignFormData?.channel_mix])
 
   // FIXED: Calculate total campaign budget correctly - this should be the media budget amount only
@@ -419,7 +419,7 @@ export const BudgetOverviewSection = () => {
   }, [totalCampaignBudget, campaignFormData?.campaign_budget?.currency])
 
   const campaignPhases = useMemo(() => {
-    if (!campaignFormData?.channel_mix) return []
+    if (!Array.isArray(campaignFormData?.channel_mix)) return []
     const netAvailable = calculateNetAvailableBudget()
     if (netAvailable === 0) return []
     return campaignFormData.channel_mix

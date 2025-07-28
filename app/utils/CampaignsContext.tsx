@@ -147,6 +147,92 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       const campaignId = cId || docId;
       if (!campaignId) return;
 
+      // Clear localStorage if switching to a different campaign
+      const clearCampaignData = () => {
+        if (typeof window === "undefined") return;
+        try {
+          // Clear sessionStorage for channel state
+          const keysToRemove: string[] = [];
+          for (let i = 0; i < sessionStorage.length; i++) {
+            const key = sessionStorage.key(i);
+            if (key && key.startsWith("channelLevelAudienceState_")) {
+              keysToRemove.push(key);
+            }
+          }
+          keysToRemove.forEach((key) => sessionStorage.removeItem(key));
+
+          // Clear window channel state
+          if ((window as any).channelLevelAudienceState) {
+            Object.keys((window as any).channelLevelAudienceState).forEach((stageName) => {
+              delete (window as any).channelLevelAudienceState[stageName];
+            });
+          }
+
+          // Clear all localStorage items related to campaign creation
+          const localStorageKeysToRemove = [
+            "campaignFormData",
+            "filteredClient",
+            "selectedOptions",
+            "funnelStageStatuses",
+            "seenFunnelStages",
+            "formatSelectionOpenTabs",
+            "step1_validated",
+            "active",
+            "change",
+            "comments",
+            "subStep",
+            "verifybeforeMove"
+          ];
+
+          // Remove campaign-specific localStorage items
+          localStorageKeysToRemove.forEach(key => {
+            localStorage.removeItem(key);
+          });
+
+          // Remove quantities-related localStorage items (format selection)
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith("quantities_")) {
+              localStorage.removeItem(key);
+            }
+          });
+
+          // Remove modal dismissal keys
+          Object.keys(localStorage).forEach(key => {
+            if (key.includes("modal_dismissed") || key.includes("goalLevelModalDismissed")) {
+              localStorage.removeItem(key);
+            }
+          });
+
+          // Remove format error trigger keys
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith("triggerFormatError_")) {
+              localStorage.removeItem(key);
+            }
+          });
+
+          // Remove channel mix related localStorage items
+          Object.keys(localStorage).forEach(key => {
+            if (key.includes("openItems") ||
+              key.includes("selected") ||
+              key.includes("stageStatuses") ||
+              key.includes("showMoreMap") ||
+              key.includes("openChannelTypes")) {
+              localStorage.removeItem(key);
+            }
+          });
+
+          console.log("Cleared all campaign data when switching campaigns");
+        } catch (error) {
+          console.error("Error clearing campaign data:", error);
+        }
+      };
+
+      // Check if we're switching to a different campaign
+      const currentCampaignId = campaignFormData?.cId;
+      if (currentCampaignId && currentCampaignId !== campaignId) {
+        clearCampaignData();
+      }
+
       try {
         setLoadingCampaign(true);
 
@@ -193,8 +279,11 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         setCampaignData(data);
         setHeaderData(data?.table_headers || {});
         setCampaignFormData((prev) => {
-          // Preserve local form data if it exists and has content
-          const hasLocalData = prev && Object.keys(prev).length > 0;
+          // Check if we're loading a different campaign than what's currently loaded
+          const isDifferentCampaign = prev?.cId !== cId;
+
+          // If it's a different campaign, don't preserve local data
+          const shouldPreserveLocalData = !isDifferentCampaign && prev && Object.keys(prev).length > 0;
 
           return {
             ...prev,
@@ -212,7 +301,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
                 value: data?.client_selection?.level_1.value ?? prev.level_1?.value,
               }
               : prev.level_1,
-            media_plan: hasLocalData && prev.media_plan ? prev.media_plan : (data?.media_plan_details?.plan_name ?? prev.media_plan),
+            media_plan: shouldPreserveLocalData && prev.media_plan ? prev.media_plan : (data?.media_plan_details?.plan_name ?? prev.media_plan),
             budget_details_currency: {
               id: data?.budget_details?.currency,
               value: data?.budget_details?.currency,
@@ -230,13 +319,13 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
               data?.media_plan_details?.approved_by ?? prev.approved_by,
             campaign_objectives:
               data?.campaign_objective ?? prev.campaign_objectives,
-            funnel_stages: hasLocalData && prev.funnel_stages && prev.funnel_stages.length > 0 ? prev.funnel_stages : (data?.funnel_stages ?? prev.funnel_stages),
-            channel_mix: hasLocalData && prev.channel_mix && Object.keys(prev.channel_mix).length > 0 ? prev.channel_mix : (data?.channel_mix ?? prev.channel_mix),
+            funnel_stages: shouldPreserveLocalData && prev.funnel_stages && prev.funnel_stages.length > 0 ? prev.funnel_stages : (data?.funnel_stages ?? prev.funnel_stages),
+            channel_mix: shouldPreserveLocalData && prev.channel_mix && Object.keys(prev.channel_mix).length > 0 ? prev.channel_mix : (data?.channel_mix ?? prev.channel_mix),
             campaign_timeline_start_date:
-              hasLocalData && prev.campaign_timeline_start_date ? prev.campaign_timeline_start_date : (data?.campaign_timeline_start_date ?? ""),
+              shouldPreserveLocalData && prev.campaign_timeline_start_date ? prev.campaign_timeline_start_date : (data?.campaign_timeline_start_date ?? ""),
             campaign_timeline_end_date:
-              hasLocalData && prev.campaign_timeline_end_date ? prev.campaign_timeline_end_date : (data?.campaign_timeline_end_date ?? ""),
-            campaign_budget: prev.campaign_budget ? prev.campaign_budget : data?.campaign_budget,
+              shouldPreserveLocalData && prev.campaign_timeline_end_date ? prev.campaign_timeline_end_date : (data?.campaign_timeline_end_date ?? ""),
+            campaign_budget: shouldPreserveLocalData && prev.campaign_budget ? prev.campaign_budget : data?.campaign_budget,
             goal_level: data?.goal_level ?? prev.goal_level,
             progress_percent: data?.progress_percent ?? prev.progress_percent,
             custom_funnels: data?.custom_funnels ?? prev.custom_funnels,
@@ -264,7 +353,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         setLoadingCampaign(false);
       }
     },
-    [cId]
+    [cId, campaignFormData?.cId]
   );
 
   const createCampaign = useCallback(async () => {
