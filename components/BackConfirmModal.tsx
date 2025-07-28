@@ -21,11 +21,10 @@ import { reset } from "features/Client/clientSlice";
 interface BackConfirmModalProps {
 	isOpen: boolean;
 	onClose: () => void;
-	onConfirm: () => void;
 	onNavigate?: (url?: string) => void; // optional navigation handler
 }
 
-const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, onConfirm, onNavigate }) => {
+const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, onNavigate }) => {
 	const { isClient, loggedInUser } = useUserPrivileges();
 	const [loading, setLoading] = useState(false);
 	const { change, setChange, showModal, setShowModal } = useActive();
@@ -33,9 +32,10 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 	const router = useRouter();
 	const dispatch = useAppDispatch();
 
-	const clearChannelStateForNewCampaign = () => {
+	const clearAllCampaignData = () => {
 		if (typeof window === "undefined") return;
 		try {
+			// Clear sessionStorage for channel state
 			const keysToRemove: string[] = [];
 			for (let i = 0; i < sessionStorage.length; i++) {
 				const key = sessionStorage.key(i);
@@ -44,14 +44,70 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 				}
 			}
 			keysToRemove.forEach((key) => sessionStorage.removeItem(key));
+
+			// Clear window channel state
 			if ((window as any).channelLevelAudienceState) {
 				Object.keys((window as any).channelLevelAudienceState).forEach((stageName) => {
 					delete (window as any).channelLevelAudienceState[stageName];
 				});
 			}
-			console.log("Cleared all channel state for new campaign");
+
+			// Clear all localStorage items related to campaign creation
+			const localStorageKeysToRemove = [
+				"campaignFormData",
+				"filteredClient",
+				"selectedOptions",
+				"funnelStageStatuses",
+				"seenFunnelStages",
+				"formatSelectionOpenTabs",
+				"step1_validated",
+				"active",
+				"change",
+				"comments",
+				"subStep",
+				"verifybeforeMove"
+			];
+
+			// Remove campaign-specific localStorage items
+			localStorageKeysToRemove.forEach(key => {
+				localStorage.removeItem(key);
+			});
+
+			// Remove quantities-related localStorage items (format selection)
+			Object.keys(localStorage).forEach(key => {
+				if (key.startsWith("quantities_")) {
+					localStorage.removeItem(key);
+				}
+			});
+
+			// Remove modal dismissal keys
+			Object.keys(localStorage).forEach(key => {
+				if (key.includes("modal_dismissed") || key.includes("goalLevelModalDismissed")) {
+					localStorage.removeItem(key);
+				}
+			});
+
+			// Remove format error trigger keys
+			Object.keys(localStorage).forEach(key => {
+				if (key.startsWith("triggerFormatError_")) {
+					localStorage.removeItem(key);
+				}
+			});
+
+			// Remove channel mix related localStorage items
+			Object.keys(localStorage).forEach(key => {
+				if (key.includes("openItems") ||
+					key.includes("selected") ||
+					key.includes("stageStatuses") ||
+					key.includes("showMoreMap") ||
+					key.includes("openChannelTypes")) {
+					localStorage.removeItem(key);
+				}
+			});
+
+			console.log("Cleared all campaign data from localStorage and sessionStorage");
 		} catch (error) {
-			console.error("Error clearing channel state:", error);
+			console.error("Error clearing campaign data:", error);
 		}
 	};
 
@@ -76,7 +132,18 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 	} = useCampaigns();
 
 	const handleSaveAllSteps = async () => {
+		// Use the same validation logic as Bottom component handleContinue
+		// Step 0 validation (Setup Screen)
+		if (!campaignFormData?.media_plan) {
+			toast.error("Media Plan name is required");
+			return;
+		}
+		if (!campaignFormData?.budget_details_currency?.id) {
+			toast.error("Currency is required");
+			return;
+		}
 		setLoading(true);
+
 		try {
 			const cleanedFormData = {
 				...campaignFormData,
@@ -150,7 +217,7 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 				setViewcommentsId("");
 				setCampaignData(null);
 				router.push("/");
-				clearChannelStateForNewCampaign?.();
+				clearAllCampaignData?.();
 			} else {
 				const response = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`, payload, config);
 
@@ -177,7 +244,7 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 				setViewcommentsId("");
 				setCampaignData(null);
 				router.push("/");
-				clearChannelStateForNewCampaign?.();
+				clearAllCampaignData?.();
 			}
 		} catch (error: any) {
 			if (error?.response?.status === 401) {
@@ -214,18 +281,26 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 	const handleNoClick = () => {
 		setChange(false); // Reset change state
 		setShowModal(false); // Close modal
-		localStorage.removeItem("campaignFormData"); // Clear the draft
+		clearAllCampaignData(); // Clear all campaign data
 		onClose(); // Call original onClose
 		if (onNavigate) {
 			onNavigate(); // Navigate to intended route if provided
 		}
 	};
 
+	// Handle clicking outside the modal to just close it
+	const handleOutsideClick = (e: React.MouseEvent) => {
+		if (e.target === e.currentTarget) {
+			setShowModal(false);
+			// Don't call onClose() to avoid navigation
+		}
+	};
+
 	if (!isOpen) return null;
 
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-			<div className="bg-white rounded-2xl p-6 w-[90%] max-w-md shadow-lg">
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={handleOutsideClick}>
+			<div className="bg-white rounded-2xl p-6 w-[90%] max-w-md shadow-lg" onClick={(e) => e.stopPropagation()}>
 				<h2 className="text-lg font-semibold text-gray-800 mb-2 text-center">Unsaved Changes</h2>
 				<p className="text-sm text-gray-600 mb-1 text-center">If you leave the plan, the progress will be lost</p>
 				<p className="text-sm text-gray-600 mb-8 text-center">Would you like to save your progress?</p>

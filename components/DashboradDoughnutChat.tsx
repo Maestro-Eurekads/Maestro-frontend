@@ -11,7 +11,8 @@ import {
 } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
 import { useRef } from "react";
-import { distinctColorPalette, isHexColor, tailwindToHex } from "./Options";
+import { distinctColorPalette } from "./Options";
+import { getFunnelColorFromCampaign, isHexColor, tailwindClassToHex } from "utils/funnelColorUtils";
 
 ChartJS.register(
   CategoryScale,
@@ -39,17 +40,16 @@ const DashboradDoughnutChat = ({
 
   console.log('campaign---->', campaign)
 
-  // Handle funnel_stages as either strings or objects
-  const funnelStages = campaign?.funnel_stages || [];
-  const customFunnels = campaign?.custom_funnels || [];
+  // Get funnel stages from channel_mix instead of funnel_stages for consistency
+  const funnelStages = campaign?.channel_mix?.map((ch: any) => ch?.funnel_stage) || [];
 
   // Map selected funnel stages to their funnel objects, maintaining order
   const selectedFunnels = funnelStages
-    .map((stage: any) => {
-      const stageName = typeof stage === "string" ? stage : stage?.name;
+    .map((stageName: string) => {
+      const color = getFunnelColorFromCampaign(stageName, campaign);
       return {
         name: stageName,
-        color: customFunnels.find((f) => f.name === stageName)?.color || "#6B7280", // fallback to gray
+        color: color,
       };
     });
 
@@ -64,7 +64,7 @@ const DashboradDoughnutChat = ({
       let color = funnel.color;
 
       // Convert Tailwind class (e.g. bg-blue-500) to hex
-      const colorHex = isHexColor(color) ? color : tailwindToHex[color] || "#6B7280";
+      const colorHex = isHexColor(color) ? color : tailwindClassToHex(color) || "#6B7280";
 
       // Ensure color uniqueness
       if (usedColors.has(colorHex)) {

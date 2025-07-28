@@ -23,6 +23,7 @@ import { useDateRange } from "src/date-context"
 import Range from "app/creation/components/atoms/date-range/dashboard-date-range"
 import TimelineContainer from "app/creation/components/atoms/date-interval/TimelineContainer"
 import DashboradDoughnutChat from "components/DashboradDoughnutChat"
+import { getFunnelColorFromCampaign } from "utils/funnelColorUtils"
 
 const Dashboard = () => {
   const [channels, setChannels] = useState<IChannel[]>([])
@@ -158,10 +159,11 @@ const Dashboard = () => {
 
   // Helper to get funnel color by stage name
   function getFunnelColor(stage: string) {
-    if (stage === "Awareness") return "#3175FF"
-    if (stage === "Consideration") return "#00A36C"
-    if (stage === "Conversion") return "#FF9037"
-    return "#F05406"
+    // Find the campaign that contains this stage
+    const campaign = clientCampaignData?.find(c =>
+      c?.channel_mix?.some(ch => ch?.funnel_stage === stage)
+    );
+    return getFunnelColorFromCampaign(stage, campaign);
   }
 
   // Helper to get funnel stages for DoughnutChat

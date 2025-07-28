@@ -50,7 +50,9 @@ export const EstablishedGoals = () => {
 
   function extractPlatforms(data) {
     const platforms = [];
-    data?.channel_mix?.forEach((stage) => {
+    if (!Array.isArray(data?.channel_mix)) return;
+
+    data.channel_mix.forEach((stage) => {
       const stageName = stage?.funnel_stage;
       const stageBudget = parseFloat(stage?.stage_budget?.fixed_value);
       mediaTypes?.forEach((channelType) => {

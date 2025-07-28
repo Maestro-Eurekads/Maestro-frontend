@@ -203,7 +203,14 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     // Step 7: Plan campaign schedule - Start and end dates must be selected
     if (active === 7) {
-      const isValidDate = (d) => typeof d === 'string' && d.length === 10 && /^\d{4}-\d{2}-\d{2}$/.test(d);
+      const isValidDate = (d) => {
+        // Allow null, undefined, or empty string for dates that haven't been set yet
+        if (!d || d === "" || d === null || d === undefined) {
+          return false;
+        }
+        // Check if it's a valid date string in yyyy-MM-dd format
+        return typeof d === 'string' && d.length === 10 && /^\d{4}-\d{2}-\d{2}$/.test(d);
+      };
       if (!isValidDate(campaignFormData?.campaign_timeline_start_date) || !isValidDate(campaignFormData?.campaign_timeline_end_date)) {
         toast.error("Please select both start and end dates before proceeding!");
         return;
