@@ -1,7 +1,3 @@
-// 
-
-
-
 "use client";
 import React, { useState, useEffect } from "react";
 import { useCampaigns } from "app/utils/CampaignsContext";
@@ -152,10 +148,74 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 				approved_by: campaignFormData?.approved_by || [],
 			};
 
-			const objectives = await extractObjectives(cleanedFormData);
+			// Validate and format dates
+			const validateAndFormatDates = (data) => {
+				const isValidDate = (d) => {
+					if (!d || d === "" || d === null || d === undefined) {
+						return null;
+					}
+					// Check if it's already in yyyy-MM-dd format
+					if (typeof d === 'string' && d.length === 10 && /^\d{4}-\d{2}-\d{2}$/.test(d)) {
+						return d;
+					}
+					// Try to parse and format the date
+					try {
+						const date = new Date(d);
+						if (isNaN(date.getTime())) {
+							return null;
+						}
+						return date.toISOString().split('T')[0]; // Convert to yyyy-MM-dd format
+					} catch (error) {
+						return null;
+					}
+				};
+
+				// Deep clone to avoid mutating original data
+				const validatedData = JSON.parse(JSON.stringify(data));
+
+				// Validate main campaign dates
+				validatedData.campaign_timeline_start_date = isValidDate(data?.campaign_timeline_start_date);
+				validatedData.campaign_timeline_end_date = isValidDate(data?.campaign_timeline_end_date);
+
+				// Validate nested dates in channel_mix
+				if (Array.isArray(validatedData.channel_mix)) {
+					validatedData.channel_mix = validatedData.channel_mix.map(stage => {
+						const validatedStage = { ...stage };
+
+						// Validate stage timeline dates
+						validatedStage.funnel_stage_timeline_start_date = isValidDate(stage?.funnel_stage_timeline_start_date);
+						validatedStage.funnel_stage_timeline_end_date = isValidDate(stage?.funnel_stage_timeline_end_date);
+
+						// Validate dates in all media types
+						const mediaTypes = [
+							'social_media', 'display_networks', 'search_engines', 'streaming', 'ooh',
+							'broadcast', 'messaging', 'print', 'e_commerce', 'in_game', 'mobile'
+						];
+
+						mediaTypes.forEach(mediaType => {
+							if (Array.isArray(validatedStage[mediaType])) {
+								validatedStage[mediaType] = validatedStage[mediaType].map(platform => ({
+									...platform,
+									campaign_start_date: isValidDate(platform?.campaign_start_date),
+									campaign_end_date: isValidDate(platform?.campaign_end_date),
+								}));
+							}
+						});
+
+						return validatedStage;
+					});
+				}
+
+				return validatedData;
+			};
+
+			// Apply date validation and formatting
+			const validatedFormData = validateAndFormatDates(cleanedFormData);
+
+			const objectives = await extractObjectives(validatedFormData);
 			const selectedMetrics = await getFilteredMetrics(objectives);
 
-			const channelMixCleaned = removeKeysRecursively(cleanedFormData?.channel_mix, [
+			const channelMixCleaned = removeKeysRecursively(validatedFormData?.channel_mix, [
 				"id",
 				"isValidated",
 				"formatValidated",
@@ -164,39 +224,39 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 				"_aggregated",
 			]);
 
-			const campaignBudgetCleaned = removeKeysRecursively(cleanedFormData?.campaign_budget, ["id"]);
+			const campaignBudgetCleaned = removeKeysRecursively(validatedFormData?.campaign_budget, ["id"]);
 
 			const payload = {
 				data: {
 					campaign_builder: loggedInUser?.id,
-					client: cleanedFormData?.client_selection?.id,
+					client: validatedFormData?.client_selection?.id,
 					client_selection: {
-						client: cleanedFormData?.client_selection?.value,
-						level_1: cleanedFormData?.level_1,
+						client: validatedFormData?.client_selection?.value,
+						level_1: validatedFormData?.level_1,
 					},
 					media_plan_details: {
-						plan_name: cleanedFormData?.media_plan,
-						internal_approver: cleanedFormData.internal_approver.map((item: any) => Number(item.id)),
-						client_approver: cleanedFormData.client_approver.map((item: any) => Number(item.id)),
-						approved_by: cleanedFormData.approved_by.map((item: any) => Number(item.id)),
+						plan_name: validatedFormData?.media_plan,
+						internal_approver: validatedFormData.internal_approver.map((item: any) => Number(item.id)),
+						client_approver: validatedFormData.client_approver.map((item: any) => Number(item.id)),
+						approved_by: validatedFormData.approved_by.map((item: any) => Number(item.id)),
 					},
 					budget_details: {
-						currency: cleanedFormData?.budget_details_currency?.id || "EUR",
-						value: cleanedFormData?.country_details?.id,
+						currency: validatedFormData?.budget_details_currency?.id || "EUR",
+						value: validatedFormData?.country_details?.id,
 					},
 					campaign_budget: {
 						...campaignBudgetCleaned,
-						currency: cleanedFormData?.budget_details_currency?.id || "EUR",
+						currency: validatedFormData?.budget_details_currency?.id || "EUR",
 					},
-					funnel_stages: cleanedFormData?.funnel_stages,
+					funnel_stages: validatedFormData?.funnel_stages,
 					channel_mix: channelMixCleaned,
-					custom_funnels: cleanedFormData?.custom_funnels,
-					funnel_type: cleanedFormData?.funnel_type,
+					custom_funnels: validatedFormData?.custom_funnels,
+					funnel_type: validatedFormData?.funnel_type,
 					table_headers: objectives || {},
 					selected_metrics: selectedMetrics || {},
-					goal_level: cleanedFormData?.goal_level,
-					campaign_timeline_start_date: cleanedFormData?.campaign_timeline_start_date,
-					campaign_timeline_end_date: cleanedFormData?.campaign_timeline_end_date,
+					goal_level: validatedFormData?.goal_level,
+					campaign_timeline_start_date: validatedFormData?.campaign_timeline_start_date,
+					campaign_timeline_end_date: validatedFormData?.campaign_timeline_end_date,
 					agency_profile: agencyId,
 				},
 			};
@@ -216,8 +276,13 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 				setOpportunities([]);
 				setViewcommentsId("");
 				setCampaignData(null);
-				router.push("/");
 				clearAllCampaignData?.();
+				// Use onNavigate if provided, otherwise navigate to home
+				if (onNavigate) {
+					onNavigate();
+				} else {
+					router.push("/");
+				}
 			} else {
 				const response = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`, payload, config);
 
@@ -243,8 +308,13 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 				setOpportunities([]);
 				setViewcommentsId("");
 				setCampaignData(null);
-				router.push("/");
 				clearAllCampaignData?.();
+				// Use onNavigate if provided, otherwise navigate to home
+				if (onNavigate) {
+					onNavigate();
+				} else {
+					router.push("/");
+				}
 			}
 		} catch (error: any) {
 			if (error?.response?.status === 401) {
@@ -282,10 +352,17 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 		setChange(false); // Reset change state
 		setShowModal(false); // Close modal
 		clearAllCampaignData(); // Clear all campaign data
-		onClose(); // Call original onClose
 		if (onNavigate) {
 			onNavigate(); // Navigate to intended route if provided
+		} else {
+			onClose(); // Fallback to onClose if no onNavigate provided
 		}
+	};
+
+	// Handle staying on the current page
+	const handleStayOnPage = () => {
+		setShowModal(false); // Close modal
+		onClose(); // Call original onClose
 	};
 
 	// Handle clicking outside the modal to just close it
@@ -302,14 +379,17 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={handleOutsideClick}>
 			<div className="bg-white rounded-2xl p-6 w-[90%] max-w-md shadow-lg" onClick={(e) => e.stopPropagation()}>
 				<h2 className="text-lg font-semibold text-gray-800 mb-2 text-center">Unsaved Changes</h2>
-				<p className="text-sm text-gray-600 mb-1 text-center">If you leave the plan, the progress will be lost</p>
-				<p className="text-sm text-gray-600 mb-8 text-center">Would you like to save your progress?</p>
-				<div className="flex flex-row gap-4">
-					<button className="btn_model_outline w-full" onClick={handleNoClick}>
-						No
-					</button>
+				<p className="text-sm text-gray-600 mb-1 text-center">You have unsaved changes that will be lost if you leave this page.</p>
+				<p className="text-sm text-gray-600 mb-8 text-center">What would you like to do?</p>
+				<div className="flex flex-col gap-3">
 					<button className="btn_model_active w-full" onClick={handleSaveAllSteps}>
-						{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> : "Save"}
+						{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> : "Save & Continue"}
+					</button>
+					<button className="btn_model_outline w-full" onClick={handleNoClick}>
+						Leave Without Saving
+					</button>
+					<button className="btn_model_outline w-full" onClick={handleStayOnPage}>
+						Stay on This Page
 					</button>
 				</div>
 			</div>
