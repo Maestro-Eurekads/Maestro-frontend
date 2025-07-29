@@ -53,7 +53,8 @@ const SideNav: React.FC = () => {
     if (change || hasIncompleteFields) {
       setShowModal(true);
     } else {
-      navigateBack();
+      router.push("/");
+      // navigateBack();
     }
   };
 
@@ -141,6 +142,20 @@ const SideNav: React.FC = () => {
     clearAllCampaignData();
     navigateBack();
     setChange(false);
+  };
+
+  // Handle navigation after modal confirmation (for browser back button)
+  const handleNavigate = () => {
+    setChange(false);
+    setShowModal(false);
+    clearAllCampaignData();
+    router.push("/");
+    // navigateBack();
+  };
+
+  // Handle staying on current page
+  const handleStayOnPage = () => {
+    setShowModal(false);
   };
 
 
@@ -320,7 +335,8 @@ const SideNav: React.FC = () => {
       )}
       <BackConfirmModal
         isOpen={showModal}
-        onClose={handleCancel}
+        onClose={handleStayOnPage}
+        onNavigate={handleNavigate}
       />
     </div>
   );

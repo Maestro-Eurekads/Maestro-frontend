@@ -315,7 +315,7 @@ const CampaignBudget = () => {
 
           {budgetStyle === "top_down" && (
             <div className="absolute right-2 top-2">
-              <Image src={Selectstatus || "/placeholder.svg"} alt="Selectstatus" />
+              <Image src={Selectstatus} alt="Selectstatus" />
             </div>
           )}
         </div>
@@ -353,7 +353,7 @@ const CampaignBudget = () => {
 
           {budgetStyle === "bottom_up" && (
             <div className="absolute right-2 top-2">
-              <Image src={Selectstatus || "/placeholder.svg"} alt="Selectstatus" />
+              <Image src={Selectstatus} alt="Selectstatus" />
             </div>
           )}
         </div>
@@ -469,7 +469,7 @@ const CampaignBudget = () => {
                 <h1 className=" font-general font-semibold text-[20px] leading-[27px] text-gray-900 text-center">
                   Choose your goal level
                 </h1>
-                <p className="  font-general font-medium text-[16px] leading-[150%] text-gray-600 text-center">
+                <p className="font-general font-medium text-[16px] leading-[150%] text-gray-600 text-center">
                   Define how you want to set your benchmarks and goals for your media plan.
                 </p>
               </div>
