@@ -53,7 +53,8 @@ const SideNav: React.FC = () => {
     if (change || hasIncompleteFields) {
       setShowModal(true);
     } else {
-      navigateBack();
+      router.push("/");
+      // navigateBack();
     }
   };
 
@@ -148,7 +149,8 @@ const SideNav: React.FC = () => {
     setChange(false);
     setShowModal(false);
     clearAllCampaignData();
-    navigateBack();
+    router.push("/");
+    // navigateBack();
   };
 
   // Handle staying on current page
