@@ -93,7 +93,9 @@ const BusinessGeneral = ({ campaign, loading, isLoadingCampaign, campaign_id }) 
 
 	const formatNumber = (value) => {
 		if (!value) return "0";
-		return Intl.NumberFormat("en-US").format(value);
+		// For impressions, ensure they are displayed as whole numbers
+		const roundedValue = Math.round(Number(value));
+		return Intl.NumberFormat("en-US").format(roundedValue);
 	};
 
 
