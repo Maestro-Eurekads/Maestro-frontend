@@ -31,7 +31,7 @@ const SideNav: React.FC = () => {
   const router = useRouter();
   const { setActive, setSubStep, active, subStep } = useActive();
   const dispatch = useAppDispatch();
-  const { campaignData, setCampaignData, loadingCampaign, requiredFields, campaignFormData } = useCampaigns();
+  const { campaignData, setCampaignData, loadingCampaign, campaignFormData } = useCampaigns();
 
 
 
@@ -47,8 +47,8 @@ const SideNav: React.FC = () => {
     e.preventDefault();
     e.stopPropagation();
 
-    // Check if there are incomplete required fields
-    const hasIncompleteFields = requiredFields && !requiredFields.every(Boolean);
+    // Check if there are incomplete required fields by validating directly
+    const hasIncompleteFields = !campaignFormData?.media_plan || !campaignFormData?.budget_details_currency?.id;
 
     if (change || hasIncompleteFields) {
       setShowModal(true);

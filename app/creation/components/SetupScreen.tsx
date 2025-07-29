@@ -47,8 +47,6 @@ export const SetupScreen = () => {
     getActiveCampaign,
     setCampaignFormData,
     profile,
-    setRequiredFields,
-    requiredFields,
     setCurrencySign,
     selectedClient,
     setClientUsers,
@@ -83,16 +81,7 @@ export const SetupScreen = () => {
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
   const [showBackModal, setShowBackModal] = useState(false);
 
-  // Intercept in-app navigation (Back to Dashboard button)
-  const handleBackToDashboard = (e?: React.MouseEvent) => {
-    if (change) {
-      e?.preventDefault();
-      setPendingNavigation("/dashboard"); // or your dashboard route
-      setShowBackModal(true);
-    } else {
-      router.push("/dashboard");
-    }
-  };
+
 
   // Intercept browser back/route changes (SPA navigation)
   useEffect(() => {
@@ -129,7 +118,7 @@ export const SetupScreen = () => {
     } else {
       // Fallback navigation if pendingNavigation is not set
       localStorage.removeItem("campaignFormData");
-      router.push("/dashboard");
+      router.push("/");
     }
   };
 
@@ -303,7 +292,7 @@ export const SetupScreen = () => {
         });
       }
     }
-  }, [setCampaignFormData, campaignFormData]);
+  }, [campaignFormData]);
 
 
   useEffect(() => {
@@ -349,7 +338,7 @@ export const SetupScreen = () => {
         return updated;
       });
     }
-  }, [documentId, isInitialized, selectedClient, FC, setCampaignFormData, campaignFormData]);
+  }, [documentId, isInitialized, selectedClient, FC, campaignFormData]);
 
 
   useEffect(() => {
@@ -386,7 +375,6 @@ export const SetupScreen = () => {
     campaignFormData?.campaign_budget?.currency,
     campaignFormData?.budget_details_fee_type?.id,
     selectedOption,
-    setCurrencySign,
   ]);
 
   useEffect(() => {
@@ -399,44 +387,6 @@ export const SetupScreen = () => {
       });
     }
   }, [campaignFormData?.budget_details_currency]);
-
-
-
-
-
-  useEffect(() => {
-    const getFieldValue = (field) => {
-      if (Array.isArray(field)) {
-        return field?.length > 0;
-      }
-      if (typeof field === "object" && field !== null) {
-        return Object.keys(field)?.length > 0;
-      }
-      return Boolean(field);
-    };
-
-    const fieldsToCheck = [
-      // campaignFormData?.client_selection?.value,
-      campaignFormData?.media_plan,
-      campaignFormData?.budget_details_currency?.id
-      // campaignFormData?.internal_approver_ids,
-      // campaignFormData?.client_approver_ids,
-      // campaignFormData?.level_1?.id, 
-    ];
-
-    const evaluatedFields = fieldsToCheck.map(getFieldValue);
-    setRequiredFields(evaluatedFields);
-  }, [campaignFormData, cId, setRequiredFields]);
-
-
-
-
-
-
-
-
-
-
 
   useEffect(() => {
     // If form is already filled, stop loading immediately
