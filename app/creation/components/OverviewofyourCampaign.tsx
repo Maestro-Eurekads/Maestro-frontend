@@ -84,12 +84,10 @@ const OverviewofyourCampaign = () => {
   } = useCampaigns();
   const dispatch = useAppDispatch();
   const query = useSearchParams();
+  const stage = campaignData?.isStatus?.stage;
   const commentId = query.get("campaignId");
   const campaignId = query.get("campaignId");
   const [finalCategoryOrder, setFinalCategoryOrder] = useState(categoryOrder);
-
-
-
   const {
     getKpis,
     isLoadingKpis,
@@ -98,6 +96,8 @@ const OverviewofyourCampaign = () => {
     refresh,
     setRefresh,
   } = useKpis();
+
+
 
   useEffect(() => {
     if (campaignId) {
@@ -293,7 +293,6 @@ const OverviewofyourCampaign = () => {
     }
   }, [showalert]);
 
-  const stage = campaignData?.isStatus?.stage;
 
 
   return (
