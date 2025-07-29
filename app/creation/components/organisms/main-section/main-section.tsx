@@ -16,7 +16,7 @@ import {
 import DayInterval from "../../atoms/date-interval/DayInterval"
 import MonthInterval from "../../atoms/date-interval/MonthInterval"
 import WeekInterval from "../../atoms/date-interval/WeekInterval"
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { ZoomIn, ZoomOut, RotateCcw } from "lucide-react"
 import AddNewChennelsModel from "components/Modals/AddNewChennelsModel"
 import { useDateRange as useRange } from "src/date-range-context"
@@ -145,6 +145,26 @@ const MainSection = ({
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [zoomIn, zoomOut, resetZoom])
 
+  // Ref to the horizontal scroll container
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null)
+
+  // Prevent scrolling past the actual end of the scaled content
+  useEffect(() => {
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    const handleScroll = () => {
+      const realContentWidth = container.scrollWidth * zoomLevel
+      const maxScrollLeft = Math.max(realContentWidth - container.clientWidth, 0)
+      if (container.scrollLeft > maxScrollLeft) {
+        container.scrollLeft = maxScrollLeft
+      }
+    }
+
+    container.addEventListener("scroll", handleScroll)
+    return () => container.removeEventListener("scroll", handleScroll)
+  }, [zoomLevel])
+
   function getDaysInEachMonth(): Record<string, number> {
     const daysInMonth: Record<string, number> = {}
     currentRange?.forEach((date) => {
@@ -250,6 +270,7 @@ const MainSection = ({
       <div className="w-full h-auto bg-white border-b-2 relative mt-4 overflow-hidden">
         <div
           className="w-full h-full overflow-x-auto overflow-y-hidden hide-vertical-scrollbar"
+          ref={scrollContainerRef}
           style={{
             maxWidth: "100vw",
           }}
