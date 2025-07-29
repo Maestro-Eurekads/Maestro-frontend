@@ -112,11 +112,8 @@ const SaveProgressButton = ({ setIsOpen }) => {
 		getActiveCampaign,
 		copy,
 		isEditingBuyingObjective,
-		isStepZeroValid,
-		setIsStepZeroValid,
 		selectedOption,
 		setCampaignFormData,
-		requiredFields,
 		currencySign,
 		jwt,
 		agencyId,
@@ -318,10 +315,6 @@ const SaveProgressButton = ({ setIsOpen }) => {
 		}
 	}
 
-	useEffect(() => {
-		setIsStepZeroValid(requiredFields.every(Boolean))
-	}, [requiredFields, setIsStepZeroValid])
-
 	const cancelSave = () => {
 		setShowSave(false)
 	}
@@ -515,11 +508,6 @@ const SaveProgressButton = ({ setIsOpen }) => {
 
 				if (!getFieldValue(campaignFormData?.budget_details_currency?.id)) {
 					errors.push("Currency is required.")
-					hasError = true
-				}
-
-				if (!isStepZeroValid) {
-					errors.push("Please complete all required fields before proceeding.")
 					hasError = true
 				}
 
