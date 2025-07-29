@@ -21,16 +21,20 @@ const ApproverContainer = ({ campaign, loading, isLoadingCampaign }) => {
 		}
 	}, [dispatch, isdocumentId]);
 
-	// Extract approver names from campaignFormData structure
-	const internalApprovers = campaign?.internal_approver?.map(a => cleanName(a?.label || a?.value)) || ["-"];
-	const clientApprovers = campaign?.client_approver?.map(a => cleanName(a?.label || a?.value)) || ["-"];
+	// Extract approver names from campaignFormData structure with fallback to campaignData
+	const internalApprovers = campaign?.internal_approver?.map(a => cleanName(a?.username)) ||
+		campaignData?.media_plan_details?.internal_approver?.map(a => cleanName(a?.username)) ||
+		["-"];
+	const clientApprovers = campaign?.client_approver?.map(a => cleanName(a?.username)) ||
+		campaignData?.media_plan_details?.client_approver?.map(a => cleanName(a?.username)) ||
+		["-"];
 
 	const items = [
 		{
 			label: "Agency",
-			name: cleanName(campaign?.client_selection?.value) || "-",
-			nameList: [campaign?.client_selection?.value || "-"],
-			initials: getInitials(cleanName(campaign?.client_selection?.value)),
+			name: cleanName(campaign?.client_selection?.value || campaignData?.client?.client_name) || "-",
+			nameList: [campaign?.client_selection?.value || campaignData?.client?.client_name || "-"],
+			initials: getInitials(cleanName(campaign?.client_selection?.value || campaignData?.client?.client_name)),
 		},
 		{
 			label: "Client approver",
@@ -46,9 +50,12 @@ const ApproverContainer = ({ campaign, loading, isLoadingCampaign }) => {
 		},
 		{
 			label: "Campaign builder",
-			name: cleanName(campaign?.campaign_builder?.username || campaign?.campaign_builder?.label) || "-",
-			nameList: [campaign?.campaign_builder?.username || campaign?.campaign_builder?.label || "-"],
-			initials: getInitials(cleanName(campaign?.campaign_builder?.username || campaign?.campaign_builder?.label)),
+			name: cleanName(campaign?.campaign_builder?.username || campaign?.campaign_builder?.label ||
+				campaignData?.campaign_builder?.username || campaignData?.campaign_builder?.label) || "-",
+			nameList: [campaign?.campaign_builder?.username || campaign?.campaign_builder?.label ||
+				campaignData?.campaign_builder?.username || campaignData?.campaign_builder?.label || "-"],
+			initials: getInitials(cleanName(campaign?.campaign_builder?.username || campaign?.campaign_builder?.label ||
+				campaignData?.campaign_builder?.username || campaignData?.campaign_builder?.label)),
 		},
 	];
 

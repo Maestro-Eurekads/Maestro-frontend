@@ -133,10 +133,13 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 					<h3 className="font-medium text-[22px] text-[#292929]">Comments For</h3>
 					<div className="flex items-center gap-2 w-full">
 						<p className="font-medium text-[16px] text-[#292929] mb-4">
-							{campaignData?.funnel_stages?.length > 0
-								? campaignData?.funnel_stages?.length > 3
-									? campaignData?.funnel_stages?.slice(0, 3).join(" · ") + " ..."
-									: campaignData?.funnel_stages?.join(" · ")
+							{(campaignData?.funnel_stages?.length > 0 || campaignData?.custom_funnels?.length > 0)
+								? (() => {
+									const stages = campaignData?.funnel_stages || campaignData?.custom_funnels?.map(f => f.name) || [];
+									return stages.length > 3
+										? stages.slice(0, 3).join(" · ") + " ..."
+										: stages.join(" · ");
+								})()
 								: ""}
 						</p>
 					</div>
