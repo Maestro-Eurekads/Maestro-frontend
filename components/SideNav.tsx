@@ -287,7 +287,7 @@ const SideNav: React.FC = () => {
           </button>
         </div>
         {!close && (
-          <div className="flex flex-col items-start mb-8">
+          <div className="flex flex-col items-start mb-8 fade-content">
             <button
               onClick={handleBackClick}
               className="font-general-sans font-semibold text-[16px] leading-[22px] text-[#3175FF] flex items-center gap-2"
@@ -328,7 +328,7 @@ const SideNav: React.FC = () => {
       </div>
       {close ? <CreationFlowActive steps={steps} close={close} /> : <CreationFlow steps={steps} />}
       {!close && (
-        <p className="font-general-sans italic font-medium text-[12px] leading-[21px] text-[rgba(6,18,55,0.8)]">
+        <p className="font-general-sans italic font-medium text-[12px] leading-[21px] text-[rgba(6,18,55,0.8)] fade-content">
           This screen, all the other ones, as well as the system they build together are protected by copyright © - all use,
           display, and any other rights are exclusively reserved to Eurekads Pte. Ltd.
         </p>
