@@ -277,12 +277,13 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 				setViewcommentsId("");
 				setCampaignData(null);
 				clearAllCampaignData?.();
+				router.push("/");
 				// Use onNavigate if provided, otherwise navigate to home
-				if (onNavigate) {
-					onNavigate();
-				} else {
-					router.push("/");
-				}
+				// if (onNavigate) {
+				// 	onNavigate();
+				// } else {
+				// 	router.push("/");
+				// }
 			} else {
 				const response = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`, payload, config);
 
@@ -309,12 +310,13 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 				setViewcommentsId("");
 				setCampaignData(null);
 				clearAllCampaignData?.();
+				router.push("/");
 				// Use onNavigate if provided, otherwise navigate to home
-				if (onNavigate) {
-					onNavigate();
-				} else {
-					router.push("/");
-				}
+				// if (onNavigate) {
+				// 	router.push("/");
+				// } else {
+				// 	router.push("/");
+				// }
 			}
 		} catch (error: any) {
 			if (error?.response?.status === 401) {
@@ -352,11 +354,12 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 		setChange(false); // Reset change state
 		setShowModal(false); // Close modal
 		clearAllCampaignData(); // Clear all campaign data
-		if (onNavigate) {
-			onNavigate(); // Navigate to intended route if provided
-		} else {
-			onClose(); // Fallback to onClose if no onNavigate provided
-		}
+		router.push("/");
+		// if (onNavigate) {
+		// 	onNavigate(); // Navigate to intended route if provided
+		// } else {
+		// 	onClose(); // Fallback to onClose if no onNavigate provided
+		// }
 	};
 
 	// Handle staying on the current page
