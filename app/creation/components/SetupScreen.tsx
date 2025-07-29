@@ -126,6 +126,10 @@ export const SetupScreen = () => {
       localStorage.removeItem("campaignFormData");
       router.push(pendingNavigation);
       setPendingNavigation(null);
+    } else {
+      // Fallback navigation if pendingNavigation is not set
+      localStorage.removeItem("campaignFormData");
+      router.push("/dashboard");
     }
   };
 
@@ -568,6 +572,12 @@ export const SetupScreen = () => {
         </div>)
       }
 
+      {/* BackConfirmModal for step 0 */}
+      <BackConfirmModal
+        isOpen={showBackModal}
+        onClose={() => setShowBackModal(false)}
+        onNavigate={handleNavigate}
+      />
 
     </div >
   );
