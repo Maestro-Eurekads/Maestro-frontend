@@ -927,12 +927,8 @@ const MapFunnelStages = () => {
 
   const handleSaveConfiguration = () => {
     setChange(true)
-    if (!clientId) {
-
-      toast.error("Please select a client to save funnel configurations.");
-
-      return;
-    }
+    // Allow saving configurations even without clientId (for new plans)
+    // The configuration will be saved locally and can be synced later when the plan is saved
 
     setNewConfigName("");
     setIsSaveConfigModalOpen(true);
@@ -1003,7 +999,8 @@ const MapFunnelStages = () => {
         setSavingConfig(false);
       }
     } else {
-      toast.success(`"${newConfigName.trim()}" configuration saved!`);
+      // Save locally for new plans that haven't been saved yet
+      toast.success(`"${newConfigName.trim()}" configuration saved locally! It will be synced when you save the plan.`);
     }
 
     setIsSaveConfigModalOpen(false);

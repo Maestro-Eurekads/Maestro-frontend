@@ -102,7 +102,6 @@ export const SaveProgressProvider = ({ children }: { children: React.ReactNode }
 	useEffect(() => {
 		if (!hasUnsavedChanges) return;
 
-		// Handle Next.js router navigation
 		router.beforePopState(({ url }) => {
 			if (!hasUnsavedChanges) return true;
 
@@ -113,23 +112,8 @@ export const SaveProgressProvider = ({ children }: { children: React.ReactNode }
 			return false;
 		});
 
-		// Handle browser back button
-		const handlePopState = (event: PopStateEvent) => {
-			if (hasUnsavedChanges) {
-				event.preventDefault();
-				setShowPrompt(true);
-				// Prevent the navigation by pushing the current state back
-				window.history.pushState(null, "", window.location.href);
-			}
-		};
-
-		window.addEventListener("popstate", handlePopState);
-		// Push initial state to enable popstate detection
-		window.history.pushState(null, "", window.location.href);
-
 		return () => {
 			router.beforePopState(() => true);
-			window.removeEventListener("popstate", handlePopState);
 		};
 	}, [hasUnsavedChanges, router]);
 
@@ -140,22 +124,22 @@ export const SaveProgressProvider = ({ children }: { children: React.ReactNode }
 			{showPrompt && saveOptions && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
 					<div className="bg-white rounded-xl shadow-lg w-[400px] p-6 text-center">
-						<h2 className="text-xl font-semibold text-gray-800 mb-4">Unsaved Changes</h2>
+						<h2 className="text-xl font-semibold hover:bg-blue-700 mb-4">Confirm Save</h2>
 						<p className="text-gray-700 mb-6">
-							You have unsaved changes. Would you like to save your progress before leaving?
+							Do you want to save this step progress at  ?
 						</p>
-						<div className="flex flex-col gap-3">
+						<div className="flex justify-center gap-4">
 							<button
-								className="!bg-[#3175FF] hover:bg-blue-700 text-white px-4 py-2 rounded"
+								className="!bg-[#3175FF]   hover:bg-blue-700 text-white px-4 py-2 rounded"
 								onClick={confirmSave}
 							>
-								Save & Continue
+								Save
 							</button>
 							<button
 								className="border border-gray-300 text-gray-600 px-4 py-2 rounded hover:bg-gray-100"
 								onClick={cancelSave}
 							>
-								Leave Without Saving
+								Cancel
 							</button>
 						</div>
 					</div>
