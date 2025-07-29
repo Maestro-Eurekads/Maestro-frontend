@@ -162,6 +162,8 @@ const MainSection = ({
     }
 
     container.addEventListener("scroll", handleScroll)
+    // Immediately clamp after zoom change
+    handleScroll()
     return () => container.removeEventListener("scroll", handleScroll)
   }, [zoomLevel])
 
