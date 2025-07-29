@@ -17,11 +17,11 @@ const DayInterval: React.FC<DayIntervalProps> = ({ daysCount, src, range }) => {
         className="inline-flex"
         style={{
           display: "grid",
-          gridTemplateColumns: `repeat(${ddRange?.length}, 1fr)`,
+          gridTemplateColumns: `repeat(${src === "dashboard" ? range.length : ddRange?.length}, 1fr)`,
           // width: "fit-content",
         }}
       >
-        {Array.from({ length: ddRange?.length }, (_, i) => {
+        {Array.from({ length: src === "dashboard" ? range.length : ddRange?.length }, (_, i) => {
           const isEdge = i === 0 || i === (src === "dashboard" ? range.length : ddRange?.length - 1)
           const date = src === "dashboard" ? range[i] : ddRange[i]
 
