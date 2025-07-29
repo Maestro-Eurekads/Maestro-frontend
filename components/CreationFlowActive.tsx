@@ -99,7 +99,7 @@ const CreationFlowActive = ({ steps, close }) => {
 
 
   return (
-    <div id={close ? "Sidenavbar_active" : "Sidenavbar"}>
+    <div id={close ? "Sidenavbar_active" : "Sidenavbar"} className="fade-content">
       <div id="SideBar__container">
         {steps.map((step, index) => {
           const stepNumber = index + 1;

@@ -24,7 +24,7 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 
 	const { data, isLoading } = useAppSelector((state) => state.comment);
 	const dispatch = useAppDispatch();
-	const { campaignData } = useCampaigns();
+	const { campaignData, campaignFormData } = useCampaigns();
 
 	const [alert, setAlert] = useState(null);
 	const [commentColors, setCommentColors] = useState({});
@@ -133,12 +133,13 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 					<h3 className="font-medium text-[22px] text-[#292929]">Comments For</h3>
 					<div className="flex items-center gap-2 w-full">
 						<p className="font-medium text-[16px] text-[#292929] mb-4">
-							{(campaignData?.funnel_stages?.length > 0 || campaignData?.custom_funnels?.length > 0)
+							{(campaignFormData?.funnel_stages?.length > 0)
 								? (() => {
-									const stages = campaignData?.funnel_stages || campaignData?.custom_funnels?.map(f => f.name) || [];
-									return stages.length > 3
-										? stages.slice(0, 3).join(" · ") + " ..."
-										: stages.join(" · ");
+									// Use selected phases from campaignFormData instead of all phases from campaignData
+									const selectedStages = campaignFormData?.funnel_stages || [];
+									return selectedStages.length > 3
+										? selectedStages.slice(0, 3).join(" · ") + " ..."
+										: selectedStages.join(" · ");
 								})()
 								: ""}
 						</p>
