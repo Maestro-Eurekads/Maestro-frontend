@@ -23,7 +23,7 @@ interface BackConfirmModalProps {
 const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, onNavigate }) => {
 	const { isClient, loggedInUser } = useUserPrivileges();
 	const [loading, setLoading] = useState(false);
-	const { change, setChange, showModal, setShowModal } = useActive();
+	const { change, setChange, showModal, setShowModal, setActive, setSubStep } = useActive();
 	const { setClose, close, setViewcommentsId, setOpportunities } = useComments();
 	const router = useRouter();
 	const dispatch = useAppDispatch();
@@ -115,13 +115,10 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 		cId,
 		getActiveCampaign,
 		setCampaignData,
+		setCampaignFormData,
 		copy,
 		isEditingBuyingObjective,
-		isStepZeroValid,
-		setIsStepZeroValid,
 		selectedOption,
-		setCampaignFormData,
-		requiredFields,
 		currencySign,
 		jwt,
 		agencyId,
@@ -277,12 +274,13 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 				setViewcommentsId("");
 				setCampaignData(null);
 				clearAllCampaignData?.();
+				router.push("/");
 				// Use onNavigate if provided, otherwise navigate to home
-				if (onNavigate) {
-					onNavigate();
-				} else {
-					router.push("/");
-				}
+				// if (onNavigate) {
+				// 	onNavigate();
+				// } else {
+				// 	router.push("/");
+				// }
 			} else {
 				const response = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`, payload, config);
 
@@ -309,12 +307,13 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 				setViewcommentsId("");
 				setCampaignData(null);
 				clearAllCampaignData?.();
+				router.push("/");
 				// Use onNavigate if provided, otherwise navigate to home
-				if (onNavigate) {
-					onNavigate();
-				} else {
-					router.push("/");
-				}
+				// if (onNavigate) {
+				// 	router.push("/");
+				// } else {
+				// 	router.push("/");
+				// }
 			}
 		} catch (error: any) {
 			if (error?.response?.status === 401) {
@@ -349,14 +348,38 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 
 	// Handle "No" button to allow navigation without saving
 	const handleNoClick = () => {
-		setChange(false); // Reset change state
-		setShowModal(false); // Close modal
-		clearAllCampaignData(); // Clear all campaign data
-		if (onNavigate) {
-			onNavigate(); // Navigate to intended route if provided
-		} else {
-			onClose(); // Fallback to onClose if no onNavigate provided
-		}
+		console.log("handleNoClick: Starting navigation without saving");
+
+		// Clear all campaign data comprehensively
+		clearAllCampaignData();
+
+		// Reset all context state
+		setCampaignFormData({});
+		setCampaignData(null);
+		setChange(false);
+		setShowModal(false);
+
+		// Reset Redux state
+		dispatch(reset());
+		setOpportunities([]);
+		setViewcommentsId("");
+
+		// Reset active state
+		setActive(0);
+		setSubStep(0);
+
+		console.log("handleNoClick: All state cleared, navigating to dashboard");
+
+		// Hardcode navigation to dashboard
+		router.push("/");
+
+		// Fallback navigation in case router.push fails
+		setTimeout(() => {
+			if (window.location.pathname !== "/") {
+				console.log("handleNoClick: Router navigation failed, using window.location");
+				window.location.href = "/";
+			}
+		}, 100);
 	};
 
 	// Handle staying on the current page

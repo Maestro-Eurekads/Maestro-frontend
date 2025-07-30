@@ -31,7 +31,7 @@ const SideNav: React.FC = () => {
   const router = useRouter();
   const { setActive, setSubStep, active, subStep } = useActive();
   const dispatch = useAppDispatch();
-  const { campaignData, setCampaignData, loadingCampaign, requiredFields, campaignFormData } = useCampaigns();
+  const { campaignData, setCampaignData, loadingCampaign, campaignFormData } = useCampaigns();
 
 
 
@@ -47,13 +47,14 @@ const SideNav: React.FC = () => {
     e.preventDefault();
     e.stopPropagation();
 
-    // Check if there are incomplete required fields
-    const hasIncompleteFields = requiredFields && !requiredFields.every(Boolean);
+    // Check if there are incomplete required fields by validating directly
+    const hasIncompleteFields = !campaignFormData?.media_plan || !campaignFormData?.budget_details_currency?.id;
 
     if (change || hasIncompleteFields) {
       setShowModal(true);
     } else {
-      navigateBack();
+      router.push("/");
+      // navigateBack();
     }
   };
 
@@ -148,7 +149,8 @@ const SideNav: React.FC = () => {
     setChange(false);
     setShowModal(false);
     clearAllCampaignData();
-    navigateBack();
+    router.push("/");
+    // navigateBack();
   };
 
   // Handle staying on current page
@@ -285,7 +287,7 @@ const SideNav: React.FC = () => {
           </button>
         </div>
         {!close && (
-          <div className="flex flex-col items-start mb-8">
+          <div className="flex flex-col items-start mb-8 fade-content">
             <button
               onClick={handleBackClick}
               className="font-general-sans font-semibold text-[16px] leading-[22px] text-[#3175FF] flex items-center gap-2"
@@ -326,7 +328,7 @@ const SideNav: React.FC = () => {
       </div>
       {close ? <CreationFlowActive steps={steps} close={close} /> : <CreationFlow steps={steps} />}
       {!close && (
-        <p className="font-general-sans italic font-medium text-[12px] leading-[21px] text-[rgba(6,18,55,0.8)]">
+        <p className="font-general-sans italic font-medium text-[12px] leading-[21px] text-[rgba(6,18,55,0.8)] fade-content">
           This screen, all the other ones, as well as the system they build together are protected by copyright © - all use,
           display, and any other rights are exclusively reserved to Eurekads Pte. Ltd.
         </p>

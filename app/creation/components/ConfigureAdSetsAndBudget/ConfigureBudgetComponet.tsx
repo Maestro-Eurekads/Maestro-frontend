@@ -18,38 +18,45 @@ const ConfigureBudgetComponet = ({ show, t1, t2, funnelData }) => {
 
 	function extractPlatforms(data) {
 		const platforms = [];
+		if (!Array.isArray(data?.channel_mix)) return;
+
 		data.channel_mix.forEach((stage) => {
-			const stageName = stage.funnel_stage;
-			const stageBudget = parseFloat(stage.stage_budget?.fixed_value);
-			mediaTypes.forEach(
-				(channelType) => {
+			const stageName = stage?.funnel_stage;
+			const stageBudget = Number.parseFloat(stage?.stage_budget?.fixed_value) || 0;
+
+			mediaTypes?.forEach((channelType) => {
+				if (Array.isArray(stage[channelType])) {
 					stage[channelType].forEach((platform) => {
 						const platformName = platform?.platform_name;
-						const platformBudget = parseFloat(platform?.budget?.fixed_value);
-						const percentage = (platformBudget / stageBudget) * 100;
-						const existingPlatform = platforms.find(
-							(p) => p?.platform_name === platformName
-						);
-						if (existingPlatform) {
-							existingPlatform?.stages_it_was_found?.push({
-								stage_name: stageName,
-								percentage: percentage,
-							});
-						} else {
-							platforms?.push({
-								platform_name: platformName,
-								platform_budegt: platformBudget,
-								stages_it_was_found: [
-									{
-										stage_name: stageName,
-										percentage: percentage,
-									},
-								],
-							});
+						const platformBudget = Number.parseFloat(platform?.budget?.fixed_value) || 0;
+
+						// Include platforms that have a name, even if budget is 0
+						if (platformName) {
+							const percentage = stageBudget > 0 ? (platformBudget / stageBudget) * 100 : 0;
+							const existingPlatform = platforms?.find(
+								(p) => p?.platform_name === platformName
+							);
+							if (existingPlatform) {
+								existingPlatform?.stages_it_was_found?.push({
+									stage_name: stageName,
+									percentage: percentage,
+								});
+							} else {
+								platforms?.push({
+									platform_name: platformName,
+									platform_budget: platformBudget,
+									stages_it_was_found: [
+										{
+											stage_name: stageName,
+											percentage: percentage,
+										},
+									],
+								});
+							}
 						}
 					});
 				}
-			);
+			});
 		});
 		setChannelData(platforms);
 	}

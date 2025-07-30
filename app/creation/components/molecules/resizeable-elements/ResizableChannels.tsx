@@ -251,10 +251,7 @@ const ResizableChannels = ({
     const channelName = channels[index]?.name || "Channel";
     const containerRect = document
       .querySelector(
-        `.cont-${parentId?.replaceAll(" ", "_")}-${channelName
-          ?.replaceAll(" ", "_")
-          ?.replace("(", "")
-          ?.replace(")", "")}`
+        `.cont-${replaceSpacesAndSpecialCharsWithUnderscore(parentId)}-${replaceSpacesAndSpecialCharsWithUnderscore(channelName)}`
       )
       ?.getBoundingClientRect();
 
@@ -973,6 +970,11 @@ const ResizableChannels = ({
     };
   }, [dragging, parentWidth]);
 
+  function replaceSpacesAndSpecialCharsWithUnderscore(str) {
+    // Replace all spaces, special characters, and symbols except underscores with underscores
+    return str.replace(/[^\w_]/g, '_');
+  }
+
   // console.log(isResizing, "isResizing state")
 
   return (
@@ -1031,13 +1033,7 @@ const ResizableChannels = ({
             }}
           >
             <div
-              className={`relative cont-${parentId?.replaceAll(
-                " ",
-                "_"
-              )}-${channel?.name
-                ?.replaceAll(" ", "_")
-                ?.replace("(", "")
-                ?.replace(")", "")}`}
+              className={`relative cont-${replaceSpacesAndSpecialCharsWithUnderscore(parentId)}-${replaceSpacesAndSpecialCharsWithUnderscore(channel?.name)}`}
             >
               {tooltip.visible && tooltip.index === index && (
                 <div

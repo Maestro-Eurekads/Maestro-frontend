@@ -6,6 +6,8 @@ import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { useCampaigns } from "../../utils/CampaignsContext";
 import { useActive } from "../../utils/ActiveContext";
+import { useAppDispatch } from "store/useStore";
+import { reset } from "features/Comment/commentSlice";
 
 // Type definition including plan name properly
 type CampaignOption = {
@@ -34,6 +36,7 @@ const ClientsCampaignDropdown = ({
 	const userType = session?.user?.data?.user?.id || "";
 	const { setCampaignFormData, setCampaignData } = useCampaigns();
 	const { setActive, setSubStep } = useActive();
+	const dispatch = useAppDispatch();
 
 	// Function to clear all campaign-related data when switching plans
 	const clearCampaignData = () => {
@@ -129,6 +132,13 @@ const ClientsCampaignDropdown = ({
 		// Only clear data if selecting a different plan
 		if (selected !== option.documentId) {
 			clearCampaignData();
+			// Reset context state
+			setCampaignFormData({});
+			setCampaignData(null);
+			setActive(0);
+			setSubStep(0);
+			// Reset Redux state
+			dispatch(reset());
 		}
 		setSelected(option.documentId);
 		localStorage.setItem(userType.toString(), option.documentId);

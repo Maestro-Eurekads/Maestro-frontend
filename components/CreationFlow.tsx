@@ -93,7 +93,7 @@ const CreationFlow = ({ steps }) => {
   if (!hydrated) return null;
 
   return (
-    <div id="Sidenavbar">
+    <div id="Sidenavbar" className="fade-content">
       {steps.map((step, index) => {
         const stepNumber = index + 1;
         const isActive = active === stepNumber;

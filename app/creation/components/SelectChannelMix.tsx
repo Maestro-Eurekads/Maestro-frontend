@@ -126,7 +126,7 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
 
   // Close drawer on mount
   useEffect(() => {
-    if (isMounted) {
+    if (isMounted && !selectedStage) {
       setIsDrawerOpen(false);
       setClose(false);
     }

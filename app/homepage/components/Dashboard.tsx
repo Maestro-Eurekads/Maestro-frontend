@@ -70,7 +70,7 @@ const Dashboard = () => {
     const start = ch?.campaign_timeline_start_date ? parseISO(ch.campaign_timeline_start_date) : null
     const end = ch?.campaign_timeline_end_date ? parseISO(ch.campaign_timeline_end_date) : null
 
-    console.log({ start, end })
+    console.log({ start, end }, "here is the log")
 
     // Calculate positions for different time ranges
     const startDay = differenceInCalendarDays(start, earliestStartDate) + 1

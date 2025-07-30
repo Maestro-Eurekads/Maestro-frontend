@@ -473,7 +473,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         <div />
 
         {/* Main content */}
-        <div className="flex justify-center items-center gap-5 w-[90%] absolute left-[30px] right-[30px]">
+        <div className="flex justify-center items-center gap-5 w-[100%]">
           <button
             className="flex justify-center items-center gap-5 w-full"
             onClick={() => {

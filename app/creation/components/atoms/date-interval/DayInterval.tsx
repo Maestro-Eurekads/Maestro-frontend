@@ -78,11 +78,13 @@ const DayInterval: React.FC<DayIntervalProps> = ({ daysCount, src, range, funnel
         className="inline-flex"
         style={{
           display: "grid",
-          gridTemplateColumns: `repeat(${headerDates.length}, 1fr)`,
+          gridTemplateColumns: `repeat(${src === "dashboard" ? range.length : ddRange?.length}, 1fr)`,
+          // width: "fit-content",
         }}
       >
-        {headerDates.map((date, i) => {
-          const isEdge = i === 0 || i === headerDates.length - 1;
+        {Array.from({ length: src === "dashboard" ? range.length : ddRange?.length }, (_, i) => {
+          const isEdge = i === 0 || i === (src === "dashboard" ? range.length : ddRange?.length - 1)
+          const date = src === "dashboard" ? range[i] : ddRange[i]
 
           return (
             <div key={i} className="flex flex-col items-center relative">

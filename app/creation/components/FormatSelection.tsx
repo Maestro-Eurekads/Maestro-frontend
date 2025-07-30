@@ -1593,7 +1593,7 @@ export const FormatSelection = ({
   useEffect(() => {
     setView(openView ? openView : "channel")
     setIsDrawerOpen(false)
-    setClose(false)
+    !openView && setClose(false)
     setCampaignFormData((prev) => ({
       ...prev,
       goal_level: openView ? (openView === "channel" ? "Channel level" : "Adset level") : "Channel level",
