@@ -377,6 +377,9 @@ const Header = ({ setIsOpen, setIsView }) => {
                   setActive(0);
                   setSubStep(0);
 
+                  // Reset Redux state when selecting a new client
+                  dispatch(reset());
+
                   localStorage.setItem(userType, value?.value);
                   setSelected(value?.value);
                   setSelectedId(value?.value);
