@@ -32,7 +32,9 @@ const calculateGrossFromNet = (netAmount: number, fees: any[]): number => {
 };
 
 const calculatePhaseRemainingBudget = (stageName: string, campaignFormData: any): string => {
- const stage = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stageName);
+ const stage = Array.isArray(campaignFormData?.channel_mix)
+  ? campaignFormData.channel_mix.find((ch) => ch?.funnel_stage === stageName)
+  : undefined;
  if (!stage) return "0.00";
  const stageBudget = Number(stage?.stage_budget?.fixed_value) || 0;
  let allocated = 0;
@@ -119,7 +121,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
  }, [funnelStages]);
 
  const getPlatformsFromStage = (channelMix: any[]): Record<string, OutletType[]> => {
-  if (channelMix?.length > 0) {
+  if (channelMix && Array.isArray(channelMix) && channelMix.length > 0) {
    const platformsByStage: Record<string, OutletType[]> = {};
    channelMix.forEach((stage) => {
     const { funnel_stage } = stage;
@@ -150,7 +152,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
  };
 
  useEffect(() => {
-  if (campaignFormData?.channel_mix) {
+  if (campaignFormData?.channel_mix && Array.isArray(campaignFormData.channel_mix)) {
    setPlatforms(getPlatformsFromStage(campaignFormData.channel_mix));
   }
  }, [campaignFormData?.channel_mix]);
@@ -181,7 +183,9 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
  };
 
  const isButtonEnabled = (stage: string): boolean => {
-  const stageData = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stage);
+  const stageData = Array.isArray(campaignFormData?.channel_mix)
+   ? campaignFormData.channel_mix.find((ch) => ch?.funnel_stage === stage)
+   : undefined;
   if (stageData?.stage_budget?.fixed_value) return true;
   const hasPlatformBudget = mediaTypes.some((type) =>
    stageData?.[type]?.some((platform) => platform?.budget?.fixed_value && Number(platform.budget.fixed_value) > 0),
@@ -197,7 +201,9 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
  const handleValidateClick = (stage: string) => {
   setValidatedStages((prev) => ({ ...prev, [stage]: true }));
   setStageStatus((prev) => ({ ...prev, [stage]: "Completed" }));
-  const stageData = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stage);
+  const stageData = Array.isArray(campaignFormData?.channel_mix)
+   ? campaignFormData.channel_mix.find((ch) => ch?.funnel_stage === stage)
+   : undefined;
   const newResults: any[] = [];
   if (stageData?.stage_budget?.fixed_value) {
    newResults.push({
@@ -231,11 +237,13 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
 
  const handleAutoSplitBudget = (stage: { name: string }, channel: string, platform: string) => {
   const stageName = stage.name;
-  const stageData = campaignFormData.channel_mix.find((ch) => ch.funnel_stage === stageName);
+  const stageData = Array.isArray(campaignFormData?.channel_mix)
+   ? campaignFormData.channel_mix.find((ch) => ch.funnel_stage === stageName)
+   : undefined;
   const findPlatform = Array.isArray(stageData?.[channel])
    ? stageData[channel].find((ch) => ch?.platform_name === platform)
    : undefined;
-  if (stageData && findPlatform) {
+  if (stageData && findPlatform && Array.isArray(campaignFormData?.channel_mix)) {
    const totalPlatformBudget = Number(findPlatform?.budget?.fixed_value) || 0;
    if (!totalPlatformBudget || totalPlatformBudget <= 0) {
     toast.error("Please set platform budget first before auto-splitting", {
@@ -382,8 +390,10 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
 
  const handleResetBudget = (stage: { name: string }, channel: string, platform: string) => {
   const stageName = stage.name;
-  const stageData = campaignFormData.channel_mix.find((ch) => ch.funnel_stage === stageName);
-  if (stageData) {
+  const stageData = Array.isArray(campaignFormData?.channel_mix)
+   ? campaignFormData.channel_mix.find((ch) => ch.funnel_stage === stageName)
+   : undefined;
+  if (stageData && Array.isArray(campaignFormData?.channel_mix)) {
    const updatedChannelMix = campaignFormData.channel_mix.map((ch) => {
     if (ch.funnel_stage === stageName) {
      if (ch[channel]) {
@@ -427,6 +437,9 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
  };
 
  const handleStageBudgetUpdate = (stageName: string, value: string, isPercentage = false) => {
+  if (!Array.isArray(campaignFormData?.channel_mix)) {
+   return;
+  }
   let newBudget = 0;
   let newPercentage = 0;
   const currentStageBudget =
@@ -436,48 +449,50 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
    !isPercentage &&
    (value === "" || value === "0" || value.replace(/,/g, "") === "" || Number(value.replace(/,/g, "")) === 0)
   ) {
-   const updatedChannelMix = campaignFormData.channel_mix.map((ch) => {
-    if (ch.funnel_stage === stageName) {
-     const clearedCh = {
-      ...ch,
-      stage_budget: {
-       fixed_value: "",
-       percentage_value: "",
-      },
-     };
-     mediaTypes.forEach((type) => {
-      if (clearedCh[type]) {
-       clearedCh[type] = clearedCh[type].map((p) => ({
-        ...p,
-        budget: {
-         fixed_value: "",
-         percentage_value: "",
-        },
-        ad_sets: Array.isArray(p.ad_sets)
-         ? p.ad_sets.map((adSet) => ({
-          ...adSet,
-          budget: {
-           fixed_value: "",
-           percentage_value: "",
-          },
-          extra_audiences: Array.isArray(adSet.extra_audiences)
-           ? adSet.extra_audiences.map((extra) => ({
-            ...extra,
-            budget: {
-             fixed_value: "",
-             percentage_value: "",
-            },
-           }))
-           : [],
-         }))
-         : [],
-       }));
-      }
-     });
-     return clearedCh;
-    }
-    return ch;
-   });
+   const updatedChannelMix = Array.isArray(campaignFormData?.channel_mix)
+    ? campaignFormData.channel_mix.map((ch) => {
+     if (ch.funnel_stage === stageName) {
+      const clearedCh = {
+       ...ch,
+       stage_budget: {
+        fixed_value: "",
+        percentage_value: "",
+       },
+      };
+      mediaTypes.forEach((type) => {
+       if (clearedCh[type]) {
+        clearedCh[type] = clearedCh[type].map((p) => ({
+         ...p,
+         budget: {
+          fixed_value: "",
+          percentage_value: "",
+         },
+         ad_sets: Array.isArray(p.ad_sets)
+          ? p.ad_sets.map((adSet) => ({
+           ...adSet,
+           budget: {
+            fixed_value: "",
+            percentage_value: "",
+           },
+           extra_audiences: Array.isArray(adSet.extra_audiences)
+            ? adSet.extra_audiences.map((extra) => ({
+             ...extra,
+             budget: {
+              fixed_value: "",
+              percentage_value: "",
+             },
+            }))
+            : [],
+          }))
+          : [],
+        }));
+       }
+      });
+      return clearedCh;
+     }
+     return ch;
+    })
+    : [];
    const newCampaignBudget = { ...campaignFormData.campaign_budget };
    if (
     campaignFormData?.campaign_budget?.budget_type === "bottom_up" &&
@@ -581,85 +596,87 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
    }
   }
 
-  const updatedChannelMix = campaignFormData.channel_mix.map((ch) => {
-   if (ch.funnel_stage === stageName) {
-    let updatedCh = {
-     ...ch,
-     stage_budget: {
-      fixed_value: newBudget.toString(),
-      percentage_value: newPercentage.toFixed(1),
-     },
-    };
-    let sumChannelBudgets = 0;
-    mediaTypes.forEach((type) => {
-     if (ch[type]) {
-      sumChannelBudgets += ch[type].reduce((acc, p) => acc + (Number(p?.budget?.fixed_value) || 0), 0);
-     }
-    });
-    if (newBudget === 0 || sumChannelBudgets > newBudget) {
-     const clearedChannels = {};
+  const updatedChannelMix = Array.isArray(campaignFormData?.channel_mix)
+   ? campaignFormData.channel_mix.map((ch) => {
+    if (ch.funnel_stage === stageName) {
+     let updatedCh = {
+      ...ch,
+      stage_budget: {
+       fixed_value: newBudget.toString(),
+       percentage_value: newPercentage.toFixed(1),
+      },
+     };
+     let sumChannelBudgets = 0;
      mediaTypes.forEach((type) => {
       if (ch[type]) {
-       clearedChannels[type] = ch[type].map((p) => ({
-        ...p,
-        budget: {
-         fixed_value: "",
-         percentage_value: "",
-        },
-        ad_sets: Array.isArray(p.ad_sets)
-         ? p.ad_sets.map((adSet) => ({
-          ...adSet,
-          budget: {
-           fixed_value: "",
-           percentage_value: "",
-          },
-          extra_audiences: Array.isArray(adSet.extra_audiences)
-           ? adSet.extra_audiences.map((extra) => ({
-            ...extra,
-            budget: {
-             fixed_value: "",
-             percentage_value: "",
-            },
-           }))
-           : [],
-         }))
-         : [],
-       }));
+       sumChannelBudgets += ch[type].reduce((acc, p) => acc + (Number(p?.budget?.fixed_value) || 0), 0);
       }
      });
-     updatedCh = {
-      ...updatedCh,
-      ...clearedChannels,
-     };
-    } else {
-     const recalculatedChannels = {};
-     mediaTypes.forEach((type) => {
-      if (ch[type]) {
-       recalculatedChannels[type] = ch[type].map((p) => {
-        const channelBudget = Number(p?.budget?.fixed_value) || 0;
-        let newChannelBudget = channelBudget;
-        if (channelBudget > newBudget) {
-         newChannelBudget = newBudget;
-        }
-        return {
+     if (newBudget === 0 || sumChannelBudgets > newBudget) {
+      const clearedChannels = {};
+      mediaTypes.forEach((type) => {
+       if (ch[type]) {
+        clearedChannels[type] = ch[type].map((p) => ({
          ...p,
          budget: {
-          fixed_value: newChannelBudget.toString(),
-          percentage_value: newBudget > 0 ? ((newChannelBudget / newBudget) * 100).toFixed(1) : "",
+          fixed_value: "",
+          percentage_value: "",
          },
-        };
-       });
-      }
-     });
-     updatedCh = {
-      ...updatedCh,
-      ...recalculatedChannels,
-     };
+         ad_sets: Array.isArray(p.ad_sets)
+          ? p.ad_sets.map((adSet) => ({
+           ...adSet,
+           budget: {
+            fixed_value: "",
+            percentage_value: "",
+           },
+           extra_audiences: Array.isArray(adSet.extra_audiences)
+            ? adSet.extra_audiences.map((extra) => ({
+             ...extra,
+             budget: {
+              fixed_value: "",
+              percentage_value: "",
+             },
+            }))
+            : [],
+          }))
+          : [],
+        }));
+       }
+      });
+      updatedCh = {
+       ...updatedCh,
+       ...clearedChannels,
+      };
+     } else {
+      const recalculatedChannels = {};
+      mediaTypes.forEach((type) => {
+       if (ch[type]) {
+        recalculatedChannels[type] = ch[type].map((p) => {
+         const channelBudget = Number(p?.budget?.fixed_value) || 0;
+         let newChannelBudget = channelBudget;
+         if (channelBudget > newBudget) {
+          newChannelBudget = newBudget;
+         }
+         return {
+          ...p,
+          budget: {
+           fixed_value: newChannelBudget.toString(),
+           percentage_value: newBudget > 0 ? ((newChannelBudget / newBudget) * 100).toFixed(1) : "",
+          },
+         };
+        });
+       }
+      });
+      updatedCh = {
+       ...updatedCh,
+       ...recalculatedChannels,
+      };
+     }
+     return updatedCh;
     }
-    return updatedCh;
-   }
-   return ch;
-  });
+    return ch;
+   })
+   : [];
 
   const newNetTotal = updatedChannelMix.reduce(
    (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
@@ -681,7 +698,9 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
  };
 
  const handlePlatformBudgetUpdate = (stageName: string, platformOutlet: string, value: string, isPercentage = false) => {
-  const stageData = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stageName);
+  const stageData = Array.isArray(campaignFormData?.channel_mix)
+   ? campaignFormData.channel_mix.find((ch) => ch?.funnel_stage === stageName)
+   : undefined;
   if (!stageData) return;
   const stageBudget = Number(stageData.stage_budget?.fixed_value) || 0;
   if (stageBudget === 0) {
@@ -734,6 +753,9 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
    });
   }
   setCampaignFormData((prevData) => {
+   if (!Array.isArray(prevData?.channel_mix)) {
+    return prevData;
+   }
    const updatedChannelMix = prevData.channel_mix.map((ch) => {
     if (ch.funnel_stage === stageName) {
      const updatedChannelType = channelTypes.find((type) =>
@@ -793,7 +815,9 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
  }
 
  const getStageRecap = (stageName: string) => {
-  const stageData = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stageName);
+  const stageData = Array.isArray(campaignFormData?.channel_mix)
+   ? campaignFormData.channel_mix.find((ch) => ch?.funnel_stage === stageName)
+   : undefined;
   const currency = campaignFormData?.campaign_budget?.currency || "CAD";
   const stageBudget = Number(stageData?.stage_budget?.fixed_value) || 0;
 
@@ -801,10 +825,12 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
   if (campaignFormData?.campaign_budget?.budget_type === "bottom_up") {
    totalBudget =
     Number(campaignFormData?.campaign_budget?.amount) ||
-    campaignFormData?.channel_mix?.reduce(
-     (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
-     0,
-    ) ||
+    (Array.isArray(campaignFormData?.channel_mix)
+     ? campaignFormData.channel_mix.reduce(
+      (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
+      0,
+     )
+     : 0) ||
     0;
   } else {
    totalBudget = campaignBudgetType === "gross" ? calculateNetFromGross(netAmount, fees) : netAmount || 0;
@@ -1363,7 +1389,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                        percentage_value: p.budget?.fixed_value
                                         ? (
                                          (Number(newBudget) /
-                                          Number(p.budget.fixed_value)) *
+                                          Number(p.budget?.fixed_value)) *
                                          100
                                         ).toFixed(2)
                                         : "0",
