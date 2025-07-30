@@ -114,9 +114,14 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       const year = startDate.getFullYear()
 
       if (fieldName === "endDate") {
-        return new Date(year, Math.min(11, monthIndex), 0)
+        // For end date, return the last day of the target month
+        return new Date(year, monthIndex, 0)
       } else if (fieldName === "startDate") {
-        return new Date(year, Math.min(11, monthIndex), 1)
+        // For start date, return the first day of the target month
+        return new Date(year, monthIndex, 1)
+      } else {
+        // Default to first day of the month
+        return new Date(year, monthIndex, 1)
       }
     } else {
       const dayIndex = Math.min(totalDays, Math.max(0, Math.round((pixel / containerWidth) * totalDays)))
@@ -152,10 +157,14 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     mouseY: number,
     type: "resize" | "drag",
   ) => {
-    if (!dateList.length) return
+    if (!dateList.length) {
+      return;
+    }
 
     const gridContainer = document.querySelector(".grid-container")
-    if (!gridContainer) return
+    if (!gridContainer) {
+      return;
+    }
 
     const containerRect = gridContainer.getBoundingClientRect()
     const containerWidth = containerRect.width
@@ -174,28 +183,54 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       endDateValue = dateList[dayEndIndex] || dateList[totalDays]
     }
 
-    const formattedStartDate =
-      range === "Year"
-        ? startDateValue?.toLocaleDateString("en-US", { month: "short", year: "numeric" })
-        : startDateValue?.toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" })
+    // Safety checks for dates
+    if (!startDateValue || !endDateValue || isNaN(startDateValue.getTime()) || isNaN(endDateValue.getTime())) {
+      return;
+    }
 
-    const formattedEndDate =
-      range === "Year"
-        ? endDateValue?.toLocaleDateString("en-US", { month: "short", year: "numeric" })
-        : endDateValue?.toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" })
+    let formattedDateRange;
+    
+    if (range === "Year") {
+      // For year view, show month ranges
+      const startMonth = startDateValue?.toLocaleDateString("en-US", { month: "short" });
+      const endMonth = endDateValue?.toLocaleDateString("en-US", { month: "short" });
+      const startYear = startDateValue?.getFullYear();
+      const endYear = endDateValue?.getFullYear();
+      
+      if (startMonth === endMonth && startYear === endYear) {
+        // Same month and year - show just the month
+        formattedDateRange = startMonth;
+      } else if (startYear === endYear) {
+        // Same year, different months - show "Feb - Mar" format
+        formattedDateRange = `${startMonth} - ${endMonth}`;
+      } else {
+        // Different years - show "Feb 25 - Mar 25" format
+        formattedDateRange = `${startMonth} ${startYear} - ${endMonth} ${endYear}`;
+      }
+    } else {
+      // For other views, show specific dates
+      const formattedStartDate = startDateValue?.toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" });
+      const formattedEndDate = endDateValue?.toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" });
+      formattedDateRange = `${formattedStartDate} - ${formattedEndDate}`;
+    }
 
     const container = document.querySelector(`.cont-${id?.replaceAll(" ", "_")}`) as HTMLElement
-    if (!container) return
+    if (!container) {
+      return;
+    }
 
     const containerRect2 = container.getBoundingClientRect()
     const tooltipX = mouseX - containerRect2.left
     const tooltipY = mouseY - containerRect2.top - 50
 
+    // Safety check for description - use id as fallback if description is undefined
+    const safeDescription = description || id || "Phase";
+
     setTooltip({
       visible: true,
       x: tooltipX,
       y: tooltipY,
-      content: `${description}: ${formattedStartDate} - ${formattedEndDate}`,
+      content: `${safeDescription}: ${formattedDateRange}`,
       type,
     })
   }

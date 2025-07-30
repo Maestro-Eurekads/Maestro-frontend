@@ -211,23 +211,64 @@ const ResizableChannels = ({
   ) => {
     if (!dateList || dateList.length === 0) return;
 
+    // Get the actual channel dates from backend
+    const findMix = campaignFormData?.channel_mix?.find(
+      (ch) => ch?.funnel_stage === parentId
+    );
+    const findChannel = findMix?.[channels[index]?.channelName]?.find(
+      (plt) => plt?.platform_name === channels[index]?.name
+    );
+    
+    const channelStartDate = findChannel?.campaign_start_date 
+      ? parseISO(findChannel?.campaign_start_date)
+      : null;
+    const channelEndDate = findChannel?.campaign_end_date
+      ? parseISO(findChannel?.campaign_end_date)
+      : null;
+
     let startDateValue, endDateValue;
 
     if (rrange === "Year") {
-      // Year view - calculate based on months
-      const totalMonths = 12;
-      const monthStartIndex = Math.min(
-        totalMonths - 1,
-        Math.max(0, Math.round((startPixel / parentWidth) * totalMonths))
-      );
-      const monthEndIndex = Math.min(
-        totalMonths - 1,
-        Math.max(0, Math.round((endPixel / parentWidth) * totalMonths))
-      );
+      // For year view, use calculated dates during drag/resize, backend dates for initial click
+      const isDraggingOrResizing = type === "drag" || type === "resize";
+      
+      if (isDraggingOrResizing) {
+        // Use pixel-based calculation for real-time updates
+        const totalMonths = 12;
+        const monthStartIndex = Math.min(
+          totalMonths - 1,
+          Math.max(0, Math.round((startPixel / parentWidth) * totalMonths))
+        );
+        const monthEndIndex = Math.min(
+          totalMonths - 1,
+          Math.max(0, Math.round((endPixel / parentWidth) * totalMonths))
+        );
 
-      const year = startDate?.getFullYear() || new Date().getFullYear();
-      startDateValue = new Date(year, monthStartIndex, 1);
-      endDateValue = new Date(year, monthEndIndex + 1, 0);
+        const year = startDate?.getFullYear() || new Date().getFullYear();
+        startDateValue = new Date(year, monthStartIndex, 1);
+        endDateValue = new Date(year, monthEndIndex, 0);
+      } else {
+        // Use backend dates for initial tooltip
+        if (channelStartDate && channelEndDate) {
+          startDateValue = channelStartDate;
+          endDateValue = channelEndDate;
+        } else {
+          // Fallback to pixel calculation
+          const totalMonths = 12;
+          const monthStartIndex = Math.min(
+            totalMonths - 1,
+            Math.max(0, Math.round((startPixel / parentWidth) * totalMonths))
+          );
+          const monthEndIndex = Math.min(
+            totalMonths - 1,
+            Math.max(0, Math.round((endPixel / parentWidth) * totalMonths))
+          );
+
+          const year = startDate?.getFullYear() || new Date().getFullYear();
+          startDateValue = new Date(year, monthStartIndex, 1);
+          endDateValue = new Date(year, monthEndIndex, 0);
+        }
+      }
     } else {
       // Day, Week, Month view - calculate based on days
       const totalDays = dateList.length - 1;
@@ -245,8 +286,45 @@ const ResizableChannels = ({
       endDateValue = dateList[dayEndIndex] || endDate;
     }
 
-    const formattedStartDate = format(startDateValue, "MMM dd");
-    const formattedEndDate = format(endDateValue, "MMM dd");
+    console.log({ startDateValue, endDateValue, type })
+
+    // Debug the actual channel dates
+    console.log("Channel dates from backend:", {
+      channelStartDate: findChannel?.campaign_start_date,
+      channelEndDate: findChannel?.campaign_end_date,
+      calculatedStartDate: startDateValue,
+      calculatedEndDate: endDateValue,
+      startPixel,
+      endPixel,
+      parentWidth,
+      type
+    });
+
+    let formattedDateRange;
+    
+    if (rrange === "Year") {
+      // For year view, show month ranges
+      const startMonth = format(startDateValue, "MMM");
+      const endMonth = format(endDateValue, "MMM");
+      const startYear = startDateValue.getFullYear();
+      const endYear = endDateValue.getFullYear();
+      
+      if (startMonth === endMonth && startYear === endYear) {
+        // Same month and year - show just the month
+        formattedDateRange = startMonth;
+      } else if (startYear === endYear) {
+        // Same year, different months - show "Feb - Mar" format
+        formattedDateRange = `${startMonth} - ${endMonth}`;
+      } else {
+        // Different years - show "Feb 25 - Mar 25" format
+        formattedDateRange = `${startMonth} ${startYear} - ${endMonth} ${endYear}`;
+      }
+    } else {
+      // For other views, show specific dates
+      const formattedStartDate = format(startDateValue, "MMM dd");
+      const formattedEndDate = format(endDateValue, "MMM dd");
+      formattedDateRange = `${formattedStartDate} - ${formattedEndDate}`;
+    }
 
     const channelName = channels[index]?.name || "Channel";
     const containerRect = document
@@ -262,7 +340,7 @@ const ResizableChannels = ({
       visible: true,
       x: tooltipX,
       y: tooltipY,
-      content: `${channelName}: ${formattedStartDate} - ${formattedEndDate}`,
+      content: `${channelName}: ${formattedDateRange}`,
       type,
       index,
     });
@@ -407,24 +485,6 @@ const ResizableChannels = ({
       const { index, newStartDate, newEndDate } = draggingDataRef.current
       console.log({ index, newStartDate, newEndDate })
       // Final update to campaign data
-      // setCopy(() => {
-      //   const updatedData = JSON.parse(JSON.stringify(campaignFormData))
-      //   const channelMix = updatedData.channel_mix.find((ch) => ch.funnel_stage === parentId)
-
-      //   if (channelMix) {
-      //     const channelGroup = channelMix[channels[index].channelName]
-      //     if (Array.isArray(channelGroup)) {
-      //       const platform = channelGroup.find((platform) => platform.platform_name === channels[index].name)
-
-      //       if (platform) {
-      //         platform.campaign_start_date = newStartDate
-      //         platform.campaign_end_date = newEndDate
-      //       }
-      //     }
-      //   }
-
-      //   return updatedData
-      // })
 
       draggingDataRef.current = null
     }
@@ -509,7 +569,7 @@ const ResizableChannels = ({
       
       if (fieldName === "endDate") {
         // Last day of the target month
-        calculatedDate = new Date(year, monthIndex + 1, 0);
+        calculatedDate = new Date(year, monthIndex, 0);
       } else {
         // First day of the target month
         calculatedDate = new Date(year, monthIndex, 1);
@@ -636,31 +696,6 @@ const ResizableChannels = ({
 
       if (draggingDataRef.current) {
         const { index, startDate, endDate } = draggingDataRef.current;
-
-        setCopy(() => {
-          const updatedData = JSON.parse(JSON.stringify(campaignFormData));
-
-          const channelMix = updatedData.channel_mix.find(
-            (ch) => ch.funnel_stage === parentId
-          );
-
-          if (channelMix) {
-            const channelGroup = channelMix[channels[index].channelName];
-
-            if (Array.isArray(channelGroup)) {
-              const platform = channelGroup.find(
-                (platform) => platform.platform_name === channels[index].name
-              );
-
-              if (platform) {
-                platform.campaign_start_date = startDate;
-                platform.campaign_end_date = endDate;
-              }
-            }
-          }
-
-          return updatedData;
-        });
 
         setChannels((prevChannels) =>
           prevChannels.map((ch, i) =>
@@ -813,7 +848,11 @@ const ResizableChannels = ({
             if (adjustedStageStartDate && adjustedStageEndDate) {
               const startMonth = adjustedStageStartDate.getMonth();
               const endMonth = adjustedStageEndDate.getMonth();
-              const monthsBetween = endMonth - startMonth + 1;
+              const startYear = adjustedStageStartDate.getFullYear();
+              const endYear = adjustedStageEndDate.getFullYear();
+              
+              // Calculate months between dates, accounting for different years
+              const monthsBetween = (endYear - startYear) * 12 + (endMonth - startMonth) + 1;
               
               left = startMonth * dailyWidth;
               width = monthsBetween * dailyWidth;

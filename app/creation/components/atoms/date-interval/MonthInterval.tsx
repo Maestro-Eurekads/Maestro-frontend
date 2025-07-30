@@ -140,14 +140,14 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
         style={{
           display: "grid",
           gridTemplateColumns: gridTemplateColumns(),
-          backgroundImage: `linear-gradient(to right, rgba(0,0,255,0.3) 2px, transparent 2px)`,
+          backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.3) 1px, transparent 1px)`,
           backgroundSize: getBackgroundSize(),
         }}
       >
         {Object.entries(daysInMonth).map(([monthName, daysCount], i) => (
           <div
             key={i}
-            className=" relative pt-3 border-r border-blue-200 last:border-r-0"
+            className=" relative pt-3 border-r border-slate-200 last:border-r-0"
           >
             <div className="flex flex-col gap-2 items-center">
               <p className="font-[500] text-[13px] text-[rgba(0,0,0,0.5)]">

@@ -624,7 +624,7 @@ const ResizeableElements = ({
               boundaryLines.push(
                 <div
                   key={`boundary-${index}`}
-                  className="absolute top-0 bottom-0 w-px bg-blue-300 z-10"
+                  className="absolute top-0 bottom-0 w-px bg-slate-300 z-10"
                   style={{
                     left: `${Math.round(cumulativePercentage)}%`,
                   }}
