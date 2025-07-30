@@ -45,7 +45,7 @@ const getInitialState = () => {
     country_details: { id: "", value: "" },
     campaign_objectives: "",
     funnel_stages: [],
-    channel_mix: {},
+    channel_mix: [],
     campaign_timeline_start_date: "",
     campaign_timeline_end_date: "",
     campaign_budget: {},
@@ -146,7 +146,43 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const getActiveCampaign = useCallback(
     async (docId?: string) => {
       const campaignId = cId || docId;
-      if (!campaignId) return;
+
+      // If no campaign ID but we have a client selected, fetch client data
+      if (!campaignId) {
+        const clientId = campaignFormData?.client_selection?.id;
+        if (clientId && jwt) {
+          try {
+            setLoadingCampaign(true);
+            const res = await axios.get(
+              `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients/${clientId}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${jwt}`,
+                },
+              }
+            );
+
+            const clientData = res.data.data;
+            setCampaignData({
+              client: clientData,
+              custom_funnels: clientData?.custom_funnels || [],
+              funnel_configs: clientData?.custom_funnel_configs || []
+            });
+          } catch (error) {
+            if (error?.response?.status === 401) {
+              const event = new Event("unauthorizedEvent");
+              window.dispatchEvent(event);
+            }
+            console.error("Error fetching client data:", error);
+          } finally {
+            setLoadingCampaign(false);
+          }
+        } else {
+          // For new plans without client ID, ensure loading is set to false
+          setLoadingCampaign(false);
+        }
+        return;
+      }
 
       // Clear localStorage if switching to a different campaign
       const clearCampaignData = () => {
