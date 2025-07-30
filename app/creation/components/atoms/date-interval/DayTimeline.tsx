@@ -206,7 +206,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                                   : "bg-[#F05406]"
                               } text-white`}
                             style={{
-                              gridColumnStart: start ? start - startDay  === 0 ?1:start-startDay: 1,
+                              gridColumnStart: start ? start - startDay  === 0 ?1:start-startDay + 1: 1,
                               gridColumnEnd: end + 1 - startDay + 1,
                             }}
                           >
