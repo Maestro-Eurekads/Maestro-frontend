@@ -1,50 +1,50 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useRef, useEffect } from "react"
-import { MdDragHandle, MdOutlineKeyboardArrowDown } from "react-icons/md"
-import Image from "next/image"
-import icroundadd from "../public/ic_round-add.svg"
-import { useFunnelContext } from "../app/utils/FunnelContextType"
-import { useCampaigns } from "app/utils/CampaignsContext"
-import moment from "moment"
-import { useDateRange as useDRange } from "src/date-context"
-import { useDateRange } from "src/date-range-context"
-import { getCurrencySymbol } from "./data"
-import { addDays, subDays } from "date-fns"
+import type React from "react";
+import { useState, useRef, useEffect } from "react";
+import { MdDragHandle, MdOutlineKeyboardArrowDown } from "react-icons/md";
+import Image from "next/image";
+import icroundadd from "../public/ic_round-add.svg";
+import { useFunnelContext } from "../app/utils/FunnelContextType";
+import { useCampaigns } from "app/utils/CampaignsContext";
+import moment from "moment";
+import { useDateRange as useDRange } from "src/date-context";
+import { useDateRange } from "src/date-range-context";
+import { getCurrencySymbol } from "./data";
+import { addDays, subDays } from "date-fns";
 
 interface DraggableChannelProps {
-  id?: string
-  bg?: string
-  description?: string
-  setIsOpen?: (show: boolean) => void
-  openChannel?: boolean
-  setOpenChannel?: (open: boolean) => void
-  Icon?: any
-  dateList?: Date[]
-  dragConstraints?: any
-  parentWidth?: number
-  setParentWidth?: (width: number) => void
-  parentLeft?: number
-  setParentLeft?: (left: number) => void
-  disableDrag?: boolean
-  budget?: number | string
-  setSelectedStage?: any
-  openItems?: any
-  setOpenItems?: any
-  endMonth?: any
-  color?: any
-  endDay?: any
-  endWeek?: any
-  dailyWidth?: number
+  id?: string;
+  bg?: string;
+  description?: string;
+  setIsOpen?: (show: boolean) => void;
+  openChannel?: boolean;
+  setOpenChannel?: (open: boolean) => void;
+  Icon?: any;
+  dateList?: Date[];
+  dragConstraints?: any;
+  parentWidth?: number;
+  setParentWidth?: (width: number) => void;
+  parentLeft?: number;
+  setParentLeft?: (left: number) => void;
+  disableDrag?: boolean;
+  budget?: number | string;
+  setSelectedStage?: any;
+  openItems?: any;
+  setOpenItems?: any;
+  endMonth?: any;
+  color?: any;
+  endDay?: any;
+  endWeek?: any;
+  dailyWidth?: number;
 }
 
 interface TooltipState {
-  visible: boolean
-  x: number
-  y: number
-  content: string
-  type: "resize" | "drag" | null
+  visible: boolean;
+  x: number;
+  y: number;
+  content: string;
+  type: "resize" | "drag" | null;
 }
 
 const DraggableChannel: React.FC<DraggableChannelProps> = ({
@@ -72,131 +72,155 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   endWeek,
   dailyWidth,
 }) => {
-  const { funnelWidths, setFunnelWidth } = useFunnelContext()
-  const [position, setPosition] = useState(parentLeft || 0)
+  const { funnelWidths, setFunnelWidth } = useFunnelContext();
+  const [position, setPosition] = useState(parentLeft || 0);
   const isResizing = useRef<{
-    startX: number
-    startWidth: number
-    startPos: number
-    direction: "left" | "right"
-  } | null>(null)
-  const isDragging = useRef<{ startX: number; startPos: number } | null>(null)
+    startX: number;
+    startWidth: number;
+    startPos: number;
+    direction: "left" | "right";
+  } | null>(null);
+  const isDragging = useRef<{ startX: number; startPos: number } | null>(null);
   const newDatesRef = useRef<{ startDate: Date | null; endDate: Date | null }>({
     startDate: null,
     endDate: null,
-  })
-  const { campaignFormData, setCampaignFormData } = useCampaigns()
-  const { range } = useDRange()
-  const { range: rrange, extendRange } = useDateRange()
-  const dragStartRef = useRef<{ x: number; y: number } | null>(null)
+  });
+  const { campaignFormData, setCampaignFormData } = useCampaigns();
+  const { range } = useDRange();
+  const { range: rrange, extendRange } = useDateRange();
+  const dragStartRef = useRef<{ x: number; y: number } | null>(null);
   const [tooltip, setTooltip] = useState<TooltipState>({
     visible: false,
     x: 0,
     y: 0,
     content: "",
     type: null,
-  })
+  });
 
   useEffect(() => {
-    setPosition(parentLeft || 0)
-  }, [parentLeft])
+    setPosition(parentLeft || 0);
+  }, [parentLeft]);
 
-  const pixelToDate = (pixel: number, containerWidth: number, fieldName?: string) => {
-    if (!dateList.length) return new Date()
-    const startDate = dateList[0]
-    const totalDays = dateList.length - 1
+  const pixelToDate = (
+    pixel: number,
+    containerWidth: number,
+    fieldName?: string
+  ) => {
+    if (!dateList.length) return new Date();
+    const startDate = dateList[0];
+    const totalDays = dateList.length - 1;
 
     if (range === "Year") {
-      const totalMonths = 12
-      const clampedPixel = Math.max(0, Math.min(pixel, containerWidth))
-      const monthFraction = clampedPixel / containerWidth
-      const monthIndex = Math.floor(monthFraction * totalMonths)
-      const year = startDate.getFullYear()
+      const totalMonths = 12;
+      const clampedPixel = Math.max(0, Math.min(pixel, containerWidth));
+      const monthFraction = clampedPixel / containerWidth;
+      const monthIndex = Math.floor(monthFraction * totalMonths);
+      const year = startDate.getFullYear();
 
       if (fieldName === "endDate") {
         // For end date, return the last day of the target month
-        return new Date(year, monthIndex, 0)
+        return new Date(year, monthIndex, 0);
       } else if (fieldName === "startDate") {
         // For start date, return the first day of the target month
-        return new Date(year, monthIndex, 1)
+        return new Date(year, monthIndex, 1);
       } else {
         // Default to first day of the month
-        return new Date(year, monthIndex, 1)
+        return new Date(year, monthIndex, 1);
       }
     } else {
-      const dayIndex = Math.min(totalDays, Math.max(0, Math.round((pixel / containerWidth) * totalDays)))
-      const calculatedDate = new Date(startDate)
-      calculatedDate.setDate(startDate.getDate() + dayIndex)
-      return calculatedDate
+      const dayIndex = Math.min(
+        totalDays,
+        Math.max(0, Math.round((pixel / containerWidth) * totalDays))
+      );
+      const calculatedDate = new Date(startDate);
+      calculatedDate.setDate(startDate.getDate() + dayIndex);
+      return calculatedDate;
     }
-  }
+  };
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
     if (range === "Year") {
-      const monthWidth = containerWidth / 12
-      const monthIndex = Math.round(currentPosition / monthWidth)
-      return Math.min(monthIndex * monthWidth, containerWidth)
+      const monthWidth = containerWidth / 12;
+      const monthIndex = Math.round(currentPosition / monthWidth);
+      return Math.min(monthIndex * monthWidth, containerWidth);
     }
 
-    const baseStep = dailyWidth || containerWidth / (dateList.length - 1)
-    const snapPoints = []
+    const baseStep = dailyWidth || containerWidth / (dateList.length - 1);
+    const snapPoints = [];
     for (let i = 0; i <= containerWidth; i += baseStep) {
-      snapPoints.push(i)
+      snapPoints.push(i);
     }
 
     const closestSnap = snapPoints.reduce((prev, curr) =>
-      Math.abs(curr - currentPosition) < Math.abs(prev - currentPosition) ? curr : prev,
-    )
-    return closestSnap
-  }
+      Math.abs(curr - currentPosition) < Math.abs(prev - currentPosition)
+        ? curr
+        : prev
+    );
+    return closestSnap;
+  };
 
   const updateTooltipWithDates = (
     startPixel: number,
     endPixel: number,
     mouseX: number,
     mouseY: number,
-    type: "resize" | "drag",
+    type: "resize" | "drag"
   ) => {
     if (!dateList.length) {
       return;
     }
 
-    const gridContainer = document.querySelector(".grid-container")
+    const gridContainer = document.querySelector(".grid-container");
     if (!gridContainer) {
       return;
     }
 
-    const containerRect = gridContainer.getBoundingClientRect()
-    const containerWidth = containerRect.width
+    const containerRect = gridContainer.getBoundingClientRect();
+    const containerWidth = containerRect.width;
 
-    let startDateValue: Date
-    let endDateValue: Date
+    let startDateValue: Date;
+    let endDateValue: Date;
 
     if (range === "Year") {
-      startDateValue = pixelToDate(startPixel, containerWidth)
-      endDateValue = pixelToDate(endPixel, containerWidth, "endDate")
+      startDateValue = pixelToDate(startPixel, containerWidth);
+      endDateValue = pixelToDate(endPixel, containerWidth, "endDate");
     } else {
-      const totalDays = dateList.length - 1
-      const dayStartIndex = Math.min(totalDays, Math.max(0, Math.round((startPixel / containerWidth) * totalDays)))
-      const dayEndIndex = Math.min(totalDays, Math.max(0, Math.round((endPixel / containerWidth) * totalDays)))
-      startDateValue = dateList[dayStartIndex] || dateList[0]
-      endDateValue = dateList[dayEndIndex] || dateList[totalDays]
+      const totalDays = dateList.length - 1;
+      const dayStartIndex = Math.min(
+        totalDays,
+        Math.max(0, Math.round((startPixel / containerWidth) * totalDays))
+      );
+      const dayEndIndex = Math.min(
+        totalDays,
+        Math.max(0, Math.round((endPixel / containerWidth) * totalDays))
+      );
+      startDateValue = dateList[dayStartIndex] || dateList[0];
+      endDateValue = dateList[dayEndIndex] || dateList[totalDays];
     }
 
     // Safety checks for dates
-    if (!startDateValue || !endDateValue || isNaN(startDateValue.getTime()) || isNaN(endDateValue.getTime())) {
+    if (
+      !startDateValue ||
+      !endDateValue ||
+      isNaN(startDateValue.getTime()) ||
+      isNaN(endDateValue.getTime())
+    ) {
       return;
     }
 
     let formattedDateRange;
-    
+
     if (range === "Year") {
       // For year view, show month ranges
-      const startMonth = startDateValue?.toLocaleDateString("en-US", { month: "short" });
-      const endMonth = endDateValue?.toLocaleDateString("en-US", { month: "short" });
+      const startMonth = startDateValue?.toLocaleDateString("en-US", {
+        month: "short",
+      });
+      const endMonth = endDateValue?.toLocaleDateString("en-US", {
+        month: "short",
+      });
       const startYear = startDateValue?.getFullYear();
       const endYear = endDateValue?.getFullYear();
-      
+
       if (startMonth === endMonth && startYear === endYear) {
         // Same month and year - show just the month
         formattedDateRange = startMonth;
@@ -209,19 +233,29 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       }
     } else {
       // For other views, show specific dates
-      const formattedStartDate = startDateValue?.toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" });
-      const formattedEndDate = endDateValue?.toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" });
+      const formattedStartDate = startDateValue?.toLocaleDateString("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+      });
+      const formattedEndDate = endDateValue?.toLocaleDateString("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+      });
       formattedDateRange = `${formattedStartDate} - ${formattedEndDate}`;
     }
 
-    const container = document.querySelector(`.cont-${id?.replaceAll(" ", "_")}`) as HTMLElement
+    const container = document.querySelector(
+      `.cont-${id?.replaceAll(" ", "_")}`
+    ) as HTMLElement;
     if (!container) {
       return;
     }
 
-    const containerRect2 = container.getBoundingClientRect()
-    const tooltipX = mouseX - containerRect2.left
-    const tooltipY = mouseY - containerRect2.top - 50
+    const containerRect2 = container.getBoundingClientRect();
+    const tooltipX = mouseX - containerRect2.left;
+    const tooltipY = mouseY - containerRect2.top - 50;
 
     // Safety check for description - use id as fallback if description is undefined
     const safeDescription = description || id || "Phase";
@@ -232,157 +266,209 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       y: tooltipY,
       content: `${safeDescription}: ${formattedDateRange}`,
       type,
-    })
-  }
+    });
+  };
 
-  const handleMouseDownResize = (e: React.MouseEvent<HTMLDivElement>, direction: "left" | "right") => {
-    if (disableDrag || openItems) return
-    e.preventDefault()
-    e.stopPropagation()
+  const handleMouseDownResize = (
+    e: React.MouseEvent<HTMLDivElement>,
+    direction: "left" | "right"
+  ) => {
+    if (disableDrag || openItems) return;
+    e.preventDefault();
+    e.stopPropagation();
 
     // Hide channels when starting resize
-    setOpenChannel?.(false)
+    setOpenChannel?.(false);
 
-    const startPixel = position
-    const endPixel = startPixel + (parentWidth || 0)
-    updateTooltipWithDates(startPixel, endPixel, e.clientX, e.clientY, "resize")
+    const startPixel = position;
+    const endPixel = startPixel + (parentWidth || 0);
+    updateTooltipWithDates(
+      startPixel,
+      endPixel,
+      e.clientX,
+      e.clientY,
+      "resize"
+    );
 
     isResizing.current = {
       startX: e.clientX,
       startWidth: parentWidth || 0,
       startPos: position,
       direction,
-    }
+    };
 
-    document.addEventListener("mousemove", handleMouseMoveResize)
-    document.addEventListener("mouseup", handleMouseUp)
-  }
+    document.addEventListener("mousemove", handleMouseMoveResize);
+    document.addEventListener("mouseup", handleMouseUp);
+  };
 
   const handleMouseMoveResize = (e: MouseEvent) => {
-    if (!isResizing.current) return
+    if (!isResizing.current) return;
 
-    const { startX, startWidth, startPos, direction } = isResizing.current
-    const gridContainer = document.querySelector(".grid-container")
-    if (!gridContainer) return
+    const { startX, startWidth, startPos, direction } = isResizing.current;
+    const gridContainer = document.querySelector(".grid-container");
+    if (!gridContainer) return;
 
-    const containerRect = gridContainer.getBoundingClientRect()
-    let newWidth = startWidth
-    let newPos = startPos
-    const mouseX = e.clientX - containerRect.left
+    const containerRect = gridContainer.getBoundingClientRect();
+    let newWidth = startWidth;
+    let newPos = startPos;
+    const mouseX = e.clientX - containerRect.left;
 
-    const rangeStart = rrange[0]
-    const rangeEnd = rrange[rrange.length - 1]
+    const rangeStart = rrange[0];
+    const rangeEnd = rrange[rrange.length - 1];
 
     if (direction === "left") {
-      const deltaX = e.clientX - startX
-      newPos = Math.max(0, startPos + deltaX)
-      newWidth = Math.max(50, startWidth - deltaX)
-      newPos = snapToTimeline(newPos, containerRect.width)
-      newWidth = startWidth - (newPos - startPos)
+      const deltaX = e.clientX - startX;
+      newPos = Math.max(0, startPos + deltaX);
+      newWidth = Math.max(50, startWidth - deltaX);
+      newPos = snapToTimeline(newPos, containerRect.width);
+      newWidth = startWidth - (newPos - startPos);
 
       if (mouseX < 0) {
-        const newRangeStart = subDays(rangeStart, 2)
-        extendRange(newRangeStart.toISOString().split("T")[0], rangeEnd.toISOString().split("T")[0])
+        const newRangeStart = subDays(rangeStart, 2);
+        extendRange(
+          newRangeStart.toISOString().split("T")[0],
+          rangeEnd.toISOString().split("T")[0]
+        );
       }
     } else {
-      const deltaX = e.clientX - startX
-      const rightEdgePos = startPos + startWidth + deltaX
-      const snappedRightEdge = snapToTimeline(rightEdgePos, containerRect.width)
-      newWidth = Math.max(50, snappedRightEdge - startPos)
+      const deltaX = e.clientX - startX;
+      const rightEdgePos = startPos + startWidth + deltaX;
+      const snappedRightEdge = snapToTimeline(
+        rightEdgePos,
+        containerRect.width
+      );
+      newWidth = Math.max(50, snappedRightEdge - startPos);
 
       if (mouseX > containerRect.width) {
-        const newRangeEnd = addDays(rangeEnd, 2)
-        extendRange(rangeStart.toISOString().split("T")[0], newRangeEnd.toISOString().split("T")[0])
+        const newRangeEnd = addDays(rangeEnd, 2);
+        extendRange(
+          rangeStart.toISOString().split("T")[0],
+          newRangeEnd.toISOString().split("T")[0]
+        );
       }
     }
 
-    const startDate = pixelToDate(newPos, containerRect.width, "startDate")
-    const endDate = pixelToDate(newPos + newWidth, containerRect.width, "endDate")
-    newDatesRef.current = { startDate, endDate }
+    const startDate = pixelToDate(newPos, containerRect.width, "startDate");
+    const endDate = pixelToDate(
+      newPos + newWidth,
+      containerRect.width,
+      "endDate"
+    );
+    newDatesRef.current = { startDate, endDate };
 
-    setParentWidth?.(newWidth)
-    setParentLeft?.(newPos)
-    setPosition(newPos)
+    setParentWidth?.(newWidth);
+    setParentLeft?.(newPos);
+    setPosition(newPos);
 
-    updateTooltipWithDates(newPos, newPos + newWidth, e.clientX, e.clientY, "resize")
-  }
+    updateTooltipWithDates(
+      newPos,
+      newPos + newWidth,
+      e.clientX,
+      e.clientY,
+      "resize"
+    );
+  };
 
   const handleMouseDownDrag = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (disableDrag) return
-    e.preventDefault()
+    if (disableDrag) return;
+    e.preventDefault();
 
-    dragStartRef.current = { x: e.clientX, y: e.clientY }
+    dragStartRef.current = { x: e.clientX, y: e.clientY };
 
-    const startPixel = position
-    const endPixel = startPixel + (parentWidth || 0)
-    updateTooltipWithDates(startPixel, endPixel, e.clientX, e.clientY, "drag")
+    const startPixel = position;
+    const endPixel = startPixel + (parentWidth || 0);
+    updateTooltipWithDates(startPixel, endPixel, e.clientX, e.clientY, "drag");
 
-    isDragging.current = { startX: e.clientX, startPos: position }
+    isDragging.current = { startX: e.clientX, startPos: position };
 
-    document.addEventListener("mousemove", handleMouseMoveDrag)
-    document.addEventListener("mouseup", handleMouseUp)
-  }
+    document.addEventListener("mousemove", handleMouseMoveDrag);
+    document.addEventListener("mouseup", handleMouseUp);
+  };
 
   const handleMouseMoveDrag = (e: MouseEvent) => {
-    if (!isDragging.current) return
+    if (!isDragging.current) return;
 
-    const { startX, startPos } = isDragging.current
+    const { startX, startPos } = isDragging.current;
 
     if (dragStartRef.current) {
-      const deltaX = Math.abs(e.clientX - dragStartRef.current.x)
-      const deltaY = Math.abs(e.clientY - dragStartRef.current.y)
+      const deltaX = Math.abs(e.clientX - dragStartRef.current.x);
+      const deltaY = Math.abs(e.clientY - dragStartRef.current.y);
       if (deltaX > 5 || deltaY > 5) {
-        setOpenChannel?.(false)
-        dragStartRef.current = null
+        setOpenChannel?.(false);
+        dragStartRef.current = null;
       }
     }
 
-    const gridContainer = document.querySelector(".grid-container")
-    if (!gridContainer) return
+    const gridContainer = document.querySelector(".grid-container");
+    if (!gridContainer) return;
 
-    const containerRect = gridContainer.getBoundingClientRect()
-    const minX = 0
-    const maxX = containerRect.width - (parentWidth || 0)
-    const mouseX = e.clientX - containerRect.left
+    const containerRect = gridContainer.getBoundingClientRect();
+    const minX = 0;
+    const maxX = containerRect.width - (parentWidth || 0);
+    const mouseX = e.clientX - containerRect.left;
 
-    let newPosition = startPos + (e.clientX - startX)
-    newPosition = Math.max(minX, Math.min(newPosition, maxX))
-    newPosition = snapToTimeline(newPosition, containerRect.width)
+    let newPosition = startPos + (e.clientX - startX);
+    newPosition = Math.max(minX, Math.min(newPosition, maxX));
+    newPosition = snapToTimeline(newPosition, containerRect.width);
 
-    const rangeStart = rrange[0]
-    const rangeEnd = rrange[rrange.length - 1]
+    const rangeStart = rrange[0];
+    const rangeEnd = rrange[rrange.length - 1];
 
     if (mouseX < 50) {
-      const newRangeStart = subDays(rangeStart, 2)
-      extendRange(newRangeStart.toISOString().split("T")[0], rangeEnd.toISOString().split("T")[0])
+      const newRangeStart = subDays(rangeStart, 2);
+      extendRange(
+        newRangeStart.toISOString().split("T")[0],
+        rangeEnd.toISOString().split("T")[0]
+      );
     }
 
     if (mouseX > containerRect.width - 50) {
-      const newRangeEnd = addDays(rangeEnd, 2)
-      extendRange(rangeStart.toISOString().split("T")[0], newRangeEnd.toISOString().split("T")[0])
+      const newRangeEnd = addDays(rangeEnd, 2);
+      extendRange(
+        rangeStart.toISOString().split("T")[0],
+        newRangeEnd.toISOString().split("T")[0]
+      );
     }
 
-    const startDate = pixelToDate(newPosition, containerRect.width, "startDate")
-    const endDate = pixelToDate(newPosition + (parentWidth || 0), containerRect.width, "endDate")
-    newDatesRef.current = { startDate, endDate }
+    const startDate = pixelToDate(
+      newPosition,
+      containerRect.width,
+      "startDate"
+    );
+    const endDate = pixelToDate(
+      newPosition + (parentWidth || 0),
+      containerRect.width,
+      "endDate"
+    );
+    newDatesRef.current = { startDate, endDate };
 
-    setParentLeft?.(newPosition)
-    setPosition(newPosition)
+    setParentLeft?.(newPosition);
+    setPosition(newPosition);
 
-    updateTooltipWithDates(newPosition, newPosition + (parentWidth || 0), e.clientX, e.clientY, "drag")
-  }
+    updateTooltipWithDates(
+      newPosition,
+      newPosition + (parentWidth || 0),
+      e.clientX,
+      e.clientY,
+      "drag"
+    );
+  };
 
   const handleMouseUp = () => {
-    setTooltip((prev) => ({ ...prev, visible: false }))
-    dragStartRef.current = null
+    setTooltip((prev) => ({ ...prev, visible: false }));
+    dragStartRef.current = null;
 
     if (newDatesRef.current.startDate && newDatesRef.current.endDate) {
-      const { startDate, endDate } = newDatesRef.current
+      const { startDate, endDate } = newDatesRef.current;
 
-      const updatedChannelMix = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === description)
+      const updatedChannelMix = campaignFormData?.channel_mix?.find(
+        (ch) => ch?.funnel_stage === description
+      );
       if (updatedChannelMix) {
-        updatedChannelMix.funnel_stage_timeline_start_date = moment(startDate).format("YYYY-MM-DD")
-        updatedChannelMix.funnel_stage_timeline_end_date = moment(endDate).format("YYYY-MM-DD")
+        updatedChannelMix.funnel_stage_timeline_start_date =
+          moment(startDate).format("YYYY-MM-DD");
+        updatedChannelMix.funnel_stage_timeline_end_date =
+          moment(endDate).format("YYYY-MM-DD");
 
         const mediaTypes = [
           "social_media",
@@ -396,56 +482,69 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
           "e_commerce",
           "in_game",
           "mobile",
-        ]
+        ];
 
         mediaTypes.forEach((type) => {
-          const platforms = updatedChannelMix[type]
+          const platforms = updatedChannelMix[type];
           if (platforms && Array.isArray(platforms)) {
             platforms.forEach((platform) => {
-              platform.campaign_start_date = moment(startDate).format("YYYY-MM-DD")
-              platform.campaign_end_date = moment(endDate).format("YYYY-MM-DD")
-            })
+              platform.campaign_start_date =
+                moment(startDate).format("YYYY-MM-DD");
+              platform.campaign_end_date = moment(endDate).format("YYYY-MM-DD");
+            });
           }
-        })
+        });
 
         const allStartDates = campaignFormData?.channel_mix
-          ?.map((ch) => ch?.funnel_stage_timeline_start_date && moment(ch.funnel_stage_timeline_start_date))
-          .filter((date) => date)
+          ?.map(
+            (ch) =>
+              ch?.funnel_stage_timeline_start_date &&
+              moment(ch.funnel_stage_timeline_start_date)
+          )
+          .filter((date) => date);
 
         const allEndDates = campaignFormData?.channel_mix
-          ?.map((ch) => ch?.funnel_stage_timeline_end_date && moment(ch.funnel_stage_timeline_end_date))
-          .filter((date) => date)
+          ?.map(
+            (ch) =>
+              ch?.funnel_stage_timeline_end_date &&
+              moment(ch.funnel_stage_timeline_end_date)
+          )
+          .filter((date) => date);
 
-        const minStartDate = moment.min(allStartDates).format("YYYY-MM-DD")
-        const maxEndDate = moment.max(allEndDates).format("YYYY-MM-DD")
+        const minStartDate = moment.min(allStartDates).format("YYYY-MM-DD");
+        const maxEndDate = moment.max(allEndDates).format("YYYY-MM-DD");
 
         setCampaignFormData({
           ...campaignFormData,
           channel_mix: campaignFormData.channel_mix.map((ch) =>
-            ch.funnel_stage === description ? updatedChannelMix : ch,
+            ch.funnel_stage === description ? updatedChannelMix : ch
           ),
           ...(range === "Year" && {
             campaign_timeline_start_date: minStartDate,
             campaign_timeline_end_date: maxEndDate,
           }),
-        })
+        });
       }
 
-      newDatesRef.current = { startDate: null, endDate: null }
+      newDatesRef.current = { startDate: null, endDate: null };
     }
 
-    isResizing.current = null
-    isDragging.current = null
-    document.removeEventListener("mousemove", handleMouseMoveResize)
-    document.removeEventListener("mousemove", handleMouseMoveDrag)
-    document.removeEventListener("mouseup", handleMouseUp)
-  }
+    isResizing.current = null;
+    isDragging.current = null;
+    document.removeEventListener("mousemove", handleMouseMoveResize);
+    document.removeEventListener("mousemove", handleMouseMoveDrag);
+    document.removeEventListener("mouseup", handleMouseUp);
+  };
 
-  const stageBudget = campaignFormData?.channel_mix?.find((fs) => fs?.funnel_stage === description)?.stage_budget
+  const stageBudget = campaignFormData?.channel_mix?.find(
+    (fs) => fs?.funnel_stage === description
+  )?.stage_budget;
 
   return (
     <div
-      className={`relative px-[1px] w-full ${disableDrag ? "h-auto" : "h-14"} flex select-none rounded-[10px] cont-${id?.replaceAll(" ", "_")}`}
+      className={`relative px-[1px] w-full ${
+        disableDrag ? "h-auto" : "h-14"
+      } flex select-none rounded-[10px] cont-${id?.replaceAll(" ", "_")}`}
       style={{
         transform: `translateX(${position + (range === "Month" ? 4 : 0)}px)`,
       }}
@@ -456,7 +555,9 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
           style={{
             left: `${tooltip.x}px`,
             top: `0px`,
-            transform: `translate(-${tooltip.x + 100 >= (parentWidth || 0) ? 100 : 0}%, -100%)`,
+            transform: `translate(-${
+              tooltip.x + 100 >= (parentWidth || 0) ? 100 : 0
+            }%, -100%)`,
             border: `1px solid ${bg}`,
             color: "white",
           }}
@@ -467,12 +568,16 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
       <div
         className={` ${color} ${disableDrag ? "min-h-14" : "h-14"} flex ${
-          disableDrag && range === "Year" && (parentWidth || 0) < 150 ? "flex-col" : "flex-row"
+          disableDrag && range === "Year" && (parentWidth || 0) < 150
+            ? "flex-col"
+            : "flex-row"
         } justify-between items-center text-white px-4 py-[10px] gap-2 border shadow-md min-w-[50px] ${
           disableDrag ? "cursor-default relative" : "cursor-pointer"
         } rounded-[10px] cont-${id?.replaceAll(" ", "_")} z-50`}
         style={{
-          width: disableDrag ? `${(parentWidth || 0) + (range === "Month" ? 0 : 0)}px` : parentWidth,
+          width: disableDrag
+            ? `${(parentWidth || 0) + (range === "Month" ? 0 : 0)}px`
+            : parentWidth,
           backgroundColor: color,
           transition: "transform 0.2s ease-out",
         }}
@@ -485,8 +590,8 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
               disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
             } rounded-l-lg text-white flex items-center justify-center z-50`}
             onMouseDown={(e) => {
-              if (disableDrag) return
-              handleMouseDownResize(e, "left")
+              if (disableDrag) return;
+              handleMouseDownResize(e, "left");
             }}
           >
             <MdDragHandle className="rotate-90" />
@@ -497,8 +602,8 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
               disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
             } rounded-l-lg text-white flex items-center justify-center z-50`}
             onMouseDown={(e) => {
-              if (disableDrag) return
-              handleMouseDownResize(e, "left")
+              if (disableDrag) return;
+              handleMouseDownResize(e, "left");
             }}
           >
             <MdDragHandle className="rotate-90" />
@@ -508,16 +613,25 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         <div />
 
         {/* Main content */}
-        <div className="flex justify-center items-center gap-5 w-[100%]">
+        <div className="flex justify-center items-center gap-5 w-full">
           <button
             className="flex justify-center items-center gap-5 w-full"
             onClick={() => {
-              if (!disableDrag) {
-                setOpenChannel?.(!openChannel)
-              }
+              // if (!disableDrag) {
+                setOpenChannel?.(!openChannel);
+              // }
             }}
           >
-            {Icon?.src ? <Image src={Icon?.src || "/placeholder.svg"} alt="" width={20} height={20} /> : Icon}
+            {Icon?.src ? (
+              <Image
+                src={Icon?.src || "/placeholder.svg"}
+                alt=""
+                width={20}
+                height={20}
+              />
+            ) : (
+              Icon
+            )}
             <span className="font-medium">{description}</span>
             <MdOutlineKeyboardArrowDown />
           </button>
@@ -526,8 +640,8 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
             <button
               className="channel-btn mr-2 w-fit shrink-0"
               onClick={() => {
-                setIsOpen?.(true)
-                setSelectedStage?.(description)
+                setIsOpen?.(true);
+                setSelectedStage?.(description);
               }}
             >
               <Image src={icroundadd || "/placeholder.svg"} alt="icroundadd" />
@@ -537,16 +651,16 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
             <div />
           )}
 
-{disableDrag && stageBudget?.fixed_value > 0 && (
-  <div className="bg-[#FFFFFF26] rounded-[5px] py-[10px] px-2 font-medium flex items-center space-x-1">
-    <span>
-      {Number.parseInt(stageBudget.fixed_value).toLocaleString()}
-    </span>
-    <span>
-      {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
-    </span>
-  </div>
-)}
+          {disableDrag && stageBudget?.fixed_value > 0 && (
+            <div className="bg-[#FFFFFF26] rounded-[5px] py-[10px] px-2 font-medium flex items-center space-x-1">
+              <span>
+                {Number.parseInt(stageBudget.fixed_value).toLocaleString()}
+              </span>
+              <span>
+                {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Right resize handle */}
@@ -556,8 +670,8 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
               disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
             } rounded-r-lg text-white flex items-center justify-center`}
             onMouseDown={(e) => {
-              if (disableDrag || openItems) return
-              handleMouseDownResize(e, "right")
+              if (disableDrag || openItems) return;
+              handleMouseDownResize(e, "right");
             }}
           >
             <MdDragHandle className="rotate-90" />
@@ -568,8 +682,8 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
               disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
             } rounded-r-lg text-white flex items-center justify-center`}
             onMouseDown={(e) => {
-              if (disableDrag || openItems) return
-              handleMouseDownResize(e, "right")
+              if (disableDrag || openItems) return;
+              handleMouseDownResize(e, "right");
             }}
           >
             <MdDragHandle className="rotate-90" />
@@ -577,7 +691,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default DraggableChannel
+export default DraggableChannel;
