@@ -73,7 +73,7 @@ function YearTimeline({ range, funnels }) {
               const style =
                 platformStyles.find((style) => style.name === platformName) ||
                 platformStyles[
-                  Math.floor(Math.random() * platformStyles.length)
+                Math.floor(Math.random() * platformStyles.length)
                 ];
               platforms.push({
                 platform_name: platformName,
@@ -162,9 +162,9 @@ function YearTimeline({ range, funnels }) {
               startDate,
               endDate
             );
-            
 
-            
+
+
 
 
             return (
@@ -172,9 +172,8 @@ function YearTimeline({ range, funnels }) {
                 key={index}
                 style={{
                   display: "grid",
-                  gridTemplateColumns: `repeat(${
-                    generateYearMonths()?.length
-                  }, ${calcDailyWidth()}px)`,
+                  gridTemplateColumns: `repeat(${generateYearMonths()?.length
+                    }, ${calcDailyWidth()}px)`,
                 }}
               >
                 <div
@@ -189,11 +188,11 @@ function YearTimeline({ range, funnels }) {
                   }}
                 >
                   <div
-                    className={`${
-                      expanded[index]
-                        ? 'border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] flex items-center justify-between gap-2 p-4 bg-[#F9FAFB]'
-                        : 'flex items-center justify-between gap-2 p-4'
-                    }`}
+                    onClick={() => toggleShow(index)}
+                    className={`cursor-pointer ${expanded[index]
+                      ? 'border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] flex items-center justify-between gap-2 p-4 bg-[#F9FAFB]'
+                      : 'flex items-center justify-between gap-2 p-4'
+                      }`}
                   >
                     {/* text container */}
                     <div className="flex-1 min-w-0" title={label}>
@@ -239,15 +238,14 @@ function YearTimeline({ range, funnels }) {
                           >
                             <div
                               onClick={() => toggleOpen(index, section?.name)}
-                              className={`w-full flex items-center justify-between rounded-[8px] text-[13px] font-[500] p-2 cursor-pointer hover:shadow-sm transition-shadow min-w-0 ${
-                                section?.name === "Awareness"
-                                  ? "bg-[#3175FF]"
-                                  : section?.name === "Consideration"
+                              className={`w-full flex items-center justify-between rounded-[8px] text-[13px] font-[500] p-2 cursor-pointer hover:shadow-sm transition-shadow min-w-0 ${section?.name === "Awareness"
+                                ? "bg-[#3175FF]"
+                                : section?.name === "Consideration"
                                   ? "bg-[#34A853]"
                                   : section?.name === "Conversion"
-                                  ? "bg-[#ff9037]"
-                                  : "bg-[#F05406]"
-                              } text-white`}
+                                    ? "bg-[#ff9037]"
+                                    : "bg-[#F05406]"
+                                } text-white`}
                             >
                               <div className="flex items-center gap-1 min-w-0 flex-1" title={section?.name}>
                                 <span
@@ -269,13 +267,13 @@ function YearTimeline({ range, funnels }) {
                               </div>
                               <div className="text-xs opacity-90 flex-shrink-0 ml-2">
                                 {section?.budget?.startsWith("null") ||
-                                section?.budget?.startsWith("undefined")
+                                  section?.budget?.startsWith("undefined")
                                   ? 0
                                   : `${Number(
-                                      section?.budget.replace(/[^\d.-]/g, "")
-                                    ).toLocaleString()} ${section?.budget
-                                      .replace(/[\d\s.,-]/g, "")
-                                      .trim()}`}
+                                    section?.budget.replace(/[^\d.-]/g, "")
+                                  ).toLocaleString()} ${section?.budget
+                                    .replace(/[\d\s.,-]/g, "")
+                                    .trim()}`}
                               </div>
                             </div>
 
