@@ -52,6 +52,9 @@ const Dashboard = () => {
     ?.filter((c) => c?.campaign_timeline_end_date)
     ?.map((ch) => ch?.campaign_timeline_end_date !== null && parseISO(ch?.campaign_timeline_end_date))
 
+    console.log("startDates", startDates)
+    console.log("endDates", endDates)
+
   // Find the earliest startDate and latest endDate
   const earliestStartDate = min(startDates)
   const latestEndDate = max(endDates)

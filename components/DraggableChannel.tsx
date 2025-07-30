@@ -470,7 +470,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
           disableDrag && range === "Year" && (parentWidth || 0) < 150 ? "flex-col" : "flex-row"
         } justify-between items-center text-white px-4 py-[10px] gap-2 border shadow-md min-w-[50px] ${
           disableDrag ? "cursor-default relative" : "cursor-pointer"
-        } rounded-[10px] cont-${id?.replaceAll(" ", "_")} z-10`}
+        } rounded-[10px] cont-${id?.replaceAll(" ", "_")} z-50`}
         style={{
           width: disableDrag ? `${(parentWidth || 0) + (range === "Month" ? 0 : 0)}px` : parentWidth,
           backgroundColor: color,

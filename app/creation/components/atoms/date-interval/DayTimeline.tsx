@@ -206,8 +206,8 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                                   : "bg-[#F05406]"
                               } text-white`}
                             style={{
-                              gridColumnStart: start ? start : 1,
-                              gridColumnEnd: end + 1,
+                              gridColumnStart: start ? start - startDay  === 0 ?1:start-startDay: 1,
+                              gridColumnEnd: end + 1 - startDay + 1,
                             }}
                           >
                             <div className="flex items-center justify-center gap-3 flex-1">

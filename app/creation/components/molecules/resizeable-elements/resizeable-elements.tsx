@@ -624,7 +624,7 @@ const ResizeableElements = ({
               boundaryLines.push(
                 <div
                   key={`boundary-${index}`}
-                  className="absolute top-0 bottom-0 w-px bg-slate-300 z-10"
+                  className="absolute top-0 bottom-0 w-px bg-slate-300 z-50"
                   style={{
                     left: `${Math.round(cumulativePercentage)}%`,
                   }}
@@ -643,7 +643,7 @@ const ResizeableElements = ({
               boundaryLines.push(
                 <div
                   key={`boundary-${index}`}
-                  className="absolute top-0 bottom-0 w-px bg-blue-300 z-10"
+                  className="absolute top-0 bottom-0 w-px bg-blue-300 z-50"
                   style={{
                     left: `${Math.round(cumulativePercentage)}%`,
                   }}
@@ -659,10 +659,10 @@ const ResizeableElements = ({
       {/* Year view month headers */}
       {rrange === "Year" && (
         <div
-          className="sticky top-0 z-10 bg-transparent border-b mb-4"
+          className="sticky top-0 z-50 bg-transparent border-b mb-4"
           style={{
             display: "grid",
-            gridTemplateColumns: generateGridColumns(),
+            gridTemplateColumns: generateGridColumns(), 
             gap: "0px",
           }}
         >
