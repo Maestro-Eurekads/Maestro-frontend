@@ -22,7 +22,9 @@ export const DateRangeProvider = ({ children }: { children: React.ReactNode }) =
   const { campaignFormData, setCampaignFormData } = useCampaigns();
   const [range, setRange] = useState<Date[]>([]);
   const [dateRangeWidth, setDateRangeWidth] = useState(0);
+  
 
+  console.log("this is the campaignFormData", campaignFormData)
   useEffect(() => {
     if (
       campaignFormData?.campaign_timeline_start_date &&

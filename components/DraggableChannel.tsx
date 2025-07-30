@@ -537,12 +537,16 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
             <div />
           )}
 
-          {disableDrag && stageBudget?.fixed_value > 0 && (
-            <div className="bg-[#FFFFFF26] rounded-[5px] py-[10px] font-medium">
-              {stageBudget?.fixed_value && Number.parseInt(stageBudget?.fixed_value).toLocaleString()}{" "}
-              {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
-            </div>
-          )}
+{disableDrag && stageBudget?.fixed_value > 0 && (
+  <div className="bg-[#FFFFFF26] rounded-[5px] py-[10px] px-2 font-medium flex items-center space-x-1">
+    <span>
+      {Number.parseInt(stageBudget.fixed_value).toLocaleString()}
+    </span>
+    <span>
+      {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+    </span>
+  </div>
+)}
         </div>
 
         {/* Right resize handle */}

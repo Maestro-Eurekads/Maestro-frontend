@@ -77,11 +77,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     getActiveCampaign,
     copy,
     isEditingBuyingObjective,
-    isStepZeroValid,
-    setIsStepZeroValid,
     selectedOption,
     setCampaignFormData,
-    requiredFields,
     currencySign,
     jwt,
     agencyId,
@@ -147,9 +144,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     }
   }
 
-  useEffect(() => {
-    setIsStepZeroValid(requiredFields.every(Boolean))
-  }, [requiredFields, setIsStepZeroValid])
+
 
   const handleContinue = () => {
     // Step 0 validation

@@ -37,6 +37,8 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
 
+  console.log("this is the funnels data", funnelsData)
+
   // Check if we need to show the scroll indicator
   useEffect(() => {
     if (!containerRef.current) return;
@@ -91,6 +93,7 @@ console.log(daysInYear, "daysInYear");
           <>
             <DayInterval
               daysCount={dayDifference}
+              funnelData={funnelsData}
               src="dashboard"
               range={dateList}
             />

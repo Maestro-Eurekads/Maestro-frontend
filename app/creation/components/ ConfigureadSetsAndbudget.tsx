@@ -64,7 +64,7 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
 
   function extractPlatforms(data) {
     const platforms = []
-    if (!Array.isArray(data?.channel_mix)) return;
+    if (!data || !Array.isArray(data?.channel_mix)) return;
 
     data.channel_mix.forEach((stage) => {
       const stageName = stage?.funnel_stage
@@ -111,7 +111,7 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
   }
 
   useEffect(() => {
-    if (campaignFormData) {
+    if (campaignFormData && campaignFormData.channel_mix) {
       extractPlatforms(campaignFormData)
     }
   }, [campaignFormData])
@@ -126,10 +126,9 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
   }, [campaignFormData])
 
   const allocatedBudget = useMemo(() => {
-    return (
-      campaignFormData?.channel_mix?.reduce((acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0), 0) ||
-      0
-    )
+    return Array.isArray(campaignFormData?.channel_mix)
+      ? campaignFormData.channel_mix.reduce((acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0), 0)
+      : 0
   }, [campaignFormData?.channel_mix])
 
   // Calculate gross amount (same logic as FeeSelectionStep)
@@ -164,10 +163,11 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
       mediaBudget = 0
     }
 
-    const subBudgets =
-      campaignFormData?.channel_mix?.reduce((acc, stage) => {
+    const subBudgets = Array.isArray(campaignFormData?.channel_mix)
+      ? campaignFormData.channel_mix.reduce((acc, stage) => {
         return acc + (Number(stage?.stage_budget?.fixed_value) || 0)
-      }, 0) || 0
+      }, 0)
+      : 0
 
     const remainingBudget = mediaBudget - subBudgets
     return remainingBudget > 0 ? remainingBudget.toFixed(2) : "0.00"
@@ -228,7 +228,7 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
   }, [totalCampaignBudget, campaignFormData?.campaign_budget?.currency])
 
   const campaignPhases = useMemo(() => {
-    if (!campaignFormData?.channel_mix) return []
+    if (!Array.isArray(campaignFormData?.channel_mix)) return []
     const netAvailable = calculateNetAvailableBudget()
     if (netAvailable === 0) return []
     return campaignFormData.channel_mix
@@ -306,7 +306,7 @@ export const BudgetOverviewSection = () => {
 
   function extractPlatforms(data) {
     const platforms = []
-    if (!Array.isArray(data?.channel_mix)) {
+    if (!data || !Array.isArray(data?.channel_mix)) {
       return;
     }
 
@@ -356,7 +356,7 @@ export const BudgetOverviewSection = () => {
   }
 
   useEffect(() => {
-    if (campaignFormData) {
+    if (campaignFormData && campaignFormData.channel_mix) {
       extractPlatforms(campaignFormData)
     }
   }, [campaignFormData])

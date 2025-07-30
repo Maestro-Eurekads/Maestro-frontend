@@ -6,6 +6,7 @@ import { useCampaigns } from "../app/utils/CampaignsContext";
 import { BiLoader } from "react-icons/bi";
 import { useAppDispatch } from "../store/useStore";
 import { getCreateClient } from "../features/Client/clientSlice";
+import { reset } from "features/Comment/commentSlice";
 import { useSession } from "next-auth/react";
 import { useUserPrivileges } from "utils/userPrivileges";
 import { useActive } from "app/utils/ActiveContext";
@@ -23,7 +24,7 @@ const Dropdown = ({
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { campaignFormData, setCampaignFormData, loadingClients, allClients, setClientUsers, jwt } = useCampaigns();
+  const { campaignFormData, setCampaignFormData, loadingClients, allClients, setClientUsers, jwt, getActiveCampaign } = useCampaigns();
   const { data: session } = useSession()
   const dispatch = useAppDispatch();
   const { setChange } = useActive()
@@ -43,15 +44,25 @@ const Dropdown = ({
 
   const handleSelect = (id, value: string) => {
     setChange(true)
+
+    // Reset Redux state when selecting a new client
     if (formId === "client_selection") {
+      dispatch(reset());
+
       const selectedClient = allClients?.find(client => client.documentId === id);
 
       if (selectedClient) {
         setClientUsers(selectedClient.users || []);
       }
-    }
-    setCampaignFormData((prev) => ({
 
+      // Fetch client data to get custom funnel configurations
+      // This will trigger getActiveCampaign with no campaignId to fetch client data
+      setTimeout(() => {
+        getActiveCampaign();
+      }, 100);
+    }
+
+    setCampaignFormData((prev) => ({
       ...prev,
       [formId]: {
         id,

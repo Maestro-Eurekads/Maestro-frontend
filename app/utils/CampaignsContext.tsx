@@ -19,6 +19,8 @@ import { updateUsersWithCampaign } from "app/homepage/functions/clients";
 import { extractObjectives, getFilteredMetrics } from "app/creation/components/EstablishedGoals/table-view/data-processor";
 import { useUserPrivileges } from "utils/userPrivileges";
 import { toast } from "sonner";
+import { useAppDispatch } from "store/useStore";
+import { reset } from "features/Comment/commentSlice";
 
 // Get initial state from localStorage if available
 const getInitialState = () => {
@@ -43,7 +45,7 @@ const getInitialState = () => {
     country_details: { id: "", value: "" },
     campaign_objectives: "",
     funnel_stages: [],
-    channel_mix: {},
+    channel_mix: [],
     campaign_timeline_start_date: "",
     campaign_timeline_end_date: "",
     campaign_budget: {},
@@ -66,6 +68,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const campaign_builder = session?.user;
   const [campaignFormData, setCampaignFormData] = useState(getInitialState());
   const [campaignData, setCampaignData] = useState(null);
+  const dispatch = useAppDispatch();
   const [clientCampaignData, setClientCampaignData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -76,7 +79,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [isEditingBuyingObjective, setIsEditingBuyingObjective] =
     useState(false);
   const [selectedOption, setSelectedOption] = useState("percentage");
-  const [requiredFields, setRequiredFields] = useState([]);
   const query = useSearchParams();
   const cId = query.get("campaignId");
   const { loadingClients: hookLoadingClients, allClients: hookAllClients } =
@@ -89,7 +91,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [buyType, setBuyType] = useState([]);
   const [clientPOs, setClientPOs] = useState([]);
   const [fetchingPO, setFetchingPO] = useState(false);
-  const [isStepZeroValid, setIsStepZeroValid] = useState(false);
   const [currencySign, setCurrencySign] = useState("");
   const { loggedInUser } = useUserPrivileges()
   const [user, setUser] = useState(null);
@@ -145,7 +146,43 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const getActiveCampaign = useCallback(
     async (docId?: string) => {
       const campaignId = cId || docId;
-      if (!campaignId) return;
+
+      // If no campaign ID but we have a client selected, fetch client data
+      if (!campaignId) {
+        const clientId = campaignFormData?.client_selection?.id;
+        if (clientId && jwt) {
+          try {
+            setLoadingCampaign(true);
+            const res = await axios.get(
+              `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients/${clientId}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${jwt}`,
+                },
+              }
+            );
+
+            const clientData = res.data.data;
+            setCampaignData({
+              client: clientData,
+              custom_funnels: clientData?.custom_funnels || [],
+              funnel_configs: clientData?.custom_funnel_configs || []
+            });
+          } catch (error) {
+            if (error?.response?.status === 401) {
+              const event = new Event("unauthorizedEvent");
+              window.dispatchEvent(event);
+            }
+            console.error("Error fetching client data:", error);
+          } finally {
+            setLoadingCampaign(false);
+          }
+        } else {
+          // For new plans without client ID, ensure loading is set to false
+          setLoadingCampaign(false);
+        }
+        return;
+      }
 
       // Clear localStorage if switching to a different campaign
       const clearCampaignData = () => {
@@ -225,12 +262,18 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         } catch (error) {
           console.error("Error clearing campaign data:", error);
         }
+
+        // Reset Redux state
+        dispatch(reset());
       };
 
       // Check if we're switching to a different campaign
       const currentCampaignId = campaignFormData?.cId;
       if (currentCampaignId && currentCampaignId !== campaignId) {
         clearCampaignData();
+        // Reset context state when switching campaigns
+        setCampaignFormData({});
+        setCampaignData(null);
       }
 
       try {
@@ -836,12 +879,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       getProfile,
       isEditingBuyingObjective,
       setIsEditingBuyingObjective,
-      isStepZeroValid,
-      setIsStepZeroValid,
       selectedOption,
       setSelectedOption,
-      requiredFields,
-      setRequiredFields,
       currencySign,
       setCurrencySign,
       user,
@@ -885,12 +924,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       selectedFilters,
       profile,
       isEditingBuyingObjective,
-      isStepZeroValid,
-      setIsStepZeroValid,
       selectedOption,
       setSelectedOption,
-      requiredFields,
-      setRequiredFields,
       currencySign,
       setCurrencySign,
       user,

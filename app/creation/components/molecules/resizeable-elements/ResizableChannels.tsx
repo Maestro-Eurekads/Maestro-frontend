@@ -1256,7 +1256,13 @@ const ResizableChannels = ({
                   }}
                 >
                   <p className="text-[14px] font-medium text-[#00A36C]">
-                    {channel?.ad_sets?.length} ad sets
+                    {(channel?.ad_sets || []).filter(
+                      (set) =>
+                        Boolean(set?.audience_type?.toString().trim()) ||
+                        Boolean(set?.name?.toString().trim()) ||
+                        Boolean(set?.size?.toString().trim()) ||
+                        Boolean(set?.description?.toString().trim())
+                    ).length} ad sets
                   </p>
                   <Image
                     src={
