@@ -175,6 +175,9 @@ const MapFunnelStages = () => {
   const clientId = campaignFormData?.client_selection?.id ?? "";
   const mediaPlanId = campaignFormData?.media_plan_id ?? "";
 
+
+  console.log("campaignFormData---", clientId)
+
   // Default funnel stages
 
   const defaultFunnels: Funnel[] = [
@@ -1173,13 +1176,13 @@ const MapFunnelStages = () => {
                     className="absolute z-10 mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-y-auto"
                     role="listbox"
                   >
-                    {activeConfigs.length > 0 && (
+                    {activeConfigs?.length > 0 && (
                       <>
                         <li className="px-4 py-2 text-xs text-gray-500 font-semibold">
                           Saved Configurations
                         </li>
 
-                        {activeConfigs.map((config, activeIdx) => {
+                        {activeConfigs?.map((config, activeIdx) => {
                           // Find the original index in the full funnelConfigs array
                           const originalIdx = funnelConfigs.findIndex(
                             (c) => c === config
@@ -1228,7 +1231,7 @@ const MapFunnelStages = () => {
                       Presets
                     </li>
 
-                    {presetStructures.map((preset, idx) => (
+                    {presetStructures?.map((preset, idx) => (
                       <li
                         key={`preset-${preset.label}-${idx}`}
                         className={`px-4 py-3 cursor-pointer hover:bg-blue-50 ${selectedPreset === idx && selectedConfigIdx === null
