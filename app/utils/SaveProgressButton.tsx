@@ -114,7 +114,6 @@ const SaveProgressButton = ({ setIsOpen }) => {
 		isEditingBuyingObjective,
 		selectedOption,
 		setCampaignFormData,
-		setCampaignData,
 		currencySign,
 		jwt,
 		agencyId,
@@ -467,172 +466,13 @@ const SaveProgressButton = ({ setIsOpen }) => {
 
 		const updateCampaignData = async (data) => {
 			const calcPercent = Math.ceil((active / 10) * 100)
-
-			// Clean and validate data before sending
-			const cleanData = (obj) => {
-				if (obj === null || obj === undefined) return null
-				if (typeof obj !== 'object') return obj
-				if (Array.isArray(obj)) {
-					return obj.map(cleanData).filter(item => item !== null && item !== undefined)
-				}
-				const cleaned = {}
-				for (const [key, value] of Object.entries(obj)) {
-					if (value !== null && value !== undefined) {
-						cleaned[key] = cleanData(value)
-					}
-				}
-				return Object.keys(cleaned).length > 0 ? cleaned : null
-			}
-
-			// Use the same date validation approach as SaveAllProgressButton
-			const validateAndFormatDates = (data) => {
-				const isValidDate = (d) => {
-					if (!d || d === "" || d === null || d === undefined) {
-						return null;
-					}
-					// Check if it's already in yyyy-MM-dd format
-					if (typeof d === 'string' && d.length === 10 && /^\d{4}-\d{2}-\d{2}$/.test(d)) {
-						return d;
-					}
-					// Try to parse and format the date
-					try {
-						const date = new Date(d);
-						if (isNaN(date.getTime())) {
-							return null;
-						}
-						return date.toISOString().split('T')[0]; // Convert to yyyy-MM-dd format
-					} catch (error) {
-						return null;
-					}
-				};
-
-				return {
-					...data,
-					campaign_timeline_start_date: isValidDate(data?.campaign_timeline_start_date),
-					campaign_timeline_end_date: isValidDate(data?.campaign_timeline_end_date),
-				};
-			};
-
-			// Special handling for channel_mix to ensure it's properly structured
-			const validateChannelMix = (channelMix) => {
-				if (!channelMix || !Array.isArray(channelMix)) {
-					console.warn("validateChannelMix: channelMix is not an array:", channelMix)
-					return []
-				}
-
-				return channelMix.map(stage => {
-					if (!stage || typeof stage !== 'object') return null
-
-					const cleanedStage = { ...stage }
-
-					// Format date fields in the stage
-					const formatDateField = (value) => {
-						if (!value) return value
-						if (value instanceof Date) {
-							return value.toISOString().split('T')[0]
-						}
-						if (typeof value === 'string') {
-							try {
-								const date = new Date(value)
-								if (!isNaN(date.getTime())) {
-									return date.toISOString().split('T')[0]
-								}
-							} catch (e) {
-								// Keep original if parsing fails
-							}
-						}
-						return value
-					}
-
-					// Format stage-level date fields
-					if (cleanedStage.funnel_stage_timeline_start_date) {
-						cleanedStage.funnel_stage_timeline_start_date = formatDateField(cleanedStage.funnel_stage_timeline_start_date)
-					}
-					if (cleanedStage.funnel_stage_timeline_end_date) {
-						cleanedStage.funnel_stage_timeline_end_date = formatDateField(cleanedStage.funnel_stage_timeline_end_date)
-					}
-
-					// Clean each channel type
-					CHANNEL_TYPES.forEach(({ key }) => {
-						if (cleanedStage[key] && Array.isArray(cleanedStage[key])) {
-							cleanedStage[key] = cleanedStage[key].map(platform => {
-								if (!platform || typeof platform !== 'object') return null
-
-								// Remove any undefined or null values from platform
-								const cleanedPlatform = {}
-								Object.entries(platform).forEach(([k, v]) => {
-									if (v !== null && v !== undefined) {
-										// Format date fields in platforms
-										if (k.includes('_date') || k.includes('Date')) {
-											cleanedPlatform[k] = formatDateField(v)
-										} else {
-											cleanedPlatform[k] = v
-										}
-									}
-								})
-
-								return Object.keys(cleanedPlatform).length > 0 ? cleanedPlatform : null
-							}).filter(Boolean)
-						}
-					})
-
-					return cleanedStage
-				}).filter(Boolean)
-			}
-
-			const cleanedData = cleanData({
-				...data,
-				channel_mix: data.channel_mix ? validateChannelMix(data.channel_mix) : (Array.isArray(campaignFormData?.channel_mix) ? campaignFormData.channel_mix : []),
-				progress_percent:
-					campaignFormData?.progress_percent > calcPercent ? campaignFormData?.progress_percent : calcPercent,
-			})
-
-			// Apply date validation using the same approach as SaveAllProgressButton
-			const dataWithValidatedDates = validateAndFormatDates(cleanedData)
-
-			// Log the data being sent for debugging
-			console.log("Sending campaign update data:", dataWithValidatedDates)
-
-			// Deep search for any date-like values that might be causing issues
-			const findDateFields = (obj, path = '') => {
-				if (obj === null || obj === undefined) return
-				if (typeof obj === 'string') {
-					// Check if string looks like a date but not in yyyy-MM-dd format
-					if (obj.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/) ||
-						obj.match(/^\d{4}\/\d{2}\/\d{2}/) ||
-						obj.match(/^\d{2}\/\d{2}\/\d{4}/) ||
-						obj.match(/^\d{2}-\d{2}-\d{4}/)) {
-						console.warn(`Potential date format issue at ${path}:`, obj)
-					}
-					return
-				}
-				if (typeof obj === 'object') {
-					if (Array.isArray(obj)) {
-						obj.forEach((item, index) => {
-							findDateFields(item, `${path}[${index}]`)
-						})
-					} else {
-						Object.entries(obj).forEach(([key, value]) => {
-							const newPath = path ? `${path}.${key}` : key
-							findDateFields(value, newPath)
-						})
-					}
-				}
-			}
-
-			findDateFields(dataWithValidatedDates)
-
-			// Don't send if data is empty or null
-			if (!dataWithValidatedDates || Object.keys(dataWithValidatedDates).length === 0) {
-				console.warn("No valid data to update, skipping update")
-				toast.success("Campaign updated!")
-				setChange(false)
-				return
-			}
-
 			try {
-				await updateCampaign(dataWithValidatedDates)
-				await getActiveCampaign()
+				await updateCampaign({
+					...data,
+					progress_percent:
+						campaignFormData?.progress_percent > calcPercent ? campaignFormData?.progress_percent : calcPercent,
+				})
+				await getActiveCampaign(data)
 				toast.success("Campaign updated!")
 				setChange(false)
 			} catch (error) {
@@ -640,96 +480,13 @@ const SaveProgressButton = ({ setIsOpen }) => {
 					const event = new Event("unauthorizedEvent")
 					window.dispatchEvent(event)
 				}
-				console.error("Update campaign error:", error)
-				console.error("Error response data:", error?.response?.data)
-				toast.error(`Failed to update campaign data: ${error?.response?.data?.message || error?.response?.data?.error?.message || error?.message || "Unknown error"}`)
+				toast.error("Failed to update campaign data")
 				setLoading(false)
 				throw error
 			}
 		}
 
-		// Helper function to ensure campaign exists and context is updated
-		const ensureCampaignExists = async () => {
-			if (campaignData && cId) {
-				console.log("ensureCampaignExists: Campaign already exists - cId:", cId)
-				return true
-			}
-
-			console.log("ensureCampaignExists: No campaign exists, creating one...")
-			try {
-				await handleStepZero(true) // Skip validation for step 0 fields
-
-				// Wait for context to be updated - check multiple times
-				let attempts = 0
-				const maxAttempts = 20
-				while ((!campaignData || !cId) && attempts < maxAttempts) {
-					console.log(`ensureCampaignExists: Waiting for context update... attempt ${attempts + 1}/${maxAttempts}`)
-					console.log(`ensureCampaignExists: Current state - campaignData:`, campaignData, "cId:", cId)
-					await new Promise(resolve => setTimeout(resolve, 300))
-					attempts++
-				}
-
-				// Final check
-				if (!campaignData || !cId) {
-					console.error("ensureCampaignExists: Campaign creation failed after all attempts")
-					console.error("ensureCampaignExists: Final state - campaignData:", campaignData, "cId:", cId)
-					return false
-				}
-
-				console.log("ensureCampaignExists: Campaign created successfully - cId:", cId)
-				return true
-			} catch (error) {
-				console.error("ensureCampaignExists: Error creating campaign:", error)
-				return false
-			}
-		}
-
-		// Helper function to ensure context is updated after campaign creation
-		const updateContextAfterCreation = async (response) => {
-			const documentId = response?.data?.data?.documentId
-			const campaignId = response?.data?.data?.id
-
-			if (documentId) {
-				console.log("updateContextAfterCreation: Updating context with documentId:", documentId)
-
-				try {
-					// Update campaignFormData with new IDs immediately
-					setCampaignFormData(prev => ({
-						...prev,
-						cId: documentId,
-						campaign_id: campaignId,
-						// Ensure channel_mix is always an array
-						channel_mix: Array.isArray(prev.channel_mix) ? prev.channel_mix : []
-					}))
-
-					// Update campaignData immediately
-					if (response?.data?.data) {
-						setCampaignData(response?.data?.data)
-					}
-
-					// Call getActiveCampaign to ensure full context sync
-					console.log("updateContextAfterCreation: Calling getActiveCampaign...")
-					await getActiveCampaign(documentId)
-					console.log("updateContextAfterCreation: getActiveCampaign completed")
-
-					// Force a small delay to ensure state updates are processed
-					await new Promise(resolve => setTimeout(resolve, 100))
-
-					// Double-check that context is updated
-					console.log("updateContextAfterCreation: Final context check - cId:", cId, "campaignData:", campaignData)
-
-					console.log("updateContextAfterCreation: Context update completed successfully")
-				} catch (error) {
-					console.error("updateContextAfterCreation: Error updating context:", error)
-					throw error
-				}
-			} else {
-				console.error("updateContextAfterCreation: No documentId found in response:", response)
-				throw new Error("No documentId found in campaign creation response")
-			}
-		}
-
-		const handleStepZero = async (skipValidation = false) => {
+		const handleStepZero = async () => {
 			setLoading(true)
 			try {
 				let hasError = false
@@ -743,25 +500,22 @@ const SaveProgressButton = ({ setIsOpen }) => {
 				// Error collector
 				const errors: string[] = []
 
-				// Only validate if not skipping validation (i.e., when called from step 0)
-				if (!skipValidation) {
-					// Check each field, and if invalid, set flag and trigger alert
-					if (!getFieldValue(campaignFormData?.media_plan)) {
-						errors.push("Media plan name is required.")
-						hasError = true
-					}
+				// Check each field, and if invalid, set flag and trigger alert
+				if (!getFieldValue(campaignFormData?.media_plan)) {
+					errors.push("Media plan name is required.")
+					hasError = true
+				}
 
-					if (!getFieldValue(campaignFormData?.budget_details_currency?.id)) {
-						errors.push("Currency is required.")
-						hasError = true
-					}
+				if (!getFieldValue(campaignFormData?.budget_details_currency?.id)) {
+					errors.push("Currency is required.")
+					hasError = true
+				}
 
-					if (hasError) {
-						toast.error(errors.join(" "))
-						setValidateStep(true)
-						setLoading(false)
-						return
-					}
+				if (hasError) {
+					toast.error(errors.join(" "))
+					setValidateStep(true)
+					setLoading(false)
+					return
 				}
 
 				// Clean and store form
@@ -809,19 +563,14 @@ const SaveProgressButton = ({ setIsOpen }) => {
 
 				// Update or Create
 				if (cId && campaignData) {
-					console.log("handleStepZero: Updating existing campaign with cId:", cId)
 					await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`, payload, config)
 					setChange(false)
 					toast.success("Campaign updated successfully!")
 				} else {
-					console.log("handleStepZero: Creating new campaign with payload:", payload)
 					const response = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`, payload, config)
-					console.log("handleStepZero: Campaign creation response:", response?.data)
-
 					const url = new URL(window.location.href)
 					url.searchParams.set("campaignId", `${response?.data?.data.documentId}`)
 					window.history.pushState({}, "", url.toString())
-
 					await updateUsersWithCampaign(
 						[
 							...(Array.isArray(loggedInUser?.id) ? loggedInUser?.id : [loggedInUser?.id]),
@@ -831,65 +580,38 @@ const SaveProgressButton = ({ setIsOpen }) => {
 						response?.data?.data?.id,
 						jwt,
 					)
-
-					console.log("handleStepZero: Calling getActiveCampaign with documentId:", response?.data?.data.documentId)
-
-					// Update context state after campaign creation
-					await updateContextAfterCreation(response)
-
+					await getActiveCampaign(response?.data?.data.documentId)
 					setChange(false)
 					toast.success("Campaign created successfully!")
 					// FIXED: Clear channel state when creating a new campaign
 					clearChannelStateForNewCampaign()
 				}
 			} catch (error) {
-				console.error("handleStepZero: Error occurred:", error)
-				console.error("handleStepZero: Error response:", error?.response?.data)
-
 				if (error?.response?.status === 401) {
 					const event = new Event("unauthorizedEvent")
 					window.dispatchEvent(event)
-				} else if (error?.response?.status === 400) {
-					toast.error(error?.response?.data?.error?.message || "Invalid data provided. Please check your inputs.")
-				} else if (error?.response?.status === 422) {
-					toast.error("Validation failed. Please check your campaign data.")
-				} else if (error?.response?.status >= 500) {
-					toast.error("Server error. Please try again later.")
-				} else if (error?.message) {
-					toast.error(error.message)
-				} else {
-					toast.error("Something went wrong. Please try again.")
 				}
-
-				setLoading(false)
-				throw error // Re-throw to be caught by the calling function
+				toast.error(error.response?.data?.message || "Something went wrong. Please try again.")
+				if (error?.response?.status === 401) {
+					const event = new Event("unauthorizedEvent")
+					window.dispatchEvent(event)
+				}
 			} finally {
 				setLoading(false)
 			}
 		}
 
 		const handleStepOne = async () => {
-			// Ensure campaign exists and context is updated
-			const campaignExists = await ensureCampaignExists()
-			if (!campaignExists) {
-				toast.error("Failed to create campaign. Please try again.")
-				return
-			}
-
-			console.log("Step 1 - Saving funnel stages data:", campaignFormData?.funnel_stages)
+			if (!campaignData || !cId) return
 			await updateCampaignData({
 				funnel_stages: campaignFormData?.funnel_stages,
+				custom_funnels: campaignFormData?.custom_funnels,
+				funnel_type: campaignFormData?.funnel_type,
 			})
 		}
 
 		const handleStepTwo = async () => {
-			// Ensure campaign exists and context is updated
-			const campaignExists = await ensureCampaignExists()
-			if (!campaignExists) {
-				toast.error("Failed to create campaign. Please try again.")
-				return
-			}
-			console.log("Step 2 - Original channel_mix data:", campaignFormData?.channel_mix)
+			if (!campaignData || !cId) return
 			await updateCampaignData({
 				funnel_stages: campaignFormData?.funnel_stages,
 				channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
@@ -906,13 +628,7 @@ const SaveProgressButton = ({ setIsOpen }) => {
 		}
 
 		const handleStepThree = async () => {
-			// Ensure campaign exists and context is updated
-			const campaignExists = await ensureCampaignExists()
-			if (!campaignExists) {
-				toast.error("Failed to create campaign. Please try again.")
-				return
-			}
-			console.log("Step 3 - Original channel_mix data:", campaignFormData?.channel_mix)
+			if (!campaignData || !cId) return
 			await updateCampaignData({
 				channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
 					"id",
@@ -925,12 +641,7 @@ const SaveProgressButton = ({ setIsOpen }) => {
 		}
 
 		const handleStepFour = async () => {
-			// Ensure campaign exists and context is updated
-			const campaignExists = await ensureCampaignExists()
-			if (!campaignExists) {
-				toast.error("Failed to create campaign. Please try again.")
-				return
-			}
+			if (!campaignData || !cId) return
 			let updatedCampaignFormData = campaignFormData
 
 			if (active === 5) {
@@ -959,12 +670,7 @@ const SaveProgressButton = ({ setIsOpen }) => {
 		}
 
 		const handleStepSeven = async () => {
-			// Ensure campaign exists and context is updated
-			const campaignExists = await ensureCampaignExists()
-			if (!campaignExists) {
-				toast.error("Failed to create campaign. Please try again.")
-				return
-			}
+			if (!campaignData) return
 			let updatedCampaignFormData = campaignFormData
 			const obj = extractObjectives(campaignFormData)
 			updatedCampaignFormData = {
@@ -988,12 +694,7 @@ const SaveProgressButton = ({ setIsOpen }) => {
 		}
 
 		const handleDateStep = async () => {
-			// Ensure campaign exists and context is updated
-			const campaignExists = await ensureCampaignExists()
-			if (!campaignExists) {
-				toast.error("Failed to create campaign. Please try again.")
-				return
-			}
+			if (!campaignData) return
 
 			await updateCampaignData({
 				campaign_timeline_start_date: campaignFormData?.campaign_timeline_start_date,
@@ -1016,7 +717,7 @@ const SaveProgressButton = ({ setIsOpen }) => {
 			} else if (active === 1) {
 				await handleStepOne()
 			} else if (active === 2) {
-				await handleStepThree()
+				await handleStepTwo()
 			} else if (active === 3) {
 				await handleStepThree()
 			} else if (active === 8) {

@@ -19,6 +19,7 @@ import { useSearchParams } from "next/navigation"
 import ConfigureAdSetsAndBudget, { BudgetOverviewSection } from "./ ConfigureadSetsAndbudget"
 import SaveProgressButton from "app/utils/SaveProgressButton"
 import { useActive } from "app/utils/ActiveContext"
+import SaveAllProgressButton from "./SaveProgres/SaveAllProgressButton"
 
 const CampaignBudget = () => {
   const { setChange } = useActive()
@@ -274,7 +275,8 @@ const CampaignBudget = () => {
           t4="Choose how to set your campaign budget"
           span={1}
         />
-        <SaveProgressButton setIsOpen={undefined} />
+        {/* <SaveProgressButton setIsOpen={undefined} /> */}
+        <SaveAllProgressButton />
       </div>
 
       <div className="mt-[24px] flex gap-5">
