@@ -145,18 +145,14 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       return Math.min(monthIndex * monthWidth, containerWidth);
     }
 
-    const baseStep = dailyWidth || containerWidth / (dateList.length - 1);
-    const snapPoints = [];
-    for (let i = 0; i <= containerWidth; i += baseStep) {
-      snapPoints.push(i);
-    }
+    // Each cell boundary is the space between two dates → (length-1) segments.
+    const totalCells = Math.max(dateList.length - 1, 1);
+    const cellWidth = containerWidth / totalCells;
 
-    const closestSnap = snapPoints.reduce((prev, curr) =>
-      Math.abs(curr - currentPosition) < Math.abs(prev - currentPosition)
-        ? curr
-        : prev
-    );
-    return closestSnap;
+    // Convert pixel position to nearest cell index then back to pixel.
+    let idx = Math.round(currentPosition / cellWidth);
+    idx = Math.min(totalCells, Math.max(0, idx));
+    return idx * cellWidth;
   };
 
   const updateTooltipWithDates = (
@@ -333,8 +329,10 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     } else {
       const deltaX = e.clientX - startX;
       const rightEdgePos = startPos + startWidth + deltaX;
+      const cellWidth = containerRect.width / Math.max(dateList.length - 1, 1);
+      // Bias snapping slightly left so the right handle doesn't overshoot into the next cell.
       const snappedRightEdge = snapToTimeline(
-        rightEdgePos,
+        rightEdgePos - cellWidth / 2,
         containerRect.width
       );
       newWidth = Math.max(50, snappedRightEdge - startPos);
@@ -546,7 +544,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         disableDrag ? "h-auto" : "h-14"
       } flex select-none rounded-[10px] cont-${id?.replaceAll(" ", "_")}`}
       style={{
-        transform: `translateX(${position + (range === "Month" ? 4 : 0)}px)`,
+        transform: `translateX(${position}px)`,
       }}
     >
       {tooltip.visible && (
