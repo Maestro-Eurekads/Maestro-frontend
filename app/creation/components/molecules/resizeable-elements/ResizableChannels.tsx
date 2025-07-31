@@ -170,35 +170,44 @@ const ResizableChannels = ({
     index: number
   } | null>(null)
 
+  // ---------------------------------------------------------------------------
+  // Grid-cell helpers – keep all calculations in integer cell indices instead of
+  // raw pixels so zoom / device-pixel-ratio cannot introduce rounding errors.
+  // ---------------------------------------------------------------------------
+
+  const getCellWidth = (containerWidth: number) =>
+    rrange === "Year" ? containerWidth / 12 : containerWidth / dateList.length;
+
+  const pixelToIndex = (pixel: number, containerWidth: number) => {
+    const cell = getCellWidth(containerWidth);
+    return Math.round(pixel / cell);
+  };
+
+  const indexToPixel = (index: number, containerWidth: number) => {
+    const cell = getCellWidth(containerWidth);
+    return index * cell;
+  };
+
+  /**
+   * Snap a pixel position to the nearest grid-line.
+   *   • In “Year” view we snap to the 12 monthly grid lines.
+   *   • Otherwise we snap to the daily grid lines, whose size is
+   *     containerWidth / (dateList.length - 1).
+   * This calculation uses containerWidth directly so it always matches the
+   * real cell size regardless of zoom or rounding, fixing the off-by-one
+   * behaviour the user saw when half-way across the screen.
+   */
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
-    if (rrange === "Year") {
-      // Year view - snap to month boundaries
-      const monthWidth = containerWidth / 12;
-      const monthIndex = Math.round(currentPosition / monthWidth);
-      return Math.min(monthIndex * monthWidth, containerWidth);
-    }
+    if (containerWidth <= 0) return currentPosition;
 
-    // Day, Week, Month view - snap to daily boundaries
-    const baseStep = dailyWidth;
-    const adjustmentPerStep = 0;
-    const snapPoints = [];
+    // Determine the logical step (grid cell width).
+    const step = rrange === "Year" ? containerWidth / 12 : containerWidth / (Math.max(dateList.length, 1));
 
-    let currentSnap = 0;
-    let step = baseStep;
+    // Round to nearest grid line.
+    const snapped = Math.round(currentPosition / step) * step;
 
-    while (currentSnap <= containerWidth) {
-      snapPoints.push(currentSnap);
-      currentSnap += step;
-      step = Math.max(dailyWidth, step - adjustmentPerStep);
-    }
-
-    const closestSnap = snapPoints.reduce((prev, curr) =>
-      Math.abs(curr - currentPosition) < Math.abs(prev - currentPosition)
-        ? curr
-        : prev
-    );
-
-    return closestSnap;
+    // Clamp to container bounds to avoid overflow.
+    return Math.min(Math.max(snapped, 0), containerWidth);
   };
 
   const updateTooltipWithDates = (
@@ -356,12 +365,33 @@ const ResizableChannels = ({
       newWidth = Math.max(minWidth, finalRightEdge - newLeft)
     }
 
+    // -------------------------------------------------------------------------
+    // Quantise to grid cells so that left / width always align exactly to
+    // date boundaries no matter the browser zoom.
+    // -------------------------------------------------------------------------
+
+    const rawStartPx = newLeft - parentLeft
+    const rawEndPx = rawStartPx + newWidth
+
+    const startIdx = pixelToIndex(rawStartPx, containerRect.width)
+    let endIdx = pixelToIndex(rawEndPx, containerRect.width)
+
+    // Ensure a minimum span of one cell
+    if (endIdx <= startIdx) endIdx = startIdx + 1
+
+    const quantStartPx = indexToPixel(startIdx, containerRect.width) + parentLeft
+    const quantEndPx = indexToPixel(endIdx, containerRect.width) + parentLeft
+
+    newLeft = quantStartPx
+    newWidth = quantEndPx - quantStartPx
+
     // Convert pixels to dates
     const startPixel = newLeft - parentLeft
     const endPixel = startPixel + newWidth
     console.log({ startPixel, endPixel })
-    const newStartDate = pixelToDate(startPixel, parentWidth, index, "startDate")
-    const newEndDate = pixelToDate(endPixel, parentWidth, index, "endDate")
+    const gridWidth = containerRect.width
+    const newStartDate = pixelToDate(startPixel, gridWidth, index, "startDate")
+    const newEndDate = pixelToDate(endPixel, gridWidth, index, "endDate")
     console.log({ newStartDate, newEndDate })
 
     // Update the channel state
@@ -406,25 +436,26 @@ const ResizableChannels = ({
     if (draggingDataRef.current) {
       const { index, newStartDate, newEndDate } = draggingDataRef.current
       console.log({ index, newStartDate, newEndDate })
-      // Final update to campaign data
-      // setCopy(() => {
-      //   const updatedData = JSON.parse(JSON.stringify(campaignFormData))
-      //   const channelMix = updatedData.channel_mix.find((ch) => ch.funnel_stage === parentId)
+      // Persist resize results into the campaign object so that subsequent
+      // re-renders (e.g. after zooming) reflect the new dates.
+      setCopy(() => {
+        const updatedData = JSON.parse(JSON.stringify(campaignFormData));
+        const channelMix = updatedData.channel_mix.find((ch) => ch.funnel_stage === parentId);
 
-      //   if (channelMix) {
-      //     const channelGroup = channelMix[channels[index].channelName]
-      //     if (Array.isArray(channelGroup)) {
-      //       const platform = channelGroup.find((platform) => platform.platform_name === channels[index].name)
+        if (channelMix) {
+          const channelGroup = channelMix[channels[index].channelName];
+          if (Array.isArray(channelGroup)) {
+            const platform = channelGroup.find((platform) => platform.platform_name === channels[index].name);
 
-      //       if (platform) {
-      //         platform.campaign_start_date = newStartDate
-      //         platform.campaign_end_date = newEndDate
-      //       }
-      //     }
-      //   }
+            if (platform) {
+              platform.campaign_start_date = newStartDate;
+              platform.campaign_end_date = newEndDate;
+            }
+          }
+        }
 
-      //   return updatedData
-      // })
+        return updatedData;
+      });
 
       draggingDataRef.current = null
     }
@@ -518,14 +549,18 @@ const ResizableChannels = ({
       // Day, Week, Month view - calculate based on days
       const totalDays =
         fieldName === "endDate" ? dRange?.length - 1 : dRange?.length;
-      const dayIndex = Math.min(
-        totalDays,
-        Math.max(0, Math.floor((pixel / containerWidth) * totalDays))
-      );
+      const rawIndex = (pixel / containerWidth) * totalDays;
+
+      // For an inclusive end date we need everything up to, but *not* beyond, the
+      // grid-line.  Using floor avoids the off-by-one we observed when the right
+      // edge sat exactly on a grid boundary.
+      const calcIndex = fieldName === "endDate" ? Math.floor(rawIndex) : Math.round(rawIndex);
+
+      const dayIndex = Math.min(totalDays, Math.max(0, calcIndex));
 
       calculatedDate = new Date(startDate);
       calculatedDate.setDate(startDate?.getDate() + dayIndex);
-    }
+    } 
 
     const updatedCampaignFormData = { ...campaignFormData };
 
@@ -591,44 +626,76 @@ const ResizableChannels = ({
 
       event.preventDefault();
       const { index, startX, startLeft } = draggingPosition;
-
       const deltaX = event.clientX - startX;
-      let newLeft = startLeft + deltaX;
-      const channelWidth = channelState[index]?.width || (rrange === "Year" ? dailyWidth : 50);
-
-      newLeft = Math.max(
-        parentLeft,
-        Math.min(newLeft, parentLeft + parentWidth - channelWidth)
-      );
-
-      newLeft = snapToTimeline(newLeft - parentLeft, parentWidth) + parentLeft;
-
+      console.log("triggered")
       setChannelState((prev) =>
-        prev.map((state, i) =>
-          i === index ? { ...state, left: newLeft } : state
-        )
+        prev.map((state, i) => {
+          if (i !== index) return state;
+
+          let newWidth,
+            newLeft = state.left;
+
+          if (direction === "left") {
+            const minWidth = rrange === "Year" ? dailyWidth : 50;
+            newWidth = Math.max(
+              minWidth,
+              Math.min(
+                state.width - deltaX,
+                parentWidth - (state.left - parentLeft)
+              )
+            );
+            newLeft = state.left + deltaX;
+
+            newLeft = Math.max(
+              parentLeft,
+              Math.min(newLeft, parentLeft + parentWidth - newWidth)
+            );
+
+            newWidth = state.left + state.width - newLeft;
+          } else {
+            const rightEdge = state.left + state.width + deltaX;
+            const maxRightEdge = parentLeft + parentWidth;
+            const adjustedRightEdge = Math.min(rightEdge, maxRightEdge);
+
+            const minWidth = rrange === "Year" ? dailyWidth : 50;
+            newWidth = Math.max(
+              minWidth,
+              Math.min(
+                adjustedRightEdge - state.left,
+                parentWidth - (state.left - parentLeft)
+              )
+            );
+          }
+
+          const startPixel = newLeft - parentLeft;
+          const endPixel = startPixel - 1 + newWidth;
+
+          const gridWidth = parentWidth;
+          const startDate = pixelToDate(
+            startPixel,
+            gridWidth,
+            index,
+            "startDate"
+          );
+
+          const rawEndDate = pixelToDate(
+            endPixel - parentWidth / totalDays,
+            gridWidth,
+            index,
+            "endDate"
+          );
+
+          if (endDate > endDate) {
+            const parentEndPixel = parentWidth;
+            const maxWidth = parentEndPixel - startPixel + parentLeft;
+            newWidth = Math.min(newWidth, maxWidth);
+          }
+
+          return { ...state, left: newLeft, width: newWidth };
+        })
       );
 
-      const startPixel = newLeft - parentLeft;
-      const endPixel = startPixel + channelWidth;
-      const startDate = pixelToDate(
-        startPixel,
-        parentWidth,
-        index,
-        "startDate"
-      );
-      const endDate = pixelToDate(endPixel, parentWidth, index, "endDate");
-
-      draggingDataRef.current = { index, startDate, endDate };
-
-      updateTooltipWithDates(
-        startPixel,
-        endPixel,
-        index,
-        event.clientX,
-        event.clientY,
-        "drag"
-      );
+      setDragging((prev) => ({ ...prev, startX: event.clientX }));
     };
 
     const handleDragEnd = () => {
@@ -930,16 +997,17 @@ const ResizableChannels = ({
           const startPixel = newLeft - parentLeft;
           const endPixel = startPixel - 1 + newWidth;
 
+          const gridWidth = parentWidth;
           const startDate = pixelToDate(
             startPixel,
-            parentWidth,
+            gridWidth,
             index,
             "startDate"
           );
 
           const rawEndDate = pixelToDate(
             endPixel - parentWidth / totalDays,
-            parentWidth,
+            gridWidth,
             index,
             "endDate"
           );
@@ -1016,8 +1084,10 @@ const ResizableChannels = ({
         </button>
       )}
       {channels?.map((channel, index) => {
-        const getColumnIndex = (date) =>
-          dateList?.findIndex((d) => d.toISOString().split("T")[0] === date);
+        // Convert a YYYY-MM-DD string to the corresponding CSS-grid **line** (not cell index).
+        // Grid lines start at 1, so we add +1 to the zero-based date index.
+        const getColumnLine = (date: string) =>
+          (dateList?.findIndex((d) => format(d, "yyyy-MM-dd") === date) ?? -1) + 1;
 
         const updatedCampaignFormData = { ...campaignFormData };
         const channelMix = updatedCampaignFormData.channel_mix.find(
@@ -1028,12 +1098,12 @@ const ResizableChannels = ({
         let budget;
         if (channelMix) {
           const platform = channelMix[channels[index].channelName]?.find(
-            (platform) => platform.platform_name === channels[index].name
+            (platform) => platform.platform_name === channels[index].name,
           );
 
           if (platform) {
-            startColumn = getColumnIndex(platform?.campaign_start_date);
-            endColumn = getColumnIndex(platform?.campaign_end_date) + 1;
+            startColumn = getColumnLine(platform?.campaign_start_date);
+            endColumn = getColumnLine(platform?.campaign_end_date) + 1; // grid-column-end is exclusive
             budget = platform?.budget?.fixed_value;
           }
         }

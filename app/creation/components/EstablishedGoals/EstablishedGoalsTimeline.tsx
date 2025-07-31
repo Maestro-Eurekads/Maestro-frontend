@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { useDateRange } from "src/date-range-context";
 import DraggableChannel from "components/DraggableChannel";
-import ResizableChannels from "../molecules/resizeable-elements/ResizableChannels";
+import ResizableChannelsGrid from "../molecules/resizeable-elements/ResizableChannelsGrid";
 import { funnels, getPlatformIcon, platformStyles } from "components/data";
 import { addDays, eachDayOfInterval } from "date-fns";
 
@@ -200,12 +200,11 @@ const EstablishedGoalsTimeline = ({ }) => {
 
               {isChannelOpen && (
                 <div>
-                  <ResizableChannels
+                  <ResizableChannelsGrid
                     channels={platforms[stage.description] || []}
                     parentId={stage.description}
                     parentWidth={parentWidth}
                     parentLeft={parentLeft}
-                    setIsOpen={setIsOpen}
                     dateList={range}
                     disableDrag={true}
                   />
