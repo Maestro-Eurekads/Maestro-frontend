@@ -115,39 +115,113 @@ const VersionPromptModal = () => {
 	// 	setShowVersionPrompt(false);
 	// };
 
-	const handleVersionChoice = async () => {
+	// Enhanced version handling with SaveAllProgressButton patterns
+	const sanitizeVersionData = (versionData) => {
+		try {
+			// Deep clone to avoid mutating original data
+			const cleanedData = JSON.parse(JSON.stringify(versionData || {}));
+
+			// Ensure version has proper format
+			if (!cleanedData.campaign_version || typeof cleanedData.campaign_version !== 'string') {
+				cleanedData.campaign_version = "V1";
+			}
+
+			// Validate version format
+			const versionMatch = cleanedData.campaign_version.match(/^V\d+$/);
+			if (!versionMatch) {
+				cleanedData.campaign_version = "V1";
+			}
+
+			return cleanedData;
+		} catch (error) {
+			console.error("Error sanitizing version data:", error);
+			return { campaign_version: "V1" };
+		}
+	};
+
+	const getNextVersion = (currentVersion) => {
+		// Sanitize input
+		const sanitizedVersion = sanitizeVersionData({ campaign_version: currentVersion });
+		const version = sanitizedVersion.campaign_version;
+
+		if (!version || version === "V1") {
+			return "V2";
+		}
+
+		// Extract version number and increment
+		const versionMatch = version.match(/V(\d+)/);
+		if (versionMatch) {
+			const versionNumber = parseInt(versionMatch[1]);
+			return `V${versionNumber + 1}`;
+		}
+
+		return "V2"; // Fallback
+	};
+
+	const validateVersionChoice = (choice) => {
+		const validChoices = ['new', 'maintain', 'overwrite'];
+		if (!validChoices.includes(choice)) {
+			throw new Error("Invalid version choice");
+		}
+		return choice;
+	};
+
+	const handleVersionChoice = async (choice?: string) => {
+		const versionChoice = choice || 'maintain';
 		setLoading(true);
 
 		try {
-			// Clean up & transform fields from all steps
+			// Validate choice
+			const validatedChoice = validateVersionChoice(choice);
+
+			// Sanitize and validate campaign data
+			const sanitizedData = sanitizeVersionData(campaignFormData);
+
+			// Clean up & transform fields from all steps (using SaveAllProgressButton pattern)
 			const cleanedFormData = {
-				...campaignFormData,
-				internal_approver: campaignFormData?.internal_approver || [],
-				client_approver: campaignFormData?.client_approver || [],
-				approved_by: campaignFormData?.approved_by || [],
+				...sanitizedData,
+				internal_approver: sanitizedData?.internal_approver || [],
+				client_approver: sanitizedData?.client_approver || [],
+				approved_by: sanitizedData?.approved_by || [],
 			};
 
+			// Extract objectives and metrics
 			const objectives = await extractObjectives(cleanedFormData);
 			const selectedMetrics = await getFilteredMetrics(objectives);
 
-			const channelMixCleaned = removeKeysRecursively(cleanedFormData?.channel_mix, [
-				"id",
-				"isValidated",
-				"formatValidated",
-				"validatedStages",
-				"documentId",
-				"_aggregated",
-			]);
+			// Clean channel mix data - only if it exists (SaveAllProgressButton pattern)
+			const channelMixCleaned = cleanedFormData?.channel_mix
+				? removeKeysRecursively(cleanedFormData.channel_mix, [
+					"id",
+					"isValidated",
+					"formatValidated",
+					"validatedStages",
+					"documentId",
+					"_aggregated",
+				])
+				: [];
 
-			const campaignBudgetCleaned = removeKeysRecursively(cleanedFormData?.campaign_budget, ["id"]);
+			// Clean campaign budget data - only if it exists (SaveAllProgressButton pattern)
+			const campaignBudgetCleaned = cleanedFormData?.campaign_budget
+				? removeKeysRecursively(cleanedFormData.campaign_budget, ["id"])
+				: {};
 
 			const calcPercent = Math.ceil((active / 10) * 100);
 
+			// Validate user IDs (SaveAllProgressButton pattern)
+			const validateUserIds = (users) => {
+				return users.filter(user => user && !isNaN(Number(user))).map(user => Number(user));
+			};
 
-			const currentVersionNumber = Number((campaignData?.campaign_version || 'V1').replace('V', ''));
-			const newVersionNumber = currentVersionNumber + 1;
-			const versionLabel = `V${newVersionNumber}`; // This will be used as string in payload
+			// Determine version based on choice
+			let versionLabel;
+			if (validatedChoice === 'new') {
+				versionLabel = getNextVersion(campaignData?.campaign_version);
+			} else {
+				versionLabel = campaignData?.campaign_version || "V1";
+			}
 
+			// Build payload with only available data (SaveAllProgressButton pattern)
 			const payload = {
 				data: {
 					campaign_builder: loggedInUser?.id,
@@ -158,9 +232,9 @@ const VersionPromptModal = () => {
 					},
 					media_plan_details: {
 						plan_name: cleanedFormData?.media_plan,
-						internal_approver: cleanedFormData.internal_approver.map((item: any) => Number(item.id)),
-						client_approver: cleanedFormData.client_approver.map((item: any) => Number(item.id)),
-						approved_by: cleanedFormData.approved_by.map((item: any) => Number(item.id)),
+						internal_approver: validateUserIds(cleanedFormData.internal_approver.map((item: any) => item.id)),
+						client_approver: validateUserIds(cleanedFormData.client_approver.map((item: any) => item.id)),
+						approved_by: validateUserIds(cleanedFormData.approved_by.map((item: any) => item.id)),
 					},
 					budget_details: {
 						currency: cleanedFormData?.budget_details_currency?.id || "EUR",
@@ -170,15 +244,6 @@ const VersionPromptModal = () => {
 						...campaignBudgetCleaned,
 						currency: cleanedFormData?.budget_details_currency?.id || "EUR",
 					},
-					funnel_stages: cleanedFormData?.funnel_stages,
-					channel_mix: channelMixCleaned,
-					custom_funnels: cleanedFormData?.custom_funnels,
-					funnel_type: cleanedFormData?.funnel_type,
-					table_headers: objectives || {},
-					selected_metrics: selectedMetrics || {},
-					goal_level: cleanedFormData?.goal_level,
-					campaign_timeline_start_date: cleanedFormData?.campaign_timeline_start_date,
-					campaign_timeline_end_date: cleanedFormData?.campaign_timeline_end_date,
 					agency_profile: agencyId,
 					progress_percent:
 						campaignFormData?.progress_percent > calcPercent ? campaignFormData?.progress_percent : calcPercent,
@@ -186,16 +251,45 @@ const VersionPromptModal = () => {
 				},
 			};
 
+			// Add optional fields only if they exist (SaveAllProgressButton pattern)
+			if (cleanedFormData?.funnel_stages) {
+				(payload.data as any).funnel_stages = cleanedFormData.funnel_stages;
+			}
+			if (channelMixCleaned.length > 0) {
+				(payload.data as any).channel_mix = channelMixCleaned;
+			}
+			if (cleanedFormData?.custom_funnels) {
+				(payload.data as any).custom_funnels = cleanedFormData.custom_funnels;
+			}
+			if (cleanedFormData?.funnel_type) {
+				(payload.data as any).funnel_type = cleanedFormData.funnel_type;
+			}
+			if (objectives) {
+				(payload.data as any).table_headers = objectives;
+			}
+			if (selectedMetrics) {
+				(payload.data as any).selected_metrics = selectedMetrics;
+			}
+			if (cleanedFormData?.goal_level) {
+				(payload.data as any).goal_level = cleanedFormData.goal_level;
+			}
+			if (cleanedFormData?.campaign_timeline_start_date) {
+				(payload.data as any).campaign_timeline_start_date = cleanedFormData.campaign_timeline_start_date;
+			}
+			if (cleanedFormData?.campaign_timeline_end_date) {
+				(payload.data as any).campaign_timeline_end_date = cleanedFormData.campaign_timeline_end_date;
+			}
+
 			const config = {
 				headers: {
 					Authorization: `Bearer ${jwt}`,
 				},
 			};
 
-			// CREATE or UPDATE logic
+			// CREATE or UPDATE logic with enhanced error handling
 			if (cId) {
 				await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`, payload, config);
-				toast.success("Campaign Maintain successfully!");
+				toast.success(`Campaign ${validatedChoice === 'new' ? 'updated with new version' : 'maintained successfully'}!`);
 			}
 
 			setIsOpen(false);
@@ -215,32 +309,48 @@ const VersionPromptModal = () => {
 		setLoadingc(true);
 
 		try {
-			// Clean up & transform fields from all steps
+			// Sanitize and validate campaign data
+			const sanitizedData = sanitizeVersionData(campaignFormData);
+
+			// Clean up & transform fields from all steps (using SaveAllProgressButton pattern)
 			const cleanedFormData = {
-				...campaignFormData,
-				internal_approver: campaignFormData?.internal_approver || [],
-				client_approver: campaignFormData?.client_approver || [],
-				approved_by: campaignFormData?.approved_by || [],
+				...sanitizedData,
+				internal_approver: sanitizedData?.internal_approver || [],
+				client_approver: sanitizedData?.client_approver || [],
+				approved_by: sanitizedData?.approved_by || [],
 			};
 
+			// Extract objectives and metrics
 			const objectives = await extractObjectives(cleanedFormData);
 			const selectedMetrics = await getFilteredMetrics(objectives);
 
-			const channelMixCleaned = removeKeysRecursively(cleanedFormData?.channel_mix, [
-				"id",
-				"isValidated",
-				"formatValidated",
-				"validatedStages",
-				"documentId",
-				"_aggregated",
-			]);
+			// Clean channel mix data - only if it exists (SaveAllProgressButton pattern)
+			const channelMixCleaned = cleanedFormData?.channel_mix
+				? removeKeysRecursively(cleanedFormData.channel_mix, [
+					"id",
+					"isValidated",
+					"formatValidated",
+					"validatedStages",
+					"documentId",
+					"_aggregated",
+				])
+				: [];
 
-			const campaignBudgetCleaned = removeKeysRecursively(cleanedFormData?.campaign_budget, ["id"]);
+			// Clean campaign budget data - only if it exists (SaveAllProgressButton pattern)
+			const campaignBudgetCleaned = cleanedFormData?.campaign_budget
+				? removeKeysRecursively(cleanedFormData.campaign_budget, ["id"])
+				: {};
+
 			const calcPercent = Math.ceil((active / 10) * 100);
 
-			const currentVersionNumber = Number((campaignData?.campaign_version || 'V1').replace('V', ''));
-			const newVersionNumber = currentVersionNumber + 1;
-			const versionLabel = `V${newVersionNumber}`;
+			// Get next version using enhanced version handling
+			const currentVersion = campaignData?.campaign_version || 'V1';
+			const newVersion = getNextVersion(currentVersion);
+
+			// Validate user IDs (SaveAllProgressButton pattern)
+			const validateUserIds = (users) => {
+				return users.filter(user => user && !isNaN(Number(user))).map(user => Number(user));
+			};
 
 			const config = {
 				headers: {
@@ -248,7 +358,7 @@ const VersionPromptModal = () => {
 				},
 			};
 
-			// Then: Create new version
+			// Build payload with only available data (SaveAllProgressButton pattern)
 			const payload = {
 				data: {
 					campaign_builder: loggedInUser?.id,
@@ -259,9 +369,9 @@ const VersionPromptModal = () => {
 					},
 					media_plan_details: {
 						plan_name: cleanedFormData?.media_plan,
-						internal_approver: cleanedFormData.internal_approver.map((item: any) => Number(item.id)),
-						client_approver: cleanedFormData.client_approver.map((item: any) => Number(item.id)),
-						approved_by: cleanedFormData.approved_by.map((item: any) => Number(item.id)),
+						internal_approver: validateUserIds(cleanedFormData.internal_approver.map((item: any) => item.id)),
+						client_approver: validateUserIds(cleanedFormData.client_approver.map((item: any) => item.id)),
+						approved_by: validateUserIds(cleanedFormData.approved_by.map((item: any) => item.id)),
 					},
 					budget_details: {
 						currency: cleanedFormData?.budget_details_currency?.id || "EUR",
@@ -271,32 +381,55 @@ const VersionPromptModal = () => {
 						...campaignBudgetCleaned,
 						currency: cleanedFormData?.budget_details_currency?.id || "EUR",
 					},
-					funnel_stages: cleanedFormData?.funnel_stages,
-					channel_mix: channelMixCleaned,
-					custom_funnels: cleanedFormData?.custom_funnels,
-					funnel_type: cleanedFormData?.funnel_type,
-					table_headers: objectives || {},
-					selected_metrics: selectedMetrics || {},
-					goal_level: cleanedFormData?.goal_level,
-					campaign_timeline_start_date: cleanedFormData?.campaign_timeline_start_date,
-					campaign_timeline_end_date: cleanedFormData?.campaign_timeline_end_date,
 					agency_profile: agencyId,
 					progress_percent:
 						campaignFormData?.progress_percent > calcPercent ? campaignFormData?.progress_percent : calcPercent,
-					campaign_version: versionLabel,
+					campaign_version: newVersion,
 				},
 			};
 
-			// First: Update old campaign
+			// Add optional fields only if they exist (SaveAllProgressButton pattern)
+			if (cleanedFormData?.funnel_stages) {
+				(payload.data as any).funnel_stages = cleanedFormData.funnel_stages;
+			}
+			if (channelMixCleaned.length > 0) {
+				(payload.data as any).channel_mix = channelMixCleaned;
+			}
+			if (cleanedFormData?.custom_funnels) {
+				(payload.data as any).custom_funnels = cleanedFormData.custom_funnels;
+			}
+			if (cleanedFormData?.funnel_type) {
+				(payload.data as any).funnel_type = cleanedFormData.funnel_type;
+			}
+			if (objectives) {
+				(payload.data as any).table_headers = objectives;
+			}
+			if (selectedMetrics) {
+				(payload.data as any).selected_metrics = selectedMetrics;
+			}
+			if (cleanedFormData?.goal_level) {
+				(payload.data as any).goal_level = cleanedFormData.goal_level;
+			}
+			if (cleanedFormData?.campaign_timeline_start_date) {
+				(payload.data as any).campaign_timeline_start_date = cleanedFormData.campaign_timeline_start_date;
+			}
+			if (cleanedFormData?.campaign_timeline_end_date) {
+				(payload.data as any).campaign_timeline_end_date = cleanedFormData.campaign_timeline_end_date;
+			}
+
+			// First: Update old campaign to maintain current version
 			if (campaignFormData.cId) {
+				const currentVersionPayload = {
+					...payload,
+					data: {
+						...payload.data,
+						campaign_version: currentVersion, // keep current version unchanged
+					}
+				};
+
 				await axios.put(
 					`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${campaignFormData.cId}`,
-					{
-						data: {
-							...payload?.data,
-							campaign_version: `V${currentVersionNumber}`, // keep current version unchanged
-						},
-					},
+					currentVersionPayload,
 					config
 				);
 			}
@@ -364,7 +497,7 @@ const VersionPromptModal = () => {
 						<div className="flex flex-col gap-4">
 							<button
 								className="btn_model_active w-full"
-								onClick={handleVersionChoice}
+								onClick={() => handleVersionChoice('maintain')}
 							>
 								{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> : 'Maintain Same Version'}
 							</button>
