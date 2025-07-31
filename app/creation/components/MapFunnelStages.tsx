@@ -203,7 +203,9 @@ const MapFunnelStages = () => {
 
       let configs: FunnelConfig[] = [];
 
-      if (campaignData?.funnel_configs?.length) {
+      if (campaignFormData?.funnel_configs?.length) {
+        configs = campaignFormData.funnel_configs;
+      } else if (campaignData?.funnel_configs?.length) {
         configs = campaignData.funnel_configs;
       } else if (campaignData?.client?.custom_funnel_configs?.length) {
         configs = campaignData.client.custom_funnel_configs;
@@ -978,12 +980,13 @@ const MapFunnelStages = () => {
     setSavingConfig(true);
 
     try {
+      // Save funnel configurations to the campaign instead of the client
       await axios.put(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients/${clientId}`,
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`,
 
         {
           data: {
-            custom_funnel_configs: updatedConfigs,
+            funnel_configs: updatedConfigs,
           },
         },
 
@@ -994,8 +997,12 @@ const MapFunnelStages = () => {
         }
       );
 
+      // Also update the campaign form data to reflect the changes
+      await getActiveCampaign(cId);
+
       toast.success(`"${newConfigName.trim()}" configuration saved!`);
     } catch (err) {
+      console.error("Error saving funnel config:", err);
       if (err?.response?.status === 401) {
         const event = new Event("unauthorizedEvent");
         window.dispatchEvent(event);
