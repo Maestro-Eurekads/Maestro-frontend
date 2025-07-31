@@ -1014,6 +1014,22 @@ const ResizableChannels = ({
     return str.replace(/[^\w_]/g, '_');
   }
 
+  // Ensure element stays within the viewport (or grid container) horizontally
+  const getSafeLeftPosition = (desiredLeft: number, elementWidth: number = 600, margin: number = 16) => {
+    if (typeof window === 'undefined') return desiredLeft;
+
+    const gridContainer = document.querySelector('.grid-container') as HTMLElement | null;
+    const containerWidth = gridContainer ? gridContainer.getBoundingClientRect().width : window.innerWidth;
+
+    // If the element would overflow to the right, shift it left so it fits.
+    if (desiredLeft + elementWidth + margin > containerWidth) {
+      return Math.max(containerWidth - elementWidth - margin, 0);
+    }
+
+    // Otherwise keep the original desired position.
+    return desiredLeft;
+  };
+
   // console.log(isResizing, "isResizing state")
 
   return (
@@ -1279,7 +1295,7 @@ const ResizableChannels = ({
                   <div
                     className="relative shrink-0 mt-4 bg-white z-20 rounded-md border shadow-md"
                     style={{
-                      left: `${channelState[index]?.left || parentLeft}px`,
+                      left: `${getSafeLeftPosition(channelState[index]?.left || parentLeft)}px`,
                     }}
                   >
                     <table className="table-auto w-full text-left text-[12px] text-[#061237B2] font-medium border-none hover:cursor-default">
