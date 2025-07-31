@@ -14,6 +14,7 @@ import { SVGLoader } from "components/SVGLoader";
 import { useComments } from "app/utils/CommentProvider";
 import SaveProgressButton from "app/utils/SaveProgressButton";
 import { useActive } from "app/utils/ActiveContext";
+import SaveAllProgressButton from "./SaveProgres/SaveAllProgressButton";
 
 // Simple Toast Component
 const Toast = ({ message, onClose }) => {
@@ -376,8 +377,11 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
         ? categorySelection.filter((p) => p !== platformName)
         : [...categorySelection, platformName];
 
+      // Ensure channel_mix is always an array
+      const channelMix = Array.isArray(prevFormData.channel_mix) ? prevFormData.channel_mix : []
+
       const platformObjects = newCategorySelection.map((name) => {
-        const existingPlatform = prevFormData.channel_mix
+        const existingPlatform = channelMix
           ?.find((item) => item.funnel_stage === stageName)
           ?.[categoryKey]?.find((platform) => platform.platform_name === name);
 
@@ -388,7 +392,7 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
         };
       });
 
-      const existingChannelMixIndex = prevFormData.channel_mix?.findIndex(
+      const existingChannelMixIndex = channelMix.findIndex(
         (item) => item.funnel_stage === stageName
       );
 
@@ -649,7 +653,8 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
           span={1}
         />
 
-        {active === 2 && <SaveProgressButton setIsOpen={undefined} />}
+        {active === 2 && <SaveAllProgressButton />}
+        {/* {active === 2 && <SaveProgressButton setIsOpen={undefined} />} */}
 
       </div>
 
