@@ -30,6 +30,7 @@ import SaveProgressButton from "app/utils/SaveProgressButton";
 import { useSearchParams } from "next/navigation";
 import { useActive } from "app/utils/ActiveContext";
 import { toast } from "sonner";
+import SaveAllProgressButton from "./SaveProgres/SaveAllProgressButton";
 
 // Define type for funnel objects
 
@@ -1123,7 +1124,8 @@ const MapFunnelStages = () => {
           className="text-[22px]"
           t1="How many funnel stage(s) would you like to activate to achieve your objective?"
         />
-        <SaveProgressButton setIsOpen={undefined} />
+        {/* <SaveProgressButton setIsOpen={undefined} /> */}
+        <SaveAllProgressButton />
       </div>
 
       <div className="w-full flex items-start">

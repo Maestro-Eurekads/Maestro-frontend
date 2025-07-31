@@ -63,11 +63,8 @@ export const SetupScreen = () => {
   const lastFetchedClientId = useRef(null);
   const { data: session } = useSession()
   const { client_selection } = campaignFormData || {};
-  const { setActive } = useActive();
-  const [alert, setAlert] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [users, setUsers] = useState({ agencyAccess: [], clientAccess: [] });
-  const [validateStep, setValidateStep] = useState(false);
   const { setIsDrawerOpen, setClose } = useComments();
   const { isAdmin, userID } = useUserPrivileges();
   const [internalapproverOptions, setInternalApproverOptions] = useState<DropdownOption[]>([]);
@@ -78,24 +75,13 @@ export const SetupScreen = () => {
 
   // --- Navigation/modal logic (moved here to fix linter errors) ---
   const { change, setChange, showModal, setShowModal } = useActive();
-  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
   const [showBackModal, setShowBackModal] = useState(false);
 
 
 
-  // Intercept browser back/route changes (SPA navigation)
   useEffect(() => {
-    const handleRouteChange = (url: string) => {
-      if (change) {
-        setPendingNavigation(url);
-        setShowBackModal(true);
-        throw "Route change aborted by unsaved changes modal"; // Block navigation
-      }
-    };
-    // Next.js App Router does not have router.events, so this is a workaround for SPA navigation
     window.onpopstate = (event) => {
       if (change) {
-        setPendingNavigation(document.referrer || "/dashboard");
         setShowBackModal(true);
         window.history.pushState(null, "", window.location.href); // Prevent back
       }
@@ -109,30 +95,16 @@ export const SetupScreen = () => {
   const handleNavigate = () => {
     setChange(false);
     setShowBackModal(false);
-    // Clear any pending save operations by resetting the form state
-    if (pendingNavigation) {
-      // Clear the form data to prevent saving incomplete data
-      localStorage.removeItem("campaignFormData");
-      router.push(pendingNavigation);
-      setPendingNavigation(null);
-    } else {
-      // Fallback navigation if pendingNavigation is not set
-      localStorage.removeItem("campaignFormData");
-      router.push("/");
-    }
+    localStorage.removeItem("campaignFormData");
+    router.push("/dashboard");
   };
 
 
 
-  // Prevent BackConfirmModal from showing after leaving
-  useEffect(() => {
-    if (!showBackModal) {
-      setPendingNavigation(null);
-    }
-  }, [showBackModal]);
-
 
   useEffect(() => {
+    setIsDrawerOpen(false);
+    setClose(false);
     const cached = localStorage.getItem("filteredClient");
     const storedClientId = localStorage.getItem(userID);
     setClientId(storedClientId)
@@ -204,10 +176,6 @@ export const SetupScreen = () => {
 
 
 
-
-
-
-
   useEffect(() => {
     //@ts-ignore
     dispatch(getCreateClient({ userId: !isAdmin ? session?.user?.data?.user?.id : null, jwt }));
@@ -259,10 +227,7 @@ export const SetupScreen = () => {
     }
   }, [FC]);
 
-  useEffect(() => {
-    setIsDrawerOpen(false);
-    setClose(false);
-  }, []);
+
 
 
   useEffect(() => {
@@ -295,65 +260,52 @@ export const SetupScreen = () => {
   }, [campaignFormData]);
 
 
-  useEffect(() => {
-    if (documentId === null && !isInitialized) {
-      // Only load from localStorage if campaignFormData is empty/null
-      if (!campaignFormData || Object.keys(campaignFormData).length === 0) {
-        const savedFormData = localStorage.getItem("campaignFormData");
-        if (savedFormData) {
-          setCampaignFormData(JSON.parse(savedFormData));
-        } else {
-          const initialFormData = {
-            client_selection: {
-              id: selectedClient || FC?.id,
-              value: FC?.client_name || '',
-            },
-            media_plan: "",
-            internal_approver: [],
-            client_approver: [],
-            approver_id: [],
-            budget_details_currency: {},
-            country_details: {},
-            budget_details_fee_type: {},
-            budget_details_value: "",
-            level_1: {},
-            campaign_version: "V1",
-          };
-          setCampaignFormData(initialFormData);
-          localStorage.setItem("campaignFormData", JSON.stringify(initialFormData));
-        }
-      }
-      setIsInitialized(true);
-    } else if (documentId === null && isInitialized) {
-      // Only update client_selection if already initialized
-      setCampaignFormData(prev => {
-        const updated = {
-          ...prev,
-          client_selection: {
-            id: selectedClient || FC?.id,
-            value: FC?.client_name || '',
-          },
-        };
-        localStorage.setItem("campaignFormData", JSON.stringify(updated));
-        return updated;
-      });
-    }
-  }, [documentId, isInitialized, selectedClient, FC, campaignFormData]);
+  // useEffect(() => {
+  //   if (documentId === null && !isInitialized) {
+  //     // Only load from localStorage if campaignFormData is empty/null
+  //     if (!campaignFormData || Object.keys(campaignFormData).length === 0) {
+  //       const savedFormData = localStorage.getItem("campaignFormData");
+  //       if (savedFormData) {
+  //         setCampaignFormData(JSON.parse(savedFormData));
+  //       } else {
+  //         const initialFormData = {
+  //           client_selection: {
+  //             id: selectedClient || FC?.id,
+  //             value: FC?.client_name || '',
+  //           },
+  //           media_plan: "",
+  //           internal_approver: [],
+  //           client_approver: [],
+  //           approver_id: [],
+  //           budget_details_currency: {},
+  //           country_details: {},
+  //           budget_details_fee_type: {},
+  //           budget_details_value: "",
+  //           level_1: {},
+  //           campaign_version: "V1",
+  //         };
+  //         setCampaignFormData(initialFormData);
+  //         localStorage.setItem("campaignFormData", JSON.stringify(initialFormData));
+  //       }
+  //     }
+  //     setIsInitialized(true);
+  //   } else if (documentId === null && isInitialized) {
+  //     // Only update client_selection if already initialized
+  //     setCampaignFormData(prev => {
+  //       const updated = {
+  //         ...prev,
+  //         client_selection: {
+  //           id: selectedClient || FC?.id,
+  //           value: FC?.client_name || '',
+  //         },
+  //       };
+  //       localStorage.setItem("campaignFormData", JSON.stringify(updated));
+  //       return updated;
+  //     });
+  //   }
+  // }, [documentId, isInitialized, selectedClient, FC, campaignFormData]);
 
 
-  useEffect(() => {
-    if (alert) {
-      const timer = setTimeout(() => setAlert(null), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [alert]);
-
-  useEffect(() => {
-    if (validateStep) {
-      const timer = setTimeout(() => setValidateStep(false), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [validateStep]);
 
 
 
@@ -407,16 +359,7 @@ export const SetupScreen = () => {
         <PageHeaderWrapper t1="Set up your new campaign" />
         <SaveProgressButton setIsOpen={undefined} />
       </div>
-      {alert && <AlertMain alert={alert} />}
-      {validateStep && (
-        <AlertMain
-          alert={{
-            variant: "error",
-            message: "All fields must be filled before proceeding!",
-            position: "bottom-right",
-          }}
-        />
-      )}
+
 
       {loading ? (
         <div className="flex flex-col gap-6 mt-5">

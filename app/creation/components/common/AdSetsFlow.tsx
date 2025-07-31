@@ -154,11 +154,26 @@ const findPlatform = (
   stageName: string,
   platformName: string,
 ): { platform: Platform; channelType: string } | null => {
+  // Ensure campaignData is an array
+  if (!Array.isArray(campaignData)) {
+    console.warn("findPlatform: campaignData is not an array:", campaignData)
+    return null
+  }
+
   const stage = campaignData.find((stage) => stage.funnel_stage === stageName)
-  if (!stage) return null
+  if (!stage) {
+    console.warn("findPlatform: Stage not found:", stageName)
+    return null
+  }
 
   const channelTypes = mediaTypes
   for (const channelType of channelTypes) {
+    // Ensure the channel type exists and is an array
+    if (!stage[channelType] || !Array.isArray(stage[channelType])) {
+      console.warn(`findPlatform: ${channelType} is not an array in stage ${stageName}:`, stage[channelType])
+      continue
+    }
+
     const platform = stage[channelType].find((p) => p.platform_name === platformName)
     if (platform) {
       return { platform, channelType }
