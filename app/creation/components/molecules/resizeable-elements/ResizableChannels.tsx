@@ -386,7 +386,7 @@ const ResizableChannels = ({
     let newLeft = initialState.left
 
     // Define minimum width based on view type
-    const minWidth = rrange === "Year" ? dailyWidth : 50; // For year view, minimum is one month width
+    const minWidth = rrange === "Year" ? (dailyWidth || (parentWidth / 12)) : 50; // For year view, minimum is one month width
  
     if (direction === "left") {
       // Left edge resize - adjust position and width
@@ -654,7 +654,7 @@ const ResizableChannels = ({
 
       const deltaX = event.clientX - startX;
       let newLeft = startLeft + deltaX;
-      const channelWidth = channelState[index]?.width || (rrange === "Year" ? dailyWidth : 50);
+      const channelWidth = channelState[index]?.width || (rrange === "Year" ? (dailyWidth || (parentWidth / 12)) : 50);
 
       newLeft = Math.max(
         parentLeft,
@@ -808,7 +808,16 @@ const ResizableChannels = ({
   };
 
   useEffect(() => {
-    if (initialChannels && initialChannels.length > 0) {
+    if (initialChannels && initialChannels.length > 0 && parentLeft !== undefined && parentWidth !== undefined) {
+      console.log("Recalculating channel positions:", {
+        parentLeft,
+        parentWidth,
+        rrange,
+        dailyWidth,
+        startDate,
+        endDate
+      });
+      
       setChannels(initialChannels);
       setChannelState((prev) => {
         const findMix = campaignFormData?.channel_mix?.find(
@@ -854,11 +863,26 @@ const ResizableChannels = ({
               // Calculate months between dates, accounting for different years
               const monthsBetween = (endYear - startYear) * 12 + (endMonth - startMonth) + 1;
               
-              left = startMonth * dailyWidth;
+              // Calculate left position relative to parent
+              left = parentLeft + (startMonth * dailyWidth);
               width = monthsBetween * dailyWidth;
             } else {
+              // Fallback to default positioning when dates are not available
               left = parentLeft;
-              width = dailyWidth; // Default to one month width
+              width = dailyWidth || (parentWidth / 12); // Default to one month width or calculated width
+            }
+            
+            // Ensure the calculated position is within parent bounds
+            if (left < parentLeft) {
+              left = parentLeft;
+            }
+            if (left + width > parentLeft + parentWidth) {
+              if (width <= parentWidth) {
+                left = parentLeft + parentWidth - width;
+              } else {
+                width = parentWidth;
+                left = parentLeft;
+              }
             }
           } else {
             // Day, Week, Month view calculations - based on days
@@ -883,12 +907,18 @@ const ResizableChannels = ({
               })?.length;
             }
   
-            left = Math.abs(startDateIndex < 0 ? 0 : startDateIndex);
+            left = parentLeft + Math.abs(startDateIndex < 0 ? 0 : startDateIndex);
             width = daysBetween > 0 ? dailyWidth * daysBetween : parentWidth;
           }
   
+          // Ensure width doesn't exceed parent width
           width = Math.min(width, parentWidth);
   
+          // Ensure the channel stays within parent boundaries
+          if (left < parentLeft) {
+            left = parentLeft;
+          }
+          
           if (left + width > parentLeft + parentWidth) {
             if (width <= parentWidth) {
               left = parentLeft + parentWidth - width;
@@ -899,7 +929,15 @@ const ResizableChannels = ({
           }
   
           const existingState = prev[index];
-  
+          
+          console.log(`Channel ${ch.name} calculated position:`, {
+            left,
+            width,
+            parentLeft,
+            parentWidth,
+            rrange
+          });
+
           return existingState
             ? {
                 ...existingState,
@@ -908,14 +946,50 @@ const ResizableChannels = ({
               }
             : {
                 left: parentLeft,
-                width: Math.min(width, rrange === "Year" ? dailyWidth : 50),
+                width: Math.min(width, rrange === "Year" ? (dailyWidth || (parentWidth / 12)) : 50),
               };
         });
   
         return newState;
       });
     }
-  }, [initialChannels, parentLeft, parentWidth, campaignFormData, isResizing, rrange]);
+  }, [initialChannels, parentLeft, parentWidth, campaignFormData, isResizing, rrange, startDate, endDate, dailyWidth, dateList]);
+
+  // Additional useEffect to ensure channels stay within parent boundaries
+  useEffect(() => {
+    if (channelState.length > 0 && parentLeft !== undefined && parentWidth !== undefined) {
+      setChannelState((prev) =>
+        prev.map((state) => {
+          let newLeft = state.left;
+          let newWidth = state.width;
+
+          // Ensure left position is within parent bounds
+          if (newLeft < parentLeft) {
+            newLeft = parentLeft;
+          }
+
+          // Ensure width doesn't exceed parent width
+          newWidth = Math.min(newWidth, parentWidth);
+
+          // Ensure the channel doesn't extend beyond parent right edge
+          if (newLeft + newWidth > parentLeft + parentWidth) {
+            if (newWidth <= parentWidth) {
+              newLeft = parentLeft + parentWidth - newWidth;
+            } else {
+              newWidth = parentWidth;
+              newLeft = parentLeft;
+            }
+          }
+
+          return {
+            ...state,
+            left: newLeft,
+            width: newWidth,
+          };
+        })
+      );
+    }
+  }, [channelState.length, parentLeft, parentWidth]);
 
   useEffect(() => {
     if (!dragging) return;
@@ -935,7 +1009,7 @@ const ResizableChannels = ({
             newLeft = state.left;
 
           if (direction === "left") {
-            const minWidth = rrange === "Year" ? dailyWidth : 50;
+            const minWidth = rrange === "Year" ? (dailyWidth || (parentWidth / 12)) : 50;
             newWidth = Math.max(
               minWidth,
               Math.min(
@@ -956,7 +1030,7 @@ const ResizableChannels = ({
             const maxRightEdge = parentLeft + parentWidth;
             const adjustedRightEdge = Math.min(rightEdge, maxRightEdge);
 
-            const minWidth = rrange === "Year" ? dailyWidth : 50;
+            const minWidth = rrange === "Year" ? (dailyWidth || (parentWidth / 12)) : 50;
             newWidth = Math.max(
               minWidth,
               Math.min(
@@ -1039,6 +1113,7 @@ const ResizableChannels = ({
         </button>
       )}
       {channels?.map((channel, index) => {
+        console.log(channel, "channel")
         const getColumnIndex = (date) =>
           dateList?.findIndex((d) => d.toISOString().split("T")[0] === date);
 
@@ -1370,9 +1445,9 @@ const ResizableChannels = ({
                 )}
               </div>
             )}
-            {channel?.ad_sets?.length < 1 &&
+            {(channel?.ad_sets === undefined || channel?.ad_sets?.length < 1 )&&
               channel?.format?.some(
-                (format) => format?.previews?.length > 0
+                (f) => f?.previews?.length > 0
               ) && (
                 <button
                   className="bg-blue-500 text-white p-2 rounded-md relative mt-2"
