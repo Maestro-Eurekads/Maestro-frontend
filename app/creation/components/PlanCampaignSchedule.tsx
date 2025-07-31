@@ -16,6 +16,7 @@ import { useComments } from "app/utils/CommentProvider";
 import SaveProgressButton from "app/utils/SaveProgressButton";
 import { useActive } from "app/utils/ActiveContext";
 import { toast } from "sonner";
+import SaveAllProgressButton from "./SaveProgres/SaveAllProgressButton";
 
 const PlanCampaignSchedule: React.FC = () => {
   const { setChange } = useActive()
@@ -112,7 +113,8 @@ const PlanCampaignSchedule: React.FC = () => {
 						Edit
 					</button>
 				)} */}
-        <SaveProgressButton setIsOpen={undefined} />
+        {/* <SaveProgressButton setIsOpen={undefined} /> */}
+        <SaveAllProgressButton />
       </div>
 
       <MultiDatePicker isEditing={isEditing} campaignData={campaignData} />

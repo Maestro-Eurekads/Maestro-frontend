@@ -61,12 +61,13 @@ const SaveAllProgressButton = () => {
 		setShowSave(false)
 	}
 
-	// Validate campaign data before saving
+	// Validate campaign data before saving - more flexible for partial saves
 	const validateCampaignData = (data) => {
 		if (!data) {
 			throw new Error("Campaign data is missing");
 		}
 
+		// Only validate required fields for campaign creation
 		if (!data.client_selection?.id) {
 			throw new Error("Client selection is required");
 		}
@@ -79,32 +80,31 @@ const SaveAllProgressButton = () => {
 			throw new Error("Currency is required");
 		}
 
-		if (!data.funnel_stages || data.funnel_stages.length === 0) {
+		// For funnel stages, only validate if they exist (allow partial saves)
+		if (data.funnel_stages && data.funnel_stages.length === 0) {
 			throw new Error("At least one funnel stage is required");
 		}
 
-		if (!data.channel_mix || data.channel_mix.length === 0) {
-			throw new Error("Channel mix data is required");
-		}
-
-		// Validate channel mix structure
-		data.channel_mix.forEach((mix, index) => {
-			if (!mix.funnel_stage) {
-				throw new Error(`Funnel stage is missing for channel mix at index ${index}`);
-			}
-
-			// Ensure all required channel types exist
-			const requiredChannelTypes = [
-				'social_media', 'display_networks', 'search_engines', 'streaming', 'ooh',
-				'broadcast', 'messaging', 'print', 'e_commerce', 'in_game', 'mobile'
-			];
-
-			requiredChannelTypes.forEach(channelType => {
-				if (!Array.isArray(mix[channelType])) {
-					throw new Error(`Channel type '${channelType}' is not an array in stage '${mix.funnel_stage}'`);
+		// For channel mix, only validate structure if it exists (allow partial saves)
+		if (data.channel_mix && data.channel_mix.length > 0) {
+			data.channel_mix.forEach((mix, index) => {
+				if (!mix.funnel_stage) {
+					throw new Error(`Funnel stage is missing for channel mix at index ${index}`);
 				}
+
+				// Ensure all required channel types exist
+				const requiredChannelTypes = [
+					'social_media', 'display_networks', 'search_engines', 'streaming', 'ooh',
+					'broadcast', 'messaging', 'print', 'e_commerce', 'in_game', 'mobile'
+				];
+
+				requiredChannelTypes.forEach(channelType => {
+					if (!Array.isArray(mix[channelType])) {
+						throw new Error(`Channel type '${channelType}' is not an array in stage '${mix.funnel_stage}'`);
+					}
+				});
 			});
-		});
+		}
 
 		return true;
 	};
@@ -180,24 +180,32 @@ const SaveAllProgressButton = () => {
 			// Validate and sanitize campaign data
 			const cleanedFormData = sanitizeCampaignData(campaignFormData);
 			const dataWithValidatedDates = validateAndFormatDates(cleanedFormData);
-			validateCampaignData(dataWithValidatedDates);
+
+			// Only validate if we have the minimum required data for campaign creation
+			if (!campaignFormData.cId) {
+				validateCampaignData(dataWithValidatedDates);
+			}
 
 			// Extract objectives and metrics
 			const objectives = await extractObjectives(cleanedFormData);
 			const selectedMetrics = await getFilteredMetrics(objectives);
 
-			// Clean channel mix data
-			const channelMixCleaned = removeKeysRecursively(dataWithValidatedDates?.channel_mix, [
-				"id",
-				"isValidated",
-				"formatValidated",
-				"validatedStages",
-				"documentId",
-				"_aggregated",
-			]);
+			// Clean channel mix data - only if it exists
+			const channelMixCleaned = dataWithValidatedDates?.channel_mix
+				? removeKeysRecursively(dataWithValidatedDates.channel_mix, [
+					"id",
+					"isValidated",
+					"formatValidated",
+					"validatedStages",
+					"documentId",
+					"_aggregated",
+				])
+				: [];
 
-			// Clean campaign budget data
-			const campaignBudgetCleaned = removeKeysRecursively(dataWithValidatedDates?.campaign_budget, ["id"]);
+			// Clean campaign budget data - only if it exists
+			const campaignBudgetCleaned = dataWithValidatedDates?.campaign_budget
+				? removeKeysRecursively(dataWithValidatedDates.campaign_budget, ["id"])
+				: {};
 
 			const calcPercent = Math.ceil((active / 10) * 100);
 
@@ -212,6 +220,7 @@ const SaveAllProgressButton = () => {
 				return users.filter(user => user && !isNaN(Number(user))).map(user => Number(user));
 			};
 
+			// Build payload with only available data
 			const payload = {
 				data: {
 					campaign_builder: loggedInUser?.id,
@@ -234,21 +243,41 @@ const SaveAllProgressButton = () => {
 						...campaignBudgetCleaned,
 						currency: dataWithValidatedDates?.budget_details_currency?.id || "EUR",
 					},
-					funnel_stages: dataWithValidatedDates?.funnel_stages,
-					channel_mix: channelMixCleaned,
-					custom_funnels: dataWithValidatedDates?.custom_funnels,
-					funnel_type: dataWithValidatedDates?.funnel_type,
-					table_headers: objectives || {},
-					selected_metrics: selectedMetrics || {},
-					goal_level: dataWithValidatedDates?.goal_level,
-					campaign_timeline_start_date: dataWithValidatedDates?.campaign_timeline_start_date,
-					campaign_timeline_end_date: dataWithValidatedDates?.campaign_timeline_end_date,
 					agency_profile: agencyId,
 					progress_percent:
 						campaignFormData?.progress_percent > calcPercent ? campaignFormData?.progress_percent : calcPercent,
 					campaign_version: dataWithValidatedDates?.campaign_version || "V1",
 				},
 			};
+
+			// Add optional fields only if they exist
+			if (dataWithValidatedDates?.funnel_stages) {
+				(payload.data as any).funnel_stages = dataWithValidatedDates.funnel_stages;
+			}
+			if (channelMixCleaned.length > 0) {
+				(payload.data as any).channel_mix = channelMixCleaned;
+			}
+			if (dataWithValidatedDates?.custom_funnels) {
+				(payload.data as any).custom_funnels = dataWithValidatedDates.custom_funnels;
+			}
+			if (dataWithValidatedDates?.funnel_type) {
+				(payload.data as any).funnel_type = dataWithValidatedDates.funnel_type;
+			}
+			if (objectives) {
+				(payload.data as any).table_headers = objectives;
+			}
+			if (selectedMetrics) {
+				(payload.data as any).selected_metrics = selectedMetrics;
+			}
+			if (dataWithValidatedDates?.goal_level) {
+				(payload.data as any).goal_level = dataWithValidatedDates.goal_level;
+			}
+			if (dataWithValidatedDates?.campaign_timeline_start_date) {
+				(payload.data as any).campaign_timeline_start_date = dataWithValidatedDates.campaign_timeline_start_date;
+			}
+			if (dataWithValidatedDates?.campaign_timeline_end_date) {
+				(payload.data as any).campaign_timeline_end_date = dataWithValidatedDates.campaign_timeline_end_date;
+			}
 
 			const config = {
 				headers: {

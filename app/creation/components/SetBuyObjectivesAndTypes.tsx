@@ -5,6 +5,7 @@ import PageHeaderWrapper from '../../../components/PageHeaderWapper'
 import ObjectiveSelection from './ObjectiveSelection'
 import { useComments } from 'app/utils/CommentProvider';
 import SaveProgressButton from 'app/utils/SaveProgressButton';
+import SaveAllProgressButton from './SaveProgres/SaveAllProgressButton';
 
 const SetBuyObjectivesAndTypes = () => {
 	const { setIsDrawerOpen, setClose } = useComments();
@@ -22,7 +23,8 @@ const SetBuyObjectivesAndTypes = () => {
 					t2={'Select the buying objectives and types for each platform to ensure your campaign targets the right audience.'}
 
 				/>
-				<SaveProgressButton setIsOpen={undefined} />
+				{/* <SaveProgressButton setIsOpen={undefined} /> */}
+				<SaveAllProgressButton />
 			</div>
 
 			<ObjectiveSelection />

@@ -6,6 +6,7 @@ import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import { useEditing } from "../../utils/EditingContext";
 import { useComments } from "app/utils/CommentProvider";
 import SaveProgressButton from "app/utils/SaveProgressButton";
+import SaveAllProgressButton from "./SaveProgres/SaveAllProgressButton";
 
 const DefineAdSet = () => {
   const { setIsEditing } = useEditing();
@@ -31,7 +32,8 @@ const DefineAdSet = () => {
           t2={"Specify the details and audiences for each ad set within your campaign."}
           span={1}
         />
-        <SaveProgressButton setIsOpen={undefined} />
+        {/* <SaveProgressButton setIsOpen={undefined} /> */}
+        <SaveAllProgressButton />
       </div>
 
       <DefineAdSetPage view={view} onToggleChange={handleToggleChange} />

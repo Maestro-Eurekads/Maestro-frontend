@@ -23,6 +23,7 @@ import DoughnutChart from "components/DoughnutChat";
 import { useComments } from "app/utils/CommentProvider";
 import SaveProgressButton from "app/utils/SaveProgressButton";
 import { useActive } from "app/utils/ActiveContext";
+import SaveAllProgressButton from "./SaveProgres/SaveAllProgressButton";
 
 export const EstablishedGoals = () => {
   const { setChange } = useActive()
@@ -92,7 +93,8 @@ export const EstablishedGoals = () => {
       <div className="creation_continer">
         <div className="flex flex-row w-full justify-between mb-5">
           <div />
-          <SaveProgressButton setIsOpen={undefined} />
+          {/* <SaveProgressButton setIsOpen={undefined} /> */}
+          <SaveAllProgressButton />
         </div>
         <div className="flex justify-between ">
           <PageHeaderWrapper

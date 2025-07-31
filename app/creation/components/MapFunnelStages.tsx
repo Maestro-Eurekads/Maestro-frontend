@@ -127,6 +127,8 @@ const MapFunnelStages = () => {
     setCampaignFormData,
     jwt,
     loadingCampaign,
+    updateCampaign,
+    getActiveCampaign,
   } = useCampaigns();
   const query = useSearchParams();
   const documentId = query.get("campaignId");
@@ -177,7 +179,7 @@ const MapFunnelStages = () => {
   const mediaPlanId = campaignFormData?.media_plan_id ?? "";
 
 
-  console.log("campaignFormData---", clientId)
+
 
   // Default funnel stages
 
@@ -194,9 +196,6 @@ const MapFunnelStages = () => {
   // Initialize funnel data and configurations
 
   useEffect(() => {
-    // console.debug(
-    //   `Initializing with clientId: ${clientId}, mediaPlanId: ${mediaPlanId}`
-    // );
     if (!loadingCampaign) {
       const isNewPlan = !mediaPlanId || mediaPlanId === "";
 
@@ -210,7 +209,7 @@ const MapFunnelStages = () => {
         configs = campaignData.client.custom_funnel_configs;
       }
 
-      // console.log("configs", configs) 
+
       setFunnelConfigs(configs);
 
       // Load funnels from campaignFormData first
@@ -260,7 +259,7 @@ const MapFunnelStages = () => {
           funnel_configs: configs,
         };
 
-        // console.debug("Updated campaignFormData:", updatedFormData); 
+
         return updatedFormData;
       });
 
@@ -365,7 +364,7 @@ const MapFunnelStages = () => {
 
       setPreviousValidationState(isValid);
 
-      // console.debug(`Validation status: ${isValid}`);
+
     }
   }, [campaignFormData, cId, verifyStep, previousValidationState]);
 
@@ -375,13 +374,11 @@ const MapFunnelStages = () => {
     if (persistentCustomFunnels.length > 0) {
       setCampaignFormData((prev: any) => ({
         ...prev,
-
         custom_funnels: persistentCustomFunnels,
       }));
 
       // Update selection if current funnels match a config or preset
       // Only consider active (non-deleted) configurations
-
       const currentFunnelKey = normalizeFunnelStages(persistentCustomFunnels);
 
       const matchingConfigIdx = funnelConfigs.findIndex(
@@ -394,41 +391,36 @@ const MapFunnelStages = () => {
         (preset) => normalizeFunnelStages(preset.stages) === currentFunnelKey
       );
 
-      if (matchingConfigIdx !== -1 && selectedConfigIdx !== matchingConfigIdx) {
-        setSelectedConfigIdx(matchingConfigIdx);
-
-        setSelectedPreset(null);
-
-        setCampaignFormData((prev: any) => ({
-          ...prev,
-
-          selected_config_idx: matchingConfigIdx,
-
-          selected_preset_idx: null,
-        }));
-      } else if (
-        matchingPresetIdx !== -1 &&
-        selectedPreset !== matchingPresetIdx
-      ) {
-        setSelectedPreset(matchingPresetIdx);
-
-        setSelectedConfigIdx(null);
-
-        setCampaignFormData((prev: any) => ({
-          ...prev,
-
-          selected_config_idx: null,
-
-          selected_preset_idx: matchingPresetIdx,
-        }));
+      // Use functional updates to avoid dependency issues
+      if (matchingConfigIdx !== -1) {
+        setSelectedConfigIdx((prevIdx) => {
+          if (prevIdx !== matchingConfigIdx) {
+            setSelectedPreset(null);
+            setCampaignFormData((prev: any) => ({
+              ...prev,
+              selected_config_idx: matchingConfigIdx,
+              selected_preset_idx: null,
+            }));
+            return matchingConfigIdx;
+          }
+          return prevIdx;
+        });
+      } else if (matchingPresetIdx !== -1) {
+        setSelectedPreset((prevIdx) => {
+          if (prevIdx !== matchingPresetIdx) {
+            setSelectedConfigIdx(null);
+            setCampaignFormData((prev: any) => ({
+              ...prev,
+              selected_config_idx: null,
+              selected_preset_idx: matchingPresetIdx,
+            }));
+            return matchingPresetIdx;
+          }
+          return prevIdx;
+        });
       }
     }
-  }, [
-    persistentCustomFunnels,
-    funnelConfigs,
-    selectedConfigIdx,
-    selectedPreset,
-  ]);
+  }, [persistentCustomFunnels, funnelConfigs]); // Removed selectedConfigIdx and selectedPreset from dependencies
 
   // Update campaignFormData when funnel configs change
 
@@ -580,7 +572,7 @@ const MapFunnelStages = () => {
 
     setHasChanges(true);
 
-    // console.debug("Selected funnel:", id, "New stages:", orderedFunnelStages);
+
   };
 
   // Add a new funnel
@@ -626,7 +618,7 @@ const MapFunnelStages = () => {
 
     setIsModalOpen(false);
 
-    // console.debug("Added funnel:", newFunnel);
+
   };
 
   // Edit an existing funnel
@@ -681,7 +673,7 @@ const MapFunnelStages = () => {
 
     setIsModalOpen(false);
 
-    // console.debug("Edited funnel:", { oldId, newName, newColor });
+
   };
 
   // Remove a funnel
@@ -795,7 +787,6 @@ const MapFunnelStages = () => {
     setSelectedPreset(null);
     setDraggedIndex(null);
     setDragOverIndex(null);
-    // console.debug("Reordered funnels:", newFunnels);
   };
 
   const handleDragEnd = () => {
@@ -895,7 +886,7 @@ const MapFunnelStages = () => {
     toast.success("Preset structure applied");
     setDropdownOpen(false);
 
-    // console.debug("Applied preset:", preset.label);
+
   };
 
   // Handle saved config selection
@@ -924,16 +915,24 @@ const MapFunnelStages = () => {
     setHasChanges(true);
     toast.success("Funnel configuration applied");
     setDropdownOpen(false);
-    // console.debug("Applied config:", config.name);
   };
 
   // Save configuration
 
   const handleSaveConfiguration = () => {
-    setChange(true)
-    // Allow saving configurations even without clientId (for new plans)
-    // The configuration will be saved locally and can be synced later when the plan is saved
+    // Check if a plan exists (campaign has been created)
+    if (!cId || !campaignData) {
+      toast.error("Please save your plan first before saving funnel configuration. Use the 'Save' button above to create your plan.");
+      return;
+    }
 
+    // Check if funnel stages are selected
+    if (!campaignFormData?.funnel_stages || campaignFormData.funnel_stages.length === 0) {
+      toast.error("Please select at least one funnel stage before saving configuration.");
+      return;
+    }
+
+    setChange(true)
     setNewConfigName("");
     setIsSaveConfigModalOpen(true);
   };
@@ -941,12 +940,18 @@ const MapFunnelStages = () => {
   // Confirm save config
 
   const handleSaveConfigConfirm = async () => {
+    // Double-check if a plan exists before saving configuration
+    if (!cId || !campaignData) {
+      toast.error("Please save your plan first before saving funnel configuration. Use the 'Save' button above to create your plan.");
+      setIsSaveConfigModalOpen(false);
+      return;
+    }
+
     setChange(true)
     const error = validateConfigName(newConfigName);
 
     if (error) {
       toast.error(error);
-
       return;
     }
 
@@ -969,42 +974,38 @@ const MapFunnelStages = () => {
       selected_preset_idx: null,
     }));
 
-    if (clientId) {
-      setSavingConfig(true);
+    // Since we now require a plan to be saved first, we can always save to the server
+    setSavingConfig(true);
 
-      try {
-        await axios.put(
-          `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients/${clientId}`,
+    try {
+      await axios.put(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients/${clientId}`,
 
-          {
-            data: {
-              custom_funnel_configs: updatedConfigs,
-            },
+        {
+          data: {
+            custom_funnel_configs: updatedConfigs,
           },
+        },
 
-          {
-            headers: {
-              Authorization: `Bearer ${jwt}`,
-            },
-          }
-        );
-
-        toast.success(`"${newConfigName.trim()}" configuration saved!`);
-      } catch (err) {
-        if (err?.response?.status === 401) {
-          const event = new Event("unauthorizedEvent");
-          window.dispatchEvent(event);
+        {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
         }
+      );
 
-        toast.error(
-          "Failed to update funnel configs on server, saved locally"
-        );
-      } finally {
-        setSavingConfig(false);
+      toast.success(`"${newConfigName.trim()}" configuration saved!`);
+    } catch (err) {
+      if (err?.response?.status === 401) {
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
       }
-    } else {
-      // Save locally for new plans that haven't been saved yet
-      toast.success(`"${newConfigName.trim()}" configuration saved locally! It will be synced when you save the plan.`);
+
+      toast.error(
+        "Failed to update funnel configs on server. Please try again."
+      );
+    } finally {
+      setSavingConfig(false);
     }
 
     setIsSaveConfigModalOpen(false);
@@ -1116,6 +1117,8 @@ const MapFunnelStages = () => {
 
     return { className: "bg-gray-400", style: {} };
   };
+
+
 
   return (
     <div className="relative">
