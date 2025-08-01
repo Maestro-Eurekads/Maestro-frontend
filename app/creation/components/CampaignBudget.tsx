@@ -62,6 +62,13 @@ const CampaignBudget = () => {
     }
   }, [campaignId])
 
+  // Check if goal level has already been selected to prevent modal from showing on refresh
+  useEffect(() => {
+    if (campaignFormData?.campaign_budget?.level) {
+      setShowLevelCards(false)
+    }
+  }, [campaignFormData?.campaign_budget?.level])
+
 
 
   // Calculate total campaign budget (gross amount for display)
