@@ -898,19 +898,23 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       setAgencyData,
       updateStatus,
       setPlatformName,
-      platformName
+      platformName,
+      headerData,
+      setHeaderData,
     }),
     [
-      getUserByUserType,
       loadingClients,
       allClients,
       campaignFormData,
+      createCampaign,
+      updateCampaign,
       campaignData,
       cId,
+      getActiveCampaign,
+      getUserByUserType,
+      getloading,
       clientCampaignData,
       loading,
-      isLoading,
-      loadingCampaign,
       businessLevelOptions,
       isLoggedIn,
       platformList,
@@ -922,29 +926,33 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       fetchingPO,
       filterOptions,
       selectedFilters,
+      isLoading,
       profile,
+      loadingCampaign,
+      getProfile,
       isEditingBuyingObjective,
       selectedOption,
-      setSelectedOption,
       currencySign,
-      setCurrencySign,
       user,
-      setClientUsers,
       clientUsers,
+      jwt,
       agencyId,
       selectedClient,
-      setSelectedClient,
       selectedId,
-      setSelectedId,
       FC,
-      setFC,
       agencyData,
-      setAgencyData,
       updateStatus,
-      setPlatformName,
-      platformName
+      platformName,
+      headerData,
     ]
   );
+
+  // Auto-save campaignFormData to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== "undefined" && campaignFormData && Object.keys(campaignFormData).length > 0) {
+      localStorage.setItem("campaignFormData", JSON.stringify(campaignFormData));
+    }
+  }, [campaignFormData]);
 
   return (
     <CampaignContext.Provider value={contextValue}>

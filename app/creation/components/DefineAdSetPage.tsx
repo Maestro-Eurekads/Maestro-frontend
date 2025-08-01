@@ -49,9 +49,9 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     if (!campaignFormData) return null
     // Try media_plan_id, fallback to id, fallback to JSON string of funnel_stages
     return (
-      campaignFormData.media_plan_id ||
-      campaignFormData.id ||
-      (Array.isArray(campaignFormData.funnel_stages) ? campaignFormData.funnel_stages.join("_") : "unknown")
+      campaignFormData?.media_plan_id ||
+      campaignFormData?.id ||
+      (Array.isArray(campaignFormData?.funnel_stages) ? campaignFormData?.funnel_stages?.join("_") : "unknown")
     )
   }
 
@@ -101,19 +101,17 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     []
   )
 
-  // --- FIX: Prevent infinite update loop for goal_level ---
-  // Only update goal_level if it is not set, or if it is set to a different value, but only once per view change.
-  // Use a ref to track if we've already forced the update for this view.
+
   const goalLevelUpdateRef = useRef<{ [view: string]: boolean }>({})
 
   useEffect(() => {
     if (!campaignFormData) return
 
-    const goalLevel = campaignFormData.goal_level
+    const goalLevel = campaignFormData?.goal_level
     const expectedGoalLevel = view === "adset" ? "Adset level" : "Channel level"
     const modalKey = getModalKey()
 
-    // Only show modal if not dismissed for this plan
+    // Only show modal if not dismissed for this plan and no goal level is set
     if (!goalLevel) {
       if (typeof window !== "undefined" && modalKey) {
         const dismissed = localStorage.getItem(modalKey)
@@ -122,6 +120,8 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
         } else {
           setIsModalOpen(false)
         }
+      } else {
+        setIsModalOpen(true)
       }
       // Don't try to update goal_level if it's not set, just show modal
       goalLevelUpdateRef.current[view] = false
@@ -133,6 +133,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
           return {
             ...prev,
             goal_level: expectedGoalLevel,
+            granularity: view, // Ensure granularity is also updated
           }
         })
         goalLevelUpdateRef.current[view] = true
@@ -149,7 +150,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   // Restore granularity setting from localStorage when component loads
   useEffect(() => {
     if (typeof window !== "undefined" && campaignFormData?.id) {
-      const granularityKey = `granularity_${campaignFormData.id}`
+      const granularityKey = `granularity_${campaignFormData.id || campaignFormData?.cId || "default"}`
       const savedGranularity = localStorage.getItem(granularityKey)
 
       if (savedGranularity && (savedGranularity === "channel" || savedGranularity === "adset")) {
@@ -159,7 +160,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
         }
       }
     }
-  }, [campaignFormData?.id, view, onToggleChange])
+  }, [campaignFormData?.id, campaignFormData?.cId, view, onToggleChange])
 
   useEffect(() => {
     if (!campaignFormData?.funnel_stages || initialized.current) return
@@ -339,7 +340,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
             const storedState = JSON.parse(stored)
             if (storedState[stageName]) {
               Object.entries(storedState[stageName]).forEach(([platformName, data]: [string, any]) => {
-                if (data.audience_type || data.name || data.size) {
+                if (data?.audience_type || data?.name || data?.size) {
                   if (!platformAggregation[platformName]) {
                     platformAggregation[platformName] = {
                       audiences: new Set(),
@@ -348,14 +349,14 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                     }
                   }
 
-                  if (data.audience_type) {
-                    platformAggregation[platformName].audiences.add(data.audience_type)
+                  if (data?.audience_type) {
+                    platformAggregation[platformName].audiences.add(data?.audience_type)
                   }
-                  if (data.name) {
-                    platformAggregation[platformName].names.add(data.name)
+                  if (data?.name) {
+                    platformAggregation[platformName].names.add(data?.name)
                   }
-                  if (data.size) {
-                    platformAggregation[platformName].totalSize += Number.parseInt(data.size.replace(/,/g, "")) || 0
+                  if (data?.size) {
+                    platformAggregation[platformName].totalSize += Number.parseInt(data?.size.replace(/,/g, "")) || 0
                   }
                 }
               })
@@ -784,6 +785,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                               setCampaignFormData((prev: any) => ({
                                 ...prev,
                                 goal_level: item.label,
+                                granularity: newView, // Add explicit granularity field
                               }))
                               onToggleChange(newView)
                               handleCloseModal()
@@ -793,6 +795,9 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                                 if (modalKey) {
                                   localStorage.setItem(modalKey, "true")
                                 }
+                                // Save granularity setting to localStorage for persistence
+                                const granularityKey = `granularity_${campaignFormData?.id || campaignFormData?.cId || "default"}`
+                                localStorage.setItem(granularityKey, newView)
                               }
                             }}
                           >
