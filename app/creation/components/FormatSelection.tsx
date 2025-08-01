@@ -1535,7 +1535,7 @@ export const Platforms = ({
     return CHANNEL_TYPES.map(({ key, title }) => ({
       title,
       platforms: stage[key]?.filter((p: PlatformType) => p.platform_name) || [],
-    })).filter((channel) => channel.platforms.length > 0)
+    })).filter((channel) => channel?.platforms?.length > 0)
   }, [campaignFormData, stageName])
 
   const channelSections = getChannelPlatforms()
@@ -1544,10 +1544,10 @@ export const Platforms = ({
     <div className="text-[16px] overflow-x-hidden">
       {channelSections.map((channel, index) => (
         <ChannelSection
-          key={`${channel.title}-${index}`}
-          channelTitle={channel.title}
+          key={`${channel?.title}-${index}`}
+          channelTitle={channel?.title}
           platforms={
-            platformName ? channel.platforms?.filter((fdj) => fdj?.platform_name === platformName) : channel.platforms
+            platformName ? channel?.platforms?.filter((fdj) => fdj?.platform_name === platformName) : channel?.platforms
           }
           stageName={stageName}
           quantities={quantities}
@@ -1645,8 +1645,8 @@ export const FormatSelection = ({
         CHANNEL_TYPES.some(({ key }) =>
           stage[key]?.some((platform: PlatformType) =>
             view === "channel"
-              ? platform.format?.length > 0
-              : platform.ad_sets?.some((adset) => adset.format?.length > 0),
+              ? platform?.format?.length > 0
+              : platform?.ad_sets?.some((adset) => adset?.format?.length > 0),
           ),
         )
       )
@@ -1724,31 +1724,31 @@ export const FormatSelection = ({
         {campaignFormData?.funnel_stages
           ?.filter((ff) => !stageName || ff === stageName)
           ?.map((stageName, index) => {
-            const stage = campaignFormData?.custom_funnels?.find((s) => s.name === stageName)
+            const stage = campaignFormData?.custom_funnels?.find((s) => s?.name === stageName)
             if (!stage) return null
 
             const status = getStageStatus(stageName)
-            const isOpen = openTabs.includes(stage.name)
+            const isOpen = openTabs.includes(stage?.name)
 
             return (
               <div key={index}>
                 <div
                   className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] ${isOpen ? "rounded-t-[10px]" : "rounded-[10px]"
                     }`}
-                  onClick={() => toggleTab(stage.name)}
+                  onClick={() => toggleTab(stage?.name)}
                 >
                   <div className="flex items-center gap-2">
-                    {stage.icon && (
+                    {stage?.icon && (
                       <Image
                         loading="lazy"
-                        src={stage.icon || "/placeholder.svg"}
-                        alt={`${stage.name} icon`}
+                        src={stage?.icon || "/placeholder.svg"}
+                        alt={`${stage?.name} icon`}
                         width={24}
                         height={24}
                       />
                     )}
                     <p className="w-full max-w-[1500px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-black">
-                      {stage.name}
+                      {stage?.name}
                     </p>
                   </div>
                   {status && (

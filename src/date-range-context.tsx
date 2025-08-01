@@ -22,9 +22,9 @@ export const DateRangeProvider = ({ children }: { children: React.ReactNode }) =
   const { campaignFormData, setCampaignFormData } = useCampaigns();
   const [range, setRange] = useState<Date[]>([]);
   const [dateRangeWidth, setDateRangeWidth] = useState(0);
-  
 
-  console.log("this is the campaignFormData", campaignFormData)
+
+
   useEffect(() => {
     if (
       campaignFormData?.campaign_timeline_start_date &&
@@ -63,7 +63,7 @@ export const DateRangeProvider = ({ children }: { children: React.ReactNode }) =
 
       if (updatedStart !== currentStart || updatedEnd !== currentEnd) {
         const newRange = eachDayOfInterval({ start: updatedStart, end: updatedEnd });
-        console.log({updatedStart, updatedEnd})
+        console.log({ updatedStart, updatedEnd })
         // setCampaignFormData((prev) => ({
         //   ...prev,
         //   campaign_start_date: format(updatedStart, "yyyy-MM-dd"),

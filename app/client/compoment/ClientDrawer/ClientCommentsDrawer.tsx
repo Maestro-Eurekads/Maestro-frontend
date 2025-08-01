@@ -43,7 +43,7 @@ const ClientCommentsDrawer = ({ isOpen, onClose, campaign }) => {
 	const [alert, setAlert] = useState(null);
 	const [commentColors, setCommentColors] = useState({});
 	const commentId = campaign?.documentId
-	const {jwt} = useCampaigns()
+	const { jwt, campaignFormData } = useCampaigns()
 
 
 
@@ -118,7 +118,7 @@ const ClientCommentsDrawer = ({ isOpen, onClose, campaign }) => {
 	}, [createCommentsError, replyError]);
 
 	useEffect(() => {
-		if(jwt){
+		if (jwt) {
 
 			dispatch(getComment(commentId, jwt));
 		}
@@ -135,7 +135,19 @@ const ClientCommentsDrawer = ({ isOpen, onClose, campaign }) => {
 			<div className="flex w-full justify-between p-3">
 				<div>
 					<h3 className="font-medium text-2xl text-[#292929]">Comments For</h3>
-
+					<div className="flex items-center gap-2 w-full">
+						<p className="font-medium text-[16px] text-[#292929] mb-4">
+							{(campaignFormData?.funnel_stages?.length > 0)
+								? (() => {
+									// Use selected phases from campaignFormData instead of all phases from campaignData
+									const selectedStages = campaignFormData?.funnel_stages || [];
+									return selectedStages.length > 3
+										? selectedStages.slice(0, 3).join(" · ") + " ..."
+										: selectedStages.join(" · ");
+								})()
+								: ""}
+						</p>
+					</div>
 
 				</div>
 				<button onClick={handleClose}>
