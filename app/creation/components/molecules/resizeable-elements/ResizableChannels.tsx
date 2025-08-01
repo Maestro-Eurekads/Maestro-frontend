@@ -119,6 +119,47 @@ const ResizableChannels = ({
   const [openAdset, setOpenAdset] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState("");
   const [openView, setOpenView] = useState<"channel" | "adset">("channel");
+  // Horizontal shift for the inline pop-over so it stays in viewport
+  const [popoverShift, setPopoverShift] = useState(0);
+  const popoverRef = useRef<HTMLDivElement | null>(null);
+
+  // Adjust pop-over horizontally whenever it (re)opens so it never overflows viewport
+  useEffect(() => {
+    if (!openItems) {
+      setPopoverShift(0);
+      return;
+    }
+
+    // Wait for DOM to paint, then measure
+    const id = openItems;
+    requestAnimationFrame(() => {
+      const pop = popoverRef.current;
+      if (!pop) return;
+
+      const rect = pop.getBoundingClientRect();
+      const margin = 16;
+      let shift = 0;
+
+      const overflowRight = rect.right + margin - window.innerWidth;
+      const overflowLeft = margin - rect.left;
+
+      if (overflowRight > 0) {
+        shift = -overflowRight;
+      } else if (overflowLeft > 0) {
+        shift = overflowLeft;
+      }
+
+      setPopoverShift(shift);
+    });
+  }, [openItems]);
+
+  // State for the floating ad-set pop-over (position in viewport) and its owner channel
+  const [popoverPosition, setPopoverPosition] = useState<{ left: number; top: number }>({
+    left: 0,
+    top: 0,
+  });
+  const [selectedPopoverChannelIndex, setSelectedPopoverChannelIndex] =
+    useState<number | null>(null);
 
   const initialStartDateRef = useRef(null);
   const initialEndDateRef = useRef(null);
@@ -1160,17 +1201,24 @@ const ResizableChannels = ({
     const gridContainer = document.querySelector(
       ".grid-container"
     ) as HTMLElement | null;
-    const containerWidth = gridContainer
-      ? gridContainer.getBoundingClientRect().width
-      : window.innerWidth;
 
-    // If the element would overflow to the right, shift it left so it fits.
-    if (desiredLeft + elementWidth + margin > containerWidth) {
-      return Math.max(containerWidth - elementWidth - margin, 0);
+    if (!gridContainer) return desiredLeft;
+
+    const containerRect = gridContainer.getBoundingClientRect();
+    const absoluteLeft = containerRect.left + desiredLeft; // position in viewport
+
+    // Calculate shift needed if popover would overflow right or left
+    let shift = 0;
+    const overflowRight = absoluteLeft + elementWidth + margin - window.innerWidth;
+    const overflowLeft = margin - absoluteLeft; // positive if too far left
+
+    if (overflowRight > 0) {
+      shift = -overflowRight;
+    } else if (overflowLeft > 0) {
+      shift = overflowLeft;
     }
 
-    // Otherwise keep the original desired position.
-    return desiredLeft;
+    return desiredLeft + shift;
   };
 
   // console.log(isResizing, "isResizing state")
@@ -1422,15 +1470,20 @@ const ResizableChannels = ({
                 Boolean(set?.size?.toString().trim()) ||
                 Boolean(set?.description?.toString().trim())
             ).length > 0 && (
-              <div className="relative max-w-[600px]">
+              <div
+                className="relative"
+                style={{
+                  left: `${channelState[index]?.left || parentLeft}px`,
+                }}
+              >
                 <div
                   className="relative bg-[#EBFEF4] py-[8px] px-[12px] w-fit mt-[5px] border border-[#00A36C1A] rounded-[8px] flex items-center cursor-pointer"
-                  style={{
-                    left: `${channelState[index]?.left || parentLeft}px`,
-                  }}
-                  onClick={() => {
+                  onClick={(e) => {
                     toggleChannel(`${channel?.name}${index}`);
                     setSelectedCreative(channel?.format);
+
+                    // Measure and adjust popover so it doesn’t overflow viewport right edge
+                    // no-op
                   }}
                 >
                   <p className="text-[14px] font-medium text-[#00A36C]">
@@ -1458,12 +1511,9 @@ const ResizableChannels = ({
                 </div>
                 {openItems && openItems === `${channel?.name}${index}` && (
                   <div
-                    className="relative shrink-0 mt-4 bg-white z-20 rounded-md border shadow-md"
-                    style={{
-                      left: `${getSafeLeftPosition(
-                        channelState[index]?.left || parentLeft
-                      )}px`,
-                    }}
+                    ref={popoverRef}
+                    className="absolute top-full left-0 mt-2 bg-white z-50 rounded-md border shadow-md w-[600px] max-w-[90vw]"
+                    style={{ transform: `translateX(${popoverShift}px)` }}
                   >
                     <table className="table-auto w-full text-left text-[12px] text-[#061237B2] font-medium border-none hover:cursor-default">
                       <thead className="bg-transparent">
@@ -1471,56 +1521,29 @@ const ResizableChannels = ({
                           <th className="px-4 py-2">#</th>
                           <th className="px-4 py-2">Audience Type</th>
                           <th className="px-4 py-2">Name</th>
-                          <th className="px-4 py-2 whitespace-nowrap">
-                            Audience size
-                          </th>
+                          <th className="px-4 py-2 whitespace-nowrap">Audience size</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {channel?.ad_sets?.map((set, index) => (
-                          <React.Fragment key={index}>
+                        {channel?.ad_sets?.map((set, idx) => (
+                          <React.Fragment key={idx}>
                             <tr className="border-none">
-                              <td className="px-4 py-2 text-[#3175FF] font-bold whitespace-nowrap border-none">
-                                Ad Set No.{index + 1}.
-                              </td>
-                              <td className="px-4 py-2 whitespace-nowrap border-none">
-                                {set?.audience_type}
-                              </td>
-                              <td className="px-4 py-2 whitespace-nowrap border-none">
-                                {set?.name}
-                              </td>
-                              <td className="px-4 py-2 whitespace-nowrap border-none hover:no-underline">
-                                {Number(set?.size).toLocaleString()}
-                              </td>
+                              <td className="px-4 py-2 text-[#3175FF] font-bold whitespace-nowrap border-none">Ad Set No.{idx + 1}.</td>
+                              <td className="px-4 py-2 whitespace-nowrap border-none">{set?.audience_type}</td>
+                              <td className="px-4 py-2 whitespace-nowrap border-none">{set?.name}</td>
+                              <td className="px-4 py-2 whitespace-nowrap border-none hover:no-underline">{Number(set?.size).toLocaleString()}</td>
                             </tr>
                             {set?.extra_audiences?.map((extra, extraIndex) => (
-                              <tr
-                                key={`${index}-${extraIndex}`}
-                                className="border-none"
-                              >
+                              <tr key={`${idx}-${extraIndex}`} className="border-none">
                                 <td className="px-4 py-2 text-[#3175FF] font-bold whitespace-nowrap border-none">
                                   <div className="l-shape-container-ad">
-                                    <div
-                                      className={`absolute w-[1px] ${
-                                        extraIndex > 0
-                                          ? "h-[35px] top-[-35px]"
-                                          : "h-[20px] top-[-20px]"
-                                      } bg-blue-500 left-[60px] `}
-                                    ></div>
-                                    <div
-                                      className={`absolute w-[60px] h-[1px] bg-blue-500 bottom-[-1px] left-[60px]`}
-                                    ></div>
+                                    <div className={`absolute w-[1px] ${extraIndex > 0 ? 'h-[35px] top-[-35px]' : 'h-[20px] top-[-20px]'} bg-blue-500 left-[60px]`}></div>
+                                    <div className="absolute w-[60px] h-[1px] bg-blue-500 bottom-[-1px] left-[60px]"></div>
                                   </div>
                                 </td>
-                                <td className="px-4 py-2 whitespace-nowrap border-none">
-                                  {extra?.audience_type}
-                                </td>
-                                <td className="px-4 py-2 whitespace-nowrap border-none">
-                                  {extra?.name}
-                                </td>
-                                <td className="px-4 py-2 whitespace-nowrap border-none">
-                                  {Number(extra?.size).toLocaleString()}
-                                </td>
+                                <td className="px-4 py-2 whitespace-nowrap border-none">{extra?.audience_type}</td>
+                                <td className="px-4 py-2 whitespace-nowrap border-none">{extra?.name}</td>
+                                <td className="px-4 py-2 whitespace-nowrap border-none">{Number(extra?.size).toLocaleString()}</td>
                               </tr>
                             ))}
                           </React.Fragment>
@@ -1533,7 +1556,7 @@ const ResizableChannels = ({
                         onClick={() => {
                           setOpenCreatives(true);
                           setSelectedChannel(channel?.name);
-                          setOpenView("adset");
+                          setOpenView('adset');
                         }}
                       >
                         View Creatives
@@ -1573,6 +1596,8 @@ const ResizableChannels = ({
           </div>
         );
       })}
+
+      {/* Removed global fixed pop-over */}
       <Modal
         isOpen={selectedChannel && openCreatives}
         onClose={() => setOpenCreatives(false)}

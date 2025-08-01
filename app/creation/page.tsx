@@ -19,114 +19,37 @@ import { FormatSelection } from "./components/FormatSelection";
 // import { useComments } from "app/utils/CommentProvider";
 import { EnhancedDateProvider } from "app/utils/enhanced-date-context";
 import { useCampaigns } from "app/utils/CampaignsContext";
+import { useSession } from "next-auth/react";
 
 const Creation = () => {
   const { active, subStep } = useActive();
-  const { campaignFormData, setCampaignFormData, setCampaignData } = useCampaigns()
+  const { campaignFormData } = useCampaigns();
+  // get the usesession user
+  const { data: session } = useSession();
+  const user = session?.user;
 
-  // Clear previous campaign data only when starting a completely new plan
-  useEffect(() => {
-    // Check if we're coming from a "New Plan" button click
-    const isNewPlanNavigation = sessionStorage.getItem('isNewPlanNavigation');
+  // ────────────────────────────────────────────────────────────────
+  // Guard: only the campaign builder (same Strapi user) can access
+  // this page. If the logged-in user is different from the
+  // campaign_builder attached to the campaignFormData we show a 404.
+  // ────────────────────────────────────────────────────────────────
 
-    const clearPreviousCampaignData = () => {
-      if (typeof window === "undefined") return;
+  // Extract builder id when available – campaignFormData is filled
+  // asynchronously in the CampaignProvider, so the value may be
+  // undefined on the very first render.
+  const builderId = campaignFormData?.campaign_builder?.id;
+  const loggedInId = (user as any)?.id; // set in next-auth callback
 
-      try {
-        // Clear sessionStorage for channel state
-        const keysToRemove: string[] = [];
-        for (let i = 0; i < sessionStorage.length; i++) {
-          const key = sessionStorage.key(i);
-          if (key && key.startsWith("channelLevelAudienceState_")) {
-            keysToRemove.push(key);
-          }
-        }
-        keysToRemove.forEach((key) => sessionStorage.removeItem(key));
+  if (builderId && loggedInId && builderId !== loggedInId) {
+    return (
+      <div className="flex h-screen flex-col items-center justify-center gap-2">
+        <h1 className="text-3xl font-semibold">404</h1>
+        <p className="text-lg text-gray-600">Page not found</p>
+      </div>
+    );
+  }
 
-        // Clear window channel state
-        if ((window as any).channelLevelAudienceState) {
-          Object.keys((window as any).channelLevelAudienceState).forEach((stageName) => {
-            delete (window as any).channelLevelAudienceState[stageName];
-          });
-        }
-
-        // Clear all localStorage items related to campaign creation
-        const localStorageKeysToRemove = [
-          "campaignFormData",
-          "filteredClient",
-          "selectedOptions",
-          "funnelStageStatuses",
-          "seenFunnelStages",
-          "formatSelectionOpenTabs",
-          "step1_validated",
-          "active",
-          "change",
-          "comments",
-          "subStep",
-          "verifybeforeMove"
-        ];
-
-        // Remove campaign-specific localStorage items
-        localStorageKeysToRemove.forEach(key => {
-          localStorage.removeItem(key);
-        });
-
-        // Remove quantities-related localStorage items (format selection)
-        Object.keys(localStorage).forEach(key => {
-          if (key.startsWith("quantities_")) {
-            localStorage.removeItem(key);
-          }
-        });
-
-        // Remove modal dismissal keys
-        Object.keys(localStorage).forEach(key => {
-          if (key.includes("modal_dismissed") || key.includes("goalLevelModalDismissed")) {
-            localStorage.removeItem(key);
-          }
-        });
-
-        // Remove format error trigger keys
-        Object.keys(localStorage).forEach(key => {
-          if (key.startsWith("triggerFormatError_")) {
-            localStorage.removeItem(key);
-          }
-        });
-
-        // Remove channel mix related localStorage items
-        Object.keys(localStorage).forEach(key => {
-          if (key.includes("openItems") ||
-            key.includes("selected") ||
-            key.includes("stageStatuses") ||
-            key.includes("showMoreMap") ||
-            key.includes("openChannelTypes")) {
-            localStorage.removeItem(key);
-          }
-        });
-
-        // Remove granularity settings
-        Object.keys(localStorage).forEach(key => {
-          if (key.startsWith("granularity_")) {
-            localStorage.removeItem(key);
-          }
-        });
-
-        // Reset campaign context state
-        setCampaignFormData({});
-        setCampaignData(null);
-
-        console.log("Cleared previous campaign data for new plan");
-      } catch (error) {
-        console.error("Error clearing previous campaign data:", error);
-      }
-    };
-
-    // Only clear data if we're explicitly starting a new plan
-    if (isNewPlanNavigation === 'true' && (!campaignFormData?.id && !campaignFormData?.cId)) {
-      clearPreviousCampaignData();
-      // Clear the flag after using it
-      sessionStorage.removeItem('isNewPlanNavigation');
-    }
-  }, [campaignFormData?.id, campaignFormData?.cId, setCampaignFormData, setCampaignData]);
+  console.log("thsi is the data", session);
 
   return (
     <EnhancedDateProvider campaignFormData={campaignFormData}>

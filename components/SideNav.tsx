@@ -16,6 +16,7 @@ import workbench from "../public/icon-park-solid_workbench.svg";
 import checkfill from "../public/mingcute_check-fill.svg";
 import Calender from "../public/Calender.svg";
 import { useCampaigns } from "app/utils/CampaignsContext";
+import { useSession } from "next-auth/react";
 import { useComments } from "app/utils/CommentProvider";
 import { useEffect, useMemo, useState } from "react";
 import { useAppDispatch } from "store/useStore";
@@ -33,6 +34,16 @@ const SideNav: React.FC = () => {
   const dispatch = useAppDispatch();
   const { campaignData, setCampaignData, loadingCampaign, campaignFormData } = useCampaigns();
 
+  // ────────────────────────────────────────────────────────────────
+  // Access-control: hide full sidebar content when the logged-in
+  // user is NOT the campaign builder. The only thing we still show
+  // is the "Back to Dashboard" button so the user can navigate away.
+  // ────────────────────────────────────────────────────────────────
+
+  const { data: session } = useSession();
+  const loggedInId = (session?.user as any)?.id;
+  const builderId = campaignFormData?.campaign_builder?.id;
+  const unauthorized = builderId && loggedInId && builderId !== loggedInId;
 
 
   useEffect(() => {
@@ -272,16 +283,34 @@ const SideNav: React.FC = () => {
 
   const isCampaignDataLoaded = campaignData?.client?.client_name && campaignData?.media_plan_details?.plan_name;
 
+  // ---------------------------------------------------------------
+  // Unauthorized view: just render the back button
+  // ---------------------------------------------------------------
+
+  if (unauthorized) {
+    return (
+      <div id="side-nav" className="flex flex-col p-4">
+        <button
+          onClick={handleBackClick}
+          className="font-general-sans font-semibold text-[16px] leading-[22px] text-[#3175FF] flex items-center gap-2"
+        >
+          <Image src={left_arrow} alt="menu" />
+          <p>Back to Dashboard</p>
+        </button>
+      </div>
+    );
+  }
+
+  // ---------------------------------------------------------------
+  // Normal authorised view – original content
+  // ---------------------------------------------------------------
+
   return (
     <div id={close ? "side-nav-active" : "side-nav"} className="!flex !flex-col !h-full">
       <div className="flex flex-col">
         <div className={`flex ${close ? "justify-center mb-[30px]" : "justify-end"} w-full`}>
           <button onClick={() => {
-            // if(active === 7 && subStep === 1){
-            //   setClose(true)
-            // } else{
-            // }
-            setClose(!close)
+            setClose(!close);
           }}>
             <Image src={closeicon} alt="closeicon" />
           </button>
@@ -296,7 +325,6 @@ const SideNav: React.FC = () => {
               <p>Back to Dashboard</p>
             </button>
             {loadingCampaign ? (
-              // Minimize skeleton visibility with a timeout
               <div className="opacity.cas(0).delay(200ms).duration(300ms)">
                 <Skeleton height={20} width={200} />
               </div>
