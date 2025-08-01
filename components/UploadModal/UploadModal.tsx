@@ -92,6 +92,13 @@ const UploadModal: React.FC<UploadModalProps> = ({
 
   const uploadUpdatedCampaignToStrapi = useCallback(
     async (data: any) => {
+      // Check if campaign exists before attempting to save
+      if (!campaignData?.id && !campaignFormData?.cId) {
+        console.warn("No campaign exists yet. File upload will be saved locally only.")
+        toast.warning("Please save your campaign first (Step 0) to persist file uploads.")
+        return
+      }
+
       try {
         const cleanData = removeKeysRecursively(
           data,
@@ -99,19 +106,25 @@ const UploadModal: React.FC<UploadModalProps> = ({
           ["previews"],
         )
         await updateCampaign(cleanData)
-        if(active !== 7){
+        if (active !== 7) {
           await getActiveCampaign()
         }
+        toast.success("File upload saved successfully!")
       } catch (error) {
         if (error?.response?.status === 401) {
           const event = new Event("unauthorizedEvent");
           window.dispatchEvent(event);
+        } else if (error?.response?.status === 404) {
+          toast.error("Campaign not found. Please save your campaign first.")
+        } else if (error?.response?.status === 400) {
+          toast.error("Invalid data format. Please check your campaign data.")
+        } else {
+          toast.error("Failed to save campaign data.")
         }
-        toast.error("Failed to save campaign data.")
         throw error
       }
     },
-    [updateCampaign, getActiveCampaign],
+    [updateCampaign, getActiveCampaign, campaignData, campaignFormData],
   )
 
   const updateGlobalState = useCallback(
@@ -196,7 +209,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
         )
         const { media_plan_details, user, ...rest } = cleanData
         await updateCampaign(rest)
-        if(active !== 7){
+        if (active !== 7) {
           await getActiveCampaign()
         }
       } catch (error) {
@@ -545,6 +558,12 @@ const UploadModal: React.FC<UploadModalProps> = ({
     // Check for any file size errors before proceeding
     if (fileSizeErrors.some((error) => error !== "")) {
       toast.error("Please fix file size issues before uploading.")
+      return
+    }
+
+    // Check if campaign exists before proceeding with upload
+    if (!campaignData?.id && !campaignFormData?.cId) {
+      toast.error("Please save your campaign first before uploading files. Your uploads will not be persisted.")
       return
     }
 

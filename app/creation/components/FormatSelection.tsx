@@ -10,6 +10,7 @@ import { Trash } from "lucide-react"
 import { removeKeysRecursively } from "utils/removeID"
 import { toast } from "sonner"
 import { debounce } from "lodash"
+
 import Switch from "react-switch"
 import PageHeaderWrapper from "../../../components/PageHeaderWapper"
 import { useComments } from "app/utils/CommentProvider"
@@ -114,14 +115,7 @@ const formatAudienceDisplayName = (audienceType: string, name: string) => {
   return `${audienceType} + ${name}`
 }
 
-// Debounced toast notification
-const debouncedToast = debounce((message: string, type: "success" | "error") => {
-  if (type === "success") {
-    toast.success(message)
-  } else {
-    toast.error(message)
-  }
-}, 100)
+
 
 // Creatives Modal Component
 const CreativesModal = ({
@@ -372,7 +366,7 @@ const MediaOption = ({
   useEffect(() => {
     if (!STRAPI_URL || !STRAPI_TOKEN) {
       console.error("Missing Strapi configuration:", { STRAPI_URL, STRAPI_TOKEN })
-      debouncedToast("Server configuration error. Please contact support.", "error")
+      toast.error("Server configuration error. Please contact support.")
       return
     }
 
@@ -406,9 +400,9 @@ const MediaOption = ({
     (previewId: string) => {
       if (!previewId || !STRAPI_URL || !STRAPI_TOKEN || deletingPreviewId) {
         if (deletingPreviewId) {
-          debouncedToast("Please wait until the current deletion is complete.", "error")
+          toast.error("Please wait until the current deletion is complete.")
         } else {
-          debouncedToast("Invalid preview ID or server configuration.", "error")
+          toast.error("Invalid preview ID or server configuration.")
         }
         return
       }
@@ -1136,6 +1130,13 @@ export const Platforms = ({
         return
       }
 
+      // Check if campaign exists before attempting to save
+      if (!campaignData?.id && !campaignFormData?.cId) {
+        console.warn("No campaign exists yet. File upload will be saved locally only.")
+        toast.warning("Please save your campaign first (Step 0) to persist file uploads.")
+        return
+      }
+
       setIsUpdatingStrapi(true)
       try {
         const cleanData = JSON.parse(JSON.stringify(data))
@@ -1182,6 +1183,7 @@ export const Platforms = ({
         })
 
         await updateCampaign(sanitizedData)
+        toast.success("File upload saved successfully!")
       } catch (error: any) {
         console.error("Error in uploadUpdatedCampaignToStrapi:", {
           message: error.message,
@@ -1189,13 +1191,23 @@ export const Platforms = ({
           response: error.response?.data,
           status: error.response?.status,
         })
-        debouncedToast(`Failed to save campaign data: ${error.message}`, "error")
+
+        // Provide more specific error messages based on the error type
+        if (error?.response?.status === 401) {
+          toast.error("Session expired. Please log in again.")
+        } else if (error?.response?.status === 404) {
+          toast.error("Campaign not found. Please save your campaign first.")
+        } else if (error?.response?.status === 400) {
+          toast.error("Invalid data format. Please check your campaign data.")
+        } else {
+          toast.error(`Failed to save campaign data: ${error.message}`)
+        }
         throw error
       } finally {
         setIsUpdatingStrapi(false)
       }
     },
-    [updateCampaign, isUpdatingStrapi],
+    [updateCampaign, isUpdatingStrapi, campaignData, campaignFormData],
   )
 
   const updateGlobalState = useCallback(
@@ -1308,7 +1320,7 @@ export const Platforms = ({
     try {
       // PATCH: Validate previewId before making the request
       if (!previewId || (typeof previewId !== "string" && typeof previewId !== "number")) {
-        debouncedToast("Invalid file ID for deletion.", "error")
+        toast.error("Invalid file ID for deletion.")
         setDeleteQueue((prev) => prev.slice(1))
         setCompletedDeletions((prev) => new Set(prev).add(previewId))
         setIsProcessingQueue(false)
@@ -1398,7 +1410,7 @@ export const Platforms = ({
       setCompletedDeletions((prev) => new Set(prev).add(previewId))
     } catch (error: any) {
       console.error("Error processing delete queue:", error)
-      debouncedToast(`Failed to delete preview: ${error.message}`, "error")
+      toast.error(`Failed to delete preview: ${error.message}`)
       setCompletedDeletions((prev) => new Set(prev).add(previewId))
       setDeleteQueue((prev) => prev.slice(1))
     } finally {
@@ -1423,7 +1435,7 @@ export const Platforms = ({
   const handleDeletePreview = useCallback(
     (previewId: string, format: string, adSetIndex?: number, platformName?: string, channelName?: string) => {
       if (!previewId || !platformName || !channelName) {
-        debouncedToast("Invalid preview ID or context.", "error")
+        toast.error("Invalid preview ID or context.")
         return
       }
 
@@ -1586,7 +1598,7 @@ export const FormatSelection = ({
   const [view, setView] = useState<"channel" | "adset">("channel")
   const [isCreativesModalOpen, setIsCreativesModalOpen] = useState(false)
   const [selectedStage, setSelectedStage] = useState<string | null>(null)
-  const { campaignFormData, setCampaignFormData } = useCampaigns()
+  const { campaignFormData, setCampaignFormData, campaignData } = useCampaigns()
   const { setIsDrawerOpen, setClose } = useComments()
   const { active } = useActive()
 
@@ -1685,6 +1697,7 @@ export const FormatSelection = ({
           />
         )}
         {active === 4 && <SaveAllProgressButton />}
+
       </div>
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
         {!stageName && (
