@@ -19,10 +19,37 @@ import { FormatSelection } from "./components/FormatSelection";
 // import { useComments } from "app/utils/CommentProvider";
 import { EnhancedDateProvider } from "app/utils/enhanced-date-context";
 import { useCampaigns } from "app/utils/CampaignsContext";
+import { useSession } from "next-auth/react";
 
 const Creation = () => {
   const { active, subStep } = useActive();
-  const { campaignFormData } = useCampaigns()
+  const { campaignFormData } = useCampaigns();
+  // get the usesession user
+  const { data: session } = useSession();
+  const user = session?.user;
+
+  // ────────────────────────────────────────────────────────────────
+  // Guard: only the campaign builder (same Strapi user) can access
+  // this page. If the logged-in user is different from the
+  // campaign_builder attached to the campaignFormData we show a 404.
+  // ────────────────────────────────────────────────────────────────
+
+  // Extract builder id when available – campaignFormData is filled
+  // asynchronously in the CampaignProvider, so the value may be
+  // undefined on the very first render.
+  const builderId = campaignFormData?.campaign_builder?.id;
+  const loggedInId = (user as any)?.id; // set in next-auth callback
+
+  if (builderId && loggedInId && builderId !== loggedInId) {
+    return (
+      <div className="flex h-screen flex-col items-center justify-center gap-2">
+        <h1 className="text-3xl font-semibold">404</h1>
+        <p className="text-lg text-gray-600">Page not found</p>
+      </div>
+    );
+  }
+
+  console.log("thsi is the data", session);
 
   return (
     <EnhancedDateProvider campaignFormData={campaignFormData}>
