@@ -146,6 +146,21 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     // Only depend on campaignFormData?.goal_level and view
   }, [campaignFormData?.goal_level, view, setCampaignFormData])
 
+  // Restore granularity setting from localStorage when component loads
+  useEffect(() => {
+    if (typeof window !== "undefined" && campaignFormData?.id) {
+      const granularityKey = `granularity_${campaignFormData.id}`
+      const savedGranularity = localStorage.getItem(granularityKey)
+
+      if (savedGranularity && (savedGranularity === "channel" || savedGranularity === "adset")) {
+        const expectedView = savedGranularity
+        if (view !== expectedView) {
+          onToggleChange(expectedView)
+        }
+      }
+    }
+  }, [campaignFormData?.id, view, onToggleChange])
+
   useEffect(() => {
     if (!campaignFormData?.funnel_stages || initialized.current) return
 
@@ -434,15 +449,45 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   const handleToggleChange = (checked: boolean) => {
     const newView = checked ? "adset" : "channel"
     onToggleChange(newView)
+
+    // Save granularity setting to campaign form data
     setCampaignFormData((prev: any) => ({
       ...prev,
       goal_level: checked ? "Adset level" : "Channel level",
+      granularity: newView, // Add explicit granularity field
     }))
-    // If user changes granularity, consider modal as dismissed for this plan
+
+    // Save granularity setting to localStorage for persistence
     if (typeof window !== "undefined") {
       const modalKey = getModalKey()
       if (modalKey) {
         localStorage.setItem(modalKey, "true")
+      }
+
+      // Save granularity setting
+      const granularityKey = `granularity_${campaignFormData?.id || campaignFormData?.cId || "default"}`
+      localStorage.setItem(granularityKey, newView)
+    }
+
+    // Clear previous granularity data when switching
+    if (typeof window !== "undefined") {
+      if (newView === "channel") {
+        // Clear adset-level data when switching to channel
+        if ((window as any).channelLevelAudienceState) {
+          Object.keys((window as any).channelLevelAudienceState).forEach((stageName) => {
+            delete (window as any).channelLevelAudienceState[stageName];
+          });
+        }
+      } else {
+        // Clear channel-level data when switching to adset
+        const keysToRemove: string[] = [];
+        for (let i = 0; i < sessionStorage.length; i++) {
+          const key = sessionStorage.key(i);
+          if (key && key.startsWith("channelLevelAudienceState_")) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach((key) => sessionStorage.removeItem(key));
       }
     }
   }

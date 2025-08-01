@@ -460,6 +460,11 @@ const Header = ({ setIsOpen, setIsView }) => {
               <Link
                 href={`/creation`}
                 onClick={() => {
+                  // Set flag to indicate this is a new plan navigation
+                  if (typeof window !== "undefined") {
+                    sessionStorage.setItem('isNewPlanNavigation', 'true');
+                  }
+
                   // Clear all campaign data comprehensively
                   clearCampaignData();
 
