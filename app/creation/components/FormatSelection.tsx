@@ -673,7 +673,7 @@ const PlatformItem = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState<{ [key: string]: boolean }>({})
   const [expandedAdsets, setExpandedAdsets] = useState<{ [key: string]: boolean }>({})
-  const { campaignFormData, setCampaignFormData } = useCampaigns()
+  const { campaignFormData, setCampaignFormData, jwt } = useCampaigns()
 
   useEffect(() => {
     if (platform.format?.length > 0 && view === "channel") {
@@ -707,7 +707,7 @@ const PlatformItem = ({
   }, [])
 
   const handleFormatSelection = useCallback(
-    (index: number, adsetIndex?: number) => {
+    async (index: number, adsetIndex?: number) => {
       const formatName = DEFAULT_MEDIA_OPTIONS[index].name
       const copy = [...campaignFormData.channel_mix]
 
@@ -730,6 +730,29 @@ const PlatformItem = ({
         const adsetFormatIndex = adset.format.findIndex((f) => f.format_type === formatName)
 
         if (adsetFormatIndex !== -1) {
+          // Format is being deselected - delete all previews first
+          const formatToRemove = adset.format[adsetFormatIndex]
+          if (formatToRemove.previews && formatToRemove.previews.length > 0) {
+            // Delete all previews from database first, then remove format
+            const deletePromises = formatToRemove.previews.map((preview) => {
+              if (preview.id) {
+                return fetch(`${process.env.NEXT_PUBLIC_STRAPI_URL}/upload/files/${preview.id}`, {
+                  method: "DELETE",
+                  headers: {
+                    Authorization: `Bearer ${jwt}`,
+                  },
+                })
+              }
+              return Promise.resolve()
+            })
+
+            try {
+              await Promise.all(deletePromises)
+            } catch (error) {
+              console.error("Error deleting previews:", error)
+              // Continue with format removal even if some deletions fail
+            }
+          }
           adset.format.splice(adsetFormatIndex, 1)
         } else {
           adset.format.push({
@@ -744,6 +767,29 @@ const PlatformItem = ({
         const formatIndex = platformCopy.format.findIndex((f) => f.format_type === formatName)
 
         if (formatIndex !== -1) {
+          // Format is being deselected - delete all previews first
+          const formatToRemove = platformCopy.format[formatIndex]
+          if (formatToRemove.previews && formatToRemove.previews.length > 0) {
+            // Delete all previews from database first, then remove format
+            const deletePromises = formatToRemove.previews.map((preview) => {
+              if (preview.id) {
+                return fetch(`${process.env.NEXT_PUBLIC_STRAPI_URL}/upload/files/${preview.id}`, {
+                  method: "DELETE",
+                  headers: {
+                    Authorization: `Bearer ${jwt}`,
+                  },
+                })
+              }
+              return Promise.resolve()
+            })
+
+            try {
+              await Promise.all(deletePromises)
+            } catch (error) {
+              console.error("Error deleting previews:", error)
+              // Continue with format removal even if some deletions fail
+            }
+          }
           platformCopy.format.splice(formatIndex, 1)
         } else {
           platformCopy.format.push({
@@ -759,7 +805,7 @@ const PlatformItem = ({
         channel_mix: copy,
       }))
     },
-    [campaignFormData, setCampaignFormData, channelTitle, stageName, platform.platform_name, view],
+    [campaignFormData, setCampaignFormData, channelTitle, stageName, platform.platform_name, view, jwt],
   )
 
   return (
