@@ -67,7 +67,7 @@ const ObjectiveSelection = () => {
   const [buyObjSearch, setBuyObjSearch] = useState("")
   const [buyTypeSearch, setBuyTypeSearch] = useState("")
 
-  const { campaignFormData, setCampaignFormData, buyObj, buyType, setBuyObj, setBuyType, jwt } = useCampaigns()
+  const { campaignFormData, setCampaignFormData, buyObj, buyType, setBuyObj, setBuyType, jwt, agencyId } = useCampaigns()
 
   // Track plan ID and seen stages
   const seenStagesRef = useRef(new Set())
@@ -372,9 +372,14 @@ const ObjectiveSelection = () => {
     const endpoint = field === "obj" ? "/buy-objectives" : "/buy-types"
     setLoading(true)
     try {
+      // Include agency association if agencyId is available
+      const payload = agencyId
+        ? { data: { text: customValue, agency: agencyId } }
+        : { data: { text: customValue } };
+
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_STRAPI_URL}${endpoint}`,
-        { data: { text: customValue } },
+        payload,
         {
           headers: {
             Authorization: `Bearer ${jwt}`,

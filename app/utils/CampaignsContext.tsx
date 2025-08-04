@@ -599,8 +599,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const fetchBuyObjectives = useCallback(async () => {
     setLoadingObj(true);
     try {
+      // Filter by agency if agencyId is available
+      const queryParams = agencyId ? `?filters[agency][id][$eq]=${agencyId}&populate=*` : '?populate=*';
       const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/buy-objectives?populate=*`,
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/buy-objectives${queryParams}`,
         {
           headers: {
             Authorization: `Bearer ${jwt}`,
@@ -616,13 +618,15 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setLoadingObj(false);
     }
-  }, []);
+  }, [agencyId, jwt]);
 
   const fetchBuyTypes = useCallback(async () => {
     setLoadingObj(true);
     try {
+      // Filter by agency if agencyId is available
+      const queryParams = agencyId ? `?filters[agency][id][$eq]=${agencyId}&populate=*` : '?populate=*';
       const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/buy-types?populate=*`,
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/buy-types${queryParams}`,
         {
           headers: {
             Authorization: `Bearer ${jwt}`,
@@ -638,7 +642,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setLoadingObj(false);
     }
-  }, []);
+  }, [agencyId, jwt]);
 
   const getUserByUserType = async (userTypes) => {
     setgetLoading(true);
