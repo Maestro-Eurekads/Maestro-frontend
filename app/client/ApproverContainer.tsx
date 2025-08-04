@@ -9,7 +9,7 @@ import { useAppDispatch, useAppSelector } from "store/useStore";
 
 const ApproverContainer = ({ campaign, loading, isLoadingCampaign }) => {
 	const { data: session }: any = useSession();
-	const { jwt, campaignData } = useCampaigns()
+	const { jwt, campaignData, campaignFormData } = useCampaigns()
 	const dispatch = useAppDispatch();
 	const id = session?.user?.id || null;
 	const isdocumentId = campaignData?.documentId
@@ -22,11 +22,23 @@ const ApproverContainer = ({ campaign, loading, isLoadingCampaign }) => {
 	}, [dispatch, isdocumentId]);
 
 	// Extract approver names from campaignFormData structure with fallback to campaignData
-	const internalApprovers = campaign?.internal_approver?.map(a => cleanName(a?.username)) ||
-		campaignData?.media_plan_details?.internal_approver?.map(a => cleanName(a?.username)) ||
+	// Handle both populated (with user objects) and non-populated (just IDs) data structures
+	const getApproverName = (approver) => {
+		if (typeof approver === 'string' || typeof approver === 'number') {
+			// Just an ID, return placeholder
+			return "-";
+		}
+		// Object with user details
+		return cleanName(approver?.user?.username || approver?.user?.email || approver?.label || approver?.username || approver?.email);
+	};
+
+	const internalApprovers = campaign?.internal_approver?.map(getApproverName) ||
+		campaignFormData?.internal_approver?.map(getApproverName) ||
+		campaignData?.media_plan_details?.internal_approver?.map(getApproverName) ||
 		["-"];
-	const clientApprovers = campaign?.client_approver?.map(a => cleanName(a?.username)) ||
-		campaignData?.media_plan_details?.client_approver?.map(a => cleanName(a?.username)) ||
+	const clientApprovers = campaign?.client_approver?.map(getApproverName) ||
+		campaignFormData?.client_approver?.map(getApproverName) ||
+		campaignData?.media_plan_details?.client_approver?.map(getApproverName) ||
 		["-"];
 
 	const items = [

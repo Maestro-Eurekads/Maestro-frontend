@@ -524,19 +524,30 @@ const VersionPromptModal = () => {
 						</p>
 
 						<div className="flex flex-col gap-4">
-							<button
-								className="btn_model_active w-full"
-								onClick={() => handleVersionChoice('maintain')}
-							>
-								{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> : (campaignData?.id ? 'Maintain Same Version' : 'Save Plan')}
-							</button>
-							<button
-								className="btn_model_outline w-full"
-								onClick={handleCreateNewVersion}
-								disabled={loadingc}
-							>
-								{loadingc ? <SVGLoader width="30px" height="30px" color="#000" /> : (campaignData?.id ? 'Create New Version' : 'Save as New Version')}
-							</button>
+							{campaignData?.id ? (
+								<>
+									<button
+										className="btn_model_active w-full"
+										onClick={() => handleVersionChoice('maintain')}
+									>
+										{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> : 'Maintain Same Version'}
+									</button>
+									<button
+										className="btn_model_outline w-full"
+										onClick={handleCreateNewVersion}
+										disabled={loadingc}
+									>
+										{loadingc ? <SVGLoader width="30px" height="30px" color="#000" /> : 'Create New Version'}
+									</button>
+								</>
+							) : (
+								<button
+									className="btn_model_active w-full"
+									onClick={() => handleVersionChoice('maintain')}
+								>
+									{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> : 'Save Plan'}
+								</button>
+							)}
 						</div>
 					</div>
 				</div>
