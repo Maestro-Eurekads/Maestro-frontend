@@ -288,8 +288,33 @@ const VersionPromptModal = () => {
 
 			// CREATE or UPDATE logic with enhanced error handling
 			if (cId) {
+				// Update existing campaign
 				await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`, payload, config);
 				toast.success(`Campaign ${validatedChoice === 'new' ? 'updated with new version' : 'maintained successfully'}!`);
+			} else {
+				// Create new campaign if plan doesn't exist yet
+				const response = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`, payload, config);
+
+				// Update URL with new campaign ID
+				const url = new URL(window.location.href);
+				url.searchParams.set("campaignId", `${response?.data?.data.documentId}`);
+				window.history.pushState({}, "", url.toString());
+
+				// Update users with campaign
+				await updateUsersWithCampaign(
+					[
+						...(Array.isArray(loggedInUser?.id) ? loggedInUser?.id : [loggedInUser?.id]),
+						...cleanedFormData.internal_approver.map((item: any) => String(item.id)),
+						...cleanedFormData.client_approver.map((item: any) => String(item.id)),
+					],
+					response?.data?.data?.id,
+					jwt
+				);
+
+				// Refresh campaign data
+				await getActiveCampaign(response?.data?.data.documentId);
+				toast.success("Campaign created successfully!");
+				clearChannelStateForNewCampaign?.();
 			}
 
 			setIsOpen(false);
@@ -345,7 +370,8 @@ const VersionPromptModal = () => {
 
 			// Get next version using enhanced version handling
 			const currentVersion = campaignData?.campaign_version || 'V1';
-			const newVersion = getNextVersion(currentVersion);
+			// If no campaign exists yet, start with V1, otherwise get next version
+			const newVersion = campaignData?.id ? getNextVersion(currentVersion) : 'V1';
 
 			// Validate user IDs (SaveAllProgressButton pattern)
 			const validateUserIds = (users) => {
@@ -417,7 +443,7 @@ const VersionPromptModal = () => {
 				(payload.data as any).campaign_timeline_end_date = cleanedFormData.campaign_timeline_end_date;
 			}
 
-			// First: Update old campaign to maintain current version
+			// First: Update old campaign to maintain current version (only if campaign exists)
 			if (campaignFormData.cId) {
 				const currentVersionPayload = {
 					...payload,
@@ -453,7 +479,7 @@ const VersionPromptModal = () => {
 			);
 
 			await getActiveCampaign(response?.data?.data.documentId);
-			toast.success("New campaign version created successfully!");
+			toast.success(campaignData?.id ? "New campaign version created successfully!" : "Campaign created successfully!");
 			clearChannelStateForNewCampaign?.();
 
 			setIsOpen(false);
@@ -488,10 +514,13 @@ const VersionPromptModal = () => {
 							</div>
 						</div>
 						<h2 className="text-xl font-semibold text-[#181D27] mb-2">
-							Media Plan Version
+							{campaignData?.id ? 'Media Plan Version' : 'Save Media Plan'}
 						</h2>
 						<p className="text-sm text-[#535862] mb-4">
-							Would you like to create a new version or maintain the same version?
+							{campaignData?.id
+								? 'Would you like to create a new version or maintain the same version?'
+								: 'Would you like to save your media plan?'
+							}
 						</p>
 
 						<div className="flex flex-col gap-4">
@@ -499,14 +528,14 @@ const VersionPromptModal = () => {
 								className="btn_model_active w-full"
 								onClick={() => handleVersionChoice('maintain')}
 							>
-								{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> : 'Maintain Same Version'}
+								{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> : (campaignData?.id ? 'Maintain Same Version' : 'Save Plan')}
 							</button>
 							<button
 								className="btn_model_outline w-full"
 								onClick={handleCreateNewVersion}
 								disabled={loadingc}
 							>
-								{loadingc ? <SVGLoader width="30px" height="30px" color="#000" /> : 'Create New Version'}
+								{loadingc ? <SVGLoader width="30px" height="30px" color="#000" /> : (campaignData?.id ? 'Create New Version' : 'Save as New Version')}
 							</button>
 						</div>
 					</div>
