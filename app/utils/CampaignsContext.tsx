@@ -600,7 +600,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     setLoadingObj(true);
     try {
       // Filter by agency if agencyId is available (agency is a string field, not a relation)
-      const queryParams = agencyId ? `?filters[agency][$eq]=${agencyId}&populate=*` : '?populate=*';
+      const queryParams = `?filters[agency][$eq]=${agencyId}&populate=*`;
       const res = await axios.get(
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/buy-objectives${queryParams}`,
         {
@@ -624,7 +624,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     setLoadingObj(true);
     try {
       // Filter by agency if agencyId is available (agency is a string field, not a relation)
-      const queryParams = agencyId ? `?filters[agency][$eq]=${agencyId}&populate=*` : '?populate=*';
+      const queryParams = `?filters[agency][$eq]=${agencyId}&populate=*`;
       const res = await axios.get(
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/buy-types${queryParams}`,
         {
