@@ -23,9 +23,9 @@ import { useAppDispatch } from "store/useStore";
 import { reset } from "features/Comment/commentSlice";
 
 // Get initial state from localStorage if available
-const getInitialState = () => {
-  if (typeof window !== "undefined") {
-    const savedState = localStorage.getItem("campaignFormData");
+const getInitialState = (campaignId?: string | null) => {
+  if (typeof window !== "undefined" && campaignId) {
+    const savedState = localStorage.getItem(`campaignFormData_${campaignId}`);
     if (savedState) {
       return JSON.parse(savedState);
     }
@@ -66,7 +66,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const id = (session?.user as { id?: string })?.id;
   const jwt = (session?.user as { data?: { jwt: string } })?.data?.jwt;
   const campaign_builder = session?.user;
-  const [campaignFormData, setCampaignFormData] = useState(getInitialState());
+  const query = useSearchParams();
+  const cId = query.get("campaignId");
+  const [campaignFormData, setCampaignFormData] = useState(getInitialState(cId));
   const [campaignData, setCampaignData] = useState(null);
   const dispatch = useAppDispatch();
   const [clientCampaignData, setClientCampaignData] = useState([]);
@@ -79,8 +81,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [isEditingBuyingObjective, setIsEditingBuyingObjective] =
     useState(false);
   const [selectedOption, setSelectedOption] = useState("percentage");
-  const query = useSearchParams();
-  const cId = query.get("campaignId");
   const { loadingClients: hookLoadingClients, allClients: hookAllClients } =
     useCampaignHook();
   const [FC, setFC] = useState(null);
@@ -123,11 +123,11 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
 
   // Save form data to localStorage with debounce
   useEffect(() => {
-    if (typeof window !== "undefined" && campaignFormData) {
+    if (typeof window !== "undefined" && campaignFormData && cId) {
       const timeout = setTimeout(() => {
         try {
           localStorage.setItem(
-            "campaignFormData",
+            `campaignFormData_${cId}`,
             JSON.stringify(campaignFormData)
           );
         } catch (error) {
@@ -136,7 +136,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       }, 500); // Increased debounce time to 500ms
       return () => clearTimeout(timeout);
     }
-  }, [campaignFormData]);
+  }, [campaignFormData, cId]);
 
   const [businessLevelOptions, setBusinessLevelOptions] = useState({
     level1: [],
@@ -599,17 +599,32 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const fetchBuyObjectives = useCallback(async () => {
     setLoadingObj(true);
     try {
-      // Filter by agency if agencyId is available (agency is a string field, not a relation)
-      const queryParams = `?filters[agency][$eq]=${agencyId}&populate=*`;
-      const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/buy-objectives${queryParams}`,
+      // Get all buy objectives (default + custom)
+      const allObjectivesRes = await axios.get(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/buy-objectives?populate=*`,
         {
           headers: {
             Authorization: `Bearer ${jwt}`,
           },
         }
       );
-      setBuyObj(res?.data?.data);
+
+      const allObjectives = allObjectivesRes?.data?.data || [];
+
+      // Filter: show all default objectives (where agency is null/empty) + custom objectives from current agency
+      const filteredObjectives = allObjectives.filter((objective: any) => {
+        // Show default objectives (no agency specified)
+        if (!objective.agency || objective.agency === null || objective.agency === "") {
+          return true;
+        }
+        // Show custom objectives from current agency
+        if (agencyId && objective.agency === agencyId.toString()) {
+          return true;
+        }
+        return false;
+      });
+
+      setBuyObj(filteredObjectives);
     } catch (err) {
       if (err?.response?.status === 401) {
         const event = new Event("unauthorizedEvent");
@@ -623,17 +638,32 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const fetchBuyTypes = useCallback(async () => {
     setLoadingObj(true);
     try {
-      // Filter by agency if agencyId is available (agency is a string field, not a relation)
-      const queryParams = `?filters[agency][$eq]=${agencyId}&populate=*`;
-      const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/buy-types${queryParams}`,
+      // Get all buy types (default + custom)
+      const allTypesRes = await axios.get(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/buy-types?populate=*`,
         {
           headers: {
             Authorization: `Bearer ${jwt}`,
           },
         }
       );
-      setBuyType(res?.data?.data);
+
+      const allTypes = allTypesRes?.data?.data || [];
+
+      // Filter: show all default types (where agency is null/empty) + custom types from current agency
+      const filteredTypes = allTypes.filter((type: any) => {
+        // Show default types (no agency specified)
+        if (!type.agency || type.agency === null || type.agency === "") {
+          return true;
+        }
+        // Show custom types from current agency
+        if (agencyId && type.agency === agencyId.toString()) {
+          return true;
+        }
+        return false;
+      });
+
+      setBuyType(filteredTypes);
     } catch (err) {
       if (err?.response?.status === 401) {
         const event = new Event("unauthorizedEvent");
@@ -953,10 +983,57 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
 
   // Auto-save campaignFormData to localStorage whenever it changes
   useEffect(() => {
-    if (typeof window !== "undefined" && campaignFormData && Object.keys(campaignFormData).length > 0) {
-      localStorage.setItem("campaignFormData", JSON.stringify(campaignFormData));
+    if (typeof window !== "undefined" && campaignFormData && Object.keys(campaignFormData).length > 0 && cId) {
+      localStorage.setItem(`campaignFormData_${cId}`, JSON.stringify(campaignFormData));
+      localStorage.setItem(`campaignFormData_${cId}_timestamp`, Date.now().toString());
     }
-  }, [campaignFormData]);
+  }, [campaignFormData, cId]);
+
+  // Load campaign-specific data when campaign ID changes
+  useEffect(() => {
+    if (cId && typeof window !== "undefined") {
+      const savedState = localStorage.getItem(`campaignFormData_${cId}`);
+      if (savedState) {
+        try {
+          const parsedData = JSON.parse(savedState);
+          setCampaignFormData(parsedData);
+        } catch (error) {
+          console.error("Error loading campaign data from localStorage:", error);
+          // If there's an error parsing, reset to initial state
+          setCampaignFormData(getInitialState(cId));
+        }
+      } else {
+        // No saved data for this campaign, use initial state
+        setCampaignFormData(getInitialState(cId));
+      }
+    }
+  }, [cId]);
+
+  // Clean up old localStorage data when switching campaigns
+  useEffect(() => {
+    if (cId && typeof window !== "undefined") {
+      // Get all localStorage keys that start with "campaignFormData_"
+      const keysToCheck = Object.keys(localStorage).filter(key =>
+        key.startsWith("campaignFormData_") && key !== `campaignFormData_${cId}`
+      );
+
+      // Remove old campaign data (keep only the current campaign and a few recent ones)
+      if (keysToCheck.length > 10) {
+        // Keep only the 10 most recent campaigns
+        const sortedKeys = keysToCheck.sort((a, b) => {
+          const aTime = localStorage.getItem(`${a}_timestamp`) || "0";
+          const bTime = localStorage.getItem(`${b}_timestamp`) || "0";
+          return parseInt(bTime) - parseInt(aTime);
+        });
+
+        // Remove older campaigns
+        sortedKeys.slice(10).forEach(key => {
+          localStorage.removeItem(key);
+          localStorage.removeItem(`${key}_timestamp`);
+        });
+      }
+    }
+  }, [cId]);
 
   return (
     <CampaignContext.Provider value={contextValue}>

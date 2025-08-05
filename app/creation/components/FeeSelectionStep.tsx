@@ -35,7 +35,7 @@ function FeeSelectionStep({
 }) {
   const [active, setActive] = useState(null)
   const [showSelection, setShowSelection] = useState(true)
-  const { campaignFormData, setCampaignFormData } = useCampaigns()
+  const { campaignFormData, setCampaignFormData, cId } = useCampaigns()
   const [selectedOption, setSelectedOption] = useState({
     value: "EUR",
     label: "EUR",
@@ -53,9 +53,9 @@ function FeeSelectionStep({
       }
 
       // Immediately save to localStorage for critical budget updates
-      if (typeof window !== "undefined") {
+      if (typeof window !== "undefined" && cId) {
         try {
-          localStorage.setItem("campaignFormData", JSON.stringify(updatedData))
+          localStorage.setItem(`campaignFormData_${cId}`, JSON.stringify(updatedData))
         } catch (error) {
           console.error("Error saving budget to localStorage:", error)
         }
@@ -190,9 +190,9 @@ function FeeSelectionStep({
       }
 
       // Immediately save to localStorage for critical budget updates
-      if (typeof window !== "undefined") {
+      if (typeof window !== "undefined" && cId) {
         try {
-          localStorage.setItem("campaignFormData", JSON.stringify(updatedData))
+          localStorage.setItem(`campaignFormData_${cId}`, JSON.stringify(updatedData))
         } catch (error) {
           console.error("Error saving budget fees to localStorage:", error)
         }
@@ -262,9 +262,9 @@ function FeeSelectionStep({
         }
 
         // Immediately save to localStorage for critical budget updates
-        if (typeof window !== "undefined") {
+        if (typeof window !== "undefined" && cId) {
           try {
-            localStorage.setItem("campaignFormData", JSON.stringify(updatedData))
+            localStorage.setItem(`campaignFormData_${cId}`, JSON.stringify(updatedData))
           } catch (error) {
             console.error("Error saving budget fees to localStorage:", error)
           }
@@ -542,9 +542,9 @@ function FeeSelectionStep({
                                     }
 
                                     // Immediately save to localStorage for critical budget updates
-                                    if (typeof window !== "undefined") {
+                                    if (typeof window !== "undefined" && cId) {
                                       try {
-                                        localStorage.setItem("campaignFormData", JSON.stringify(updatedData))
+                                        localStorage.setItem(`campaignFormData_${cId}`, JSON.stringify(updatedData))
                                       } catch (error) {
                                         console.error("Error saving budget fees to localStorage:", error)
                                       }
@@ -711,9 +711,9 @@ function FeeSelectionStep({
                                       }
 
                                       // Immediately save to localStorage for critical budget updates
-                                      if (typeof window !== "undefined") {
+                                      if (typeof window !== "undefined" && cId) {
                                         try {
-                                          localStorage.setItem("campaignFormData", JSON.stringify(updatedData))
+                                          localStorage.setItem(`campaignFormData_${cId}`, JSON.stringify(updatedData))
                                         } catch (error) {
                                           console.error("Error saving budget fees to localStorage:", error)
                                         }
