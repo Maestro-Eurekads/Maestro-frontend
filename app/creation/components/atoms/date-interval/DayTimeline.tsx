@@ -90,7 +90,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
   const calculateGridColumns = (start: any, end: any) => {
     const formattedStart = parseISO(start);
     const formattedEnd = parseISO(end);
-    console.log({ start, end });
+    // console.log({ start, end });
 
     const startDateIndex = formattedStart
       ? range?.findIndex((date) => isEqual(date, formattedStart)) + 1
@@ -98,7 +98,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
     const endDateIndex = formattedEnd
       ? range?.findIndex((date) => isEqual(date, formattedEnd)) + 1
       : 0;
-    console.log({ startDateIndex, endDateIndex });
+    // console.log({ startDateIndex, endDateIndex });
     return { startDateIndex, endDateIndex };
   };
 
@@ -134,7 +134,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                   : "flex justify-between items-center p-4"
                   } `}
               >
-                <div>
+                <>
                   <h3 className="text-[#061237] font-semibold text-[16px] leading-[22px]  ">
                     {label}
                   </h3>
@@ -149,7 +149,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                         .replace(/[\d\s.,-]/g, "")
                         .trim()}`}
                   </p>
-                </div>
+                </>
                 <button onClick={() => toggleShow(index)}>
                   {expanded[index] ? (
                     <FiChevronUp size={20} />
@@ -182,7 +182,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                       },
                       zIndex
                     ) => {
-                      console.log({ start, end });
+                      // console.log({ start, end });
                       const channels = extractPlatforms(
                         clientCampaignData[index]
                       );
@@ -240,8 +240,8 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                           {openSections[`${index}-${name}`] && (
                             <div
                               style={{
-                                gridColumnStart: startDay,
-                                gridColumnEnd: endDay + 1 - startDay + 1,
+                                gridColumnStart: start ? start - startDay  === 0 ?1:start-startDay + 1: 1,
+                              gridColumnEnd: end + 1 - startDay + 1,
                               }}
                             >
                               {channels
@@ -257,7 +257,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                                   }) => {
                                     const { startDateIndex, endDateIndex } =
                                       calculateGridColumns(startDate, endDate);
-                                    console.log({ startDateIndex, endDateIndex, startDate, endDate })
+                                    console.log({ startDateIndex, endDateIndex, startDate, endDate, startDay, endDay }, "info", platform_name)
                                     return (
                                       <div
                                         key={platform_name}
@@ -269,8 +269,9 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                                         <div
                                           className={`py-1 text-[15px] font-[500] border my-5 w-full rounded-[10px] flex items-center justify-between`}
                                           style={{
-                                            gridColumnStart: startDateIndex ? startDateIndex : 1,
-                                            gridColumnEnd: endDateIndex + 1,
+                                            // display: "grid",
+                                            gridColumnStart: startDateIndex  - start + 1,
+                                            gridColumnEnd: endDateIndex  - start + 1 + 1 ,
                                             backgroundColor: bg,
                                           }}
                                         >
