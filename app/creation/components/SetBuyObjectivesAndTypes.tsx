@@ -23,7 +23,6 @@ const SetBuyObjectivesAndTypes = () => {
 					t2={'Select the buying objectives and types for each platform to ensure your campaign targets the right audience.'}
 
 				/>
-				{/* <SaveProgressButton setIsOpen={undefined} /> */}
 				<SaveAllProgressButton />
 			</div>
 

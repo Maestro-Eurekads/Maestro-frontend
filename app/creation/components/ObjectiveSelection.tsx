@@ -1,45 +1,16 @@
 "use client"
 import { useEffect, useState, useRef } from "react"
 import Image from "next/image"
-import toast from "react-hot-toast"
 import up from "../../../public/arrow-down.svg"
 import down2 from "../../../public/arrow-down-2.svg"
-import facebook from "../../../public/facebook.svg"
-import ig from "../../../public/ig.svg"
-import youtube from "../../../public/youtube.svg"
-import TheTradeDesk from "../../../public/TheTradeDesk.svg"
-import Quantcast from "../../../public/quantcast.svg"
-import google from "../../../public/social/google.svg"
-import x from "../../../public/x.svg"
-import linkedin from "../../../public/linkedin.svg"
-import Display from "../../../public/Display.svg"
-import yahoo from "../../../public/yahoo.svg"
-import bing from "../../../public/bing.svg"
-import tictok from "../../../public/tictok.svg"
-import Button from "./common/button"
 import { useCampaigns } from "../../utils/CampaignsContext"
 import { getPlatformIcon } from "../../../components/data"
 import axios from "axios"
 import { FaSpinner } from "react-icons/fa"
 import { useActive } from "app/utils/ActiveContext"
+import { toast } from "sonner"
 
-const platformIcons = {
-  Facebook: facebook,
-  Instagram: ig,
-  YouTube: youtube,
-  TheTradeDesk: TheTradeDesk,
-  Quantcast: Quantcast,
-  Google: google,
-  "Twitter/X": x,
-  LinkedIn: linkedin,
-  TikTok: tictok,
-  "Display & Video": Display,
-  Yahoo: yahoo,
-  Bing: bing,
-  "Apple Search": google,
-  "The Trade Desk": TheTradeDesk,
-  QuantCast: Quantcast,
-}
+
 
 const ObjectiveSelection = () => {
   const { setChange } = useActive()
@@ -67,7 +38,7 @@ const ObjectiveSelection = () => {
   const [buyObjSearch, setBuyObjSearch] = useState("")
   const [buyTypeSearch, setBuyTypeSearch] = useState("")
 
-  const { campaignFormData, setCampaignFormData, buyObj, buyType, setBuyObj, setBuyType, jwt } = useCampaigns()
+  const { campaignFormData, setCampaignFormData, buyObj, buyType, setBuyObj, setBuyType, jwt, agencyId } = useCampaigns()
 
   // Track plan ID and seen stages
   const seenStagesRef = useRef(new Set())
@@ -372,9 +343,14 @@ const ObjectiveSelection = () => {
     const endpoint = field === "obj" ? "/buy-objectives" : "/buy-types"
     setLoading(true)
     try {
+      // Include agency association if agencyId is available
+      const payload = agencyId
+        ? { data: { text: customValue, agency: agencyId.toString() } }
+        : { data: { text: customValue } };
+
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_STRAPI_URL}${endpoint}`,
-        { data: { text: customValue } },
+        payload,
         {
           headers: {
             Authorization: `Bearer ${jwt}`,
@@ -384,8 +360,10 @@ const ObjectiveSelection = () => {
       const data = res?.data?.data
       if (field === "obj") {
         setBuyObj((prev) => [...prev, data])
+        toast.success(`Custom buy objective "${customValue}" added successfully!`)
       } else {
         setBuyType((prev) => [...prev, data])
+        toast.success(`Custom buy type "${customValue}" added successfully!`)
       }
       setCustomValue("")
       setShowInput("")

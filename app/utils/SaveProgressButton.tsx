@@ -527,7 +527,10 @@ const SaveProgressButton = ({ setIsOpen }) => {
 				}
 
 				setCampaignFormData(cleanedFormData)
-				localStorage.setItem("campaignFormData", JSON.stringify(cleanedFormData))
+				if (cId) {
+					localStorage.setItem(`campaignFormData_${cId}`, JSON.stringify(cleanedFormData))
+					localStorage.setItem(`campaignFormData_${cId}_timestamp`, Date.now().toString())
+				}
 
 				const payload = {
 					data: {

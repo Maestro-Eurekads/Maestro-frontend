@@ -45,7 +45,7 @@ const CampaignBudget = () => {
   const [feeType, setFeeType] = useState(null)
   const [feeAmount, setFeeAmount] = useState("")
 
-  const { campaignFormData, setCampaignFormData, campaignData, getActiveCampaign } = useCampaigns()
+  const { campaignFormData, setCampaignFormData, campaignData, getActiveCampaign, cId } = useCampaigns()
 
 
   console.log('campaignFormData---', campaignFormData)
@@ -122,9 +122,9 @@ const CampaignBudget = () => {
       }
 
       // Immediately save to localStorage for critical budget updates
-      if (typeof window !== "undefined") {
+      if (typeof window !== "undefined" && cId) {
         try {
-          localStorage.setItem("campaignFormData", JSON.stringify(updatedData))
+          localStorage.setItem(`campaignFormData_${cId}`, JSON.stringify(updatedData))
         } catch (error) {
           console.error("Error saving budget to localStorage:", error)
         }
@@ -527,9 +527,9 @@ const CampaignBudget = () => {
                               }
 
                               // Immediately save to localStorage for critical budget updates
-                              if (typeof window !== "undefined") {
+                              if (typeof window !== "undefined" && cId) {
                                 try {
-                                  localStorage.setItem("campaignFormData", JSON.stringify(updatedData))
+                                  localStorage.setItem(`campaignFormData_${cId}`, JSON.stringify(updatedData))
                                 } catch (error) {
                                   console.error("Error saving budget level to localStorage:", error)
                                 }
@@ -686,9 +686,9 @@ const CampaignBudget = () => {
                               }
 
                               // Immediately save to localStorage for critical budget updates
-                              if (typeof window !== "undefined") {
+                              if (typeof window !== "undefined" && cId) {
                                 try {
-                                  localStorage.setItem("campaignFormData", JSON.stringify(updatedData))
+                                  localStorage.setItem(`campaignFormData_${cId}`, JSON.stringify(updatedData))
                                 } catch (error) {
                                 }
                               }

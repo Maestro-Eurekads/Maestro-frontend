@@ -28,11 +28,23 @@ const BusinessApproverContainer = ({
 
 
   // Extract approver names from campaignFormData structure with fallback to campaignData
-  const internalApprovers = campaignFormData?.internal_approver?.map((a) => cleanName(a?.username)) ||
-    campaignData?.media_plan_details?.internal_approver?.map((a) => cleanName(a?.username)) ||
+  // Handle both populated (with user objects) and non-populated (just IDs) data structures
+  const getApproverName = (approver) => {
+    if (typeof approver === 'string' || typeof approver === 'number') {
+      // Just an ID, return placeholder
+      return "-";
+    }
+    // Object with user details
+    return cleanName(approver?.user?.username || approver?.user?.email || approver?.label || approver?.username || approver?.email);
+  };
+
+  const internalApprovers = campaignFormData?.internal_approver?.map(getApproverName) ||
+    campaign?.internal_approver?.map(getApproverName) ||
+    campaignData?.media_plan_details?.internal_approver?.map(getApproverName) ||
     ["-"];
-  const clientApprovers = campaignFormData?.client_approver?.map((a) => cleanName(a?.username)) ||
-    campaignData?.media_plan_details?.client_approver?.map((a) => cleanName(a?.username)) ||
+  const clientApprovers = campaignFormData?.client_approver?.map(getApproverName) ||
+    campaign?.client_approver?.map(getApproverName) ||
+    campaignData?.media_plan_details?.client_approver?.map(getApproverName) ||
     ["-"];
 
 

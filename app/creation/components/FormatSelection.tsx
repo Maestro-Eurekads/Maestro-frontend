@@ -336,6 +336,7 @@ const MediaOption = ({
   onPreviewsUpdate,
   onDeletePreview,
   completedDeletions,
+  isLoading,
 }: {
   option: MediaOptionType
   isSelected: boolean
@@ -352,6 +353,7 @@ const MediaOption = ({
   onPreviewsUpdate: (previews: Array<{ id: string; url: string }>) => void
   onDeletePreview: (previewId: string, format: string, adSetIndex?: number) => void
   completedDeletions: Set<string>
+  isLoading?: boolean
 }) => {
   const [localPreviews, setLocalPreviews] = useState<Array<{ id: string; url: string }>>([])
   const [deletingPreviewId, setDeletingPreviewId] = useState<string | null>(null)
@@ -428,6 +430,7 @@ const MediaOption = ({
               } 
               cursor-pointer
               ${isHovered && !isSelected ? "shadow-md" : ""}
+              ${isLoading ? "opacity-50 cursor-not-allowed" : ""}
             `}
             style={{
               transition: "background 0.15s, border-color 0.15s, box-shadow 0.15s",
@@ -438,6 +441,14 @@ const MediaOption = ({
             {isSelected && (
               <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
                 <FaCheck />
+              </div>
+            )}
+            {isLoading && (
+              <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-lg">
+                <div className="flex flex-col items-center gap-2">
+                  <FaSpinner className="animate-spin text-blue-500" size={20} />
+                  <p className="text-xs text-gray-600">Processing...</p>
+                </div>
               </div>
             )}
           </div>
@@ -482,26 +493,26 @@ const MediaOption = ({
           </p>
           <div className="grid grid-cols-2 gap-3 flex-wrap">
             {localPreviews.map((prv, index) => (
-              <div key={prv.id || index} className="relative">
+              <div key={prv?.id || index} className="relative">
                 <a
-                  href={prv.url}
+                  href={prv?.url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-[225px] h-[150px] rounded-lg flex items-center justify-center hover:border-blue-500 transition-colors border border-gray-500 cursor-pointer"
                 >
                   {renderUploadedFile(
-                    localPreviews.map((lp) => lp.url),
-                    option.name,
+                    localPreviews?.map((lp) => lp?.url),
+                    option?.name,
                     index,
                   )}
                 </a>
                 <button
                   className={`absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center ${deletingPreviewId === prv.id ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
                     }`}
-                  onClick={() => handleDelete(prv.id)}
-                  disabled={deletingPreviewId === prv.id}
+                  onClick={() => handleDelete(prv?.id)}
+                  disabled={deletingPreviewId === prv?.id}
                 >
-                  {deletingPreviewId === prv.id ? (
+                  {deletingPreviewId === prv?.id ? (
                     <FaSpinner color="white" className="animate-spin" size={10} />
                   ) : (
                     <Trash color="white" size={10} />
@@ -529,6 +540,7 @@ const MediaSelectionGrid = ({
   view,
   onDeletePreview,
   completedDeletions,
+  isFormatLoading,
 }: {
   mediaOptions: MediaOptionType[]
   platformName: string
@@ -549,6 +561,7 @@ const MediaSelectionGrid = ({
   view: "channel" | "adset"
   onDeletePreview: (previewId: string, format: string, adSetIndex?: number) => void
   completedDeletions: Set<string>
+  isFormatLoading: { [key: string]: boolean }
 }) => {
   const { campaignFormData, setPlatformName } = useCampaigns()
   const channelKey = channelName.toLowerCase().replace(/\s+/g, "_")
@@ -634,6 +647,7 @@ const MediaSelectionGrid = ({
                 onPreviewsUpdate={(previews) => handlePreviewsUpdate(option?.name, previews)}
                 onDeletePreview={onDeletePreview}
                 completedDeletions={completedDeletions}
+                isLoading={isFormatLoading[`${platformName}-${option?.name}${adSetIndex !== undefined ? `-adset-${adSetIndex}` : ''}`]}
               />
             </div>
           )
@@ -673,7 +687,8 @@ const PlatformItem = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState<{ [key: string]: boolean }>({})
   const [expandedAdsets, setExpandedAdsets] = useState<{ [key: string]: boolean }>({})
-  const { campaignFormData, setCampaignFormData } = useCampaigns()
+  const [isFormatLoading, setIsFormatLoading] = useState<{ [key: string]: boolean }>({})
+  const { campaignFormData, setCampaignFormData, jwt } = useCampaigns()
 
   useEffect(() => {
     if (platform.format?.length > 0 && view === "channel") {
@@ -707,7 +722,7 @@ const PlatformItem = ({
   }, [])
 
   const handleFormatSelection = useCallback(
-    (index: number, adsetIndex?: number) => {
+    async (index: number, adsetIndex?: number) => {
       const formatName = DEFAULT_MEDIA_OPTIONS[index].name
       const copy = [...campaignFormData.channel_mix]
 
@@ -721,6 +736,12 @@ const PlatformItem = ({
 
       const platformCopy = channel[platformIndex]
 
+      // Create a unique key for this format selection
+      const formatKey = `${platform.platform_name}-${formatName}${adsetIndex !== undefined ? `-adset-${adsetIndex}` : ''}`
+
+      // Set loading state for this specific format
+      setIsFormatLoading(prev => ({ ...prev, [formatKey]: true }))
+
       if (view === "adset" && typeof adsetIndex === "number" && platformCopy.ad_sets?.length > 0) {
         const adset = platformCopy.ad_sets[adsetIndex]
         if (!adset) return
@@ -730,6 +751,29 @@ const PlatformItem = ({
         const adsetFormatIndex = adset.format.findIndex((f) => f.format_type === formatName)
 
         if (adsetFormatIndex !== -1) {
+          // Format is being deselected - delete all previews first
+          const formatToRemove = adset.format[adsetFormatIndex]
+          if (formatToRemove.previews && formatToRemove.previews.length > 0) {
+            // Delete all previews from database first, then remove format
+            const deletePromises = formatToRemove.previews.map((preview) => {
+              if (preview.id) {
+                return fetch(`${process.env.NEXT_PUBLIC_STRAPI_URL}/upload/files/${preview.id}`, {
+                  method: "DELETE",
+                  headers: {
+                    Authorization: `Bearer ${jwt}`,
+                  },
+                })
+              }
+              return Promise.resolve()
+            })
+
+            try {
+              await Promise.all(deletePromises)
+            } catch (error) {
+              console.error("Error deleting previews:", error)
+              // Continue with format removal even if some deletions fail
+            }
+          }
           adset.format.splice(adsetFormatIndex, 1)
         } else {
           adset.format.push({
@@ -744,6 +788,29 @@ const PlatformItem = ({
         const formatIndex = platformCopy.format.findIndex((f) => f.format_type === formatName)
 
         if (formatIndex !== -1) {
+          // Format is being deselected - delete all previews first
+          const formatToRemove = platformCopy.format[formatIndex]
+          if (formatToRemove.previews && formatToRemove.previews.length > 0) {
+            // Delete all previews from database first, then remove format
+            const deletePromises = formatToRemove.previews.map((preview) => {
+              if (preview.id) {
+                return fetch(`${process.env.NEXT_PUBLIC_STRAPI_URL}/upload/files/${preview.id}`, {
+                  method: "DELETE",
+                  headers: {
+                    Authorization: `Bearer ${jwt}`,
+                  },
+                })
+              }
+              return Promise.resolve()
+            })
+
+            try {
+              await Promise.all(deletePromises)
+            } catch (error) {
+              console.error("Error deleting previews:", error)
+              // Continue with format removal even if some deletions fail
+            }
+          }
           platformCopy.format.splice(formatIndex, 1)
         } else {
           platformCopy.format.push({
@@ -758,8 +825,11 @@ const PlatformItem = ({
         ...prev,
         channel_mix: copy,
       }))
+
+      // Clear loading state
+      setIsFormatLoading(prev => ({ ...prev, [formatKey]: false }))
     },
-    [campaignFormData, setCampaignFormData, channelTitle, stageName, platform.platform_name, view],
+    [campaignFormData, setCampaignFormData, channelTitle, stageName, platform.platform_name, view, jwt],
   )
 
   return (
@@ -814,6 +884,7 @@ const PlatformItem = ({
             view={view}
             onDeletePreview={onDeletePreview}
             completedDeletions={completedDeletions}
+            isFormatLoading={isFormatLoading}
           />
         </div>
       )}
@@ -869,6 +940,7 @@ const PlatformItem = ({
                       view={view}
                       onDeletePreview={onDeletePreview}
                       completedDeletions={completedDeletions}
+                      isFormatLoading={isFormatLoading}
                     />
                   </div>
                 )}
