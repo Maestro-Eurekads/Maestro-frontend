@@ -1,6 +1,7 @@
 export interface client {
   id: number;
   documentId: string;
+  agency_id?: number | string;
 }
  
 import type { StaticImageData } from "next/image"

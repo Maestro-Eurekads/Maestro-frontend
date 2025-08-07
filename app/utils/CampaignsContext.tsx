@@ -95,7 +95,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [clientPOs, setClientPOs] = useState([]);
   const [fetchingPO, setFetchingPO] = useState(false);
   const [currencySign, setCurrencySign] = useState("");
-  const { loggedInUser, agency_user } = useUserPrivileges() 
+  const { loggedInUser, agency_user } = useUserPrivileges()
   const [user, setUser] = useState(null);
   const [headerData, setHeaderData] = useState({});
   const [filterOptions, setFilterOptions] = useState({
@@ -359,16 +359,16 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             agency_profile: data?.agency_profile ?? prev.agency_profile,
             level_1:
               data?.client_selection?.level_1 &&
-              ((Array.isArray(data?.client_selection?.level_1.value) &&
-                data?.client_selection?.level_1.value.length > 0) ||
-                (typeof data?.client_selection?.level_1.value === "string" &&
-                  data?.client_selection?.level_1.value))
+                ((Array.isArray(data?.client_selection?.level_1.value) &&
+                  data?.client_selection?.level_1.value.length > 0) ||
+                  (typeof data?.client_selection?.level_1.value === "string" &&
+                    data?.client_selection?.level_1.value))
                 ? {
-                    id: data?.client_selection?.level_1.id ?? prev.level_1?.id,
-                    value:
-                      data?.client_selection?.level_1.value ??
-                      prev.level_1?.value,
-                  }
+                  id: data?.client_selection?.level_1.id ?? prev.level_1?.id,
+                  value:
+                    data?.client_selection?.level_1.value ??
+                    prev.level_1?.value,
+                }
                 : prev.level_1,
             media_plan:
               shouldPreserveLocalData && prev.media_plan
@@ -393,14 +393,14 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
               data?.campaign_objective ?? prev.campaign_objectives,
             funnel_stages:
               shouldPreserveLocalData &&
-              prev.funnel_stages &&
-              prev.funnel_stages.length > 0
+                prev.funnel_stages &&
+                prev.funnel_stages.length > 0
                 ? prev.funnel_stages
                 : data?.funnel_stages ?? prev.funnel_stages,
             channel_mix:
               shouldPreserveLocalData &&
-              prev.channel_mix &&
-              Object.keys(prev.channel_mix).length > 0
+                prev.channel_mix &&
+                Object.keys(prev.channel_mix).length > 0
                 ? prev.channel_mix
                 : data?.channel_mix ?? prev.channel_mix,
             campaign_timeline_start_date:
@@ -538,15 +538,15 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           },
         }
       );
-      setGetProfile(response?.data); 
-      setHasFetchedProfile(true); 
+      setGetProfile(response?.data);
+      setHasFetchedProfile(true);
 
       const aId =
         response?.data?.user_type === "admin"
           ? response?.data?.admin?.agency?.id
           : response?.data?.user_type?.includes("cleint")
-          ? response?.data?.cleint_user?.agency?.id
-          : response?.data?.agency_user?.agency?.id;
+            ? response?.data?.cleint_user?.agency?.id
+            : response?.data?.agency_user?.agency?.id;
       //console.log("agencyId", aId);
       setAgencyId(aId);
       return response;
@@ -960,8 +960,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     fetchPlatformLists,
     fetchBuyTypes,
     jwt,
-    agencyId, 
-    agency_user 
+    agencyId,
+    agency_user
   ]);
 
   const contextValue = useMemo(

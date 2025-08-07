@@ -9,6 +9,7 @@ declare module "next-auth" {
       name?: string
       randomKey?: string
       agency_user?: any
+      clients?: number[] // Array of client IDs
     }
   }
 }
@@ -19,5 +20,6 @@ declare module "next-auth/jwt" {
     data?: any
     randomKey?: string
     agency_user?: any
+    clients?: number[] // Array of client IDs
   }
 } 

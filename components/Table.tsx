@@ -27,6 +27,7 @@ interface Campaign {
   campaign_builder: string;
   documentId: string;
   isStatus: string;
+  agency_id?: number | string;
   media_plan_details: {
     plan_name: string;
     client_approver: string;

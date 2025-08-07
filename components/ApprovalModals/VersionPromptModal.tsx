@@ -454,10 +454,10 @@ const VersionPromptModal = () => {
 			// First: Update old campaign to maintain current version (only if campaign exists)
 			if (campaignFormData.cId) {
 				const currentVersionPayload = {
-					...payload,
 					data: {
-						...payload.data,
 						campaign_version: currentVersion, // keep current version unchanged
+						// Preserve the original progress_percent of the previous version
+						progress_percent: campaignData?.progress_percent || 0,
 					}
 				};
 
