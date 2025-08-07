@@ -8,6 +8,7 @@ import { useSession } from "next-auth/react";
 interface Campaign {
   id: string;
   title: string;
+  agency_id?: number | string;
   // Add other fields based on your Strapi campaign schema
 }
 
@@ -42,6 +43,9 @@ export const ClientCampaignProvider = ({
       user: {
         $in: clientId,
       },
+      // agency_id: {
+      //   $eq: clientId,
+      // },
       isApprove: {
         $eq: true,
       },

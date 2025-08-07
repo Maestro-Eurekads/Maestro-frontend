@@ -16,6 +16,7 @@ interface Campaign {
 		sub_budget_type?: string;
 		budget_fees?: Array<{ value: number }>;
 	};
+	agency_id?: string | number;
 }
 
 const General = ({ campaign = {} as Campaign, loading, isLoadingCampaign }: { campaign?: Campaign; loading: boolean; isLoadingCampaign: boolean }) => {
@@ -184,6 +185,27 @@ const General = ({ campaign = {} as Campaign, loading, isLoadingCampaign }: { ca
 						<div className="flex items-end gap-2">
 							<h1 className="font-medium text-[32px] leading-[49px] text-[#101828] whitespace-nowrap">
 								{currency} {formatNumber(averageCpm)}
+							</h1>
+						</div>
+					)}
+				</div>
+
+				{/* Agency ID */}
+				<div>
+					{loading || isLoadingCampaign ? (
+						<Skeleton height={20} width={100} />
+					) : (
+						<div className="flex items-center gap-2">
+							<p className="font-medium text-[12px] leading-[16px] text-[#667085]">Client ID</p>
+							<Image src={info} alt="info" />
+						</div>
+					)}
+					{loading || isLoadingCampaign ? (
+						<Skeleton height={20} width={200} />
+					) : (
+						<div className="flex items-end gap-2">
+							<h1 className="font-medium text-[16px] leading-[24px] text-[#101828] whitespace-nowrap">
+								{campaign?.agency_id || 'N/A'}
 							</h1>
 						</div>
 					)}

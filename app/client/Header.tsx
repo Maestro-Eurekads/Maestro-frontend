@@ -26,12 +26,12 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
   const { jwt, campaignData } = useCampaigns()
   const dispatch = useAppDispatch();
   const id = session?.user?.id;
+
   const isdocumentId = campaignData?.documentId
   const [show, setShow] = useState(false);
 
 
   console.log("campaignData---", session);
-  console.log("agency_user from session---", session?.user?.agency_user);
 
   useEffect(() => {
     if (createApprovalSuccess) {

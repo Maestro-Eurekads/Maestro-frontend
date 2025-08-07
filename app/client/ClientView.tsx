@@ -53,7 +53,7 @@ const ClientView = () => {
 	const { isDrawerOpen, setIsDrawerOpen, isCreateOpen, setClose, modalOpen, setModalOpen, selected, isOpen, setIsOpen } = useComments();
 	const [generalComment, setGeneralComment] = useState(false);
 	const [active, setActive] = useState("Timeline view");
-	const { clientCampaignData, campaignData, getActiveCampaign, campaignFormData, jwt } = useCampaigns();
+	const { clientCampaignData, campaignData, getActiveCampaign, campaignFormData, jwt, agencyId } = useCampaigns();
 	const { data, campaignDetails, isLoadingCampaign } = useAppSelector((state) => state.comment);
 	const comments: Comment[] = data
 		?.filter((comment: Comment) => comment?.addcomment_as !== "Internal")
@@ -64,7 +64,7 @@ const ClientView = () => {
 	const { campaigns, loading, fetchCampaignsByClientId } = useClientCampaign();
 	const [finalCategoryOrder, setFinalCategoryOrder] = useState(categoryOrder); // default fallback
 	const { data: session }: any = useSession();
-
+	// const clientId = session?.user?.clients?.id;
 	const clientId = session?.user?.id;
 	const client_commentId = session?.user?.id;
 	const campaign = !campaignDetails ? [] : campaignDetails[0];

@@ -432,7 +432,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
                 (ff) => ff?.value
               ),
             },
-            agency_profile: agencyId
+            agency_profile: agencyId,
+
           },
         },
         {
