@@ -13,6 +13,50 @@ import { useDateRange } from "src/date-range-context";
 import { getCurrencySymbol } from "./data";
 import { addDays, subDays } from "date-fns";
 
+// Helper to convert screen X (scaled) to layout X
+const getLayoutX = (clientX: number) => {
+  const grid = document.querySelector('.grid-container') as HTMLElement | null;
+  if (!grid) return clientX;
+  
+  // Get the zoom level from the parent container
+  const timelineContainer = grid.closest('[style*="transform: scale"]') as HTMLElement;
+  if (timelineContainer) {
+    const transform = timelineContainer.style.transform;
+    const scaleMatch = transform.match(/scale\(([^)]+)\)/);
+    if (scaleMatch) {
+      const scale = parseFloat(scaleMatch[1]);
+      // Convert screen coordinates to unscaled coordinates
+      return clientX / scale;
+    }
+  }
+  
+  // Fallback to original logic if no custom zoom detected
+  const layoutW = grid.offsetWidth || 1;
+  const visualW = grid.getBoundingClientRect().width || layoutW;
+  const scale = visualW / layoutW;
+  return clientX / scale;
+};
+
+// Helper to get unscaled container width
+const getUnscaledContainerWidth = () => {
+  const grid = document.querySelector('.grid-container') as HTMLElement | null;
+  if (!grid) return 0;
+  
+  // Get the zoom level from the parent container
+  const timelineContainer = grid.closest('[style*="transform: scale"]') as HTMLElement;
+  if (timelineContainer) {
+    const transform = timelineContainer.style.transform;
+    const scaleMatch = transform.match(/scale\(([^)]+)\)/);
+    if (scaleMatch) {
+      // Return the unscaled width
+      return grid.offsetWidth;
+    }
+  }
+  
+  // Fallback to getBoundingClientRect width
+  return grid.getBoundingClientRect().width;
+};
+
 interface DraggableChannelProps {
   id?: string;
   bg?: string;
@@ -74,6 +118,10 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 }) => {
   const { funnelWidths, setFunnelWidth } = useFunnelContext();
   const [position, setPosition] = useState(parentLeft || 0);
+  
+  // Add flags to prevent position override during user interactions
+  const [userIsInteracting, setUserIsInteracting] = useState(false);
+  
   const isResizing = useRef<{
     startX: number;
     startWidth: number;
@@ -98,8 +146,11 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   });
 
   useEffect(() => {
-    setPosition(parentLeft || 0);
-  }, [parentLeft]);
+    // Only update position automatically when user is NOT interacting
+    if (!userIsInteracting) {
+      setPosition(parentLeft || 0);
+    }
+  }, [parentLeft, userIsInteracting]);
 
   const pixelToDate = (
     pixel: number,
@@ -107,19 +158,30 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     fieldName?: string
   ) => {
     if (!dateList.length) return new Date();
-    const startDate = dateList[0];
-    const totalDays = dateList.length - 1;
 
     if (range === "Year") {
-      const totalMonths = 12;
-      const clampedPixel = Math.max(0, Math.min(pixel, containerWidth));
-      const monthFraction = clampedPixel / containerWidth;
-      const monthIndex = Math.floor(monthFraction * totalMonths);
-      const year = startDate.getFullYear();
+      // Year view - consistent with ResizableChannels
+      const numberOfMonths = 12;
+      const actualStepWidth = containerWidth / numberOfMonths;
+      const monthIndex = Math.min(
+        numberOfMonths - 1,
+        Math.max(0, Math.round(pixel / actualStepWidth))
+      );
+
+      console.log("DraggableChannel pixelToDate Year debug:", {
+        pixel,
+        containerWidth,
+        numberOfMonths,
+        actualStepWidth,
+        monthIndex,
+        fieldName
+      });
+
+      const year = dateList[0]?.getFullYear() || new Date().getFullYear();
 
       if (fieldName === "endDate") {
         // For end date, return the last day of the target month
-        return new Date(year, monthIndex, 0);
+        return new Date(year, monthIndex + 1, 0);
       } else if (fieldName === "startDate") {
         // For start date, return the first day of the target month
         return new Date(year, monthIndex, 1);
@@ -128,35 +190,96 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         return new Date(year, monthIndex, 1);
       }
     } else {
-      const dayIndex = Math.min(
-        totalDays,
-        Math.max(0, Math.round((pixel / containerWidth) * totalDays))
-      );
-      const calculatedDate = new Date(startDate);
-      calculatedDate.setDate(startDate.getDate() + dayIndex);
-      return calculatedDate;
+      // Day, Week, Month view - consistent grid-based calculation
+      const numberOfGridColumns = dateList.length;
+      const stepWidth = containerWidth / numberOfGridColumns;
+      
+      // Check if we're at the very end of the timeline
+      const isAtEnd = pixel >= containerWidth - stepWidth / 2;
+      
+      let gridIndex;
+      if (isAtEnd) {
+        // If we're at the end, use the last date
+        gridIndex = numberOfGridColumns - 1;
+      } else {
+        gridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, Math.floor(pixel / stepWidth)));
+        
+        // For endDate ensure inclusive: if pixel lands exactly on grid line >0 subtract 1 (but not for the final edge)
+        if (fieldName === "endDate" && pixel % stepWidth === 0 && gridIndex > 0 && !isAtEnd) {
+          gridIndex -= 1;
+        }
+      }
+
+      console.log("DraggableChannel pixelToDate Day debug:", {
+        pixel,
+        containerWidth,
+        numberOfGridColumns,
+        stepWidth,
+        gridIndex,
+        fieldName,
+        isAtEnd
+      });
+
+      return dateList[gridIndex] || dateList[0];
     }
   };
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
+    // Create array of all valid grid positions based on actual container dimensions
+    const gridPositions = [];
+    let numberOfGridColumns;
+    
     if (range === "Year") {
-      const monthWidth = containerWidth / 12;
-      const monthIndex = Math.round(currentPosition / monthWidth);
-      return Math.min(monthIndex * monthWidth, containerWidth);
+      // Year view - 12 months
+      numberOfGridColumns = 12;
+    } else {
+      // Day, Week, Month view - based on dateList length
+      numberOfGridColumns = dateList?.length || 1;
     }
-
-    const baseStep = dailyWidth || containerWidth / (dateList.length - 1);
-    const snapPoints = [];
-    for (let i = 0; i <= containerWidth; i += baseStep) {
-      snapPoints.push(i);
+    
+    // Calculate actual step width based on container and grid columns
+    const actualStepWidth = containerWidth / numberOfGridColumns;
+    
+    // Generate grid positions - include the final edge position
+    for (let i = 0; i <= numberOfGridColumns; i++) {
+      gridPositions.push(i * actualStepWidth);
     }
-
-    const closestSnap = snapPoints.reduce((prev, curr) =>
-      Math.abs(curr - currentPosition) < Math.abs(prev - currentPosition)
-        ? curr
-        : prev
-    );
-    return closestSnap;
+    
+    // Find the closest grid position
+    let closestPosition = gridPositions[0];
+    let smallestDistance = Math.abs(currentPosition - gridPositions[0]);
+    let closestIndex = 0;
+    
+    for (let i = 1; i < gridPositions.length; i++) {
+      const distance = Math.abs(currentPosition - gridPositions[i]);
+      if (distance < smallestDistance) {
+        smallestDistance = distance;
+        closestPosition = gridPositions[i];
+        closestIndex = i;
+      }
+    }
+    
+    // Special handling for the final edge position
+    // If we're snapping to the very end (last grid line), ensure we stay there
+    if (closestIndex === numberOfGridColumns && currentPosition >= closestPosition - actualStepWidth / 2) {
+      closestPosition = containerWidth; // Snap to the very end
+    }
+    
+    // Debug logging
+    console.log("DraggableChannel Snap Debug:", {
+      currentPosition,
+      containerWidth,
+      range,
+      numberOfGridColumns,
+      actualStepWidth,
+      dailyWidth, // Compare with actual step width
+      closestIndex,
+      closestPosition,
+      isFinalEdge: closestIndex === numberOfGridColumns
+    });
+    
+    // Ensure the position is within bounds
+    return Math.max(0, Math.min(closestPosition, containerWidth));
   };
 
   const updateTooltipWithDates = (
@@ -164,7 +287,8 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     endPixel: number,
     mouseX: number,
     mouseY: number,
-    type: "resize" | "drag"
+    type: "resize" | "drag",
+    resizeDirection?: "left" | "right"
   ) => {
     if (!dateList.length) {
       return;
@@ -175,27 +299,49 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       return;
     }
 
-    const containerRect = gridContainer.getBoundingClientRect();
-    const containerWidth = containerRect.width;
+    const containerWidth = getUnscaledContainerWidth();
 
     let startDateValue: Date;
     let endDateValue: Date;
 
     if (range === "Year") {
-      startDateValue = pixelToDate(startPixel, containerWidth);
-      endDateValue = pixelToDate(endPixel, containerWidth, "endDate");
+      // Year view - consistent with ResizableChannels
+      const numberOfMonths = 12;
+      const monthStartIndex = Math.min(
+        numberOfMonths - 1,
+        Math.max(0, Math.round((startPixel / containerWidth) * numberOfMonths))
+      );
+      const monthEndIndex = Math.min(
+        numberOfMonths - 1,
+        Math.max(0, Math.round((endPixel / containerWidth) * numberOfMonths))
+      );
+
+      console.log("DraggableChannel Year view date conversion debug:", {
+        startPixel,
+        endPixel,
+        containerWidth,
+        numberOfMonths,
+        monthStartIndex,
+        monthEndIndex,
+        type
+      });
+
+      const year = dateList[0]?.getFullYear() || new Date().getFullYear();
+      startDateValue = new Date(year, monthStartIndex, 1);
+      endDateValue = new Date(year, monthEndIndex + 1, 0); // Last day of the month
     } else {
-      const totalDays = dateList.length - 1;
-      const dayStartIndex = Math.min(
-        totalDays,
-        Math.max(0, Math.round((startPixel / containerWidth) * totalDays))
-      );
-      const dayEndIndex = Math.min(
-        totalDays,
-        Math.max(0, Math.round((endPixel / containerWidth) * totalDays))
-      );
-      startDateValue = dateList[dayStartIndex] || dateList[0];
-      endDateValue = dateList[dayEndIndex] || dateList[totalDays];
+      // Day, Week, Month view - use same logic as ResizableChannels
+      const numberOfGridColumns = dateList.length;
+
+      // Day, Week, Month view - compute grid indices using floor for correct mapping
+      const stepWidth = containerWidth / numberOfGridColumns;
+      const startGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, Math.floor(startPixel / stepWidth)));
+      // Use (endPixel-1) so that exact edge aligns with previous day, giving inclusive range
+      const endGridIndexRaw = Math.floor((endPixel - 1) / stepWidth);
+      const endGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, endGridIndexRaw));
+
+      startDateValue = dateList[startGridIndex] || dateList[0];
+      endDateValue = dateList[endGridIndex] || dateList[numberOfGridColumns - 1];
     }
 
     // Safety checks for dates
@@ -277,6 +423,9 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     e.preventDefault();
     e.stopPropagation();
 
+    // Mark user as interacting
+    setUserIsInteracting(true);
+
     // Hide channels when starting resize
     setOpenChannel?.(false);
 
@@ -287,11 +436,12 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       endPixel,
       e.clientX,
       e.clientY,
-      "resize"
+      "resize",
+      direction
     );
 
     isResizing.current = {
-      startX: e.clientX,
+      startX: getLayoutX(e.clientX),
       startWidth: parentWidth || 0,
       startPos: position,
       direction,
@@ -308,19 +458,32 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     const gridContainer = document.querySelector(".grid-container");
     if (!gridContainer) return;
 
-    const containerRect = gridContainer.getBoundingClientRect();
+    const containerWidth = getUnscaledContainerWidth();
     let newWidth = startWidth;
     let newPos = startPos;
-    const mouseX = e.clientX - containerRect.left;
+    const mouseX = getLayoutX(e.clientX);
 
     const rangeStart = rrange[0];
     const rangeEnd = rrange[rrange.length - 1];
 
     if (direction === "left") {
-      const deltaX = e.clientX - startX;
+      const deltaX = getLayoutX(e.clientX) - startX;
       newPos = Math.max(0, startPos + deltaX);
-      newWidth = Math.max(50, startWidth - deltaX);
-      newPos = snapToTimeline(newPos, containerRect.width);
+      
+      // Calculate minimum width based on view type
+      const getMinWidth = () => {
+        if (range === "Year") {
+          const monthWidth = dailyWidth || containerWidth / 12;
+          return Math.max(monthWidth, 100); // Increased minimum for Year view
+        }
+        return 50; // Standard minimum for other views
+      };
+      
+      const minWidth = getMinWidth();
+      newWidth = Math.max(minWidth, startWidth - deltaX);
+      
+      // Snap the left edge to grid boundary
+      newPos = snapToTimeline(newPos, containerWidth);
       newWidth = startWidth - (newPos - startPos);
 
       if (mouseX < 0) {
@@ -331,15 +494,25 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         );
       }
     } else {
-      const deltaX = e.clientX - startX;
-      const rightEdgePos = startPos + startWidth + deltaX;
-      const snappedRightEdge = snapToTimeline(
-        rightEdgePos,
-        containerRect.width
-      );
-      newWidth = Math.max(50, snappedRightEdge - startPos);
+      const deltaX = getLayoutX(e.clientX) - startX;
+      const proposedRightEdge = startPos + startWidth + deltaX;
+      
+      // Snap the right edge to grid boundary
+      const snappedRightEdge = snapToTimeline(proposedRightEdge, containerWidth);
+      
+      // Calculate minimum width based on view type
+      const getMinWidth = () => {
+        if (range === "Year") {
+          const monthWidth = dailyWidth || containerWidth / 12;
+          return Math.max(monthWidth, 100); // Increased minimum for Year view
+        }
+        return 50; // Standard minimum for other views
+      };
+      
+      const minWidth = getMinWidth();
+      newWidth = Math.max(minWidth, snappedRightEdge - startPos);
 
-      if (mouseX > containerRect.width) {
+      if (mouseX > containerWidth) {
         const newRangeEnd = addDays(rangeEnd, 2);
         extendRange(
           rangeStart.toISOString().split("T")[0],
@@ -348,10 +521,10 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       }
     }
 
-    const startDate = pixelToDate(newPos, containerRect.width, "startDate");
+    const startDate = pixelToDate(newPos, containerWidth, "startDate");
     const endDate = pixelToDate(
       newPos + newWidth,
-      containerRect.width,
+      containerWidth,
       "endDate"
     );
     newDatesRef.current = { startDate, endDate };
@@ -365,7 +538,8 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       newPos + newWidth,
       e.clientX,
       e.clientY,
-      "resize"
+      "resize",
+      direction
     );
   };
 
@@ -373,13 +547,16 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     if (disableDrag) return;
     e.preventDefault();
 
-    dragStartRef.current = { x: e.clientX, y: e.clientY };
+    // Mark user as interacting
+    setUserIsInteracting(true);
+
+    dragStartRef.current = { x: getLayoutX(e.clientX), y: e.clientY };
 
     const startPixel = position;
     const endPixel = startPixel + (parentWidth || 0);
     updateTooltipWithDates(startPixel, endPixel, e.clientX, e.clientY, "drag");
 
-    isDragging.current = { startX: e.clientX, startPos: position };
+    isDragging.current = { startX: getLayoutX(e.clientX), startPos: position };
 
     document.addEventListener("mousemove", handleMouseMoveDrag);
     document.addEventListener("mouseup", handleMouseUp);
@@ -391,7 +568,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     const { startX, startPos } = isDragging.current;
 
     if (dragStartRef.current) {
-      const deltaX = Math.abs(e.clientX - dragStartRef.current.x);
+      const deltaX = Math.abs(getLayoutX(e.clientX) - dragStartRef.current.x);
       const deltaY = Math.abs(e.clientY - dragStartRef.current.y);
       if (deltaX > 5 || deltaY > 5) {
         setOpenChannel?.(false);
@@ -402,14 +579,16 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     const gridContainer = document.querySelector(".grid-container");
     if (!gridContainer) return;
 
-    const containerRect = gridContainer.getBoundingClientRect();
+    const containerWidth = getUnscaledContainerWidth();
     const minX = 0;
-    const maxX = containerRect.width - (parentWidth || 0);
-    const mouseX = e.clientX - containerRect.left;
+    const maxX = containerWidth - (parentWidth || 0);
+    const mouseX = getLayoutX(e.clientX);
 
-    let newPosition = startPos + (e.clientX - startX);
+    let newPosition = startPos + (getLayoutX(e.clientX) - startX);
     newPosition = Math.max(minX, Math.min(newPosition, maxX));
-    newPosition = snapToTimeline(newPosition, containerRect.width);
+    
+    // Snap to the nearest grid edge
+    newPosition = snapToTimeline(newPosition, containerWidth);
 
     const rangeStart = rrange[0];
     const rangeEnd = rrange[rrange.length - 1];
@@ -422,7 +601,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       );
     }
 
-    if (mouseX > containerRect.width - 50) {
+    if (mouseX > containerWidth - 50) {
       const newRangeEnd = addDays(rangeEnd, 2);
       extendRange(
         rangeStart.toISOString().split("T")[0],
@@ -432,12 +611,12 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
     const startDate = pixelToDate(
       newPosition,
-      containerRect.width,
+      containerWidth,
       "startDate"
     );
     const endDate = pixelToDate(
       newPosition + (parentWidth || 0),
-      containerRect.width,
+      containerWidth,
       "endDate"
     );
     newDatesRef.current = { startDate, endDate };
@@ -457,6 +636,9 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   const handleMouseUp = () => {
     setTooltip((prev) => ({ ...prev, visible: false }));
     dragStartRef.current = null;
+    
+    // Clear user interaction flag
+    setUserIsInteracting(false);
 
     if (newDatesRef.current.startDate && newDatesRef.current.endDate) {
       const { startDate, endDate } = newDatesRef.current;

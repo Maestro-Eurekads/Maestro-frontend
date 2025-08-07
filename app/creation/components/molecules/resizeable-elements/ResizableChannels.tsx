@@ -183,6 +183,10 @@ const ResizableChannels = ({
     }))
   );
 
+  // Add flags to prevent position recalculation during user interactions
+  const [userIsInteracting, setUserIsInteracting] = useState(false);
+  const [manuallyPositioned, setManuallyPositioned] = useState<Set<number>>(new Set());
+
   const [dragging, setDragging] = useState(null);
   const [draggingPosition, setDraggingPosition] = useState(null);
 
@@ -194,6 +198,10 @@ const ResizableChannels = ({
     type: null,
     index: null,
   });
+
+  // Throttling for smoother performance
+  const lastUpdateTime = useRef(0);
+  const THROTTLE_DELAY = 16; // ~60fps
 
   const toggleChannel = (id) => {
     setOpenItems((prev) => (prev === id ? null : id));
@@ -212,34 +220,63 @@ const ResizableChannels = ({
   } | null>(null);
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
+    // Create array of all valid grid positions based on actual container dimensions
+    const gridPositions = [];
+    let numberOfGridColumns;
+    
     if (rrange === "Year") {
-      // Year view - snap to month boundaries
-      const monthWidth = containerWidth / 12;
-      const monthIndex = Math.round(currentPosition / monthWidth);
-      return Math.min(monthIndex * monthWidth, containerWidth);
+      // Year view - 12 months
+      numberOfGridColumns = 12;
+    } else {
+      // Day, Week, Month view - based on dateList length
+      numberOfGridColumns = dateList?.length || 1;
     }
-
-    // Day, Week, Month view - snap to daily boundaries
-    const baseStep = dailyWidth;
-    const adjustmentPerStep = 0;
-    const snapPoints = [];
-
-    let currentSnap = 0;
-    let step = baseStep;
-
-    while (currentSnap <= containerWidth) {
-      snapPoints.push(currentSnap);
-      currentSnap += step;
-      step = Math.max(dailyWidth, step - adjustmentPerStep);
+    
+    // Calculate actual step width based on container and grid columns
+    const actualStepWidth = containerWidth / numberOfGridColumns;
+    
+    // Generate grid positions - include the final edge position
+    for (let i = 0; i <= numberOfGridColumns; i++) {
+      gridPositions.push(i * actualStepWidth);
     }
-
-    const closestSnap = snapPoints.reduce((prev, curr) =>
-      Math.abs(curr - currentPosition) < Math.abs(prev - currentPosition)
-        ? curr
-        : prev
-    );
-
-    return closestSnap;
+    
+    // Find the closest grid position
+    let closestPosition = gridPositions[0];
+    let smallestDistance = Math.abs(currentPosition - gridPositions[0]);
+    let closestIndex = 0;
+    
+    for (let i = 1; i < gridPositions.length; i++) {
+      const distance = Math.abs(currentPosition - gridPositions[i]);
+      if (distance < smallestDistance) {
+        smallestDistance = distance;
+        closestPosition = gridPositions[i];
+        closestIndex = i;
+      }
+    }
+    
+    // Special handling for the final edge position
+    // If we're snapping to the very end (last grid line), ensure we stay there
+    if (closestIndex === numberOfGridColumns && currentPosition >= closestPosition - actualStepWidth / 2) {
+      closestPosition = containerWidth; // Snap to the very end
+    }
+    
+    // Debug logging
+    console.log("Snap Debug:", {
+      currentPosition,
+      containerWidth,
+      rrange,
+      numberOfGridColumns,
+      actualStepWidth,
+      dailyWidth, // Compare with actual step width
+      gridPositions: gridPositions.slice(0, 15), // Show first 15 for brevity
+      closestIndex,
+      closestPosition,
+      totalGridLines: gridPositions.length,
+      isFinalEdge: closestIndex === numberOfGridColumns
+    });
+    
+    // Ensure the position is within bounds
+    return Math.max(0, Math.min(closestPosition, containerWidth));
   };
 
   const updateTooltipWithDates = (
@@ -248,7 +285,8 @@ const ResizableChannels = ({
     index: number,
     mouseX: number,
     mouseY: number,
-    type: "resize" | "drag"
+    type: "resize" | "drag",
+    resizeDirection?: "left" | "right"
   ) => {
     if (!dateList || dateList.length === 0) return;
 
@@ -275,19 +313,30 @@ const ResizableChannels = ({
 
       if (isDraggingOrResizing) {
         // Use pixel-based calculation for real-time updates
-        const totalMonths = 12;
+        const numberOfMonths = 12;
         const monthStartIndex = Math.min(
-          totalMonths - 1,
-          Math.max(0, Math.round((startPixel / parentWidth) * totalMonths))
+          numberOfMonths - 1,
+          Math.max(0, Math.round((startPixel / parentWidth) * numberOfMonths))
         );
         const monthEndIndex = Math.min(
-          totalMonths - 1,
-          Math.max(0, Math.round((endPixel / parentWidth) * totalMonths))
+          numberOfMonths - 1,
+          Math.max(0, Math.round((endPixel / parentWidth) * numberOfMonths))
         );
+
+        console.log("Year view date conversion debug:", {
+          startPixel,
+          endPixel,
+          parentWidth,
+          numberOfMonths,
+          monthStartIndex,
+          monthEndIndex,
+          startRatio: startPixel / parentWidth,
+          endRatio: endPixel / parentWidth
+        });
 
         const year = startDate?.getFullYear() || new Date().getFullYear();
         startDateValue = new Date(year, monthStartIndex, 1);
-        endDateValue = new Date(year, monthEndIndex, 0);
+        endDateValue = new Date(year, monthEndIndex + 1, 0); // Last day of the month
       } else {
         // Use backend dates for initial tooltip
         if (channelStartDate && channelEndDate) {
@@ -295,36 +344,42 @@ const ResizableChannels = ({
           endDateValue = channelEndDate;
         } else {
           // Fallback to pixel calculation
-          const totalMonths = 12;
+          const numberOfMonths = 12;
           const monthStartIndex = Math.min(
-            totalMonths - 1,
-            Math.max(0, Math.round((startPixel / parentWidth) * totalMonths))
+            numberOfMonths - 1,
+            Math.max(0, Math.round((startPixel / parentWidth) * numberOfMonths))
           );
           const monthEndIndex = Math.min(
-            totalMonths - 1,
-            Math.max(0, Math.round((endPixel / parentWidth) * totalMonths))
+            numberOfMonths - 1,
+            Math.max(0, Math.round((endPixel / parentWidth) * numberOfMonths))
           );
 
           const year = startDate?.getFullYear() || new Date().getFullYear();
           startDateValue = new Date(year, monthStartIndex, 1);
-          endDateValue = new Date(year, monthEndIndex, 0);
+          endDateValue = new Date(year, monthEndIndex + 1, 0); // Last day of the month
         }
       }
     } else {
       // Day, Week, Month view - calculate based on days
-      const totalDays = dateList.length - 1;
+      const numberOfGridColumns = dateList.length;
+      const stepWidth = parentWidth / numberOfGridColumns;
 
-      const dayStartIndex = Math.min(
-        totalDays,
-        Math.max(0, Math.round((startPixel / parentWidth) * totalDays))
-      );
-      const dayEndIndex = Math.min(
-        totalDays,
-        Math.max(0, Math.round((endPixel / parentWidth) * totalDays))
-      );
+      const startGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, Math.floor(startPixel / stepWidth)));
+      const endGridIndexRaw = Math.floor((endPixel - 1) / stepWidth);
+      const endGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, endGridIndexRaw));
 
-      startDateValue = dateList[dayStartIndex] || startDate;
-      endDateValue = dateList[dayEndIndex] || endDate;
+      console.log("Date conversion tooltip FIXED:", {
+        startPixel,
+        endPixel,
+        parentWidth,
+        numberOfGridColumns,
+        stepWidth,
+        startGridIndex,
+        endGridIndex
+      });
+
+      startDateValue = dateList[startGridIndex] || startDate;
+      endDateValue = dateList[endGridIndex] || endDate;
     }
 
     console.log({ startDateValue, endDateValue, type });
@@ -398,12 +453,16 @@ const ResizableChannels = ({
     e.preventDefault();
     e.stopPropagation();
 
+    // Mark as user interacting and manually positioned
+    setUserIsInteracting(true);
+    setManuallyPositioned(prev => new Set(prev).add(index));
+
     // Close the adset modal when resizing starts
     setOpenAdset(false);
 
     // Store the initial state for this resize operation
     isResizing.current = {
-      startX: e.clientX,
+      startX: getLayoutXOptimized(e.clientX),
       initialState: { ...channelState[index] },
       direction,
       index,
@@ -417,7 +476,8 @@ const ResizableChannels = ({
       index,
       e.clientX,
       e.clientY,
-      "resize"
+      "resize",
+      direction
     );
 
     document.addEventListener("mousemove", handleMouseMoveResize);
@@ -427,22 +487,37 @@ const ResizableChannels = ({
   const handleMouseMoveResize = (e: MouseEvent) => {
     if (!isResizing.current) return;
 
+    // Throttle updates for smoother performance
+    const now = Date.now();
+    if (now - lastUpdateTime.current < THROTTLE_DELAY) return;
+    lastUpdateTime.current = now;
+
     const { startX, initialState, direction, index } = isResizing.current;
-    const deltaX = e.clientX - startX;
+    const deltaX = getLayoutXOptimized(e.clientX) - startX;
 
     const gridContainer = document.querySelector(
       ".grid-container"
     ) as HTMLElement;
     if (!gridContainer) return;
 
-    const containerRect = gridContainer.getBoundingClientRect();
+    const containerWidth = getUnscaledContainerWidthOptimized();
     const parentRightEdge = parentLeft + parentWidth;
 
     let newWidth = initialState.width;
     let newLeft = initialState.left;
 
     // Define minimum width based on view type
-    const minWidth = rrange === "Year" ? dailyWidth || parentWidth / 12 : 50; // For year view, minimum is one month width
+    const getMinWidth = () => {
+      if (rrange === "Year") {
+        // For year view, ensure minimum is at least one month width with better fallback
+        const monthWidth = dailyWidth || parentWidth / 12;
+        return Math.max(monthWidth, 80); // Increased minimum for better UX
+      }
+      return 50; // Standard minimum for other views
+    };
+    
+    const minWidth = getMinWidth();
+
     if (direction === "left") {
       // Left edge resize - adjust position and width
       const proposedLeft = Math.max(parentLeft, initialState.left + deltaX);
@@ -459,8 +534,7 @@ const ResizableChannels = ({
       }
 
       // Snap the left edge to timeline
-      const snappedLeft =
-        snapToTimeline(newLeft - parentLeft, containerRect.width) + parentLeft;
+      const snappedLeft = snapToTimeline(newLeft - parentLeft, containerWidth) + parentLeft;
       newWidth = initialState.left + initialState.width - snappedLeft;
       newLeft = snappedLeft;
 
@@ -483,7 +557,7 @@ const ResizableChannels = ({
 
       // Snap the right edge to timeline
       const snappedRightEdge =
-        snapToTimeline(rightEdgePos - parentLeft, containerRect.width) +
+        snapToTimeline(rightEdgePos - parentLeft, containerWidth) +
         parentLeft;
 
       // Ensure the snapped right edge doesn't exceed parent boundaries
@@ -497,42 +571,46 @@ const ResizableChannels = ({
     const startPixel = newLeft - parentLeft;
     const endPixel = startPixel + newWidth;
     console.log({ startPixel, endPixel });
+    const currentGridWidth = containerWidth;
     const newStartDate = pixelToDate(
       startPixel,
-      parentWidth,
+      currentGridWidth,
       index,
       "startDate"
     );
-    const newEndDate = pixelToDate(endPixel, parentWidth, index, "endDate");
+    const newEndDate = pixelToDate(endPixel, currentGridWidth, index, "endDate");
     console.log({ newStartDate, newEndDate });
 
-    // Update the channel state
-    setChannelState((prev) =>
-      prev.map((state, i) =>
-        i === index
-          ? {
-              ...state,
-              left: newLeft,
-              width: newWidth,
-              startDate: newStartDate,
-              endDate: newEndDate,
-            }
-          : state
-      )
-    );
+    // Use requestAnimationFrame for smoother updates
+    requestAnimationFrame(() => {
+      // Update the channel state
+      setChannelState((prev) =>
+        prev.map((state, i) =>
+          i === index
+            ? {
+                ...state,
+                left: newLeft,
+                width: newWidth,
+                startDate: newStartDate,
+                endDate: newEndDate,
+              }
+            : state
+        )
+      );
 
-    // Update channels data
-    setChannels((prev) =>
-      prev.map((ch, i) =>
-        i === index
-          ? {
-              ...ch,
-              start_date: newStartDate,
-              end_date: newEndDate,
-            }
-          : ch
-      )
-    );
+      // Update channels data
+      setChannels((prev) =>
+        prev.map((ch, i) =>
+          i === index
+            ? {
+                ...ch,
+                start_date: newStartDate,
+                end_date: newEndDate,
+              }
+            : ch
+        )
+      );
+    });
 
     updateTooltipWithDates(
       startPixel,
@@ -540,23 +618,31 @@ const ResizableChannels = ({
       index,
       e.clientX,
       e.clientY,
-      "resize"
+      "resize",
+      direction
     );
 
     // Store data for final update
     draggingDataRef.current = { index, newStartDate, newEndDate };
   };
 
-  const handleMouseUpResize = () => {
+  const handleMouseUpResize = async () => {
     console.log("Resize ended");
     console.log(isResizing.current, "isResizing state on mouse up");
     setTooltip((prev) => ({ ...prev, visible: false }));
+    
+    // Clear interaction flag
+    setUserIsInteracting(false);
 
     if (draggingDataRef.current) {
       const { index, newStartDate, newEndDate } = draggingDataRef.current;
       console.log({ index, newStartDate, newEndDate });
       // Final update to campaign data
-
+      try {
+        await sendUpdatedDataToAPI(campaignFormData);
+      } catch (err) {
+        console.error('Failed to persist channel resize', err);
+      }
       draggingDataRef.current = null;
     }
 
@@ -629,33 +715,65 @@ const ResizableChannels = ({
     let calculatedDate;
 
     if (rrange === "Year") {
-      // Year view - calculate based on months
-      const totalMonths = 12;
+      // Year view - calculate based on months with improved precision
+      const numberOfMonths = 12;
+      const actualStepWidth = containerWidth / numberOfMonths;
       const monthIndex = Math.min(
-        totalMonths - 1,
-        Math.max(0, Math.floor((pixel / containerWidth) * totalMonths))
+        numberOfMonths - 1,
+        Math.max(0, Math.round(pixel / actualStepWidth))
       );
+
+      console.log("pixelToDate Year debug:", {
+        pixel,
+        containerWidth,
+        numberOfMonths,
+        actualStepWidth,
+        monthIndex,
+        fieldName
+      });
 
       const year = startDate?.getFullYear() || new Date().getFullYear();
 
       if (fieldName === "endDate") {
         // Last day of the target month
-        calculatedDate = new Date(year, monthIndex, 0);
+        calculatedDate = new Date(year, monthIndex + 1, 0); // +1 month, day 0 = last day of previous month
       } else {
         // First day of the target month
         calculatedDate = new Date(year, monthIndex, 1);
       }
     } else {
-      // Day, Week, Month view - calculate based on days
-      const totalDays =
-        fieldName === "endDate" ? dRange?.length - 1 : dRange?.length;
-      const dayIndex = Math.min(
-        totalDays,
-        Math.max(0, Math.floor((pixel / containerWidth) * totalDays))
-      );
+      // Day, Week, Month view - consistent with DraggableChannel logic
+      const numberOfGridColumns = dRange?.length || dateList?.length || 1;
+      const stepWidth = containerWidth / numberOfGridColumns;
 
-      calculatedDate = new Date(startDate);
-      calculatedDate.setDate(startDate?.getDate() + dayIndex);
+      // Determine if pixel is at the very end of the timeline
+      const isAtEnd = pixel >= containerWidth - stepWidth / 2;
+
+      let gridIndex;
+      if (isAtEnd) {
+        // Use the last date
+        gridIndex = numberOfGridColumns - 1;
+      } else {
+        gridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, Math.floor(pixel / stepWidth)));
+
+        // Ensure inclusive end date (if exactly on grid line, step back one index)
+        if (fieldName === "endDate" && pixel % stepWidth === 0 && gridIndex > 0 && !isAtEnd) {
+          gridIndex -= 1;
+        }
+      }
+
+      console.log("pixelToDate Day debug FIXED:", {
+        pixel,
+        containerWidth,
+        numberOfGridColumns,
+        stepWidth,
+        gridIndex,
+        fieldName,
+        isAtEnd
+      });
+
+      const dateToUse = (dRange?.[gridIndex] || dateList?.[gridIndex] || startDate);
+      calculatedDate = new Date(dateToUse);
     }
 
     const updatedCampaignFormData = { ...campaignFormData };
@@ -691,12 +809,16 @@ const ResizableChannels = ({
     if (disableDrag) return;
     event.preventDefault();
 
+    // Mark as user interacting and manually positioned
+    setUserIsInteracting(true);
+    setManuallyPositioned(prev => new Set(prev).add(index));
+
     // Close the adset modal when dragging starts
     setOpenAdset(false);
 
     setDraggingPosition({
       index,
-      startX: event.clientX,
+      startX: getLayoutXOptimized(event.clientX),
       startLeft: channelState[index]?.left || parentLeft,
     });
 
@@ -722,10 +844,15 @@ const ResizableChannels = ({
     const handleDragMove = (event: MouseEvent) => {
       if (!isDraggingRef.current) return;
 
+      // Throttle updates for smoother performance
+      const now = Date.now();
+      if (now - lastUpdateTime.current < THROTTLE_DELAY) return;
+      lastUpdateTime.current = now;
+
       event.preventDefault();
       const { index, startX, startLeft } = draggingPosition;
 
-      const deltaX = event.clientX - startX;
+      const deltaX = getLayoutXOptimized(event.clientX) - startX;
       let newLeft = startLeft + deltaX;
       const channelWidth =
         channelState[index]?.width ||
@@ -736,23 +863,29 @@ const ResizableChannels = ({
         Math.min(newLeft, parentLeft + parentWidth - channelWidth)
       );
 
-      newLeft = snapToTimeline(newLeft - parentLeft, parentWidth) + parentLeft;
+      // Snap to the nearest grid edge
+      const relativePosition = newLeft - parentLeft;
+      const snappedRelativePosition = snapToTimeline(relativePosition, parentWidth);
+      newLeft = snappedRelativePosition + parentLeft;
 
-      setChannelState((prev) =>
-        prev.map((state, i) =>
-          i === index ? { ...state, left: newLeft } : state
-        )
-      );
+      requestAnimationFrame(() => {
+        setChannelState((prev) =>
+          prev.map((state, i) =>
+            i === index ? { ...state, left: newLeft } : state
+          )
+        );
+      });
 
       const startPixel = newLeft - parentLeft;
       const endPixel = startPixel + channelWidth;
+      const gridWidth = getUnscaledContainerWidthOptimized();
       const startDate = pixelToDate(
         startPixel,
-        parentWidth,
+        gridWidth,
         index,
         "startDate"
       );
-      const endDate = pixelToDate(endPixel, parentWidth, index, "endDate");
+      const endDate = pixelToDate(endPixel, gridWidth, index, "endDate");
 
       draggingDataRef.current = { index, startDate, endDate };
 
@@ -766,26 +899,35 @@ const ResizableChannels = ({
       );
     };
 
-    const handleDragEnd = () => {
-      setTooltip((prev) => ({ ...prev, visible: false }));
+    const handleDragEnd = async () => {
+       setTooltip((prev) => ({ ...prev, visible: false }));
+       
+       // Clear interaction flag
+       setUserIsInteracting(false);
+ 
+       if (draggingDataRef.current) {
+         const { index, startDate, endDate } = draggingDataRef.current;
+ 
+         setChannels((prevChannels) =>
+           prevChannels.map((ch, i) =>
+             i === index
+               ? {
+                   ...ch,
+                   start_date: startDate,
+                   end_date: endDate,
+                 }
+               : ch
+           )
+         );
 
-      if (draggingDataRef.current) {
-        const { index, startDate, endDate } = draggingDataRef.current;
-
-        setChannels((prevChannels) =>
-          prevChannels.map((ch, i) =>
-            i === index
-              ? {
-                  ...ch,
-                  start_date: startDate,
-                  end_date: endDate,
-                }
-              : ch
-          )
-        );
-
-        draggingDataRef.current = null;
-      }
+        try {
+          await sendUpdatedDataToAPI(campaignFormData);
+        } catch (err) {
+          console.error('Failed to persist channel drag', err);
+        }
+ 
+         draggingDataRef.current = null;
+       }
 
       isDraggingRef.current = false;
       setDraggingPosition(null);
@@ -883,6 +1025,11 @@ const ResizableChannels = ({
   };
 
   useEffect(() => {
+    // CRITICAL: Only recalculate positions when NOT user interacting
+    if (userIsInteracting) {
+      return; // Exit early to prevent overriding user actions
+    }
+
     if (
       initialChannels &&
       initialChannels.length > 0 &&
@@ -896,6 +1043,7 @@ const ResizableChannels = ({
         dailyWidth,
         startDate,
         endDate,
+        userIsInteracting,
       });
 
       setChannels(initialChannels);
@@ -904,6 +1052,12 @@ const ResizableChannels = ({
           (chhh) => chhh?.funnel_stage === parentId
         );
         const newState = initialChannels.map((ch, index) => {
+          // Skip recalculation if this channel was manually positioned
+          if (manuallyPositioned.has(index) && prev[index]) {
+            console.log(`Preserving manual position for channel ${index}`);
+            return prev[index];
+          }
+
           const findChannel = findMix[ch?.channelName]?.find(
             (plt) => plt?.platform_name === ch?.name
           );
@@ -944,13 +1098,17 @@ const ResizableChannels = ({
               const monthsBetween =
                 (endYear - startYear) * 12 + (endMonth - startMonth) + 1;
 
+              // Use consistent month width calculation
+              const monthWidth = dailyWidth || parentWidth / 12;
+              
               // Calculate left position relative to parent
-              left = parentLeft + startMonth * dailyWidth;
-              width = monthsBetween * dailyWidth;
+              left = parentLeft + startMonth * monthWidth;
+              width = monthsBetween * monthWidth;
             } else {
               // Fallback to default positioning when dates are not available
               left = parentLeft;
-              width = dailyWidth || parentWidth / 12; // Default to one month width or calculated width
+              const monthWidth = dailyWidth || parentWidth / 12;
+              width = Math.max(monthWidth, 80); // Increased minimum for better visibility
             }
 
             // Ensure the calculated position is within parent bounds
@@ -993,6 +1151,17 @@ const ResizableChannels = ({
             width = daysBetween > 0 ? dailyWidth * daysBetween : parentWidth;
           }
 
+          // Ensure minimum width constraints
+          const getMinWidthForView = () => {
+            if (rrange === "Year") {
+              const monthWidth = dailyWidth || parentWidth / 12;
+              return Math.max(monthWidth, 80);
+            }
+            return 50;
+          };
+
+          const minChannelWidth = getMinWidthForView();
+
           // Ensure width doesn't exceed parent width
           width = Math.min(width, parentWidth);
 
@@ -1030,7 +1199,7 @@ const ResizableChannels = ({
                 left: parentLeft,
                 width: Math.min(
                   width,
-                  rrange === "Year" ? dailyWidth || parentWidth / 12 : 50
+                  minChannelWidth
                 ),
               };
         });
@@ -1043,12 +1212,13 @@ const ResizableChannels = ({
     parentLeft,
     parentWidth,
     campaignFormData,
-    isResizing,
     rrange,
     startDate,
     endDate,
     dailyWidth,
     dateList,
+    userIsInteracting, // Add this to dependencies
+    manuallyPositioned, // Add this to dependencies
   ]);
 
   // Additional useEffect to ensure channels stay within parent boundaries
@@ -1219,6 +1389,93 @@ const ResizableChannels = ({
     }
 
     return desiredLeft + shift;
+  };
+
+  // Helper: convert screen (scaled) X to layout X (unscaled)
+  const getLayoutX = (clientX: number) => {
+    const grid = document.querySelector('.grid-container') as HTMLElement | null;
+    if (!grid) return clientX;
+    
+    // Get the zoom level from the parent container
+    const timelineContainer = grid.closest('[style*="transform: scale"]') as HTMLElement;
+    if (timelineContainer) {
+      const transform = timelineContainer.style.transform;
+      const scaleMatch = transform.match(/scale\(([^)]+)\)/);
+      if (scaleMatch) {
+        const scale = parseFloat(scaleMatch[1]);
+        // Convert screen coordinates to unscaled coordinates
+        return clientX / scale;
+      }
+    }
+    
+    // Fallback to original logic if no custom zoom detected
+    const layoutW = grid.offsetWidth || 1;
+    const visualW = grid.getBoundingClientRect().width || layoutW;
+    const scale = visualW / layoutW;
+    return clientX / scale;
+  };
+
+  // Helper to get unscaled container width
+  const getUnscaledContainerWidth = () => {
+    const grid = document.querySelector('.grid-container') as HTMLElement | null;
+    if (!grid) return 0;
+    
+    // Get the zoom level from the parent container
+    const timelineContainer = grid.closest('[style*="transform: scale"]') as HTMLElement;
+    if (timelineContainer) {
+      const transform = timelineContainer.style.transform;
+      const scaleMatch = transform.match(/scale\(([^)]+)\)/);
+      if (scaleMatch) {
+        // Return the unscaled width
+        return grid.offsetWidth;
+      }
+    }
+    
+    // Fallback to getBoundingClientRect width
+    return grid.getBoundingClientRect().width;
+  };
+
+  // Cache for zoom level to avoid repeated DOM queries
+  let cachedZoomLevel = 1;
+  let cachedContainerWidth = 0;
+  let lastCacheTime = 0;
+  const CACHE_DURATION = 100; // Cache for 100ms
+
+  // Helper to get cached zoom level
+  const getCachedZoomLevel = () => {
+    const now = Date.now();
+    if (now - lastCacheTime > CACHE_DURATION) {
+      const grid = document.querySelector('.grid-container') as HTMLElement | null;
+      if (grid) {
+        const timelineContainer = grid.closest('[style*="transform: scale"]') as HTMLElement;
+        if (timelineContainer) {
+          const transform = timelineContainer.style.transform;
+          const scaleMatch = transform.match(/scale\(([^)]+)\)/);
+          if (scaleMatch) {
+            cachedZoomLevel = parseFloat(scaleMatch[1]);
+          } else {
+            cachedZoomLevel = 1;
+          }
+        } else {
+          cachedZoomLevel = 1;
+        }
+        cachedContainerWidth = grid.offsetWidth;
+        lastCacheTime = now;
+      }
+    }
+    return cachedZoomLevel;
+  };
+
+  // Optimized coordinate conversion using cached zoom
+  const getLayoutXOptimized = (clientX: number) => {
+    const zoomLevel = getCachedZoomLevel();
+    return clientX / zoomLevel;
+  };
+
+  // Optimized container width getter
+  const getUnscaledContainerWidthOptimized = () => {
+    getCachedZoomLevel(); // This updates the cache
+    return cachedContainerWidth;
   };
 
   // console.log(isResizing, "isResizing state")
