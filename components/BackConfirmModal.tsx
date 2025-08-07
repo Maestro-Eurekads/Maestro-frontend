@@ -23,7 +23,7 @@ interface BackConfirmModalProps {
 const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, onNavigate }) => {
 	const { isClient, loggedInUser } = useUserPrivileges();
 	const [loading, setLoading] = useState(false);
-	const { change, setChange, showModal, setShowModal, setActive, setSubStep } = useActive();
+	const { change, setChange, showModal, setShowModal, setActive, setSubStep, active } = useActive();
 	const { setClose, close, setViewcommentsId, setOpportunities } = useComments();
 	const router = useRouter();
 	const dispatch = useAppDispatch();
@@ -223,38 +223,46 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({ isOpen, onClose, on
 
 			const campaignBudgetCleaned = removeKeysRecursively(validatedFormData?.campaign_budget, ["id"]);
 
+			const calcPercent = Math.ceil((active / 10) * 100);
+
 			const payload = {
 				data: {
 					campaign_builder: loggedInUser?.id,
-					client: validatedFormData?.client_selection?.id,
+					client: cleanedFormData?.client_selection?.id,
 					client_selection: {
-						client: validatedFormData?.client_selection?.value,
-						level_1: validatedFormData?.level_1,
+						client: cleanedFormData?.client_selection?.value,
+						level_1: cleanedFormData?.level_1,
 					},
 					media_plan_details: {
-						plan_name: validatedFormData?.media_plan,
-						internal_approver: validatedFormData.internal_approver.map((item: any) => Number(item.id)),
-						client_approver: validatedFormData.client_approver.map((item: any) => Number(item.id)),
-						approved_by: validatedFormData.approved_by.map((item: any) => Number(item.id)),
+						plan_name: cleanedFormData?.media_plan,
+						internal_approver: cleanedFormData.internal_approver.map((item: any) => Number(item.id)),
+						client_approver: cleanedFormData.client_approver.map((item: any) => Number(item.id)),
+						approved_by: cleanedFormData.approved_by.map((item: any) => Number(item.id)),
 					},
 					budget_details: {
-						currency: validatedFormData?.budget_details_currency?.id || "EUR",
-						value: validatedFormData?.country_details?.id,
+						currency: cleanedFormData?.budget_details_currency?.id || "EUR",
+						value: cleanedFormData?.country_details?.id,
 					},
 					campaign_budget: {
 						...campaignBudgetCleaned,
-						currency: validatedFormData?.budget_details_currency?.id || "EUR",
+						currency: cleanedFormData?.budget_details_currency?.id || "EUR",
 					},
-					funnel_stages: validatedFormData?.funnel_stages,
+					funnel_stages: cleanedFormData?.funnel_stages,
 					channel_mix: channelMixCleaned,
-					custom_funnels: validatedFormData?.custom_funnels,
-					funnel_type: validatedFormData?.funnel_type,
+					custom_funnels: cleanedFormData?.custom_funnels,
+					funnel_type: cleanedFormData?.funnel_type,
 					table_headers: objectives || {},
 					selected_metrics: selectedMetrics || {},
-					goal_level: validatedFormData?.goal_level,
-					campaign_timeline_start_date: validatedFormData?.campaign_timeline_start_date,
-					campaign_timeline_end_date: validatedFormData?.campaign_timeline_end_date,
+					goal_level: cleanedFormData?.goal_level,
+					campaign_timeline_start_date: cleanedFormData?.campaign_timeline_start_date,
+					campaign_timeline_end_date: cleanedFormData?.campaign_timeline_end_date,
 					agency_profile: agencyId,
+
+					progress_percent:
+						campaignFormData?.progress_percent > calcPercent
+							? campaignFormData?.progress_percent
+							: calcPercent,
+					campaign_version: cleanedFormData?.campaign_version || "V1",
 				},
 			};
 

@@ -137,6 +137,7 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
   return (
     <div className="w-full border-y">
       <div
+      className="inline-flex"
         style={{
           display: "grid",
           gridTemplateColumns: gridTemplateColumns(),

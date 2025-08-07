@@ -189,6 +189,7 @@ const AddFinanceModal = ({
         }));
         setFinancialUsers(newOpt);
       } catch (err) {
+        console.log(err);
         if (err?.response?.status === 401) {
           const event = new Event("unauthorizedEvent");
           window.dispatchEvent(event);
@@ -247,7 +248,6 @@ const AddFinanceModal = ({
       return false;
     }
     if (!poForm.financial_responsible) {
-
       toast("Please select a Financial Responsible person", {
         style: { background: "red", color: "white", textAlign: "center" },
         duration: 3000,

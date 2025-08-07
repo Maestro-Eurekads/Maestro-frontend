@@ -31,6 +31,7 @@ const VersionPromptModal = () => {
 
 	const { active } = useActive();
 	const [isOpen, setIsOpen] = useState(false);
+	const [showVersionModal, setShowVersionModal] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [loadingc, setLoadingc] = useState(false);
 	const [showVersionPrompt, setShowVersionPrompt] = useState(false);
@@ -169,6 +170,7 @@ const VersionPromptModal = () => {
 	const handleVersionChoice = async (choice?: string) => {
 		const versionChoice = choice || 'maintain';
 		setLoading(true);
+		// Don't close modal immediately - keep it open to show loading state
 
 		try {
 			// Validate choice
@@ -317,7 +319,12 @@ const VersionPromptModal = () => {
 				clearChannelStateForNewCampaign?.();
 			}
 
-			setIsOpen(false);
+			// Close the appropriate modal based on which one is open
+			if (isOpen) {
+				setIsOpen(false);
+			} else if (showVersionModal) {
+				setShowVersionModal(false);
+			}
 			setChange(false);
 		} catch (error: any) {
 			if (error?.response?.status === 401) {
@@ -332,6 +339,7 @@ const VersionPromptModal = () => {
 
 	const handleCreateNewVersion = async () => {
 		setLoadingc(true);
+		// Don't close modal immediately - keep it open to show loading state
 
 		try {
 			// Sanitize and validate campaign data
@@ -446,10 +454,10 @@ const VersionPromptModal = () => {
 			// First: Update old campaign to maintain current version (only if campaign exists)
 			if (campaignFormData.cId) {
 				const currentVersionPayload = {
-					...payload,
 					data: {
-						...payload.data,
 						campaign_version: currentVersion, // keep current version unchanged
+						// Preserve the original progress_percent of the previous version
+						progress_percent: campaignData?.progress_percent || 0,
 					}
 				};
 
@@ -482,7 +490,8 @@ const VersionPromptModal = () => {
 			toast.success(campaignData?.id ? "New campaign version created successfully!" : "Campaign created successfully!");
 			clearChannelStateForNewCampaign?.();
 
-			setIsOpen(false);
+			// Close modal only after operation is complete
+			setShowVersionModal(false);
 			setChange(false);
 		} catch (error: any) {
 			if (error?.response?.status === 401) {
@@ -498,15 +507,30 @@ const VersionPromptModal = () => {
 
 	return (
 		<>
-			<button className="bottom_black_next_btn hover:bg-blue-500 whitespace-nowrap" onClick={() => setIsOpen(true)}>
+			<button
+				className="bottom_black_next_btn hover:bg-blue-500 whitespace-nowrap"
+				onClick={() => {
+					// Check if campaign has been created (has an ID in the database)
+					if (cId) {
+						setShowVersionModal(true);
+					} else {
+						setIsOpen(true);
+					}
+				}}
+			>
 				<p>Save</p>
 			</button>
 
+			{/* Save Plan Modal - Only for new campaigns */}
 			{isOpen && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
 					<div className="relative bg-white rounded-lg w-[440px] max-w-full p-6 shadow-xl text-center">
-						<button onClick={() => setIsOpen(false)} className="absolute top-4 right-4">
-							<X className="w-5 h-5 text-gray-500 hover:text-gray-700" />
+						<button
+							onClick={() => setIsOpen(false)}
+							className="absolute top-4 right-4"
+							disabled={loading}
+						>
+							<X className={`w-5 h-5 ${loading ? 'text-gray-300' : 'text-gray-500 hover:text-gray-700'}`} />
 						</button>
 						<div className="w-full flex justify-center pt-2">
 							<div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
@@ -514,40 +538,63 @@ const VersionPromptModal = () => {
 							</div>
 						</div>
 						<h2 className="text-xl font-semibold text-[#181D27] mb-2">
-							{campaignData?.id ? 'Media Plan Version' : 'Save Media Plan'}
+							Save Media Plan
 						</h2>
 						<p className="text-sm text-[#535862] mb-4">
-							{campaignData?.id
-								? 'Would you like to create a new version or maintain the same version?'
-								: 'Would you like to save your media plan?'
-							}
+							Would you like to save your media plan?
 						</p>
 
 						<div className="flex flex-col gap-4">
-							{campaignData?.id ? (
-								<>
-									<button
-										className="btn_model_active w-full"
-										onClick={() => handleVersionChoice('maintain')}
-									>
-										{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> : 'Maintain Same Version'}
-									</button>
-									<button
-										className="btn_model_outline w-full"
-										onClick={handleCreateNewVersion}
-										disabled={loadingc}
-									>
-										{loadingc ? <SVGLoader width="30px" height="30px" color="#000" /> : 'Create New Version'}
-									</button>
-								</>
-							) : (
-								<button
-									className="btn_model_active w-full"
-									onClick={() => handleVersionChoice('maintain')}
-								>
-									{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> : 'Save Plan'}
-								</button>
-							)}
+							<button
+								className="btn_model_active w-full"
+								onClick={() => handleVersionChoice('maintain')}
+								disabled={loading}
+							>
+								{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> : 'Save Plan'}
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
+
+			{/* Version Choice Modal - Only for existing campaigns */}
+			{showVersionModal && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+					<div className="relative bg-white rounded-lg w-[440px] max-w-full p-6 shadow-xl text-center">
+						<button
+							onClick={() => setShowVersionModal(false)}
+							className="absolute top-4 right-4"
+							disabled={loading || loadingc}
+						>
+							<X className={`w-5 h-5 ${loading || loadingc ? 'text-gray-300' : 'text-gray-500 hover:text-gray-700'}`} />
+						</button>
+						<div className="w-full flex justify-center pt-2">
+							<div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+								<CheckCircle className="text-blue-600 w-7 h-7" />
+							</div>
+						</div>
+						<h2 className="text-xl font-semibold text-[#181D27] mb-2">
+							Media Plan Version
+						</h2>
+						<p className="text-sm text-[#535862] mb-4">
+							Would you like to create a new version or maintain the same version?
+						</p>
+
+						<div className="flex flex-col gap-4">
+							<button
+								className="btn_model_active w-full"
+								onClick={() => handleVersionChoice('maintain')}
+								disabled={loading || loadingc}
+							>
+								{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> : 'Maintain Same Version'}
+							</button>
+							<button
+								className="btn_model_outline w-full"
+								onClick={handleCreateNewVersion}
+								disabled={loading || loadingc}
+							>
+								{loadingc ? <SVGLoader width="30px" height="30px" color="#000" /> : 'Create New Version'}
+							</button>
 						</div>
 					</div>
 				</div>

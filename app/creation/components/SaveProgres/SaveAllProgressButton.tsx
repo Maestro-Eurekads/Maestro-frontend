@@ -227,13 +227,16 @@ const SaveAllProgressButton = () => {
 					client: dataWithValidatedDates?.client_selection?.id,
 					client_selection: {
 						client: dataWithValidatedDates?.client_selection?.value,
-						level_1: dataWithValidatedDates?.level_1,
+						level_1: dataWithValidatedDates?.level_1?.id,
 					},
 					media_plan_details: {
 						plan_name: dataWithValidatedDates?.media_plan,
-						internal_approver: validateUserIds(dataWithValidatedDates.internal_approver.map((item: any) => item.id)),
-						client_approver: validateUserIds(dataWithValidatedDates.client_approver.map((item: any) => item.id)),
-						approved_by: validateUserIds(dataWithValidatedDates.approved_by.map((item: any) => item.id)),
+						internal_approver: dataWithValidatedDates?.internal_approver?.map(
+							(ff) => ff?.value
+						),
+						client_approver: dataWithValidatedDates?.client_approver?.map(
+							(ff) => ff?.value
+						),
 					},
 					budget_details: {
 						currency: dataWithValidatedDates?.budget_details_currency?.id || "EUR",
@@ -243,41 +246,23 @@ const SaveAllProgressButton = () => {
 						...campaignBudgetCleaned,
 						currency: dataWithValidatedDates?.budget_details_currency?.id || "EUR",
 					},
+					funnel_stages: dataWithValidatedDates?.funnel_stages,
+					channel_mix: channelMixCleaned,
+					custom_funnels: dataWithValidatedDates?.custom_funnels,
+					funnel_type: dataWithValidatedDates?.funnel_type,
+					table_headers: objectives || {},
+					selected_metrics: selectedMetrics || {},
+					goal_level: dataWithValidatedDates?.goal_level,
+					campaign_timeline_start_date: dataWithValidatedDates?.campaign_timeline_start_date,
+					campaign_timeline_end_date: dataWithValidatedDates?.campaign_timeline_end_date,
 					agency_profile: agencyId,
+
 					progress_percent:
-						campaignFormData?.progress_percent > calcPercent ? campaignFormData?.progress_percent : calcPercent,
-					campaign_version: dataWithValidatedDates?.campaign_version || "V1",
+						campaignFormData?.progress_percent > calcPercent
+							? campaignFormData?.progress_percent
+							: calcPercent,
 				},
 			};
-
-			// Add optional fields only if they exist
-			if (dataWithValidatedDates?.funnel_stages) {
-				(payload.data as any).funnel_stages = dataWithValidatedDates.funnel_stages;
-			}
-			if (channelMixCleaned.length > 0) {
-				(payload.data as any).channel_mix = channelMixCleaned;
-			}
-			if (dataWithValidatedDates?.custom_funnels) {
-				(payload.data as any).custom_funnels = dataWithValidatedDates.custom_funnels;
-			}
-			if (dataWithValidatedDates?.funnel_type) {
-				(payload.data as any).funnel_type = dataWithValidatedDates.funnel_type;
-			}
-			if (objectives) {
-				(payload.data as any).table_headers = objectives;
-			}
-			if (selectedMetrics) {
-				(payload.data as any).selected_metrics = selectedMetrics;
-			}
-			if (dataWithValidatedDates?.goal_level) {
-				(payload.data as any).goal_level = dataWithValidatedDates.goal_level;
-			}
-			if (dataWithValidatedDates?.campaign_timeline_start_date) {
-				(payload.data as any).campaign_timeline_start_date = dataWithValidatedDates.campaign_timeline_start_date;
-			}
-			if (dataWithValidatedDates?.campaign_timeline_end_date) {
-				(payload.data as any).campaign_timeline_end_date = dataWithValidatedDates.campaign_timeline_end_date;
-			}
 
 			const config = {
 				headers: {

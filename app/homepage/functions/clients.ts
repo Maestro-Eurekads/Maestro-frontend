@@ -83,3 +83,49 @@ export const updateClient = async (documentId: string, data: any, jwt: any) => {
     }
   );
 };
+
+export const addClientToUserPayroll = async (userId: string, clientId: string, jwt: any) => {
+  return await axios.put(
+    `${process.env.NEXT_PUBLIC_STRAPI_URL}/users/${userId}`,
+    {
+      clients: clientId,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    }
+  );
+};
+
+export const getClientById = async (clientId: string, jwt: any) => {
+  return await axios.get(
+    `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients/${clientId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    }
+  );
+};
+
+export const getClientCampaigns = async (clientId: string, jwt: any) => {
+  return await axios.get(
+    `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`,
+    {
+      params: {
+        filters: {
+          client_selection: {
+            id: {
+              $eq: clientId
+            }
+          }
+        },
+        populate: '*'
+      },
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    }
+  );
+};

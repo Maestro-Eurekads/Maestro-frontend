@@ -1104,6 +1104,7 @@ const ResizableChannels = ({
               // Calculate left position relative to parent
               left = parentLeft + startMonth * monthWidth;
               width = monthsBetween * monthWidth;
+
             } else {
               // Fallback to default positioning when dates are not available
               left = parentLeft;

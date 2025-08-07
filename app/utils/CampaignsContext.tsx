@@ -95,7 +95,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [clientPOs, setClientPOs] = useState([]);
   const [fetchingPO, setFetchingPO] = useState(false);
   const [currencySign, setCurrencySign] = useState("");
-  const { loggedInUser } = useUserPrivileges();
+  const { loggedInUser, agency_user } = useUserPrivileges()
   const [user, setUser] = useState(null);
   const [headerData, setHeaderData] = useState({});
   const [filterOptions, setFilterOptions] = useState({
@@ -144,6 +144,16 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     level1: [],
   });
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [hasFetchedProfile, setHasFetchedProfile] = useState(false);
+
+  // Set agencyId from session data when available
+  useEffect(() => {
+    if (agency_user?.agency?.id) {
+      setAgencyId(agency_user.agency.id);
+    }
+    // Reset profile fetch flag when user changes
+    setHasFetchedProfile(false);
+  }, [agency_user]);
 
   const getActiveCampaign = useCallback(
     async (docId?: string) => {
@@ -349,16 +359,16 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             agency_profile: data?.agency_profile ?? prev.agency_profile,
             level_1:
               data?.client_selection?.level_1 &&
-              ((Array.isArray(data?.client_selection?.level_1.value) &&
-                data?.client_selection?.level_1.value.length > 0) ||
-                (typeof data?.client_selection?.level_1.value === "string" &&
-                  data?.client_selection?.level_1.value))
+                ((Array.isArray(data?.client_selection?.level_1.value) &&
+                  data?.client_selection?.level_1.value.length > 0) ||
+                  (typeof data?.client_selection?.level_1.value === "string" &&
+                    data?.client_selection?.level_1.value))
                 ? {
-                    id: data?.client_selection?.level_1.id ?? prev.level_1?.id,
-                    value:
-                      data?.client_selection?.level_1.value ??
-                      prev.level_1?.value,
-                  }
+                  id: data?.client_selection?.level_1.id ?? prev.level_1?.id,
+                  value:
+                    data?.client_selection?.level_1.value ??
+                    prev.level_1?.value,
+                }
                 : prev.level_1,
             media_plan:
               shouldPreserveLocalData && prev.media_plan
@@ -383,14 +393,14 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
               data?.campaign_objective ?? prev.campaign_objectives,
             funnel_stages:
               shouldPreserveLocalData &&
-              prev.funnel_stages &&
-              prev.funnel_stages.length > 0
+                prev.funnel_stages &&
+                prev.funnel_stages.length > 0
                 ? prev.funnel_stages
                 : data?.funnel_stages ?? prev.funnel_stages,
             channel_mix:
               shouldPreserveLocalData &&
-              prev.channel_mix &&
-              Object.keys(prev.channel_mix).length > 0
+                prev.channel_mix &&
+                Object.keys(prev.channel_mix).length > 0
                 ? prev.channel_mix
                 : data?.channel_mix ?? prev.channel_mix,
             campaign_timeline_start_date:
@@ -485,6 +495,39 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
 
   const getProfile = useCallback(async () => {
     if (!id) return;
+
+    // If we already have agency_user from session, use it
+    if (agency_user?.agency?.id) {
+      setAgencyId(agency_user.agency.id);
+      // Only fetch profile if we don't have it yet and need additional data
+      if (!profile) {
+        try {
+          setLoading(true);
+          const response = await axios.get(
+            `${process.env.NEXT_PUBLIC_STRAPI_URL}/get-profile/${id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${jwt}`,
+              },
+            }
+          );
+          setGetProfile(response?.data);
+          setHasFetchedProfile(true);
+          return response;
+        } catch (error) {
+          if (error?.response?.status === 401) {
+            const event = new Event("unauthorizedEvent");
+            window.dispatchEvent(event);
+          }
+          throw error;
+        } finally {
+          setLoading(false);
+        }
+      }
+      return;
+    }
+
+    // Fallback to fetching profile if agency_user is not in session
     try {
       setLoading(true);
       const response = await axios.get(
@@ -496,13 +539,14 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         }
       );
       setGetProfile(response?.data);
+      setHasFetchedProfile(true);
 
       const aId =
         response?.data?.user_type === "admin"
           ? response?.data?.admin?.agency?.id
           : response?.data?.user_type?.includes("cleint")
-          ? response?.data?.cleint_user?.agency?.id
-          : response?.data?.agency_user?.agency?.id;
+            ? response?.data?.cleint_user?.agency?.id
+            : response?.data?.agency_user?.agency?.id;
       //console.log("agencyId", aId);
       setAgencyId(aId);
       return response;
@@ -516,7 +560,15 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, agency_user, jwt]);
+
+  // Fetch profile data when we have agency_user from session but need additional profile data
+  useEffect(() => {
+    if (id && jwt && agency_user?.agency?.id && !hasFetchedProfile) {
+      getProfile();
+      setHasFetchedProfile(true);
+    }
+  }, [id, jwt, agency_user, hasFetchedProfile]);
 
   const getAgency = useCallback(async () => {
     // get-agency-profile
@@ -880,7 +932,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     const fetchInitialData = async () => {
       try {
         await Promise.all([
-          id && getProfile(),
+          // Only fetch profile if we don't have agency_user from session
+          id && !agency_user?.agency?.id && getProfile(),
           agencyId && getAgency(),
           cId && getActiveCampaign(),
           fetchBuyObjectives(),
@@ -901,7 +954,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   }, [
     cId,
     id,
-    getProfile,
     getActiveCampaign,
     fetchBuyObjectives,
     fetchObjectives,
@@ -909,6 +961,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     fetchBuyTypes,
     jwt,
     agencyId,
+    agency_user
   ]);
 
   const contextValue = useMemo(

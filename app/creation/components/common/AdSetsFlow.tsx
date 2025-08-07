@@ -1,5 +1,5 @@
 "use client"
-import type React from "react"
+import React from "react"
 import { memo, useState, useCallback, useEffect, createContext, useContext, useRef } from "react"
 import Image, { type StaticImageData } from "next/image"
 import { FaAngleRight, FaSpinner } from "react-icons/fa"
@@ -668,18 +668,24 @@ const AudienceDropdownWithCallback = memo(function AudienceDropdownWithCallback(
   initialValue?: string
   dropdownId: number | string
 }) {
-  const { openDropdownId, setOpenDropdownId } = useContext(DropdownContext)
-  const { customAudienceTypes, addCustomAudienceType } = useContext(CustomAudienceTypesContext)
-  const { jwt, agencyData } = useCampaigns()
+  // Safely access context with error handling
+  const dropdownContext = useContext(DropdownContext)
+  const customAudienceContext = useContext(CustomAudienceTypesContext)
+  const campaignsContext = useCampaigns()
+
+  // Provide fallbacks if contexts are not available
+  const { openDropdownId, setOpenDropdownId } = dropdownContext || {}
+  const { customAudienceTypes = [], addCustomAudienceType = () => { } } = customAudienceContext || {}
+  const { jwt, agencyData } = campaignsContext || {}
 
   // Default options
   const defaultOptions = ["Lookalike audience", "Retargeting audience", "Broad audience", "Behavioral audience"]
 
-  // Merge default and custom, deduped - Updated to use agencyData
+  // Merge default and custom, deduped - Updated to use agencyData with proper error handling
   const mergedAudienceOptions = Array.from(
     new Set([
       ...defaultOptions,
-      ...customAudienceTypes,
+      ...(customAudienceTypes || []),
       ...(agencyData?.custom_audience_type?.map((item: any) => item?.text).filter(Boolean) || []),
     ]),
   )
@@ -710,19 +716,39 @@ const AudienceDropdownWithCallback = memo(function AudienceDropdownWithCallback(
 
   const handleSelect = useCallback(
     (option: string) => {
-      setSelected(option)
-      setOpenDropdownId(null)
-      setSearchTerm("")
-      onSelect(option)
+      try {
+        if (!option || typeof option !== 'string') {
+          console.error('Invalid option selected:', option);
+          return;
+        }
+        setSelected(option)
+        if (setOpenDropdownId) {
+          setOpenDropdownId(null)
+        }
+        setSearchTerm("")
+        onSelect(option)
+      } catch (error) {
+        console.error('Error in handleSelect:', error);
+        toast.error('Failed to select audience type. Please try again.');
+      }
     },
     [onSelect, setOpenDropdownId],
   )
 
   const toggleOpen = useCallback(() => {
-    setOpenDropdownId(isOpen ? null : dropdownId)
-    setSearchTerm("")
-    setShowCustomInput(false)
-    setCustomValue("")
+    try {
+      setOpenDropdownId(isOpen ? null : dropdownId)
+      setSearchTerm("")
+      setShowCustomInput(false)
+      setCustomValue("")
+    } catch (error) {
+      console.error('Error in toggleOpen:', error);
+      // Reset to a safe state
+      setOpenDropdownId(null)
+      setSearchTerm("")
+      setShowCustomInput(false)
+      setCustomValue("")
+    }
   }, [isOpen, setOpenDropdownId, dropdownId])
 
   // Updated handleSaveCustomAudience to use PUT request to agencies endpoint
@@ -737,14 +763,20 @@ const AudienceDropdownWithCallback = memo(function AudienceDropdownWithCallback(
       return;
     }
 
+    // Check if agencyData exists before proceeding
+    if (!agencyData?.documentId) {
+      toast.error("Agency data not available. Please try again.");
+      return;
+    }
+
     setLoading(true)
     try {
-      // Get existing custom audience types from agencyData
+      // Get existing custom audience types from agencyData with proper null checking
       const existingCustomAudienceTypes = agencyData?.custom_audience_type || []
 
       // Use PUT request to update the agency's custom_audience_type array
       const res = await axios.put(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/agencies/${agencyData?.documentId}`,
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/agencies/${agencyData.documentId}`,
         { data: { custom_audience_type: [...existingCustomAudienceTypes, { text: customValue }] } },
         {
           headers: {
@@ -762,12 +794,14 @@ const AudienceDropdownWithCallback = memo(function AudienceDropdownWithCallback(
       setOpenDropdownId(null)
       setSearchTerm("")
       toast.success("Custom audience type saved successfully")
-    } catch (error) {
+    } catch (error: any) {
       if (error?.response?.status === 401) {
         const event = new Event("unauthorizedEvent")
         window.dispatchEvent(event)
+      } else {
+        console.error("Error saving custom audience:", error)
+        toast.error("Failed to save custom audience type")
       }
-      toast.error("Failed to save custom audience type")
     } finally {
       setLoading(false)
     }
@@ -1611,7 +1645,8 @@ const AdsetSettings = memo(function AdsetSettings({
       )}
     </div>
   )
-})
+}
+)
 
 // Main AdSetFlow Component
 const globalCustomAudienceTypes: string[] = []
@@ -1952,5 +1987,7 @@ const AdSetFlow = memo(function AdSetFlow({
     </CustomAudienceTypesContext.Provider>
   )
 })
+
+
 
 export default AdSetFlow
