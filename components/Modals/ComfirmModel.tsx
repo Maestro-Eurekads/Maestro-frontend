@@ -90,6 +90,7 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 
 	const handleCreateNewVersion = async () => {
 		setLoadings(true);
+		// Don't close modal immediately - keep it open to show loading state
 
 		try {
 			// Get current version from existing campaignData or default to V1
@@ -186,8 +187,11 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 			toast.success(`New Version (${versionLabel}) created successfully!`);
 			clearChannelStateForNewCampaign?.();
 
+			// Close modal only after operation is complete
 			setChange(false);
 			setShowSave(false);
+			setIsOpen(false);
+			setShowVersionPrompt(false);
 		} catch (error: any) {
 			if (error?.response?.status === 401) {
 				window.dispatchEvent(new Event("unauthorizedEvent"));
@@ -526,8 +530,9 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 								setShowPlanInfoModal(true);
 							}}
 							className="absolute top-4 right-4"
+							disabled={loading || loadings}
 						>
-							<X className="w-5 h-5 text-gray-500 hover:text-gray-700" />
+							<X className={`w-5 h-5 ${loading || loadings ? 'text-gray-300' : 'text-gray-500 hover:text-gray-700'}`} />
 						</button>
 						<h2 className="text-xl font-semibold text-[#181D27] mb-2">Version Control</h2>
 						<p className="text-sm text-[#535862] mb-4">
@@ -543,12 +548,14 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 							<button
 								className="btn_model_active w-full"
 								onClick={() => handleVersionChoice('maintain')}
+								disabled={loading || loadings}
 							>
 								{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> : 'Maintain Same Version'}
 							</button>
 							<button
 								className="btn_model_outline w-full"
 								onClick={() => handleCreateNewVersion()}
+								disabled={loading || loadings}
 							>
 								{loadings ? <SVGLoader width="30px" height="30px" color="#000" /> : 'Create New Version'}
 							</button>
