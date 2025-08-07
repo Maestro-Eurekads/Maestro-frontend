@@ -183,8 +183,9 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                       zIndex
                     ) => {
                       // console.log({ start, end });
+                      const findInd = clientCampaignData.findIndex((item) => item.media_plan_details?.plan_name === label)
                       const channels = extractPlatforms(
-                        clientCampaignData[index]
+                        clientCampaignData[findInd]
                       );
 
                       return (
@@ -194,9 +195,9 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                             display: "grid",
                             gridTemplateColumns: `repeat(${daysCount}, 50px)`,
                           }}
+                          onClick={() => toggleOpen(index, name)}
                         >
                           <div
-                            onClick={() => toggleOpen(index, name)}
                             className={`mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${name === "Awareness"
                               ? "bg-[#3175FF]"
                               : name === "Consideration"
@@ -211,15 +212,6 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                             }}
                           >
                             <div className="flex items-center justify-center gap-3 flex-1">
-                              {/* <span>
-                              {name === "Awareness" ? (
-                                <BsFillMegaphoneFill />
-                              ) : name === "Consideration" ? (
-                                <TbZoomFilled />
-                              ) : (
-                                <TbCreditCardFilled />
-                              )}
-                            </span> */}
                               <span>{name}</span>
                               <span>
                                 <FiChevronDown size={15} />
