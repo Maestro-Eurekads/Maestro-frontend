@@ -668,231 +668,280 @@ const AudienceDropdownWithCallback = memo(function AudienceDropdownWithCallback(
   initialValue?: string
   dropdownId: number | string
 }) {
-  const { openDropdownId, setOpenDropdownId } = useContext(DropdownContext)
-  const { customAudienceTypes, addCustomAudienceType } = useContext(CustomAudienceTypesContext)
-  const { jwt, agencyData } = useCampaigns()
+  try {
+    const { openDropdownId, setOpenDropdownId } = useContext(DropdownContext)
+    const { customAudienceTypes, addCustomAudienceType } = useContext(CustomAudienceTypesContext)
+    const { jwt, agencyData } = useCampaigns()
 
-  // Default options
-  const defaultOptions = ["Lookalike audience", "Retargeting audience", "Broad audience", "Behavioral audience"]
+    // Default options
+    const defaultOptions = ["Lookalike audience", "Retargeting audience", "Broad audience", "Behavioral audience"]
 
-  // Merge default and custom, deduped - Updated to use agencyData
-  const mergedAudienceOptions = Array.from(
-    new Set([
-      ...defaultOptions,
-      ...customAudienceTypes,
-      ...(agencyData?.custom_audience_type?.map((item: any) => item?.text).filter(Boolean) || []),
-    ]),
-  )
+    // Merge default and custom, deduped - Updated to use agencyData with proper error handling
+    const mergedAudienceOptions = Array.from(
+      new Set([
+        ...defaultOptions,
+        ...customAudienceTypes,
+        ...(agencyData?.custom_audience_type?.map((item: any) => item?.text).filter(Boolean) || []),
+      ]),
+    )
 
-  const [selected, setSelected] = useState<string>(initialValue || "")
-  const [searchTerm, setSearchTerm] = useState("")
-  const [showCustomInput, setShowCustomInput] = useState(false)
-  const [customValue, setCustomValue] = useState("")
-  const [loading, setLoading] = useState(false)
+    const [selected, setSelected] = useState<string>(initialValue || "")
+    const [searchTerm, setSearchTerm] = useState("")
+    const [showCustomInput, setShowCustomInput] = useState(false)
+    const [customValue, setCustomValue] = useState("")
+    const [loading, setLoading] = useState(false)
 
-  const isOpen = openDropdownId === dropdownId
+    const isOpen = openDropdownId === dropdownId
 
-  useEffect(() => {
-    if (initialValue) setSelected(initialValue)
-  }, [initialValue])
+    useEffect(() => {
+      if (initialValue) setSelected(initialValue)
+    }, [initialValue])
 
-  // If a custom value is selected but not in options, add it to context
-  useEffect(() => {
-    if (selected && !defaultOptions.includes(selected) && !customAudienceTypes.includes(selected)) {
-      addCustomAudienceType(selected)
-    }
-    // eslint-disable-next-line
-  }, [selected])
-
-  const filteredOptions = (mergedAudienceOptions || []).filter((option) =>
-    option?.toLowerCase()?.includes(searchTerm?.toLowerCase()),
-  )
-
-  const handleSelect = useCallback(
-    (option: string) => {
-      setSelected(option)
-      setOpenDropdownId(null)
-      setSearchTerm("")
-      onSelect(option)
-    },
-    [onSelect, setOpenDropdownId],
-  )
-
-  const toggleOpen = useCallback(() => {
-    setOpenDropdownId(isOpen ? null : dropdownId)
-    setSearchTerm("")
-    setShowCustomInput(false)
-    setCustomValue("")
-  }, [isOpen, setOpenDropdownId, dropdownId])
-
-  // Updated handleSaveCustomAudience to use PUT request to agencies endpoint
-  const handleSaveCustomAudience = async () => {
-    const value = customValue.trim();
-    if (value.length < 2) {
-      toast.error("Custom audience must be at least 2 characters.");
-      return;
-    }
-    if (!/[a-zA-Z]/.test(value)) {
-      toast.error("Custom audience must contain at least one alphabet.");
-      return;
-    }
-
-    setLoading(true)
-    try {
-      // Get existing custom audience types from agencyData
-      const existingCustomAudienceTypes = agencyData?.custom_audience_type || []
-
-      // Use PUT request to update the agency's custom_audience_type array
-      const res = await axios.put(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/agencies/${agencyData?.documentId}`,
-        { data: { custom_audience_type: [...existingCustomAudienceTypes, { text: customValue }] } },
-        {
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
-        },
-      )
-
-      const data = res?.data?.data
-      addCustomAudienceType(customValue)
-      setSelected(customValue)
-      onSelect(customValue)
-      setCustomValue("")
-      setShowCustomInput(false)
-      setOpenDropdownId(null)
-      setSearchTerm("")
-      toast.success("Custom audience type saved successfully")
-    } catch (error) {
-      if (error?.response?.status === 401) {
-        const event = new Event("unauthorizedEvent")
-        window.dispatchEvent(event)
+    // If a custom value is selected but not in options, add it to context
+    useEffect(() => {
+      if (selected && !defaultOptions.includes(selected) && !customAudienceTypes.includes(selected)) {
+        addCustomAudienceType(selected)
       }
-      toast.error("Failed to save custom audience type")
-    } finally {
-      setLoading(false)
-    }
-  }
+      // eslint-disable-next-line
+    }, [selected])
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement
-      if (isOpen && !target.closest(`[data-dropdown-id="${dropdownId}"]`)) {
-        setOpenDropdownId(null)
-        setShowCustomInput(false)
+    const filteredOptions = (mergedAudienceOptions || []).filter((option) =>
+      option?.toLowerCase()?.includes(searchTerm?.toLowerCase()),
+    )
+
+    const handleSelect = useCallback(
+      (option: string) => {
+        try {
+          if (!option || typeof option !== 'string') {
+            console.error('Invalid option selected:', option);
+            return;
+          }
+          setSelected(option)
+          setOpenDropdownId(null)
+          setSearchTerm("")
+          onSelect(option)
+        } catch (error) {
+          console.error('Error in handleSelect:', error);
+          toast.error('Failed to select audience type. Please try again.');
+        }
+      },
+      [onSelect, setOpenDropdownId],
+    )
+
+    const toggleOpen = useCallback(() => {
+      try {
+        setOpenDropdownId(isOpen ? null : dropdownId)
         setSearchTerm("")
+        setShowCustomInput(false)
+        setCustomValue("")
+      } catch (error) {
+        console.error('Error in toggleOpen:', error);
+        // Reset to a safe state
+        setOpenDropdownId(null)
+        setSearchTerm("")
+        setShowCustomInput(false)
         setCustomValue("")
       }
+    }, [isOpen, setOpenDropdownId, dropdownId])
+
+    // Updated handleSaveCustomAudience to use PUT request to agencies endpoint
+    const handleSaveCustomAudience = async () => {
+      const value = customValue.trim();
+      if (value.length < 2) {
+        toast.error("Custom audience must be at least 2 characters.");
+        return;
+      }
+      if (!/[a-zA-Z]/.test(value)) {
+        toast.error("Custom audience must contain at least one alphabet.");
+        return;
+      }
+
+      // Check if agencyData exists before proceeding
+      if (!agencyData?.documentId) {
+        toast.error("Agency data not available. Please try again.");
+        return;
+      }
+
+      setLoading(true)
+      try {
+        // Get existing custom audience types from agencyData with proper null checking
+        const existingCustomAudienceTypes = agencyData?.custom_audience_type || []
+
+        // Use PUT request to update the agency's custom_audience_type array
+        const res = await axios.put(
+          `${process.env.NEXT_PUBLIC_STRAPI_URL}/agencies/${agencyData.documentId}`,
+          { data: { custom_audience_type: [...existingCustomAudienceTypes, { text: customValue }] } },
+          {
+            headers: {
+              Authorization: `Bearer ${jwt}`,
+            },
+          },
+        )
+
+        const data = res?.data?.data
+        addCustomAudienceType(customValue)
+        setSelected(customValue)
+        onSelect(customValue)
+        setCustomValue("")
+        setShowCustomInput(false)
+        setOpenDropdownId(null)
+        setSearchTerm("")
+        toast.success("Custom audience type saved successfully")
+      } catch (error: any) {
+        if (error?.response?.status === 401) {
+          const event = new Event("unauthorizedEvent")
+          window.dispatchEvent(event)
+        } else {
+          console.error("Error saving custom audience:", error)
+          toast.error("Failed to save custom audience type")
+        }
+      } finally {
+        setLoading(false)
+      }
     }
 
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [isOpen, dropdownId, setOpenDropdownId])
+    useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        const target = event.target as HTMLElement
+        if (isOpen && !target.closest(`[data-dropdown-id="${dropdownId}"]`)) {
+          setOpenDropdownId(null)
+          setShowCustomInput(false)
+          setSearchTerm("")
+          setCustomValue("")
+        }
+      }
 
-  return (
-    <div style={{ width: "200px" }}>
-      <div className="relative border-2 border-[#0000001A] rounded-[10px] w-full" data-dropdown-id={dropdownId}>
-        <button
-          onClick={toggleOpen}
-          className="relative z-10 min-w-0 w-full bg-white text-left border border-[#0000001A] rounded-lg text-[#656565] text-sm flex items-center justify-between py-4 px-4"
-          style={{
-            maxWidth: "100%",
-            overflow: "hidden",
-            whiteSpace: "nowrap",
-          }}
-          type="button"
-        >
-          <span
+      document.addEventListener("mousedown", handleClickOutside)
+      return () => document.removeEventListener("mousedown", handleClickOutside)
+    }, [isOpen, dropdownId, setOpenDropdownId])
+
+    return (
+      <div style={{ width: "200px" }}>
+        <div className="relative border-2 border-[#0000001A] rounded-[10px] w-full" data-dropdown-id={dropdownId}>
+          <button
+            onClick={toggleOpen}
+            className="relative z-10 min-w-0 w-full bg-white text-left border border-[#0000001A] rounded-lg text-[#656565] text-sm flex items-center justify-between py-4 px-4"
             style={{
-              display: "block",
-              maxWidth: "calc(100% - 24px)",
+              maxWidth: "100%",
               overflow: "hidden",
-              textOverflow: "ellipsis",
               whiteSpace: "nowrap",
             }}
-            title={selected || "Your audience type"}
+            type="button"
           >
-            {selected || "Your audience type"}
-          </span>
-          <svg
-            className={`h-4 w-4 flex-shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`}
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-        {isOpen && (
-          <div className="absolute mt-1 top-full z-50 w-full bg-white border-2 border-[#0000001A] rounded-lg shadow-lg overflow-hidden max-h-60 overflow-y-auto">
-            <ul>
-              <li className="px-2 py-2">
-                <input
-                  type="text"
-                  className="w-full p-2 border rounded-[5px] outline-none"
-                  placeholder="Search audiences..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  autoFocus
-                />
-              </li>
-              {filteredOptions.length === 0 && <li className="px-4 py-2 text-gray-400">No audiences found</li>}
-              {filteredOptions.map((option, index) => (
-                <li
-                  key={index}
-                  onClick={() => handleSelect(option)}
-                  className="p-4 cursor-pointer text-[#656565] text-sm text-center whitespace-normal break-words hover:bg-gray-100"
-                  style={{
-                    wordBreak: "break-word",
-                    whiteSpace: "normal",
-                    maxWidth: 300,
-                  }}
-                  title={option}
-                >
-                  {option}
-                </li>
-              ))}
-              {!showCustomInput ? (
-                <li
-                  className="px-4 py-2 hover:bg-gray-200 cursor-pointer text-[#656565] text-sm text-center"
-                  onClick={() => setShowCustomInput(true)}
-                >
-                  Add Custom
-                </li>
-              ) : (
-                <div className="w-[90%] mx-auto mb-2">
+            <span
+              style={{
+                display: "block",
+                maxWidth: "calc(100% - 24px)",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+              title={selected || "Your audience type"}
+            >
+              {selected || "Your audience type"}
+            </span>
+            <svg
+              className={`h-4 w-4 flex-shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`}
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {isOpen && (
+            <div className="absolute mt-1 top-full z-50 w-full bg-white border-2 border-[#0000001A] rounded-lg shadow-lg overflow-hidden max-h-60 overflow-y-auto">
+              <ul>
+                <li className="px-2 py-2">
                   <input
+                    type="text"
                     className="w-full p-2 border rounded-[5px] outline-none"
-                    value={customValue}
-                    onChange={(e) => setCustomValue(e.target.value)}
-                    placeholder="Enter custom audience"
+                    placeholder="Search audiences..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    autoFocus
                   />
-                  <div className="flex gap-[10px] w-full justify-between items-center my-[5px]">
-                    <button
-                      className="w-full p-[5px] border rounded-[5px]"
-                      onClick={() => {
-                        setShowCustomInput(false)
-                        setCustomValue("")
-                      }}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      className="w-full p-[5px] bg-blue-500 text-white rounded-[5px] flex justify-center items-center"
-                      onClick={handleSaveCustomAudience}
-                      disabled={loading}
-                    >
-                      {loading ? <FaSpinner className="animate-spin" /> : "Save"}
-                    </button>
+                </li>
+                {filteredOptions.length === 0 && <li className="px-4 py-2 text-gray-400">No audiences found</li>}
+                {filteredOptions.map((option, index) => (
+                  <li
+                    key={index}
+                    onClick={() => handleSelect(option)}
+                    className="p-4 cursor-pointer text-[#656565] text-sm text-center whitespace-normal break-words hover:bg-gray-100"
+                    style={{
+                      wordBreak: "break-word",
+                      whiteSpace: "normal",
+                      maxWidth: 300,
+                    }}
+                    title={option}
+                  >
+                    {option}
+                  </li>
+                ))}
+                {!showCustomInput ? (
+                  <li
+                    className="px-4 py-2 hover:bg-gray-200 cursor-pointer text-[#656565] text-sm text-center"
+                    onClick={() => setShowCustomInput(true)}
+                  >
+                    Add Custom
+                  </li>
+                ) : (
+                  <div className="w-[90%] mx-auto mb-2">
+                    <input
+                      className="w-full p-2 border rounded-[5px] outline-none"
+                      value={customValue}
+                      onChange={(e) => setCustomValue(e.target.value)}
+                      placeholder="Enter custom audience"
+                    />
+                    <div className="flex gap-[10px] w-full justify-between items-center my-[5px]">
+                      <button
+                        className="w-full p-[5px] border rounded-[5px]"
+                        onClick={() => {
+                          setShowCustomInput(false)
+                          setCustomValue("")
+                        }}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        className="w-full p-[5px] bg-blue-500 text-white rounded-[5px] flex justify-center items-center"
+                        onClick={handleSaveCustomAudience}
+                        disabled={loading}
+                      >
+                        {loading ? <FaSpinner className="animate-spin" /> : "Save"}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
-            </ul>
-          </div>
-        )}
+                )}
+              </ul>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
-  )
+    )
+  } catch (error) {
+    console.error('Error in AudienceDropdownWithCallback:', error);
+    // Return a fallback UI
+    return (
+      <div style={{ width: "200px" }}>
+        <div className="relative border-2 border-[#0000001A] rounded-[10px] w-full">
+          <button
+            className="relative z-10 min-w-0 w-full bg-white text-left border border-[#0000001A] rounded-lg text-[#656565] text-sm flex items-center justify-between py-4 px-4"
+            style={{
+              maxWidth: "100%",
+              overflow: "hidden",
+              whiteSpace: "nowrap",
+            }}
+            type="button"
+            disabled
+          >
+            <span>Error loading dropdown</span>
+          </button>
+        </div>
+      </div>
+    )
+  }
 })
 
 // NonFacebookOutlet Component (unchanged)
