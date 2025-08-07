@@ -29,6 +29,10 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
   const isdocumentId = campaignData?.documentId
   const [show, setShow] = useState(false);
 
+
+  console.log("campaignData---", session);
+  console.log("agency_user from session---", session?.user?.agency_user);
+
   useEffect(() => {
     if (createApprovalSuccess) {
       setModalOpen(false);
