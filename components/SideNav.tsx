@@ -27,12 +27,19 @@ import { toast } from "sonner";
 import axios from "axios";
 
 const SideNav: React.FC = () => {
-  const { change, setChange, showModal, setShowModal } = useActive()
-  const { setClose, close, setViewcommentsId, setOpportunities } = useComments();
+  const { change, setChange, showModal, setShowModal } = useActive();
+  const { setClose, close, setViewcommentsId, setOpportunities } =
+    useComments();
   const router = useRouter();
   const { setActive, setSubStep, active, subStep } = useActive();
   const dispatch = useAppDispatch();
-  const { campaignData, setCampaignData, loadingCampaign, campaignFormData } = useCampaigns();
+  const {
+    campaignData,
+    setCampaignData,
+    loadingCampaign,
+    campaignFormData,
+    agencyId,
+  } = useCampaigns();
 
   // ────────────────────────────────────────────────────────────────
   // Access-control: hide full sidebar content when the logged-in
@@ -40,26 +47,24 @@ const SideNav: React.FC = () => {
   // is the "Back to Dashboard" button so the user can navigate away.
   // ────────────────────────────────────────────────────────────────
 
-  const { data: session } = useSession();
-  const loggedInId = (session?.user as any)?.id;
-  const builderId = campaignFormData?.campaign_builder?.id;
+  const loggedInId = agencyId;
+  const builderId = campaignFormData?.agency_profile?.id;
   const unauthorized = builderId && loggedInId && builderId !== loggedInId;
 
-
   useEffect(() => {
-    const shouldClose = active === 9 || active === 10 || (active === 7 && subStep === 1);
+    const shouldClose =
+      active === 9 || active === 10 || (active === 7 && subStep === 1);
     setClose((prev) => (prev !== shouldClose ? shouldClose : prev));
   }, [active, setClose, subStep]);
-
-
-
 
   const handleBackClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
     // Check if there are incomplete required fields by validating directly
-    const hasIncompleteFields = !campaignFormData?.media_plan || !campaignFormData?.budget_details_currency?.id;
+    const hasIncompleteFields =
+      !campaignFormData?.media_plan ||
+      !campaignFormData?.budget_details_currency?.id;
 
     if (change || hasIncompleteFields) {
       setShowModal(true);
@@ -68,8 +73,6 @@ const SideNav: React.FC = () => {
       // navigateBack();
     }
   };
-
-
 
   const clearAllCampaignData = () => {
     if (typeof window === "undefined") return;
@@ -86,9 +89,11 @@ const SideNav: React.FC = () => {
 
       // Clear window channel state
       if ((window as any).channelLevelAudienceState) {
-        Object.keys((window as any).channelLevelAudienceState).forEach((stageName) => {
-          delete (window as any).channelLevelAudienceState[stageName];
-        });
+        Object.keys((window as any).channelLevelAudienceState).forEach(
+          (stageName) => {
+            delete (window as any).channelLevelAudienceState[stageName];
+          }
+        );
       }
 
       // Clear all localStorage items related to campaign creation
@@ -104,48 +109,51 @@ const SideNav: React.FC = () => {
         "change",
         "comments",
         "subStep",
-        "verifybeforeMove"
+        "verifybeforeMove",
       ];
 
       // Remove campaign-specific localStorage items
-      localStorageKeysToRemove.forEach(key => {
+      localStorageKeysToRemove.forEach((key) => {
         localStorage.removeItem(key);
       });
 
       // Remove quantities-related localStorage items (format selection)
-      Object.keys(localStorage).forEach(key => {
+      Object.keys(localStorage).forEach((key) => {
         if (key.startsWith("quantities_")) {
           localStorage.removeItem(key);
         }
       });
 
       // Remove modal dismissal keys
-      Object.keys(localStorage).forEach(key => {
-        if (key.includes("modal_dismissed") || key.includes("goalLevelModalDismissed")) {
+      Object.keys(localStorage).forEach((key) => {
+        if (
+          key.includes("modal_dismissed") ||
+          key.includes("goalLevelModalDismissed")
+        ) {
           localStorage.removeItem(key);
         }
       });
 
       // Remove format error trigger keys
-      Object.keys(localStorage).forEach(key => {
+      Object.keys(localStorage).forEach((key) => {
         if (key.startsWith("triggerFormatError_")) {
           localStorage.removeItem(key);
         }
       });
 
       // Remove channel mix related localStorage items
-      Object.keys(localStorage).forEach(key => {
-        if (key.includes("openItems") ||
+      Object.keys(localStorage).forEach((key) => {
+        if (
+          key.includes("openItems") ||
           key.includes("selected") ||
           key.includes("stageStatuses") ||
           key.includes("showMoreMap") ||
-          key.includes("openChannelTypes")) {
+          key.includes("openChannelTypes")
+        ) {
           localStorage.removeItem(key);
         }
       });
-
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleCancel = () => {
@@ -168,8 +176,6 @@ const SideNav: React.FC = () => {
   const handleStayOnPage = () => {
     setShowModal(false);
   };
-
-
 
   const navigateBack = () => {
     clearAllCampaignData();
@@ -281,7 +287,9 @@ const SideNav: React.FC = () => {
     [campaignData]
   );
 
-  const isCampaignDataLoaded = campaignData?.client?.client_name && campaignData?.media_plan_details?.plan_name;
+  const isCampaignDataLoaded =
+    campaignData?.client?.client_name &&
+    campaignData?.media_plan_details?.plan_name;
 
   // ---------------------------------------------------------------
   // Unauthorized view: just render the back button
@@ -306,12 +314,21 @@ const SideNav: React.FC = () => {
   // ---------------------------------------------------------------
 
   return (
-    <div id={close ? "side-nav-active" : "side-nav"} className="!flex !flex-col !h-full">
+    <div
+      id={close ? "side-nav-active" : "side-nav"}
+      className="!flex !flex-col !h-full"
+    >
       <div className="flex flex-col">
-        <div className={`flex ${close ? "justify-center mb-[30px]" : "justify-end"} w-full`}>
-          <button onClick={() => {
-            setClose(!close);
-          }}>
+        <div
+          className={`flex ${
+            close ? "justify-center mb-[30px]" : "justify-end"
+          } w-full`}
+        >
+          <button
+            onClick={() => {
+              setClose(!close);
+            }}
+          >
             <Image src={closeicon} alt="closeicon" />
           </button>
         </div>
@@ -331,7 +348,9 @@ const SideNav: React.FC = () => {
             ) : isCampaignDataLoaded ? (
               <div>
                 <h6 className="font-general-sans font-semibold text-[24px] leading-[36px] text-[#152A37]">
-                  {campaignData.media_plan_details.plan_name.charAt(0).toUpperCase() +
+                  {campaignData.media_plan_details.plan_name
+                    .charAt(0)
+                    .toUpperCase() +
                     campaignData.media_plan_details.plan_name.slice(1)}
                 </h6>
               </div>
@@ -343,22 +362,29 @@ const SideNav: React.FC = () => {
                 </div>
               ) : isCampaignDataLoaded ? (
                 <p className="text-[#152A37] text-[15px] font-medium leading-[175%] not-italic">
-                  {campaignData?.client?.client_name.charAt(0).toUpperCase() + campaignData.client.client_name.slice(1)}
+                  {campaignData?.client?.client_name.charAt(0).toUpperCase() +
+                    campaignData.client.client_name.slice(1)}
                 </p>
               ) : (
                 <p className="text-[#152A37] text-[15px] font-medium leading-[175%] not-italic mt-3">
-                  Follow the steps to set up an effective and successful campaign strategy.
+                  Follow the steps to set up an effective and successful
+                  campaign strategy.
                 </p>
               )}
             </div>
           </div>
         )}
       </div>
-      {close ? <CreationFlowActive steps={steps} close={close} /> : <CreationFlow steps={steps} />}
+      {close ? (
+        <CreationFlowActive steps={steps} close={close} />
+      ) : (
+        <CreationFlow steps={steps} />
+      )}
       {!close && (
         <p className="font-general-sans italic font-medium text-[12px] leading-[21px] text-[rgba(6,18,55,0.8)] fade-content">
-          This screen, all the other ones, as well as the system they build together are protected by copyright © - all use,
-          display, and any other rights are exclusively reserved to Eurekads Pte. Ltd.
+          This screen, all the other ones, as well as the system they build
+          together are protected by copyright © - all use, display, and any
+          other rights are exclusively reserved to Eurekads Pte. Ltd.
         </p>
       )}
       <BackConfirmModal

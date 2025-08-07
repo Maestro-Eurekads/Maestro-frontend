@@ -989,7 +989,7 @@ const ResizableChannels = ({
             }
 
             left =
-              parentLeft + Math.abs(startDateIndex < 0 ? 0 : startDateIndex);
+               Math.abs(startDateIndex < 0 ? 0 : startDateIndex);
             width = daysBetween > 0 ? dailyWidth * daysBetween : parentWidth;
           }
 

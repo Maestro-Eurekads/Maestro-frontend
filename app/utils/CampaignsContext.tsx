@@ -16,7 +16,10 @@ import { useSelector } from "react-redux";
 import { channelMixPopulate } from "utils/fetcher";
 import { signOut, useSession } from "next-auth/react";
 import { updateUsersWithCampaign } from "app/homepage/functions/clients";
-import { extractObjectives, getFilteredMetrics } from "app/creation/components/EstablishedGoals/table-view/data-processor";
+import {
+  extractObjectives,
+  getFilteredMetrics,
+} from "app/creation/components/EstablishedGoals/table-view/data-processor";
 import { useUserPrivileges } from "utils/userPrivileges";
 import { toast } from "sonner";
 import { useAppDispatch } from "store/useStore";
@@ -57,8 +60,6 @@ const getInitialState = (campaignId?: string | null) => {
   };
 };
 
-
-
 const CampaignContext = createContext<any>(null);
 
 export const CampaignProvider = ({ children }: { children: ReactNode }) => {
@@ -68,7 +69,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const campaign_builder = session?.user;
   const query = useSearchParams();
   const cId = query.get("campaignId");
-  const [campaignFormData, setCampaignFormData] = useState(getInitialState(cId));
+  const [campaignFormData, setCampaignFormData] = useState(
+    getInitialState(cId)
+  );
   const [campaignData, setCampaignData] = useState(null);
   const dispatch = useAppDispatch();
   const [clientCampaignData, setClientCampaignData] = useState([]);
@@ -92,7 +95,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [clientPOs, setClientPOs] = useState([]);
   const [fetchingPO, setFetchingPO] = useState(false);
   const [currencySign, setCurrencySign] = useState("");
-  const { loggedInUser, agency_user } = useUserPrivileges()
+  const { loggedInUser, agency_user } = useUserPrivileges() 
   const [user, setUser] = useState(null);
   const [headerData, setHeaderData] = useState({});
   const [filterOptions, setFilterOptions] = useState({
@@ -106,10 +109,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [selectedFilters, setSelectedFilters] = useState({});
   const [clientUsers, setClientUsers] = useState([]);
   const [agencyId, setAgencyId] = useState<string | number | null>(null);
-  const [selectedClient, setSelectedClient] = useState()
+  const [selectedClient, setSelectedClient] = useState();
   const [agencyData, setAgencyData] = useState(null);
   const [selectedId, setSelectedId] = useState<string>("");
-
 
   const reduxClients = useSelector(
     (state: any) => state.client?.getCreateClientData?.data || []
@@ -176,7 +178,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             setCampaignData({
               client: clientData,
               custom_funnels: clientData?.custom_funnels || [],
-              funnel_configs: clientData?.custom_funnel_configs || []
+              funnel_configs: clientData?.custom_funnel_configs || [],
             });
           } catch (error) {
             if (error?.response?.status === 401) {
@@ -210,9 +212,11 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
 
           // Clear window channel state
           if ((window as any).channelLevelAudienceState) {
-            Object.keys((window as any).channelLevelAudienceState).forEach((stageName) => {
-              delete (window as any).channelLevelAudienceState[stageName];
-            });
+            Object.keys((window as any).channelLevelAudienceState).forEach(
+              (stageName) => {
+                delete (window as any).channelLevelAudienceState[stageName];
+              }
+            );
           }
 
           // Clear all localStorage items related to campaign creation
@@ -228,42 +232,47 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             "change",
             "comments",
             "subStep",
-            "verifybeforeMove"
+            "verifybeforeMove",
           ];
 
           // Remove campaign-specific localStorage items
-          localStorageKeysToRemove.forEach(key => {
+          localStorageKeysToRemove.forEach((key) => {
             localStorage.removeItem(key);
           });
 
           // Remove quantities-related localStorage items (format selection)
-          Object.keys(localStorage).forEach(key => {
+          Object.keys(localStorage).forEach((key) => {
             if (key.startsWith("quantities_")) {
               localStorage.removeItem(key);
             }
           });
 
           // Remove modal dismissal keys
-          Object.keys(localStorage).forEach(key => {
-            if (key.includes("modal_dismissed") || key.includes("goalLevelModalDismissed")) {
+          Object.keys(localStorage).forEach((key) => {
+            if (
+              key.includes("modal_dismissed") ||
+              key.includes("goalLevelModalDismissed")
+            ) {
               localStorage.removeItem(key);
             }
           });
 
           // Remove format error trigger keys
-          Object.keys(localStorage).forEach(key => {
+          Object.keys(localStorage).forEach((key) => {
             if (key.startsWith("triggerFormatError_")) {
               localStorage.removeItem(key);
             }
           });
 
           // Remove channel mix related localStorage items
-          Object.keys(localStorage).forEach(key => {
-            if (key.includes("openItems") ||
+          Object.keys(localStorage).forEach((key) => {
+            if (
+              key.includes("openItems") ||
               key.includes("selected") ||
               key.includes("stageStatuses") ||
               key.includes("showMoreMap") ||
-              key.includes("openChannelTypes")) {
+              key.includes("openChannelTypes")
+            ) {
               localStorage.removeItem(key);
             }
           });
@@ -296,6 +305,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
               populate: {
                 client: true,
                 campaign_builder: true,
+                agency_profile: true,
                 media_plan_details: {
                   populate: {
                     internal_approver: {
@@ -304,6 +314,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
                     client_approver: {
                       populate: "user",
                     },
+
                     approved_by: {
                       populate: "user",
                     },
@@ -336,7 +347,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           const isDifferentCampaign = prev?.cId !== cId;
 
           // If it's a different campaign, don't preserve local data
-          const shouldPreserveLocalData = !isDifferentCampaign && prev && Object.keys(prev).length > 0;
+          const shouldPreserveLocalData =
+            !isDifferentCampaign && prev && Object.keys(prev).length > 0;
 
           return {
             ...prev,
@@ -344,17 +356,24 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
               id: data?.client?.documentId ?? prev?.client_selection?.id,
               value: data?.client?.client_name ?? prev?.client_selection?.value,
             },
-            level_1: (
+            agency_profile: data?.agency_profile ?? prev.agency_profile,
+            level_1:
               data?.client_selection?.level_1 &&
-              ((Array.isArray(data?.client_selection?.level_1.value) && data?.client_selection?.level_1.value.length > 0) ||
-                (typeof data?.client_selection?.level_1.value === 'string' && data?.client_selection?.level_1.value))
-            )
-              ? {
-                id: data?.client_selection?.level_1.id ?? prev.level_1?.id,
-                value: data?.client_selection?.level_1.value ?? prev.level_1?.value,
-              }
-              : prev.level_1,
-            media_plan: shouldPreserveLocalData && prev.media_plan ? prev.media_plan : (data?.media_plan_details?.plan_name ?? prev.media_plan),
+              ((Array.isArray(data?.client_selection?.level_1.value) &&
+                data?.client_selection?.level_1.value.length > 0) ||
+                (typeof data?.client_selection?.level_1.value === "string" &&
+                  data?.client_selection?.level_1.value))
+                ? {
+                    id: data?.client_selection?.level_1.id ?? prev.level_1?.id,
+                    value:
+                      data?.client_selection?.level_1.value ??
+                      prev.level_1?.value,
+                  }
+                : prev.level_1,
+            media_plan:
+              shouldPreserveLocalData && prev.media_plan
+                ? prev.media_plan
+                : data?.media_plan_details?.plan_name ?? prev.media_plan,
             budget_details_currency: {
               id: data?.budget_details?.currency,
               value: data?.budget_details?.currency,
@@ -372,13 +391,30 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
               data?.media_plan_details?.approved_by ?? prev.approved_by,
             campaign_objectives:
               data?.campaign_objective ?? prev.campaign_objectives,
-            funnel_stages: shouldPreserveLocalData && prev.funnel_stages && prev.funnel_stages.length > 0 ? prev.funnel_stages : (data?.funnel_stages ?? prev.funnel_stages),
-            channel_mix: shouldPreserveLocalData && prev.channel_mix && Object.keys(prev.channel_mix).length > 0 ? prev.channel_mix : (data?.channel_mix ?? prev.channel_mix),
+            funnel_stages:
+              shouldPreserveLocalData &&
+              prev.funnel_stages &&
+              prev.funnel_stages.length > 0
+                ? prev.funnel_stages
+                : data?.funnel_stages ?? prev.funnel_stages,
+            channel_mix:
+              shouldPreserveLocalData &&
+              prev.channel_mix &&
+              Object.keys(prev.channel_mix).length > 0
+                ? prev.channel_mix
+                : data?.channel_mix ?? prev.channel_mix,
             campaign_timeline_start_date:
-              shouldPreserveLocalData && prev.campaign_timeline_start_date ? prev.campaign_timeline_start_date : (data?.campaign_timeline_start_date ?? ""),
+              shouldPreserveLocalData && prev.campaign_timeline_start_date
+                ? prev.campaign_timeline_start_date
+                : data?.campaign_timeline_start_date ?? "",
             campaign_timeline_end_date:
-              shouldPreserveLocalData && prev.campaign_timeline_end_date ? prev.campaign_timeline_end_date : (data?.campaign_timeline_end_date ?? ""),
-            campaign_budget: shouldPreserveLocalData && prev.campaign_budget ? prev.campaign_budget : data?.campaign_budget,
+              shouldPreserveLocalData && prev.campaign_timeline_end_date
+                ? prev.campaign_timeline_end_date
+                : data?.campaign_timeline_end_date ?? "",
+            campaign_budget:
+              shouldPreserveLocalData && prev.campaign_budget
+                ? prev.campaign_budget
+                : data?.campaign_budget,
             goal_level: data?.goal_level ?? prev.goal_level,
             progress_percent: data?.progress_percent ?? prev.progress_percent,
             custom_funnels: data?.custom_funnels ?? prev.custom_funnels,
@@ -389,10 +425,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             campaign_version: data?.campaign_version ?? prev.campaign_version,
             isApprove: data?.isApprove,
             table_headers:
-              ((data?.table_headers || {}) ??
-                (prev?.table_headers)) ||
-              {},
-            selected_metrics: ((data?.selected_metrics || {}) ?? (prev?.selected_metrics)) || {},
+              ((data?.table_headers || {}) ?? prev?.table_headers) || {},
+            selected_metrics:
+              ((data?.selected_metrics || {}) ?? prev?.selected_metrics) || {},
           };
         });
         setLoadingCampaign(false);
@@ -401,7 +436,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           const event = new Event("unauthorizedEvent");
           window.dispatchEvent(event);
         }
-
       } finally {
         setLoadingCampaign(false);
       }
@@ -432,7 +466,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
                 (ff) => ff?.value
               ),
             },
-            agency_profile: agencyId
+            agency_profile: agencyId,
           },
         },
         {
@@ -504,15 +538,15 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           },
         }
       );
-      setGetProfile(response?.data);
-      setHasFetchedProfile(true);
+      setGetProfile(response?.data); 
+      setHasFetchedProfile(true); 
 
       const aId =
         response?.data?.user_type === "admin"
           ? response?.data?.admin?.agency?.id
           : response?.data?.user_type?.includes("cleint")
-            ? response?.data?.cleint_user?.agency?.id
-            : response?.data?.agency_user?.agency?.id;
+          ? response?.data?.cleint_user?.agency?.id
+          : response?.data?.agency_user?.agency?.id;
       //console.log("agencyId", aId);
       setAgencyId(aId);
       return response;
@@ -611,7 +645,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   //           id: item,
   //           value: item,
   //           label: item,
-  //         })) || [],  
+  //         })) || [],
   //     });
   //   } catch (error) {
   //     console.error("Error fetching Client Architecture options:", error);
@@ -665,7 +699,11 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       // Filter: show all default objectives (where agency is null/empty) + custom objectives from current agency
       const filteredObjectives = allObjectives.filter((objective: any) => {
         // Show default objectives (no agency specified)
-        if (!objective.agency || objective.agency === null || objective.agency === "") {
+        if (
+          !objective.agency ||
+          objective.agency === null ||
+          objective.agency === ""
+        ) {
           return true;
         }
         // Show custom objectives from current agency
@@ -749,7 +787,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         const event = new Event("unauthorizedEvent");
         window.dispatchEvent(event);
       }
-
     } finally {
       setgetLoading(false);
     }
@@ -842,7 +879,14 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   // }, [selectedClient, fetchBusinessLevelOptions]);
 
   // Initial data fetching
-  const updateStatus = async (stage: string, label: string, cId: string | number, jwt: string, user: any, getActiveCampaign: (id: string | number) => void) => {
+  const updateStatus = async (
+    stage: string,
+    label: string,
+    cId: string | number,
+    jwt: string,
+    user: any,
+    getActiveCampaign: (id: string | number) => void
+  ) => {
     try {
       const newStatus = [
         {
@@ -884,7 +928,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
@@ -917,8 +960,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     fetchPlatformLists,
     fetchBuyTypes,
     jwt,
-    agencyId,
-    agency_user
+    agencyId, 
+    agency_user 
   ]);
 
   const contextValue = useMemo(
@@ -1035,9 +1078,20 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
 
   // Auto-save campaignFormData to localStorage whenever it changes
   useEffect(() => {
-    if (typeof window !== "undefined" && campaignFormData && Object.keys(campaignFormData).length > 0 && cId) {
-      localStorage.setItem(`campaignFormData_${cId}`, JSON.stringify(campaignFormData));
-      localStorage.setItem(`campaignFormData_${cId}_timestamp`, Date.now().toString());
+    if (
+      typeof window !== "undefined" &&
+      campaignFormData &&
+      Object.keys(campaignFormData).length > 0 &&
+      cId
+    ) {
+      localStorage.setItem(
+        `campaignFormData_${cId}`,
+        JSON.stringify(campaignFormData)
+      );
+      localStorage.setItem(
+        `campaignFormData_${cId}_timestamp`,
+        Date.now().toString()
+      );
     }
   }, [campaignFormData, cId]);
 
@@ -1050,7 +1104,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           const parsedData = JSON.parse(savedState);
           setCampaignFormData(parsedData);
         } catch (error) {
-          console.error("Error loading campaign data from localStorage:", error);
+          console.error(
+            "Error loading campaign data from localStorage:",
+            error
+          );
           // If there's an error parsing, reset to initial state
           setCampaignFormData(getInitialState(cId));
         }
@@ -1065,8 +1122,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (cId && typeof window !== "undefined") {
       // Get all localStorage keys that start with "campaignFormData_"
-      const keysToCheck = Object.keys(localStorage).filter(key =>
-        key.startsWith("campaignFormData_") && key !== `campaignFormData_${cId}`
+      const keysToCheck = Object.keys(localStorage).filter(
+        (key) =>
+          key.startsWith("campaignFormData_") &&
+          key !== `campaignFormData_${cId}`
       );
 
       // Remove old campaign data (keep only the current campaign and a few recent ones)
@@ -1079,7 +1138,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         });
 
         // Remove older campaigns
-        sortedKeys.slice(10).forEach(key => {
+        sortedKeys.slice(10).forEach((key) => {
           localStorage.removeItem(key);
           localStorage.removeItem(`${key}_timestamp`);
         });

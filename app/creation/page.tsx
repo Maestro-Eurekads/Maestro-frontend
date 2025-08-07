@@ -23,10 +23,14 @@ import { useSession } from "next-auth/react";
 
 const Creation = () => {
   const { active, subStep } = useActive();
-  const { campaignFormData } = useCampaigns();
+  const { campaignFormData, agencyId } = useCampaigns();
+
   // get the usesession user
   const { data: session } = useSession();
   const user = session?.user;
+
+  console.log("this is the user", user);
+  console.log("this is the campaignFormData", campaignFormData, agencyId);
 
   // ────────────────────────────────────────────────────────────────
   // Guard: only the campaign builder (same Strapi user) can access
@@ -37,8 +41,8 @@ const Creation = () => {
   // Extract builder id when available – campaignFormData is filled
   // asynchronously in the CampaignProvider, so the value may be
   // undefined on the very first render.
-  const builderId = campaignFormData?.campaign_builder?.id;
-  const loggedInId = (user as any)?.id; // set in next-auth callback
+  const builderId = campaignFormData?.agency_profile?.id;
+  const loggedInId = agencyId;
 
   if (builderId && loggedInId && builderId !== loggedInId) {
     return (
@@ -48,8 +52,6 @@ const Creation = () => {
       </div>
     );
   }
-
-  console.log("thsi is the data", session);
 
   return (
     <EnhancedDateProvider campaignFormData={campaignFormData}>
