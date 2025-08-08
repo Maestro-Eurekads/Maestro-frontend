@@ -200,6 +200,12 @@ const updateMultipleAdSets = (
   let platformFound = false
 
   for (const channelType of channelTypes) {
+    // Check if the channel type exists and is an array
+    if (!stage[channelType] || !Array.isArray(stage[channelType])) {
+      console.warn(`Channel type "${channelType}" is not an array in stage "${stageName}"`)
+      continue
+    }
+
     const platformIndex = stage[channelType].findIndex((platform: Platform) => platform.platform_name === platformName)
     if (platformIndex !== -1) {
       const platform = stage[channelType][platformIndex]
@@ -1152,6 +1158,12 @@ const AdsetSettings = memo(function AdsetSettings({
           }
         })
 
+        // Ensure channel_mix exists and is an array
+        if (!campaignFormData?.channel_mix || !Array.isArray(campaignFormData.channel_mix)) {
+          console.warn("channel_mix is not available or not an array in addAdSet:", campaignFormData?.channel_mix)
+          return updated
+        }
+
         const updatedChannelMix = updateMultipleAdSets(
           campaignFormData.channel_mix,
           stageName,
@@ -1313,6 +1325,12 @@ const AdsetSettings = memo(function AdsetSettings({
               }
             })
 
+            // Ensure channel_mix exists and is an array
+            if (!campaignFormData?.channel_mix || !Array.isArray(campaignFormData.channel_mix)) {
+              console.warn("channel_mix is not available or not an array:", campaignFormData?.channel_mix)
+              return updated
+            }
+
             const updatedChannelMix = updateMultipleAdSets(
               campaignFormData.channel_mix,
               stageName,
@@ -1352,7 +1370,10 @@ const AdsetSettings = memo(function AdsetSettings({
       return
     }
 
-    if (!campaignFormData?.channel_mix) return
+    if (!campaignFormData?.channel_mix || !Array.isArray(campaignFormData.channel_mix)) {
+      console.warn("channel_mix is not available or not an array in useEffect:", campaignFormData?.channel_mix)
+      return
+    }
 
     // Debounce the persistence to avoid too many updates
     const timeoutId = setTimeout(() => {
@@ -1374,6 +1395,12 @@ const AdsetSettings = memo(function AdsetSettings({
         }
       })
 
+      // Ensure channel_mix exists and is an array
+      if (!campaignFormData?.channel_mix || !Array.isArray(campaignFormData.channel_mix)) {
+        console.warn("channel_mix is not available or not an array in deleteAdSet:", campaignFormData?.channel_mix)
+        return
+      }
+
       const updatedChannelMix = updateMultipleAdSets(
         campaignFormData.channel_mix,
         stageName,
@@ -1385,8 +1412,6 @@ const AdsetSettings = memo(function AdsetSettings({
         ...prevData,
         channel_mix: updatedChannelMix,
       }))
-
-      console.log(`[${outlet.outlet}] Persisted ad sets:`, adSetsToSave)
     }, 500) // 500ms debounce
 
     return () => clearTimeout(timeoutId)
@@ -1402,20 +1427,12 @@ const AdsetSettings = memo(function AdsetSettings({
     campaignFormData?.channel_mix,
   ])
 
-  // Debug useEffect to track ad set changes
-  useEffect(() => {
-    console.log(
-      `[${outlet.outlet}] Ad sets updated:`,
-      adsets.length,
-      adsets.map((a) => a.id),
-    )
-    console.log(`[${outlet.outlet}] Ad set data:`, Object.keys(adSetDataMap))
-  }, [adsets, adSetDataMap, outlet.outlet])
 
-  const handleSelectOutlet = useCallback(() => {
-    setSelectedPlatforms((prev) => [...prev, outlet.outlet])
-    onInteraction()
-  }, [outlet.outlet, onInteraction])
+
+  // const handleSelectOutlet = useCallback(() => {
+  //   setSelectedPlatforms((prev) => [...prev, outlet.outlet])
+  //   onInteraction()
+  // }, [outlet.outlet, onInteraction])
 
   const handleToggleCollapsed = useCallback(() => {
     setCollapsed(!isCollapsed)
