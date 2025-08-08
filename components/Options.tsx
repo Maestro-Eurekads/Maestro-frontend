@@ -1085,7 +1085,13 @@ const DEFAULT_MEDIA_OPTIONS = [
   { name: "Collection", icon: "/collection_format.svg" },
 ]
 
+
+
+
+
+const defaultOptions = ["Lookalike audience", "Retargeting audience", "Broad audience", "Behavioral audience"]
 export {
+  defaultOptions,
   CHANNEL_TYPES,
   DEFAULT_MEDIA_OPTIONS,
   months,

@@ -275,6 +275,9 @@ const VersionPromptModal = () => {
 			if (cleanedFormData?.goal_level) {
 				(payload.data as any).goal_level = cleanedFormData.goal_level;
 			}
+			if (cleanedFormData?.ad_sets_granularity || cleanedFormData?.granularity) {
+				(payload.data as any).ad_sets_granularity = cleanedFormData.ad_sets_granularity || cleanedFormData.granularity;
+			}
 			if (cleanedFormData?.campaign_timeline_start_date) {
 				(payload.data as any).campaign_timeline_start_date = cleanedFormData.campaign_timeline_start_date;
 			}
@@ -443,6 +446,9 @@ const VersionPromptModal = () => {
 			}
 			if (cleanedFormData?.goal_level) {
 				(payload.data as any).goal_level = cleanedFormData.goal_level;
+			}
+			if (cleanedFormData?.ad_sets_granularity || cleanedFormData?.granularity) {
+				(payload.data as any).ad_sets_granularity = cleanedFormData.ad_sets_granularity || cleanedFormData.granularity;
 			}
 			if (cleanedFormData?.campaign_timeline_start_date) {
 				(payload.data as any).campaign_timeline_start_date = cleanedFormData.campaign_timeline_start_date;

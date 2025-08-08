@@ -38,11 +38,12 @@ const GOAL_LEVEL_MODAL_KEY_PREFIX = "goalLevelModalDismissed_"
 const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({})
   // Remove completed status: don't track stageStatuses or hasInteracted
-  const { campaignFormData, setCampaignFormData } = useCampaigns()
+  const { campaignFormData, setCampaignFormData, updateCampaign, loadingCampaign } = useCampaigns()
   const [step, setStep] = useState(2)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const initialized = useRef(false)
   const [openPlatforms, setOpenPlatforms] = useState<Record<string, string[]>>({})
+  const [isLoadingGranularity, setIsLoadingGranularity] = useState(true)
 
   // Get a unique key for the current plan (use media_plan_id if available, fallback to campaignFormData id)
   const getPlanKey = () => {
@@ -142,6 +143,42 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
       })
     }
   }, [campaignFormData?.id, campaignFormData?.media_plan_id])
+
+  // Handle ad_sets_granularity from campaign data
+  useEffect(() => {
+    if (loadingCampaign) {
+      setIsLoadingGranularity(true)
+      return
+    }
+
+    // If campaign data is still being loaded or not available yet
+    if (!campaignFormData) {
+      setIsLoadingGranularity(true)
+      return
+    }
+
+    if (campaignFormData?.ad_sets_granularity && campaignFormData.ad_sets_granularity !== view) {
+      setIsLoadingGranularity(true)
+      onToggleChange(campaignFormData.ad_sets_granularity)
+      // Add a small delay to ensure the transition is smooth
+      setTimeout(() => {
+        setIsLoadingGranularity(false)
+      }, 500)
+    } else if (campaignFormData?.ad_sets_granularity || campaignFormData) {
+      // If we have campaign data but no granularity change needed, stop loading
+      setIsLoadingGranularity(false)
+    } else {
+      // If no campaign data yet, keep loading
+      setIsLoadingGranularity(true)
+    }
+  }, [campaignFormData?.ad_sets_granularity, view, onToggleChange, campaignFormData, loadingCampaign])
+
+  // Initial loading state when component mounts
+  useEffect(() => {
+    if (!campaignFormData && !loadingCampaign) {
+      setIsLoadingGranularity(false)
+    }
+  }, [campaignFormData, loadingCampaign])
 
   useEffect(() => {
     if (!campaignFormData) return
@@ -506,6 +543,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
       ...prev,
       goal_level: checked ? "Adset level" : "Channel level",
       granularity: newView, // Add explicit granularity field
+      ad_sets_granularity: newView, // Add backend field for granularity
     }))
 
     // Save granularity setting to localStorage for persistence
@@ -527,6 +565,23 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
         console.error("Error saving granularity setting:", error)
       }
     }
+
+    // Save granularity to backend if campaign exists
+    const saveGranularityToBackend = async () => {
+      try {
+        if (campaignFormData?.cId) {
+          await updateCampaign({
+            ad_sets_granularity: newView,
+            goal_level: checked ? "Adset level" : "Channel level",
+          })
+        }
+      } catch (error) {
+        console.error("Error saving granularity to backend:", error)
+      }
+    }
+
+    // Call the backend save function
+    saveGranularityToBackend()
 
     // Clear previous granularity data when switching
     if (typeof window !== "undefined") {
@@ -555,23 +610,30 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     <div className="mt-12 flex items-start flex-col cursor-pointer mx-auto gap-12 w-full">
       {/* Center the granularity switch */}
       <div className="flex justify-center w-full">
-        <div className="flex justify-center items-center gap-3">
-          <p className="font-medium">Channel Granularity</p>
-          <Switch
-            checked={view === "adset"}
-            onChange={handleToggleChange}
-            onColor="#5cd98b"
-            offColor="#3175FF"
-            handleDiameter={18}
-            uncheckedIcon={false}
-            checkedIcon={false}
-            height={24}
-            width={48}
-            borderRadius={24}
-            activeBoxShadow="0 0 2px 3px rgba(37, 99, 235, 0.2)"
-          />
-          <p className="font-medium">Ad set Granularity</p>
-        </div>
+        {isLoadingGranularity ? (
+          <div className="flex justify-center items-center gap-3">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#3175FF]"></div>
+            <p className="font-medium text-[#3175FF]">Loading granularity settings...</p>
+          </div>
+        ) : (
+          <div className="flex justify-center items-center gap-3">
+            <p className="font-medium">Channel Granularity</p>
+            <Switch
+              checked={view === "adset"}
+              onChange={handleToggleChange}
+              onColor="#5cd98b"
+              offColor="#3175FF"
+              handleDiameter={18}
+              uncheckedIcon={false}
+              checkedIcon={false}
+              height={24}
+              width={48}
+              borderRadius={24}
+              activeBoxShadow="0 0 2px 3px rgba(37, 99, 235, 0.2)"
+            />
+            <p className="font-medium">Ad set Granularity</p>
+          </div>
+        )}
       </div>
 
       {campaignFormData?.funnel_stages?.map((stageName: string, index: number) => {
@@ -846,6 +908,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                                 ...prev,
                                 goal_level: item.label,
                                 granularity: newView, // Add explicit granularity field
+                                ad_sets_granularity: newView, // Add backend field for granularity
                               }))
 
                               // Update view
@@ -853,6 +916,23 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
 
                               // Close modal and persist dismissal
                               handleCloseModal()
+
+                              // Save granularity to backend if campaign exists
+                              const saveGranularityToBackend = async () => {
+                                try {
+                                  if (campaignFormData?.cId) {
+                                    await updateCampaign({
+                                      ad_sets_granularity: newView,
+                                      goal_level: item.label,
+                                    })
+                                  }
+                                } catch (error) {
+                                  console.error("Error saving granularity to backend:", error)
+                                }
+                              }
+
+                              // Call the backend save function
+                              saveGranularityToBackend()
 
                               // Mark modal as dismissed for this plan in localStorage
                               if (typeof window !== "undefined") {

@@ -263,6 +263,7 @@ const SaveAllProgressButton = () => {
 					table_headers: objectives || {},
 					selected_metrics: selectedMetrics || {},
 					goal_level: dataWithValidatedDates?.goal_level,
+					ad_sets_granularity: dataWithValidatedDates?.ad_sets_granularity || dataWithValidatedDates?.granularity,
 					campaign_timeline_start_date: dataWithValidatedDates?.campaign_timeline_start_date,
 					campaign_timeline_end_date: dataWithValidatedDates?.campaign_timeline_end_date,
 					agency_profile: agencyId,
