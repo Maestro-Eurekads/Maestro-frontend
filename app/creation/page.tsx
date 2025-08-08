@@ -29,8 +29,8 @@ const Creation = () => {
   const { data: session } = useSession();
   const user = session?.user;
 
-  console.log("this is the user", user);
-  console.log("this is the campaignFormData", campaignFormData, agencyId);
+  // console.log("this is the user", user);
+  // console.log("this is the campaignFormData", campaignFormData, agencyId);
 
   // ────────────────────────────────────────────────────────────────
   // Guard: only the campaign builder (same Strapi user) can access
