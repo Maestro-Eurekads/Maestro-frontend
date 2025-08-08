@@ -16,6 +16,7 @@ import PageHeaderWrapper from "../../../components/PageHeaderWapper"
 import { useComments } from "app/utils/CommentProvider"
 import { useActive } from "app/utils/ActiveContext"
 import SaveAllProgressButton from "./SaveProgres/SaveAllProgressButton"
+import { CHANNEL_TYPES, DEFAULT_MEDIA_OPTIONS } from "components/Options"
 
 // Types
 type FormatType = {
@@ -72,28 +73,7 @@ type QuantitiesType = {
   }
 }
 
-// Constants
-const CHANNEL_TYPES = [
-  { key: "social_media", title: "Social media" },
-  { key: "display_networks", title: "Display Networks" },
-  { key: "search_engines", title: "Search Engines" },
-  { key: "streaming", title: "Streaming" },
-  { key: "ooh", title: "OOH" },
-  { key: "broadcast", title: "Broadcast" },
-  { key: "messaging", title: "Messaging" },
-  { key: "print", title: "Print" },
-  { key: "e_commerce", title: "E Commerce" },
-  { key: "in_game", title: "In Game" },
-  { key: "mobile", title: "Mobile" },
-]
 
-const DEFAULT_MEDIA_OPTIONS = [
-  { name: "Carousel", icon: "/carousel.svg" },
-  { name: "Image", icon: "/Image_format.svg" },
-  { name: "Video", icon: "/video_format.svg" },
-  { name: "Slideshow", icon: "/slideshow_format.svg" },
-  { name: "Collection", icon: "/collection_format.svg" },
-]
 
 // Helper functions
 const getLocalStorageItem = (key: string, defaultValue: any = null) => {
@@ -724,9 +704,9 @@ const PlatformItem = ({
   const handleFormatSelection = useCallback(
     async (index: number, adsetIndex?: number) => {
       const formatName = DEFAULT_MEDIA_OPTIONS[index].name
-      const copy = [...campaignFormData.channel_mix]
+      const copy = [...campaignFormData?.channel_mix]
 
-      const stageIndex = copy.findIndex((item) => item.funnel_stage === stageName)
+      const stageIndex = copy.findIndex((item) => item?.funnel_stage === stageName)
       if (stageIndex === -1) return
 
       const channelKey = channelTitle.toLowerCase().replace(/\s+/g, "_")
@@ -1675,14 +1655,33 @@ export const FormatSelection = ({
   const { active } = useActive()
 
   useEffect(() => {
-    setView(openView ? openView : "channel")
+    // First check if there's an openView prop
+    if (openView) {
+      setView(openView)
+      setCampaignFormData((prev) => ({
+        ...prev,
+        goal_level: openView === "channel" ? "Channel level" : "Adset level",
+      }))
+    } else if (campaignFormData?.ad_sets_granularity) {
+      // If no openView prop, use the granularity from campaign data
+      const granularity = campaignFormData.ad_sets_granularity
+      setView(granularity)
+      setCampaignFormData((prev) => ({
+        ...prev,
+        goal_level: granularity === "channel" ? "Channel level" : "Adset level",
+      }))
+    } else {
+      // Default to channel
+      setView("channel")
+      setCampaignFormData((prev) => ({
+        ...prev,
+        goal_level: "Channel level",
+      }))
+    }
+
     setIsDrawerOpen(false)
     !openView && setClose(false)
-    setCampaignFormData((prev) => ({
-      ...prev,
-      goal_level: openView ? (openView === "channel" ? "Channel level" : "Adset level") : "Channel level",
-    }))
-  }, [setIsDrawerOpen, setClose, setCampaignFormData, openView])
+  }, [setIsDrawerOpen, setClose, setCampaignFormData, openView, campaignFormData?.ad_sets_granularity])
 
   useEffect(() => {
     const savedOpenTabs = getLocalStorageItem("formatSelectionOpenTabs")

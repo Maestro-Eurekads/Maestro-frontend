@@ -416,6 +416,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
                 ? prev.campaign_budget
                 : data?.campaign_budget,
             goal_level: data?.goal_level ?? prev.goal_level,
+            ad_sets_granularity: data?.ad_sets_granularity ?? prev.ad_sets_granularity,
             progress_percent: data?.progress_percent ?? prev.progress_percent,
             custom_funnels: data?.custom_funnels ?? prev.custom_funnels,
             campaign_builder: data?.campaign_builder ?? prev.campaign_builder,

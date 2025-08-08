@@ -24,6 +24,7 @@ import { removeKeysRecursively } from "utils/removeID"
 import { getPlatformIcon, mediaTypes } from "components/data"
 import axios from "axios"
 import { toast } from "sonner"
+import { defaultOptions } from "components/Options"
 
 
 // --- Custom Audience Types Context (Global, for all stages) ---
@@ -118,26 +119,7 @@ interface FunnelStage {
   social_media: Platform[]
 }
 
-// Platform icons mapping
-const platformIcons: Record<string, StaticImageData> = {
-  Facebook: facebook,
-  Instagram: ig,
-  YouTube: youtube,
-  Youtube: youtube,
-  TheTradeDesk: TheTradeDesk,
-  Quantcast: Quantcast,
-  Google: google,
-  "Twitter/X": x,
-  LinkedIn: linkedin,
-  Linkedin: linkedin,
-  TikTok: tictok,
-  "Display & Video": Display,
-  Yahoo: yahoo,
-  Bing: bing,
-  "Apple Search": google,
-  "The Trade Desk": TheTradeDesk,
-  QuantCast: Quantcast,
-}
+
 
 // Context for dropdown management
 const DropdownContext = createContext<{
@@ -160,21 +142,21 @@ const findPlatform = (
     return null
   }
 
-  const stage = campaignData.find((stage) => stage.funnel_stage === stageName)
+  const stage = campaignData?.find((stage) => stage?.funnel_stage === stageName)
   if (!stage) {
     console.warn("findPlatform: Stage not found:", stageName)
     return null
   }
 
   const channelTypes = mediaTypes
-  for (const channelType of channelTypes) {
+  for (const channelType of channelTypes || []) {
     // Ensure the channel type exists and is an array
     if (!stage[channelType] || !Array.isArray(stage[channelType])) {
       console.warn(`findPlatform: ${channelType} is not an array in stage ${stageName}:`, stage[channelType])
       continue
     }
 
-    const platform = stage[channelType].find((p) => p.platform_name === platformName)
+    const platform = stage[channelType]?.find((p) => p?.platform_name === platformName)
     if (platform) {
       return { platform, channelType }
     }
@@ -199,16 +181,16 @@ const updateMultipleAdSets = (
   const channelTypes = mediaTypes
   let platformFound = false
 
-  for (const channelType of channelTypes) {
+  for (const channelType of channelTypes || []) {
     // Check if the channel type exists and is an array
     if (!stage[channelType] || !Array.isArray(stage[channelType])) {
       console.warn(`Channel type "${channelType}" is not an array in stage "${stageName}"`)
       continue
     }
 
-    const platformIndex = stage[channelType].findIndex((platform: Platform) => platform.platform_name === platformName)
+    const platformIndex = stage[channelType]?.findIndex((platform: Platform) => platform?.platform_name === platformName)
     if (platformIndex !== -1) {
-      const platform = stage[channelType][platformIndex]
+      const platform = stage[channelType]?.[platformIndex]
       platform.ad_sets = adSets
       platformFound = true
       break
@@ -324,6 +306,11 @@ const AdSet = memo(function AdSet({
   platformName?: string
   onAddNewAdSet?: () => void
 }) {
+  const { campaignFormData } = useCampaigns()
+
+  // Use ad_sets_granularity from campaign data if available, otherwise use the prop
+  const effectiveGranularity = campaignFormData?.ad_sets_granularity || granularity
+
   // For channel granularity, use local state (not campaignFormData)
   const [channelAudience, setChannelAudience] = useState<{
     name: string
@@ -348,7 +335,7 @@ const AdSet = memo(function AdSet({
 
   // For channel, update local state only
   useEffect(() => {
-    if (granularity === "channel") {
+    if (effectiveGranularity === "channel") {
       if (channelAudienceState) {
         setChannelAudience(channelAudienceState)
       }
@@ -359,7 +346,7 @@ const AdSet = memo(function AdSet({
       if (adSetDescription !== undefined) setDescription(adSetDescription)
     }
     // eslint-disable-next-line
-  }, [audienceType, adSetName, adSetSize, adSetDescription, channelAudienceState, granularity])
+  }, [audienceType, adSetName, adSetSize, adSetDescription, channelAudienceState, effectiveGranularity])
 
   const updateExtraAudienceMap = (updatedList: AudienceData[]) => {
     setExtraAudience(updatedList)
@@ -478,7 +465,7 @@ const AdSet = memo(function AdSet({
       (extraAudience?.length > 0 && extraAudience[extraAudience?.length - 1]?.audience_type?.trim()))
 
   // COMPLETE SEPARATION: Channel level shows only channel fields, no ad set numbers or extra audiences
-  if (granularity === "channel") {
+  if (effectiveGranularity === "channel") {
     // Reduce the space between the audience field and the next channel
     // Remove px-4 and margin-top/margin-bottom, and use tighter vertical spacing
     return (
@@ -683,9 +670,6 @@ const AudienceDropdownWithCallback = memo(function AudienceDropdownWithCallback(
   const { openDropdownId, setOpenDropdownId } = dropdownContext || {}
   const { customAudienceTypes = [], addCustomAudienceType = () => { } } = customAudienceContext || {}
   const { jwt, agencyData } = campaignsContext || {}
-
-  // Default options
-  const defaultOptions = ["Lookalike audience", "Retargeting audience", "Broad audience", "Behavioral audience"]
 
   // Merge default and custom, deduped - Updated to use agencyData with proper error handling
   const mergedAudienceOptions = Array.from(
@@ -946,16 +930,16 @@ const NonFacebookOutlet = memo(function NonFacebookOutlet({
   onInteraction: () => void
 }) {
   const handleSelect = useCallback(() => {
-    setSelected((prev) => [...prev, outlet.outlet])
+    setSelected((prev) => [...prev, outlet?.outlet])
     onInteraction()
-  }, [outlet.outlet, setSelected, onInteraction])
+  }, [outlet?.outlet, setSelected, onInteraction])
 
   return (
     <div className="flex items-center gap-4">
       <div className="relative border border-[#0000001A] rounded-[10px]" onClick={handleSelect}>
         <button className="relative min-w-[150px] w-fit max-w-[300px] z-20 flex gap-4 justify-between items-center bg-[#F9FAFB] border border-[#0000001A] py-4 px-2 rounded-[10px]">
-          <Image src={outlet.icon || "/placeholder.svg"} alt={outlet.outlet} className="w-[22px] h-[22px]" />
-          <span className="text-[#061237] font-medium whitespace-nowrap">{outlet.outlet}</span>
+          <Image src={outlet?.icon || "/placeholder.svg"} alt={outlet?.outlet} className="w-[22px] h-[22px]" />
+          <span className="text-[#061237] font-medium whitespace-nowrap">{outlet?.outlet}</span>
           <FaAngleRight />
         </button>
       </div>
@@ -989,6 +973,9 @@ const AdsetSettings = memo(function AdsetSettings({
   const [adsets, setAdSets] = useState<AdSetType[]>([])
   const [adSetDataMap, setAdSetDataMap] = useState<Record<number, AdSetData>>({})
   const [openDropdownId, setOpenDropdownId] = useState<number | string | null>(null)
+
+  // Use ad_sets_granularity from campaign data if available, otherwise use the prop
+  const effectiveGranularity = campaignFormData?.ad_sets_granularity || granularity
 
   // --- Channel-level state for this stage/platform with persistence ---
   const [channelAudienceState, setChannelAudienceState] = useState<{
@@ -1025,7 +1012,7 @@ const AdsetSettings = memo(function AdsetSettings({
 
   useEffect(() => {
     // Load channel state from storage on component mount
-    if (granularity === "channel") {
+    if (effectiveGranularity === "channel") {
       const campaignId = campaignFormData?.id || campaignFormData?.media_plan_id
       const storedState = loadChannelStateFromStorage(campaignId)
       // Merge stored state into in-memory state
@@ -1046,22 +1033,22 @@ const AdsetSettings = memo(function AdsetSettings({
         setChannelAudienceState({ ...storedState[stageName][outlet.outlet] })
       }
     }
-  }, [granularity, stageName, outlet.outlet, campaignFormData?.id, campaignFormData?.media_plan_id])
+  }, [effectiveGranularity, stageName, outlet.outlet, campaignFormData?.id, campaignFormData?.media_plan_id])
 
   // FIXED: Initialize ad sets from campaign data every time the component mounts or data changes
   useEffect(() => {
     if (!campaignFormData?.channel_mix) return
 
-    const result = findPlatform(campaignFormData.channel_mix, stageName, outlet.outlet)
+    const result = findPlatform(campaignFormData?.channel_mix, stageName, outlet?.outlet)
     const platform = result?.platform
 
-    if (defaultOpen && !selectedPlatforms.includes(outlet.outlet)) {
-      setSelectedPlatforms((prev) => [...prev, outlet.outlet])
+    if (defaultOpen && !selectedPlatforms.includes(outlet?.outlet)) {
+      setSelectedPlatforms((prev) => [...prev, outlet?.outlet])
     }
 
     // GRANULARITY SEPARATION: Only initialize ad sets for adset granularity
-    if (granularity === "adset") {
-      if (!platform || !platform.ad_sets || platform.ad_sets.length === 0) {
+    if (effectiveGranularity === "adset") {
+      if (!platform || !platform?.ad_sets || platform?.ad_sets?.length === 0) {
         // Only create default ad set if none exist
         if (adsets.length === 0) {
           const newAdSetId = Date.now()
@@ -1074,18 +1061,18 @@ const AdsetSettings = memo(function AdsetSettings({
       }
 
       // Load existing ad sets from campaign data
-      const newAdSets = platform.ad_sets.map((adSet, index) => ({
-        id: adSet.id || Date.now() + index,
+      const newAdSets = platform?.ad_sets?.map((adSet, index) => ({
+        id: adSet?.id || Date.now() + index,
         addsetNumber: index + 1,
       }))
       const newAdSetDataMap: Record<number, AdSetData> = {}
-      platform.ad_sets.forEach((adSet, index) => {
+      platform?.ad_sets?.forEach((adSet, index) => {
         const id = newAdSets[index].id
         newAdSetDataMap[id] = {
-          name: adSet.name || "",
-          audience_type: adSet.audience_type || "",
-          size: adSet.size || "",
-          description: adSet.description || "",
+          name: adSet?.name || "",
+          audience_type: adSet?.audience_type || "",
+          size: adSet?.size || "",
+          description: adSet?.description || "",
           extra_audiences: adSet?.extra_audiences,
           format: adSet?.format,
         }
@@ -1102,7 +1089,7 @@ const AdsetSettings = memo(function AdsetSettings({
     outlet.outlet,
     selectedPlatforms,
     defaultOpen,
-    granularity,
+    effectiveGranularity,
     campaignFormData?.channel_mix,
     // Remove campaignData.channel_mix dependency to avoid conflicts
   ])
@@ -1123,9 +1110,9 @@ const AdsetSettings = memo(function AdsetSettings({
 
   // GRANULARITY SEPARATION: Only allow adding ad sets in adset granularity
   const addNewAddset = useCallback(() => {
-    if (granularity !== "adset") return // Prevent adding ad sets in channel granularity
+    if (effectiveGranularity !== "adset") return // Prevent adding ad sets in channel granularity
     if (adsets.length >= 10) {
-      console.warn("Maximum limit of 10 ad sets reached")
+      toast.info("Maximum limit of 10 ad sets reached")
       return
     }
     const newAdSetId = Date.now()
@@ -1192,7 +1179,7 @@ const AdsetSettings = memo(function AdsetSettings({
     onInteraction,
     adsets,
     adSetDataMap,
-    granularity,
+    effectiveGranularity,
     campaignFormData,
     stageName,
     outlet.outlet,
@@ -1202,7 +1189,7 @@ const AdsetSettings = memo(function AdsetSettings({
   const deleteAdSet = useCallback(
     async (id: number) => {
       // GRANULARITY SEPARATION: Only allow deleting ad sets in adset granularity
-      if (granularity !== "adset") return
+      if (effectiveGranularity !== "adset") return
 
       try {
         // We'll need to know if this is the last ad set before updating state
@@ -1290,7 +1277,7 @@ const AdsetSettings = memo(function AdsetSettings({
       updateCampaign,
       getActiveCampaign,
       onInteraction,
-      granularity,
+      effectiveGranularity,
     ],
   )
   // --- END PATCH ---
@@ -1298,7 +1285,7 @@ const AdsetSettings = memo(function AdsetSettings({
   const updateAdSetData = useCallback(
     (id: number, data: Partial<AdSetData>) => {
       // GRANULARITY SEPARATION: Only update ad set data in adset granularity
-      if (granularity === "adset") {
+      if (effectiveGranularity === "adset") {
         setAdSetDataMap((prev) => {
           const updated = {
             ...prev,
@@ -1316,12 +1303,12 @@ const AdsetSettings = memo(function AdsetSettings({
               }
               return {
                 id: adset.id,
-                name: adsetData.name,
-                audience_type: adsetData.audience_type,
-                size: adsetData.size,
-                description: adsetData.description,
-                extra_audiences: adsetData.extra_audiences || [],
-                format: adsetData.format,
+                name: adsetData?.name,
+                audience_type: adsetData?.audience_type,
+                size: adsetData?.size,
+                description: adsetData?.description,
+                extra_audiences: adsetData?.extra_audiences || [],
+                format: adsetData?.format,
               }
             })
 
@@ -1354,7 +1341,7 @@ const AdsetSettings = memo(function AdsetSettings({
     },
     [
       onInteraction,
-      granularity,
+      effectiveGranularity,
       campaignFormData,
       selectedPlatforms,
       outlet.outlet,
@@ -1366,7 +1353,7 @@ const AdsetSettings = memo(function AdsetSettings({
 
   // Remove the old persistence useEffect and replace with a debounced version
   useEffect(() => {
-    if (!isEditing || !selectedPlatforms.includes(outlet.outlet) || granularity !== "adset") {
+    if (!isEditing || !selectedPlatforms.includes(outlet.outlet) || effectiveGranularity !== "adset") {
       return
     }
 
@@ -1386,12 +1373,12 @@ const AdsetSettings = memo(function AdsetSettings({
         }
         return {
           id: adset.id,
-          name: data.name,
-          audience_type: data.audience_type,
-          size: data.size,
-          description: data.description,
-          extra_audiences: data.extra_audiences || [],
-          format: data.format,
+          name: data?.name,
+          audience_type: data?.audience_type,
+          size: data?.size,
+          description: data?.description,
+          extra_audiences: data?.extra_audiences || [],
+          format: data?.format,
         }
       })
 
@@ -1423,7 +1410,7 @@ const AdsetSettings = memo(function AdsetSettings({
     adSetDataMap,
     setCampaignFormData,
     stageName,
-    granularity,
+    effectiveGranularity,
     campaignFormData?.channel_mix,
   ])
 
@@ -1443,7 +1430,7 @@ const AdsetSettings = memo(function AdsetSettings({
   const [hasChannelAudienceInteraction, setHasChannelAudienceInteraction] = useState(false)
   // Track interaction with channel audience fields
   useEffect(() => {
-    if (granularity === "channel") {
+    if (effectiveGranularity === "channel") {
       // If any field is filled, mark as interacted
       if (
         channelAudienceState.audience_type ||
@@ -1460,7 +1447,7 @@ const AdsetSettings = memo(function AdsetSettings({
     channelAudienceState.name,
     channelAudienceState.size,
     channelAudienceState.description,
-    granularity,
+    effectiveGranularity,
   ])
 
   // Updated recap rows to handle granularity properly with complete separation
@@ -1473,7 +1460,7 @@ const AdsetSettings = memo(function AdsetSettings({
     isExtra: boolean
   }[] = []
 
-  if (granularity === "channel") {
+  if (effectiveGranularity === "channel") {
     // Only show recap if user has interacted with channel audience fields in this session
     if (
       hasChannelAudienceInteraction &&
@@ -1493,7 +1480,7 @@ const AdsetSettings = memo(function AdsetSettings({
   } else {
     // Ad set level: ONLY show individual ad sets, ignore channel data
     adsets.forEach((adset) => {
-      const adSetData = adSetDataMap[adset.id] || {
+      const adSetData = adSetDataMap[adset?.id] || {
         name: "",
         audience_type: "",
         size: "",
@@ -1534,7 +1521,7 @@ const AdsetSettings = memo(function AdsetSettings({
   }
 
   // PATCH: If there are no ad sets left, immediately collapse the outlet and show only the channel selection
-  if (granularity === "adset" && adsets.length === 0) {
+  if (effectiveGranularity === "adset" && adsets.length === 0) {
     // Defensive: ensure collapsed state is set
     if (!isCollapsed) {
       setCollapsed(true)
@@ -1545,8 +1532,8 @@ const AdsetSettings = memo(function AdsetSettings({
   // Reduce vertical space between channels for channel granularity
   return (
     <div
-      className={`flex flex-col w-full max-w-[1024px] ${granularity === "channel" ? "gap-1" : "gap-2"}`}
-      style={granularity === "channel" ? { marginTop: 4, marginBottom: 4, paddingTop: 4, paddingBottom: 4 } : {}}
+      className={`flex flex-col w-full max-w-[1024px] ${effectiveGranularity === "channel" ? "gap-1" : "gap-2"}`}
+      style={effectiveGranularity === "channel" ? { marginTop: 4, marginBottom: 4, paddingTop: 4, paddingBottom: 4 } : {}}
     >
       <div className="flex items-center gap-8">
         <div className="relative flex items-center gap-4">
@@ -1567,19 +1554,19 @@ const AdsetSettings = memo(function AdsetSettings({
           <div
             className="relative w-full"
             style={
-              granularity === "channel"
+              effectiveGranularity === "channel"
                 ? { minHeight: "0px", marginTop: 4, marginBottom: 4, paddingTop: 4, paddingBottom: 4 }
-                : { minHeight: `${Math.max(194, (adsets.length + 1) * 80)}px` }
+                : { minHeight: `${Math.max(194, (adsets?.length + 1) * 80)}px` }
             }
           >
-            {adsets.length > 0 && (
+            {adsets?.length > 0 && (
               <>
-                {adsets.map((adset, index) => (
+                {adsets?.map((adset, index) => (
                   <div
                     key={adset.id}
                     className="relative"
                     style={
-                      granularity === "channel"
+                      effectiveGranularity === "channel"
                         ? { marginTop: 4, marginBottom: 4, paddingTop: 0, paddingBottom: 0 }
                         : {
                           marginTop: index === 0 ? "20px" : "0px",
@@ -1594,24 +1581,24 @@ const AdsetSettings = memo(function AdsetSettings({
                       isEditing={isEditing}
                       onDelete={deleteAdSet}
                       onUpdate={updateAdSetData}
-                      audienceType={adSetDataMap[adset.id]?.audience_type}
-                      adSetName={adSetDataMap[adset.id]?.name}
-                      adSetSize={adSetDataMap[adset.id]?.size}
-                      adSetDescription={adSetDataMap[adset.id]?.description}
-                      extra_audiences={(adSetDataMap[adset.id]?.extra_audiences as AudienceData[]) || []}
+                      audienceType={adSetDataMap[adset?.id]?.audience_type}
+                      adSetName={adSetDataMap[adset?.id]?.name}
+                      adSetSize={adSetDataMap[adset?.id]?.size}
+                      adSetDescription={adSetDataMap[adset?.id]?.description}
+                      extra_audiences={(adSetDataMap[adset?.id]?.extra_audiences as AudienceData[]) || []}
                       onUpdateExtraAudiences={(extraAudienceArray) =>
-                        updateAdSetData(adset.id, {
+                        updateAdSetData(adset?.id, {
                           extra_audiences: extraAudienceArray,
                         })
                       }
                       onInteraction={onInteraction}
                       adsets={adsets}
-                      granularity={granularity}
+                      granularity={effectiveGranularity}
                       channelAudienceState={channelAudienceState}
                       setChannelAudienceState={setChannelAudienceState}
                       stageName={stageName}
                       platformName={outlet.outlet}
-                      onAddNewAdSet={granularity === "adset" ? addNewAddset : undefined}
+                      onAddNewAdSet={effectiveGranularity === "adset" ? addNewAddset : undefined}
                     />
                   </div>
                 ))}
@@ -1625,33 +1612,33 @@ const AdsetSettings = memo(function AdsetSettings({
         <div className="mt-2 mb-4">
           <div className="bg-[#F5F7FA] border border-[#E5E7EB] rounded-lg px-4 py-3">
             <div className="font-semibold text-[#061237] mb-2 text-sm">
-              Audience Recap ({granularity === "channel" ? "Channel Level" : "Ad Set Level"})
+              Audience Recap ({effectiveGranularity === "channel" ? "Channel Level" : "Ad Set Level"})
             </div>
             <div className="overflow-x-auto">
               <table className="min-w-full text-xs text-[#061237]">
                 <thead>
                   <tr>
-                    {granularity === "adset" && <th className="text-left pr-4 py-1">Ad Set</th>}
+                    {effectiveGranularity === "adset" && <th className="text-left pr-4 py-1">Ad Set</th>}
                     <th className="text-left pr-4 py-1">Audience Type</th>
                     <th className="text-left pr-4 py-1">Audience Name</th>
                     <th className="text-left pr-4 py-1">
-                      {granularity === "channel" ? "Total Size" : "Audience Size"}
+                      {effectiveGranularity === "channel" ? "Total Size" : "Audience Size"}
                     </th>
                     <th className="text-left pr-4 py-1">Description</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recapRows.map((row, idx) => (
-                    <tr key={idx} className={row.isExtra ? "bg-[#F9FAFB]" : ""}>
-                      {granularity === "adset" && row.adSetNumber && (
+                    <tr key={idx} className={row?.isExtra ? "bg-[#F9FAFB]" : ""}>
+                      {effectiveGranularity === "adset" && row?.adSetNumber && (
                         <td className="pr-4 py-1">
-                          {row.isExtra ? `Ad set n°${row.adSetNumber} (Extra)` : `Ad set n°${row.adSetNumber}`}
+                          {row?.isExtra ? `Ad set n°${row?.adSetNumber} (Extra)` : `Ad set n°${row?.adSetNumber}`}
                         </td>
                       )}
-                      <td className="pr-4 py-1">{row.type}</td>
-                      <td className="pr-4 py-1">{row.name}</td>
-                      <td className="pr-4 py-1">{formatWithThousandSeparator(row.size)}</td>
-                      <td className="pr-4 py-1">{row.description}</td>
+                      <td className="pr-4 py-1">{row?.type}</td>
+                      <td className="pr-4 py-1">{row?.name}</td>
+                      <td className="pr-4 py-1">{formatWithThousandSeparator(row?.size)}</td>
+                      <td className="pr-4 py-1">{row?.description}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -1702,6 +1689,9 @@ const AdSetFlow = memo(function AdSetFlow({
     }
     return []
   })
+
+  // Use ad_sets_granularity from campaign data if available, otherwise use the prop
+  const effectiveGranularity = campaignFormData?.ad_sets_granularity || granularity
 
   useEffect(() => {
     globalCustomAudienceTypes.length = 0
@@ -1805,7 +1795,7 @@ const AdSetFlow = memo(function AdSetFlow({
       setPlatforms(data)
 
       const autoOpenPlatforms = {}
-      if (granularity === "adset") {
+      if (effectiveGranularity === "adset") {
         // Existing adset logic
         for (const stage of campaignFormData.channel_mix) {
           const platformsWithAdsets = [
@@ -1828,7 +1818,7 @@ const AdSetFlow = memo(function AdSetFlow({
             autoOpenPlatforms[stage.funnel_stage] = platformsWithAdsets
           }
         }
-      } else if (granularity === "channel") {
+      } else if (effectiveGranularity === "channel") {
         // New channel granularity logic
         const campaignId = campaignFormData?.id || campaignFormData?.media_plan_id
         // Check both sessionStorage and in-memory state for channel-level audience data
@@ -1875,7 +1865,7 @@ const AdSetFlow = memo(function AdSetFlow({
 
       setAutoOpen(autoOpenPlatforms)
     }
-  }, [modalOpen, granularity])
+  }, [modalOpen, effectiveGranularity])
 
   const handleInteraction = useCallback(() => {
     setHasInteraction(true)
@@ -1956,17 +1946,17 @@ const AdSetFlow = memo(function AdSetFlow({
       }}
     >
       <div
-        className={`w-full p-4 ${granularity === "channel" ? "space-y-4" : "space-y-4"}`}
-        style={granularity === "channel" ? { marginTop: 12, marginBottom: 4, paddingTop: 4, paddingBottom: 4 } : {}}
+        className={`w-full p-4 ${effectiveGranularity === "channel" ? "space-y-4" : "space-y-4"}`}
+        style={effectiveGranularity === "channel" ? { marginTop: 12, marginBottom: 4, paddingTop: 4, paddingBottom: 4 } : {}}
       >
         {platformName
           ? platforms[stageName]
             ?.filter((outlet) =>
-              Array.isArray(platformName) ? platformName.includes(outlet.outlet) : outlet.outlet === platformName,
+              Array.isArray(platformName) ? platformName.includes(outlet?.outlet) : outlet?.outlet === platformName,
             )
             .map((outlet) => (
               <AdsetSettings
-                key={outlet.id}
+                key={outlet?.id}
                 outlet={outlet}
                 stageName={stageName}
                 onInteraction={handleInteraction}
@@ -1978,7 +1968,7 @@ const AdSetFlow = memo(function AdSetFlow({
                     [outlet.outlet]: collapsed,
                   }))
                 }
-                granularity={granularity}
+                granularity={effectiveGranularity}
                 onPlatformStateChange={onPlatformStateChange}
               />
             ))
@@ -1996,7 +1986,7 @@ const AdSetFlow = memo(function AdSetFlow({
                   [outlet.outlet]: collapsed,
                 }))
               }
-              granularity={granularity}
+              granularity={effectiveGranularity}
               onPlatformStateChange={onPlatformStateChange}
             />
           ))}

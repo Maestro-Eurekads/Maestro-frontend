@@ -150,6 +150,7 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 					table_headers: objectives || {},
 					selected_metrics: selectedMetrics || {},
 					goal_level: cleanedFormData?.goal_level,
+					ad_sets_granularity: cleanedFormData?.ad_sets_granularity || cleanedFormData?.granularity,
 					campaign_timeline_start_date: cleanedFormData?.campaign_timeline_start_date,
 					campaign_timeline_end_date: cleanedFormData?.campaign_timeline_end_date,
 					agency_profile: agencyId,

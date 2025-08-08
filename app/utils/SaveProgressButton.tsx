@@ -555,6 +555,7 @@ const SaveProgressButton = ({ setIsOpen }) => {
 						},
 						agency_profile: agencyId,
 						campaign_version: cleanedFormData?.campaign_version || "V1",
+						ad_sets_granularity: campaignFormData?.ad_sets_granularity || campaignFormData?.granularity,
 					},
 				}
 
