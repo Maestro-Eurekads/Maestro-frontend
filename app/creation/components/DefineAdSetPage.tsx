@@ -47,12 +47,25 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   // Get a unique key for the current plan (use media_plan_id if available, fallback to campaignFormData id)
   const getPlanKey = () => {
     if (!campaignFormData) return null
-    // Try media_plan_id, fallback to id, fallback to JSON string of funnel_stages
-    return (
-      campaignFormData?.media_plan_id ||
-      campaignFormData?.id ||
-      (Array.isArray(campaignFormData?.funnel_stages) ? campaignFormData?.funnel_stages?.join("_") : "unknown")
-    )
+
+    // Try multiple identifiers to ensure we have a stable key
+    const identifiers = [
+      campaignFormData?.media_plan_id,
+      campaignFormData?.id,
+      campaignFormData?.cId,
+      campaignFormData?.documentId
+    ].filter(Boolean)
+
+    if (identifiers.length > 0) {
+      return identifiers[0] // Use the first available identifier
+    }
+
+    // Fallback to funnel_stages if no ID is available
+    if (Array.isArray(campaignFormData?.funnel_stages) && campaignFormData?.funnel_stages.length > 0) {
+      return campaignFormData?.funnel_stages?.join("_")
+    }
+
+    return null
   }
 
   const getModalKey = () => {
@@ -67,10 +80,18 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   const handleCloseModal = (e?: React.MouseEvent) => {
     if (e) e.preventDefault()
     setIsModalOpen(false)
+
+    // Persist the dismissal state
     if (typeof window !== "undefined") {
       const modalKey = getModalKey()
       if (modalKey) {
-        localStorage.setItem(modalKey, "true")
+        try {
+          localStorage.setItem(modalKey, "true")
+          // Also set a timestamp to track when it was dismissed
+          localStorage.setItem(`${modalKey}_timestamp`, Date.now().toString())
+        } catch (error) {
+          console.error("Error saving modal dismissal state:", error)
+        }
       }
     }
   }
@@ -104,6 +125,24 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
 
   const goalLevelUpdateRef = useRef<{ [view: string]: boolean }>({})
 
+  // Clean up old localStorage entries when component unmounts or plan changes
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      // Clean up old modal dismissal entries (older than 30 days)
+      const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000)
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith(GOAL_LEVEL_MODAL_KEY_PREFIX) && key.endsWith('_timestamp')) {
+          const timestamp = parseInt(localStorage.getItem(key) || '0')
+          if (timestamp < thirtyDaysAgo) {
+            const modalKey = key.replace('_timestamp', '')
+            localStorage.removeItem(modalKey)
+            localStorage.removeItem(key)
+          }
+        }
+      })
+    }
+  }, [campaignFormData?.id, campaignFormData?.media_plan_id])
+
   useEffect(() => {
     if (!campaignFormData) return
 
@@ -111,19 +150,27 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     const expectedGoalLevel = view === "adset" ? "Adset level" : "Channel level"
     const modalKey = getModalKey()
 
+    // Check if modal was already dismissed for this plan
+    const isModalDismissed = typeof window !== "undefined" && modalKey ? localStorage.getItem(modalKey) === "true" : false
+
     // Only show modal if not dismissed for this plan and no goal level is set
     if (!goalLevel) {
-      if (typeof window !== "undefined" && modalKey) {
-        const dismissed = localStorage.getItem(modalKey)
-        if (!dismissed) {
-          setIsModalOpen(true)
-        } else {
-          setIsModalOpen(false)
+      if (isModalDismissed) {
+        // Modal was dismissed, don't show it again
+        setIsModalOpen(false)
+        // Set a default goal level to prevent the modal from showing again
+        if (!goalLevelUpdateRef.current[view]) {
+          setCampaignFormData((prev: any) => ({
+            ...prev,
+            goal_level: expectedGoalLevel,
+            granularity: view,
+          }))
+          goalLevelUpdateRef.current[view] = true
         }
       } else {
+        // Show modal only if not dismissed
         setIsModalOpen(true)
       }
-      // Don't try to update goal_level if it's not set, just show modal
       goalLevelUpdateRef.current[view] = false
     } else if (goalLevel !== expectedGoalLevel) {
       // Only update if we haven't already done so for this view
@@ -149,18 +196,21 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
 
   // Restore granularity setting from localStorage when component loads
   useEffect(() => {
-    if (typeof window !== "undefined" && campaignFormData?.id) {
-      const granularityKey = `granularity_${campaignFormData.id || campaignFormData?.cId || "default"}`
-      const savedGranularity = localStorage.getItem(granularityKey)
+    if (typeof window !== "undefined" && campaignFormData) {
+      const planKey = getPlanKey()
+      if (planKey) {
+        const granularityKey = `granularity_${planKey}`
+        const savedGranularity = localStorage.getItem(granularityKey)
 
-      if (savedGranularity && (savedGranularity === "channel" || savedGranularity === "adset")) {
-        const expectedView = savedGranularity
-        if (view !== expectedView) {
-          onToggleChange(expectedView)
+        if (savedGranularity && (savedGranularity === "channel" || savedGranularity === "adset")) {
+          const expectedView = savedGranularity
+          if (view !== expectedView) {
+            onToggleChange(expectedView)
+          }
         }
       }
     }
-  }, [campaignFormData?.id, campaignFormData?.cId, view, onToggleChange])
+  }, [campaignFormData, view, onToggleChange])
 
   useEffect(() => {
     if (!campaignFormData?.funnel_stages || initialized.current) return
@@ -460,14 +510,22 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
 
     // Save granularity setting to localStorage for persistence
     if (typeof window !== "undefined") {
-      const modalKey = getModalKey()
-      if (modalKey) {
-        localStorage.setItem(modalKey, "true")
-      }
+      try {
+        const modalKey = getModalKey()
+        if (modalKey) {
+          localStorage.setItem(modalKey, "true")
+          localStorage.setItem(`${modalKey}_timestamp`, Date.now().toString())
+        }
 
-      // Save granularity setting
-      const granularityKey = `granularity_${campaignFormData?.id || campaignFormData?.cId || "default"}`
-      localStorage.setItem(granularityKey, newView)
+        // Save granularity setting using the same plan key
+        const planKey = getPlanKey()
+        if (planKey) {
+          const granularityKey = `granularity_${planKey}`
+          localStorage.setItem(granularityKey, newView)
+        }
+      } catch (error) {
+        console.error("Error saving granularity setting:", error)
+      }
     }
 
     // Clear previous granularity data when switching
@@ -782,22 +840,38 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                             type="button"
                             onClick={() => {
                               const newView = item.label === "Adset level" ? "adset" : "channel"
+
+                              // Update campaign form data
                               setCampaignFormData((prev: any) => ({
                                 ...prev,
                                 goal_level: item.label,
                                 granularity: newView, // Add explicit granularity field
                               }))
+
+                              // Update view
                               onToggleChange(newView)
+
+                              // Close modal and persist dismissal
                               handleCloseModal()
+
                               // Mark modal as dismissed for this plan in localStorage
                               if (typeof window !== "undefined") {
-                                const modalKey = getModalKey()
-                                if (modalKey) {
-                                  localStorage.setItem(modalKey, "true")
+                                try {
+                                  const modalKey = getModalKey()
+                                  if (modalKey) {
+                                    localStorage.setItem(modalKey, "true")
+                                    localStorage.setItem(`${modalKey}_timestamp`, Date.now().toString())
+                                  }
+
+                                  // Save granularity setting to localStorage for persistence
+                                  const planKey = getPlanKey()
+                                  if (planKey) {
+                                    const granularityKey = `granularity_${planKey}`
+                                    localStorage.setItem(granularityKey, newView)
+                                  }
+                                } catch (error) {
+                                  console.error("Error saving goal level selection:", error)
                                 }
-                                // Save granularity setting to localStorage for persistence
-                                const granularityKey = `granularity_${campaignFormData?.id || campaignFormData?.cId || "default"}`
-                                localStorage.setItem(granularityKey, newView)
                               }
                             }}
                           >

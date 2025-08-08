@@ -217,7 +217,13 @@ const SaveAllProgressButton = () => {
 
 			// Validate user IDs
 			const validateUserIds = (users) => {
+				if (!Array.isArray(users)) return [];
 				return users.filter(user => user && !isNaN(Number(user))).map(user => Number(user));
+			};
+
+			// Ensure all required arrays are properly initialized
+			const ensureArray = (value) => {
+				return Array.isArray(value) ? value : [];
 			};
 
 			// Build payload with only available data
@@ -227,16 +233,19 @@ const SaveAllProgressButton = () => {
 					client: dataWithValidatedDates?.client_selection?.id,
 					client_selection: {
 						client: dataWithValidatedDates?.client_selection?.value,
-						level_1: dataWithValidatedDates?.level_1?.id,
+						level_1: dataWithValidatedDates?.level_1,
 					},
 					media_plan_details: {
 						plan_name: dataWithValidatedDates?.media_plan,
-						internal_approver: dataWithValidatedDates?.internal_approver?.map(
-							(ff) => ff?.value
-						),
-						client_approver: dataWithValidatedDates?.client_approver?.map(
-							(ff) => ff?.value
-						),
+						internal_approver: validateUserIds(ensureArray(dataWithValidatedDates?.internal_approver).map(
+							(item: any) => item?.id
+						)),
+						client_approver: validateUserIds(ensureArray(dataWithValidatedDates?.client_approver).map(
+							(item: any) => item?.id
+						)),
+						approved_by: validateUserIds(ensureArray(dataWithValidatedDates?.approved_by).map(
+							(item: any) => item?.id
+						)),
 					},
 					budget_details: {
 						currency: dataWithValidatedDates?.budget_details_currency?.id || "EUR",
@@ -245,10 +254,11 @@ const SaveAllProgressButton = () => {
 					campaign_budget: {
 						...campaignBudgetCleaned,
 						currency: dataWithValidatedDates?.budget_details_currency?.id || "EUR",
+						budget_fees: ensureArray(campaignBudgetCleaned?.budget_fees),
 					},
-					funnel_stages: dataWithValidatedDates?.funnel_stages,
+					funnel_stages: ensureArray(dataWithValidatedDates?.funnel_stages),
 					channel_mix: channelMixCleaned,
-					custom_funnels: dataWithValidatedDates?.custom_funnels,
+					custom_funnels: ensureArray(dataWithValidatedDates?.custom_funnels),
 					funnel_type: dataWithValidatedDates?.funnel_type,
 					table_headers: objectives || {},
 					selected_metrics: selectedMetrics || {},
@@ -261,6 +271,7 @@ const SaveAllProgressButton = () => {
 						campaignFormData?.progress_percent > calcPercent
 							? campaignFormData?.progress_percent
 							: calcPercent,
+					campaign_version: dataWithValidatedDates?.campaign_version || "V1",
 				},
 			};
 
@@ -299,10 +310,15 @@ const SaveAllProgressButton = () => {
 			setChange(false);
 			setShowSave(false);
 		} catch (error: any) {
+			console.error("Save error:", error);
+
 			if (error?.response?.status === 401) {
 				window.dispatchEvent(new Event("unauthorizedEvent"));
 			} else if (error?.response?.status === 400) {
-				toast.error(error?.response?.data?.error?.message || "Invalid data provided. Please check your inputs.");
+				const errorMessage = error?.response?.data?.error?.message ||
+					error?.response?.data?.message ||
+					"Invalid data provided. Please check your inputs.";
+				toast.error(errorMessage);
 			} else if (error?.response?.status === 422) {
 				toast.error("Validation failed. Please check your campaign data.");
 			} else if (error?.response?.status >= 500) {
