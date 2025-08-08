@@ -1419,20 +1419,7 @@ const ResizableChannels = ({
   const getUnscaledContainerWidth = () => {
     const grid = document.querySelector('.grid-container') as HTMLElement | null;
     if (!grid) return 0;
-    
-    // Get the zoom level from the parent container
-    const timelineContainer = grid.closest('[style*="transform: scale"]') as HTMLElement;
-    if (timelineContainer) {
-      const transform = timelineContainer.style.transform;
-      const scaleMatch = transform.match(/scale\(([^)]+)\)/);
-      if (scaleMatch) {
-        // Return the unscaled width
-        return grid.offsetWidth;
-      }
-    }
-    
-    // Fallback to getBoundingClientRect width
-    return grid.getBoundingClientRect().width;
+    return grid.scrollWidth;
   };
 
   // Cache for zoom level to avoid repeated DOM queries

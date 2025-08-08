@@ -504,22 +504,9 @@ const ResizeableElements = ({
           const dailyWidth = getDailyWidth();
 
           initialWidths[stageName] = (() => {
-            if (rrange === "Day" || rrange === "Week") {
-              return daysBetween > 0
-                ? dailyWidth * daysBetween
-                : dailyWidth * daysFromStart - 0;
-            } else {
-              // Month view
-              const totalDaysInRange = Object.values(
-                daysInEachMonth || {}
-              ).reduce((sum: number, days: number) => sum + days, 0);
-              const widthPerDay = Math.round(
-                availableWidth / (totalDaysInRange || 30)
-              );
-              return daysBetween > 0
-                ? widthPerDay * daysBetween
-                : widthPerDay * daysFromStart - 0;
-            }
+            return daysBetween > 0
+              ? dailyWidth * daysBetween
+              : dailyWidth * daysFromStart - 0;
           })();
 
           initialPositions[stageName] = startDateIndex;
@@ -556,7 +543,7 @@ const ResizeableElements = ({
 
   return (
     <div
-      className={`w-full relative pb-5 grid-container ${rrange === "Month" ? "overflow-x-auto" : "overflow-x-hidden"}`}
+      className={`w-full relative pb-5 grid-container overflow-x-hidden`}
       ref={gridRef}
       style={{
         ...(rrange === "Year"

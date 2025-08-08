@@ -41,20 +41,9 @@ const getLayoutX = (clientX: number) => {
 const getUnscaledContainerWidth = () => {
   const grid = document.querySelector('.grid-container') as HTMLElement | null;
   if (!grid) return 0;
-  
-  // Get the zoom level from the parent container
-  const timelineContainer = grid.closest('[style*="transform: scale"]') as HTMLElement;
-  if (timelineContainer) {
-    const transform = timelineContainer.style.transform;
-    const scaleMatch = transform.match(/scale\(([^)]+)\)/);
-    if (scaleMatch) {
-      // Return the unscaled width
-      return grid.offsetWidth;
-    }
-  }
-  
-  // Fallback to getBoundingClientRect width
-  return grid.getBoundingClientRect().width;
+
+  // Use full scrollable width so dragging/resizing can span the entire timeline
+  return grid.scrollWidth;
 };
 
 interface DraggableChannelProps {
@@ -189,8 +178,27 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         // Default to first day of the month
         return new Date(year, monthIndex, 1);
       }
+    } else if (range === "Month") {
+      // Month view - treat the same as Day/Week for pixel mapping
+      const numberOfGridColumns = dateList.length;
+      const stepWidth = containerWidth / numberOfGridColumns;
+
+      const isAtEnd = pixel >= containerWidth - stepWidth / 2;
+
+      let gridIndex;
+      if (isAtEnd) {
+        gridIndex = numberOfGridColumns - 1;
+      } else {
+        gridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, Math.floor(pixel / stepWidth)));
+
+        if (fieldName === "endDate" && pixel % stepWidth === 0 && gridIndex > 0 && !isAtEnd) {
+          gridIndex -= 1;
+        }
+      }
+
+      return dateList[gridIndex] || dateList[0];
     } else {
-      // Day, Week, Month view - consistent grid-based calculation
+      // Day, Week view - consistent grid-based calculation
       const numberOfGridColumns = dateList.length;
       const stepWidth = containerWidth / numberOfGridColumns;
       
@@ -329,11 +337,61 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       const year = dateList[0]?.getFullYear() || new Date().getFullYear();
       startDateValue = new Date(year, monthStartIndex, 1);
       endDateValue = new Date(year, monthEndIndex + 1, 0); // Last day of the month
+    } else if (range === "Month") {
+      // Month view - calculate based on months like Year view but with dynamic month count
+      if (dateList.length > 0) {
+        const startDate = dateList[0];
+        const endDate = dateList[dateList.length - 1];
+        const startMonth = startDate.getMonth();
+        const startYear = startDate.getFullYear();
+        const endMonth = endDate.getMonth();
+        const endYear = endDate.getFullYear();
+        
+        // Calculate total months between start and end dates
+        const numberOfMonths = (endYear - startYear) * 12 + (endMonth - startMonth) + 1;
+        const monthStartIndex = Math.min(
+          numberOfMonths - 1,
+          Math.max(0, Math.round((startPixel / containerWidth) * numberOfMonths))
+        );
+        const monthEndIndex = Math.min(
+          numberOfMonths - 1,
+          Math.max(0, Math.round((endPixel / containerWidth) * numberOfMonths))
+        );
+
+        console.log("DraggableChannel Month view date conversion debug:", {
+          startPixel,
+          endPixel,
+          containerWidth,
+          numberOfMonths,
+          monthStartIndex,
+          monthEndIndex,
+          type,
+          startYear,
+          startMonth,
+          endYear,
+          endMonth
+        });
+
+        // Calculate the target months and years
+        const targetStartMonth = startMonth + monthStartIndex;
+        const targetStartYear = startYear + Math.floor(targetStartMonth / 12);
+        const actualStartMonth = targetStartMonth % 12;
+
+        const targetEndMonth = startMonth + monthEndIndex;
+        const targetEndYear = startYear + Math.floor(targetEndMonth / 12);
+        const actualEndMonth = targetEndMonth % 12;
+
+        startDateValue = new Date(targetStartYear, actualStartMonth, 1);
+        endDateValue = new Date(targetEndYear, actualEndMonth + 1, 0); // Last day of the month
+      } else {
+        startDateValue = new Date();
+        endDateValue = new Date();
+      }
     } else {
-      // Day, Week, Month view - use same logic as ResizableChannels
+      // Day, Week view - use same logic as ResizableChannels
       const numberOfGridColumns = dateList.length;
 
-      // Day, Week, Month view - compute grid indices using floor for correct mapping
+      // Day, Week view - compute grid indices using floor for correct mapping
       const stepWidth = containerWidth / numberOfGridColumns;
       const startGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, Math.floor(startPixel / stepWidth)));
       // Use (endPixel-1) so that exact edge aligns with previous day, giving inclusive range
@@ -364,8 +422,10 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       const endMonth = endDateValue?.toLocaleDateString("en-US", {
         month: "short",
       });
-      const startYear = startDateValue?.getFullYear();
-      const endYear = endDateValue?.getFullYear();
+      const startYear = 
+      startDateValue?.getFullYear();
+      const endYear = 
+      endDateValue?.getFullYear();
 
       if (startMonth === endMonth && startYear === endYear) {
         // Same month and year - show just the month
@@ -475,6 +535,20 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         if (range === "Year") {
           const monthWidth = dailyWidth || containerWidth / 12;
           return Math.max(monthWidth, 100); // Increased minimum for Year view
+        } else if (range === "Month") {
+          // Calculate month width for Month view
+          if (dateList.length > 0) {
+            const startDate = dateList[0];
+            const endDate = dateList[dateList.length - 1];
+            const startMonth = startDate.getMonth();
+            const startYear = startDate.getFullYear();
+            const endMonth = endDate.getMonth();
+            const endYear = endDate.getFullYear();
+            const numberOfMonths = (endYear - startYear) * 12 + (endMonth - startMonth) + 1;
+            const monthWidth = dailyWidth || containerWidth / numberOfMonths;
+            return Math.max(monthWidth, 100); // Increased minimum for Month view
+          }
+          return 100; // Fallback minimum for Month view
         }
         return 50; // Standard minimum for other views
       };
@@ -505,6 +579,20 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         if (range === "Year") {
           const monthWidth = dailyWidth || containerWidth / 12;
           return Math.max(monthWidth, 100); // Increased minimum for Year view
+        } else if (range === "Month") {
+          // Calculate month width for Month view
+          if (dateList.length > 0) {
+            const startDate = dateList[0];
+            const endDate = dateList[dateList.length - 1];
+            const startMonth = startDate.getMonth();
+            const startYear = startDate.getFullYear();
+            const endMonth = endDate.getMonth();
+            const endYear = endDate.getFullYear();
+            const numberOfMonths = (endYear - startYear) * 12 + (endMonth - startMonth) + 1;
+            const monthWidth = dailyWidth || containerWidth / numberOfMonths;
+            return Math.max(monthWidth, 100); // Increased minimum for Month view
+          }
+          return 100; // Fallback minimum for Month view
         }
         return 50; // Standard minimum for other views
       };
