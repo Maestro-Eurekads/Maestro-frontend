@@ -67,7 +67,9 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     ].filter(Boolean);
 
     if (identifiers.length > 0) {
-      return identifiers[0]; // Use the first available identifier
+      const planKey = identifiers[0]; // Use the first available identifier
+      console.log("getPlanKey - using identifier:", { identifiers, planKey });
+      return planKey;
     }
 
     // Fallback to funnel_stages if no ID is available
@@ -75,15 +77,34 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
       Array.isArray(campaignFormData?.funnel_stages) &&
       campaignFormData?.funnel_stages.length > 0
     ) {
-      return campaignFormData?.funnel_stages?.join("_");
+      const fallbackKey = campaignFormData?.funnel_stages?.join("_");
+      console.log("getPlanKey - using fallback:", { fallbackKey });
+      return fallbackKey;
     }
 
+    // If no stable key can be generated, try to create one from campaign data
+    if (
+      campaignFormData?.client_selection?.id ||
+      campaignFormData?.level_1?.id
+    ) {
+      const fallbackKey = `campaign_${
+        campaignFormData?.client_selection?.id || "no_client"
+      }_${campaignFormData?.level_1?.id || "no_level"}`;
+      console.log("getPlanKey - using campaign fallback:", { fallbackKey });
+      return fallbackKey;
+    }
+
+    console.log("getPlanKey - no key found");
     return null;
   };
 
   const getModalKey = () => {
     const planKey = getPlanKey();
-    return planKey ? `${GOAL_LEVEL_MODAL_KEY_PREFIX}${planKey}` : null;
+    const modalKey = planKey
+      ? `${GOAL_LEVEL_MODAL_KEY_PREFIX}${planKey}`
+      : null;
+    console.log("getModalKey:", { planKey, modalKey });
+    return modalKey;
   };
 
   const handleOpenModal = () => {
@@ -108,62 +129,6 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
       }
     }
   };
-
-  // Function to clear all granularity data for the current plan
-  const clearGranularityData = useCallback(() => {
-    if (typeof window !== "undefined") {
-      try {
-        // Clear granularity from localStorage
-        const planKey = getPlanKey();
-        if (planKey) {
-          const granularityKey = `granularity_${planKey}`;
-          localStorage.removeItem(granularityKey);
-        }
-
-        // Clear modal dismissal state
-        const modalKey = getModalKey();
-        if (modalKey) {
-          localStorage.removeItem(modalKey);
-          localStorage.removeItem(`${modalKey}_timestamp`);
-        }
-
-        // Clear in-memory granularity state
-        if ((window as any).channelLevelAudienceState) {
-          Object.keys((window as any).channelLevelAudienceState).forEach(
-            (stageName) => {
-              delete (window as any).channelLevelAudienceState[stageName];
-            }
-          );
-        }
-
-        // Clear sessionStorage granularity data
-        const campaignId =
-          campaignFormData?.id || campaignFormData?.media_plan_id;
-        if (campaignId) {
-          const sessionKey = `channelLevelAudienceState_${campaignId}`;
-          sessionStorage.removeItem(sessionKey);
-        }
-
-        // Reset granularity fields in campaign form data
-        setCampaignFormData((prev: any) => ({
-          ...prev,
-          ad_sets_granularity: undefined,
-          goal_level: "",
-          granularity: undefined,
-        }));
-
-        // Reset view to default (channel)
-        onToggleChange("channel");
-      } catch (error) {
-        console.error("Error clearing granularity data:", error);
-      }
-    }
-  }, [
-    campaignFormData?.id,
-    campaignFormData?.media_plan_id,
-    setCampaignFormData,
-    onToggleChange,
-  ]);
 
   // Memoize the handler to avoid unnecessary re-renders and infinite update loops
   const handlePlatformStateChange = useCallback(
@@ -248,28 +213,21 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
             const sessionKey = `channelLevelAudienceState_${campaignId}`;
             sessionStorage.removeItem(sessionKey);
           }
-
-          // Also clear all granularity-related data when unmounting
-          clearGranularityData();
         } catch (error) {
           console.error("Error clearing granularity data:", error);
         }
       }
     };
-  }, [
-    campaignFormData?.id,
-    campaignFormData?.media_plan_id,
-    clearGranularityData,
-  ]);
+  }, [campaignFormData?.id, campaignFormData?.media_plan_id]);
 
-  // Clear granularity data when plan changes (not just when unmounting)
+  // Simple plan change effect - just clear old data
   useEffect(() => {
     if (typeof window !== "undefined") {
       try {
-        // Clear previous plan's granularity data
+        // Clear old granularity data when plan changes
         const currentPlanKey = getPlanKey();
 
-        // Clear all granularity-related localStorage entries except current plan
+        // Clear granularity-related localStorage entries for old plans
         Object.keys(localStorage).forEach((key) => {
           if (
             key.startsWith("granularity_") ||
@@ -281,73 +239,11 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
             }
           }
         });
-
-        // Clear all sessionStorage granularity data except current plan
-        Object.keys(sessionStorage).forEach((key) => {
-          if (key.startsWith("channelLevelAudienceState_")) {
-            // Only clear if it's not for the current plan
-            if (!currentPlanKey || !key.includes(currentPlanKey)) {
-              sessionStorage.removeItem(key);
-            }
-          }
-        });
-
-        // Clear in-memory state if it's not for current plan
-        if ((window as any).channelLevelAudienceState) {
-          const currentCampaignId =
-            campaignFormData?.id || campaignFormData?.media_plan_id;
-          if (currentCampaignId) {
-            // Only clear if the in-memory state is for a different campaign
-            const memoryStateKeys = Object.keys(
-              (window as any).channelLevelAudienceState
-            );
-            if (memoryStateKeys.length > 0) {
-              // Check if any of the stored stages belong to current campaign
-              const hasCurrentCampaignData = memoryStateKeys.some(
-                (stageName) => {
-                  // This is a simplified check - in practice you might want more sophisticated logic
-                  return campaignFormData?.funnel_stages?.includes(stageName);
-                }
-              );
-
-              if (!hasCurrentCampaignData) {
-                // Clear if no current campaign data found
-                Object.keys((window as any).channelLevelAudienceState).forEach(
-                  (stageName) => {
-                    delete (window as any).channelLevelAudienceState[stageName];
-                  }
-                );
-              }
-            }
-          }
-        }
-
-        // Reset granularity fields in campaign form data when switching plans
-        if (campaignFormData?.id || campaignFormData?.media_plan_id) {
-          // Only reset if we have a new plan (not on initial load)
-          const hasGranularityData =
-            campaignFormData?.ad_sets_granularity ||
-            campaignFormData?.goal_level;
-          if (hasGranularityData) {
-            // Reset granularity fields to force fresh selection
-            setCampaignFormData((prev: any) => ({
-              ...prev,
-              ad_sets_granularity: undefined,
-              goal_level: "",
-              granularity: undefined,
-            }));
-          }
-        }
       } catch (error) {
         console.error("Error clearing granularity data on plan change:", error);
       }
     }
-  }, [
-    campaignFormData?.id,
-    campaignFormData?.media_plan_id,
-    campaignFormData?.funnel_stages,
-    setCampaignFormData,
-  ]);
+  }, [campaignFormData?.id, campaignFormData?.media_plan_id]);
 
   // Handle ad_sets_granularity from campaign data
   useEffect(() => {
@@ -402,20 +298,57 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
       view === "adset" ? "Adset level" : "Channel level";
     const modalKey = getModalKey();
 
+    // Check if this is a new campaign (no campaign ID yet)
+    const isNewCampaign =
+      !campaignFormData?.id &&
+      !campaignFormData?.cId &&
+      !campaignFormData?.media_plan_id;
+
+    // Check if granularity is explicitly set
+    const hasExplicitGranularity = campaignFormData?.ad_sets_granularity;
+
     // Check if modal was already dismissed for this plan
     const isModalDismissed =
       typeof window !== "undefined" && modalKey
         ? localStorage.getItem(modalKey) === "true"
         : false;
 
-    // Check if this is a new campaign (no campaign ID yet) or if granularity is explicitly set
-    const isNewCampaign =
-      !campaignFormData?.id &&
-      !campaignFormData?.cId &&
-      !campaignFormData?.media_plan_id;
-    const hasExplicitGranularity = campaignFormData?.ad_sets_granularity;
+    // Also check if we have any granularity selection (this means modal was already handled)
+    const hasGranularitySelection = goalLevel || hasExplicitGranularity;
 
-    // Check if campaign has been properly loaded from server (has funnel stages or other campaign data)
+    // Check if we have any granularity data in localStorage for this plan
+    let hasLocalStorageGranularity = false;
+    let isPlanConfigured = false;
+    if (typeof window !== "undefined") {
+      const planKey = getPlanKey();
+      if (planKey) {
+        const granularityKey = `granularity_${planKey}`;
+        hasLocalStorageGranularity = !!localStorage.getItem(granularityKey);
+        isPlanConfigured = !!localStorage.getItem(`configured_${planKey}`);
+      }
+    }
+
+    // Debug localStorage
+    if (typeof window !== "undefined") {
+      console.log("localStorage check:", {
+        modalKey,
+        isModalDismissed,
+        hasGranularitySelection,
+        hasLocalStorageGranularity,
+        isPlanConfigured,
+        allKeys: Object.keys(localStorage).filter((key) =>
+          key.startsWith(GOAL_LEVEL_MODAL_KEY_PREFIX)
+        ),
+        granularityKeys: Object.keys(localStorage).filter((key) =>
+          key.startsWith("granularity_")
+        ),
+        configuredKeys: Object.keys(localStorage).filter((key) =>
+          key.startsWith("configured_")
+        ),
+      });
+    }
+
+    // Check if campaign has been properly loaded from server
     const hasCampaignData =
       campaignFormData?.funnel_stages?.length > 0 ||
       campaignFormData?.channel_mix?.length > 0 ||
@@ -423,48 +356,63 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
       campaignFormData?.level_1?.id ||
       campaignFormData?.media_plan;
 
-    // Only show modal if:
-    // 1. This is a new campaign (no ID yet), OR
-    // 2. Campaign loading is complete AND campaign has no data AND no goal level is set AND no explicit granularity AND not dismissed
+    // Debug logging
+    console.log("Modal visibility check:", {
+      isNewCampaign,
+      goalLevel,
+      hasExplicitGranularity,
+      isModalDismissed,
+      loadingCampaign,
+      hasCampaignData,
+      modalKey,
+    });
+
+    // Show modal for new campaigns or when no granularity is selected
     if (isNewCampaign) {
-      // For new campaigns, always show modal
-      setIsModalOpen(true);
-    } else if (
-      !loadingCampaign &&
-      !hasCampaignData &&
-      !goalLevel &&
-      !hasExplicitGranularity
-    ) {
-      if (isModalDismissed) {
-        // Modal was dismissed, don't show it again
+      // For new campaigns, check if user has already made a selection
+      if (hasGranularitySelection || isPlanConfigured) {
+        console.log(
+          "Not showing modal: new campaign but has granularity selection or is configured"
+        );
         setIsModalOpen(false);
-        // Set a default goal level to prevent the modal from showing again
-        setCampaignFormData((prev: any) => ({
-          ...prev,
-          goal_level: expectedGoalLevel,
-          granularity: view,
-        }));
       } else {
-        // Show modal only if not dismissed
+        console.log("Showing modal: new campaign with no selection");
         setIsModalOpen(true);
       }
-    } else if (goalLevel !== expectedGoalLevel) {
-      // Update goal level to match current view
-      setCampaignFormData((prev: any) => ({
-        ...prev,
-        goal_level: expectedGoalLevel,
-        granularity: view,
-      }));
-      // Close modal after updating
+    } else if (
+      hasGranularitySelection ||
+      hasLocalStorageGranularity ||
+      isPlanConfigured
+    ) {
+      // If we have any granularity selection or localStorage data, don't show modal
+      console.log(
+        "Not showing modal: has granularity selection or localStorage data or is configured"
+      );
       setIsModalOpen(false);
+    } else if (isModalDismissed) {
+      // If modal was dismissed, don't show it again
+      console.log("Not showing modal: was dismissed");
+      setIsModalOpen(false);
+    } else if (!loadingCampaign && !goalLevel && !hasCampaignData) {
+      // Show modal if no goal level is set and no campaign data exists
+      console.log("Showing modal: no goal level and no campaign data");
+      setIsModalOpen(true);
     } else {
-      // Goal level matches expected, close modal
+      // Don't show modal if we have sufficient data
+      console.log("Not showing modal: has sufficient data");
       setIsModalOpen(false);
     }
   }, [
     campaignFormData?.goal_level,
-    view,
-    setCampaignFormData,
+    campaignFormData?.ad_sets_granularity,
+    campaignFormData?.id,
+    campaignFormData?.cId,
+    campaignFormData?.media_plan_id,
+    campaignFormData?.funnel_stages,
+    campaignFormData?.channel_mix,
+    campaignFormData?.client_selection?.id,
+    campaignFormData?.level_1?.id,
+    campaignFormData?.media_plan,
     loadingCampaign,
   ]);
 
@@ -1301,6 +1249,9 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                                   ? "adset"
                                   : "channel";
 
+                              // Close modal immediately to prevent any state issues
+                              setIsModalOpen(false);
+
                               // Update campaign form data
                               setCampaignFormData((prev: any) => ({
                                 ...prev,
@@ -1312,10 +1263,44 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                               // Update view
                               onToggleChange(newView);
 
-                              // Close modal and persist dismissal
-                              handleCloseModal();
+                              // Mark modal as dismissed for this plan in localStorage
+                              if (typeof window !== "undefined") {
+                                try {
+                                  // For new plans, create a temporary key based on current form data
+                                  let planKey = getPlanKey();
+                                  if (!planKey) {
+                                    // Create a temporary key for new plans
+                                    const tempKey = `temp_${Date.now()}_${
+                                      item.label
+                                    }`;
+                                    planKey = tempKey;
+                                  }
 
-                              // Save granularity to backend if campaign exists
+                                  const modalKey = `${GOAL_LEVEL_MODAL_KEY_PREFIX}${planKey}`;
+                                  localStorage.setItem(modalKey, "true");
+                                  localStorage.setItem(
+                                    `${modalKey}_timestamp`,
+                                    Date.now().toString()
+                                  );
+
+                                  // Save granularity setting to localStorage for persistence
+                                  const granularityKey = `granularity_${planKey}`;
+                                  localStorage.setItem(granularityKey, newView);
+
+                                  // Also save a flag that this plan has been configured
+                                  localStorage.setItem(
+                                    `configured_${planKey}`,
+                                    "true"
+                                  );
+                                } catch (error) {
+                                  console.error(
+                                    "Error saving goal level selection:",
+                                    error
+                                  );
+                                }
+                              }
+
+                              // Save granularity to backend if campaign exists (async)
                               const saveGranularityToBackend = async () => {
                                 try {
                                   if (campaignFormData?.cId) {
@@ -1334,35 +1319,6 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
 
                               // Call the backend save function
                               saveGranularityToBackend();
-
-                              // Mark modal as dismissed for this plan in localStorage
-                              if (typeof window !== "undefined") {
-                                try {
-                                  const modalKey = getModalKey();
-                                  if (modalKey) {
-                                    localStorage.setItem(modalKey, "true");
-                                    localStorage.setItem(
-                                      `${modalKey}_timestamp`,
-                                      Date.now().toString()
-                                    );
-                                  }
-
-                                  // Save granularity setting to localStorage for persistence
-                                  const planKey = getPlanKey();
-                                  if (planKey) {
-                                    const granularityKey = `granularity_${planKey}`;
-                                    localStorage.setItem(
-                                      granularityKey,
-                                      newView
-                                    );
-                                  }
-                                } catch (error) {
-                                  console.error(
-                                    "Error saving goal level selection:",
-                                    error
-                                  );
-                                }
-                              }
                             }}>
                             Select
                           </button>
