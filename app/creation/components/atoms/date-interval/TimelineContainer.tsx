@@ -106,6 +106,9 @@ console.log(daysInYear, "daysInYear");
             <MonthInterval
               monthsCount={monthDifference}
               getDaysInEachMonth={getDaysInEachMonth}
+              funnelData={funnelsData}
+              src="dashboard"
+              range={dateList}
             />
             <MonthTimeline
               monthsCount={monthDifference}

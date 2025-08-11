@@ -1,168 +1,103 @@
-"use client"
-
-import type React from "react"
-import { useCallback, useEffect, useState } from "react"
-import { eachDayOfInterval, addDays, format } from "date-fns"
-import { useCampaigns } from "app/utils/CampaignsContext"
+"use client";
+import { format, eachMonthOfInterval } from "date-fns";
+import type React from "react";
+import { useDateRange } from "src/date-range-context";
 
 interface MonthIntervalProps {
-  monthsCount: number
-  view?: boolean
-  getDaysInEachMonth?: any
-  funnelData?: any
-  disableDrag?: any
+  monthsCount: number;
+  /**
+   * Identifies the origin of the call.  "dashboard" means the parent has
+   * already supplied an explicit range array via the `range` prop.  Any other
+   * value falls back to the date-range context (legacy behaviour).
+   */
+  src?: string;
+  /**
+   * Explicit array of JavaScript Date objects coming from the parent.  Used
+   * only when `src === "dashboard"` *and* `funnelData` is empty.
+   */
+  range?: Date[];
+  /**
+   * Timeline funnels.  When present, the earliest startDate and latest endDate
+   * across all funnels (and their stages) will be used to compute the header
+   * date range.
+   */
+  funnelData?: any;
+  disableDrag?: boolean;
+  view?: boolean;
+  getDaysInEachMonth?: any;
 }
 
-const MonthInterval: React.FC<MonthIntervalProps> = ({
-  monthsCount,
-  view,
-  getDaysInEachMonth,
-  disableDrag,
+const MonthInterval: React.FC<MonthIntervalProps> = ({ 
+  monthsCount, 
+  src, 
+  range, 
   funnelData,
+  disableDrag,
+  view,
+  getDaysInEachMonth 
 }) => {
-  const [monthNames, setSetMonthName] = useState([])
-  const [daysInMonth, setDaysInEachMonth] = useState<Record<string, number>>({})
-  const { campaignFormData } = useCampaigns()
-  const [containerWidth, setContainerWidth] = useState(0)
+  const { range: contextRange } = useDateRange();
 
-  useEffect(() => {
-    if (getDaysInEachMonth) {
-      const daysData = getDaysInEachMonth()
-      setDaysInEachMonth(daysData)
-    }
-  }, [getDaysInEachMonth])
-
-  // Calculate total days and month count
-  const totalDays = Object.values(daysInMonth || {}).reduce((acc, days) => acc + days, 0)
-  const monthCount = Object.keys(daysInMonth || {}).length
-
-  // Calculate grid template columns based on actual days in each month
-  const gridTemplateColumns = useCallback(() => {
-    if (monthCount === 0) return "1fr"
-    
-    if (monthCount > 3) {
-      // When more than 3 months, each month takes at least 20% of container
-      return Object.values(daysInMonth)
-        .map((days) => {
-          const proportionalWidth = (days / totalDays) * 100;
-          const monthWidth = Math.max(proportionalWidth, 20); // Minimum 20%
-          return `${Math.round(monthWidth)}%`;
-        })
-        .join(" ")
-    } else {
-      // For 3 or fewer months, use proportional logic
-      return Object.values(daysInMonth)
-        .map((days) => `${Math.round((days / totalDays) * 100)}%`)
-        .join(" ")
-    }
-  }, [daysInMonth, monthCount, totalDays])
-
-  useEffect(() => {
-    if (campaignFormData) {
-      const startDate = new Date(campaignFormData?.campaign_timeline_start_date)
-      const endDate = new Date(campaignFormData?.campaign_timeline_end_date)
-
-      const differenceInDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
-
-      const dateList = eachDayOfInterval({
-        start: new Date(campaignFormData?.campaign_timeline_start_date) || new Date(),
-        end:
-          addDays(new Date(campaignFormData?.campaign_timeline_start_date), differenceInDays) ||
-          addDays(new Date(), 13),
-      })
-
-      // Extract month names
-      const names = Array.from(new Set(dateList.map((date) => format(date, "MMMM"))))
-
-      setSetMonthName(names)
-    }
-  }, [campaignFormData])
-
-  useEffect(() => {
-    const getViewportWidth = () => {
-      return window.innerWidth || document.documentElement.clientWidth || 0
+  /**
+   * Compute the array of Date objects that will be displayed in the header.
+   * Priority:
+   *   1. If `funnelData` is provided & non-empty, use earliest startDate and
+   *      latest endDate across all funnels/stages.
+   *   2. Else if `src === "dashboard"` and `range` was supplied, use it.
+   *   3. Fallback to `useDateRange()` context.
+   */
+  
+  const computeHeaderRange = (): Date[] => {
+    // For month view, we'll use the range directly since funnelData is an object with positioning info
+    if (src === "dashboard" && Array.isArray(range)) {
+      return range;
     }
 
-    const screenWidth = getViewportWidth()
-    const contWidth = screenWidth - (disableDrag ? 80 : 367)
-    setContainerWidth(contWidth)
-  }, [disableDrag])
+    return contextRange ?? [];
+  };
 
-  const calculateDailyWidth = useCallback(() => {
-    const getViewportWidth = () => {
-      return window.innerWidth || document.documentElement.clientWidth || 0
-    }
-
-    const screenWidth = getViewportWidth()
-    const contWidth = screenWidth - (disableDrag ? 80 : 367)
-
-    let dailyWidth: number
-
-    if (monthCount > 0) {
-      // Use actual total days from the data
-      dailyWidth = contWidth / totalDays
-    } else {
-      // Fallback to funnel data
-      const totalDays = funnelData?.endDay || 30
-      dailyWidth = contWidth / totalDays
-    }
-
-    // Ensure minimum width constraints
-    dailyWidth = Math.max(dailyWidth, 10)
-
-    return Math.round(dailyWidth)
-  }, [disableDrag, funnelData?.endDay, monthCount, totalDays])
-
-  const dailyWidth = calculateDailyWidth()
-
-  // Calculate background size based on actual month data
-  const getBackgroundSize = useCallback(() => {
-    if (monthCount === 0) return "100% 100%"
-    
-    // No daily grid lines for month view - only month boundaries
-    return "100% 100%"
-  }, [monthCount])
-
-  // Only render if we have data
-  if (monthCount === 0) {
-    return (
-      <div className="w-full border-y">
-        <div className="flex items-center justify-center py-4">
-          <span className="text-gray-500">Loading month view...</span>
-        </div>
-      </div>
-    )
-  }
+  const headerDates = computeHeaderRange();
 
   return (
-    <div className="w-full border-y">
+    <div className="w-full border-y py-3">
       <div
-      className="inline-flex"
+        className="inline-flex"
         style={{
           display: "grid",
-          gridTemplateColumns: gridTemplateColumns(),
-          backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.3) 1px, transparent 1px)`,
-          backgroundSize: getBackgroundSize(),
+          gridTemplateColumns: `repeat(${headerDates.length}, 1fr)`,
         }}
       >
-        {Object.entries(daysInMonth).map(([monthName, daysCount], i) => (
-          <div
-            key={i}
-            className=" relative pt-3 border-r border-slate-200 last:border-r-0"
-          >
-            <div className="flex flex-col gap-2 items-center">
-              <p className="font-[500] text-[13px] text-[rgba(0,0,0,0.5)]">
-                {monthName}
-              </p>
-              <p className="text-[11px] text-gray-400">
-                ({daysCount} days)
-              </p>
+        {Array.from({ length: headerDates.length }, (_, i) => {
+          const isEdge = i === 0 || i === (headerDates.length - 1)
+          const date = headerDates[i]
+
+          return (
+            <div key={i} className="flex flex-col items-center relative">
+              <div
+                className={`relative w-[80px] text-center text-sm font-medium px-1 py-1 rounded-md ${
+                  isEdge ? "bg-[#f05406] text-white" : "bg-white"
+                }`}
+              >
+                <span className={`block ${isEdge ? "text-white" : "text-black"}`}>
+                  {date && format(date, "MMM")}
+                </span>
+                <span className={`block ${isEdge ? "text-white" : "text-blue-500"}`}>
+                  {date && format(date, "yyyy")}
+                </span>
+
+                {/* Triangle for Edge Dates */}
+                {isEdge && (
+                  <div className="absolute left-1/2 -bottom-[4.2px] transform -translate-x-1/2">
+                    <div className="w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-[#f05406]" />
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default MonthInterval
+export default MonthInterval; 

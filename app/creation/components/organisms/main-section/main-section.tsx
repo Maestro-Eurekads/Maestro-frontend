@@ -210,6 +210,8 @@ const MainSection = ({
               getDaysInEachMonth={getDaysInEachMonth}
               funnelData={funnelsData}
               disableDrag={disableDrag}
+              range={currentRange}
+              src="campaign"
             />
           </>
         )
