@@ -1,264 +1,506 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useEffect, useRef, useCallback } from "react"
-import Image from "next/image"
-import up from "../../../public/arrow-down.svg"
-import down2 from "../../../public/arrow-down-2.svg"
-import adset from "../../../public/adset_level.svg"
-import channel from "../../../public/channel_level.svg"
-import AdSetsFlow from "./common/AdSetsFlow"
-import { useCampaigns } from "../../utils/CampaignsContext"
-import Modal from "components/Modals/Modal"
-import Switch from "react-switch"
+import type React from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
+import up from "../../../public/arrow-down.svg";
+import down2 from "../../../public/arrow-down-2.svg";
+import adset from "../../../public/adset_level.svg";
+import channel from "../../../public/channel_level.svg";
+import AdSetsFlow from "./common/AdSetsFlow";
+import { useCampaigns } from "../../utils/CampaignsContext";
+import Modal from "components/Modals/Modal";
+import Switch from "react-switch";
 
 // Helper for thousand separator
 function formatWithThousandSeparator(value: string | number) {
-  if (value === undefined || value === null) return ""
-  const cleaned = String(value).replace(/,/g, "")
-  if (cleaned === "") return ""
+  if (value === undefined || value === null) return "";
+  const cleaned = String(value).replace(/,/g, "");
+  if (cleaned === "") return "";
   if (!isNaN(Number(cleaned))) {
     if (cleaned.includes(".")) {
-      const [int, dec] = cleaned.split(".")
-      return Number(int).toLocaleString("en-US") + "." + dec.replace(/[^0-9]/g, "")
+      const [int, dec] = cleaned.split(".");
+      return (
+        Number(int).toLocaleString("en-US") + "." + dec.replace(/[^0-9]/g, "")
+      );
     }
-    return Number(cleaned).toLocaleString("en-US")
+    return Number(cleaned).toLocaleString("en-US");
   }
-  return value
+  return value;
 }
 
 interface DefineAdSetPageProps {
-  view: "channel" | "adset"
-  onToggleChange: (newView: "channel" | "adset") => void
+  view: "channel" | "adset";
+  onToggleChange: (newView: "channel" | "adset") => void;
 }
 
 // Use a key that is unique per plan, so we can track which plans have had the modal dismissed
-const GOAL_LEVEL_MODAL_KEY_PREFIX = "goalLevelModalDismissed_"
+const GOAL_LEVEL_MODAL_KEY_PREFIX = "goalLevelModalDismissed_";
 
 const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
-  const [openItems, setOpenItems] = useState<Record<string, boolean>>({})
+  const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
   // Remove completed status: don't track stageStatuses or hasInteracted
-  const { campaignFormData, setCampaignFormData, updateCampaign, loadingCampaign } = useCampaigns()
-  const [step, setStep] = useState(2)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const initialized = useRef(false)
-  const [openPlatforms, setOpenPlatforms] = useState<Record<string, string[]>>({})
-  const [isLoadingGranularity, setIsLoadingGranularity] = useState(true)
+  const {
+    campaignFormData,
+    setCampaignFormData,
+    updateCampaign,
+    loadingCampaign,
+  } = useCampaigns();
+  const [step, setStep] = useState(2);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const initialized = useRef(false);
+  const [openPlatforms, setOpenPlatforms] = useState<Record<string, string[]>>(
+    {}
+  );
+  const [isLoadingGranularity, setIsLoadingGranularity] = useState(true);
 
   // Get a unique key for the current plan (use media_plan_id if available, fallback to campaignFormData id)
   const getPlanKey = () => {
-    if (!campaignFormData) return null
+    if (!campaignFormData) return null;
 
     // Try multiple identifiers to ensure we have a stable key
     const identifiers = [
       campaignFormData?.media_plan_id,
       campaignFormData?.id,
       campaignFormData?.cId,
-      campaignFormData?.documentId
-    ].filter(Boolean)
+      campaignFormData?.documentId,
+    ].filter(Boolean);
 
     if (identifiers.length > 0) {
-      return identifiers[0] // Use the first available identifier
+      return identifiers[0]; // Use the first available identifier
     }
 
     // Fallback to funnel_stages if no ID is available
-    if (Array.isArray(campaignFormData?.funnel_stages) && campaignFormData?.funnel_stages.length > 0) {
-      return campaignFormData?.funnel_stages?.join("_")
+    if (
+      Array.isArray(campaignFormData?.funnel_stages) &&
+      campaignFormData?.funnel_stages.length > 0
+    ) {
+      return campaignFormData?.funnel_stages?.join("_");
     }
 
-    return null
-  }
+    return null;
+  };
 
   const getModalKey = () => {
-    const planKey = getPlanKey()
-    return planKey ? `${GOAL_LEVEL_MODAL_KEY_PREFIX}${planKey}` : null
-  }
+    const planKey = getPlanKey();
+    return planKey ? `${GOAL_LEVEL_MODAL_KEY_PREFIX}${planKey}` : null;
+  };
 
   const handleOpenModal = () => {
-    setIsModalOpen(true)
-  }
+    setIsModalOpen(true);
+  };
 
   const handleCloseModal = (e?: React.MouseEvent) => {
-    if (e) e.preventDefault()
-    setIsModalOpen(false)
+    if (e) e.preventDefault();
+    setIsModalOpen(false);
 
     // Persist the dismissal state
     if (typeof window !== "undefined") {
-      const modalKey = getModalKey()
+      const modalKey = getModalKey();
       if (modalKey) {
         try {
-          localStorage.setItem(modalKey, "true")
+          localStorage.setItem(modalKey, "true");
           // Also set a timestamp to track when it was dismissed
-          localStorage.setItem(`${modalKey}_timestamp`, Date.now().toString())
+          localStorage.setItem(`${modalKey}_timestamp`, Date.now().toString());
         } catch (error) {
-          console.error("Error saving modal dismissal state:", error)
+          console.error("Error saving modal dismissal state:", error);
         }
       }
     }
-  }
+  };
+
+  // Function to clear all granularity data for the current plan
+  const clearGranularityData = useCallback(() => {
+    if (typeof window !== "undefined") {
+      try {
+        // Clear granularity from localStorage
+        const planKey = getPlanKey();
+        if (planKey) {
+          const granularityKey = `granularity_${planKey}`;
+          localStorage.removeItem(granularityKey);
+        }
+
+        // Clear modal dismissal state
+        const modalKey = getModalKey();
+        if (modalKey) {
+          localStorage.removeItem(modalKey);
+          localStorage.removeItem(`${modalKey}_timestamp`);
+        }
+
+        // Clear in-memory granularity state
+        if ((window as any).channelLevelAudienceState) {
+          Object.keys((window as any).channelLevelAudienceState).forEach(
+            (stageName) => {
+              delete (window as any).channelLevelAudienceState[stageName];
+            }
+          );
+        }
+
+        // Clear sessionStorage granularity data
+        const campaignId =
+          campaignFormData?.id || campaignFormData?.media_plan_id;
+        if (campaignId) {
+          const sessionKey = `channelLevelAudienceState_${campaignId}`;
+          sessionStorage.removeItem(sessionKey);
+        }
+
+        // Reset granularity fields in campaign form data
+        setCampaignFormData((prev: any) => ({
+          ...prev,
+          ad_sets_granularity: undefined,
+          goal_level: "",
+          granularity: undefined,
+        }));
+
+        // Reset view to default (channel)
+        onToggleChange("channel");
+      } catch (error) {
+        console.error("Error clearing granularity data:", error);
+      }
+    }
+  }, [
+    campaignFormData?.id,
+    campaignFormData?.media_plan_id,
+    setCampaignFormData,
+    onToggleChange,
+  ]);
 
   // Memoize the handler to avoid unnecessary re-renders and infinite update loops
   const handlePlatformStateChange = useCallback(
     (stageName: string, platformName: string, isOpen: boolean) => {
       setOpenPlatforms((prev) => {
-        const stageOpenPlatforms = prev[stageName] || []
+        const stageOpenPlatforms = prev[stageName] || [];
         if (isOpen) {
           // Add platform if not already in the list
           if (!stageOpenPlatforms.includes(platformName)) {
             return {
               ...prev,
               [stageName]: [...stageOpenPlatforms, platformName],
-            }
+            };
           }
         } else {
           // Remove platform from the list
           return {
             ...prev,
             [stageName]: stageOpenPlatforms.filter((p) => p !== platformName),
-          }
+          };
         }
-        return prev
-      })
+        return prev;
+      });
     },
     []
-  )
-
-
-  const goalLevelUpdateRef = useRef<{ [view: string]: boolean }>({})
+  );
 
   // Clean up old localStorage entries when component unmounts or plan changes
   useEffect(() => {
     if (typeof window !== "undefined") {
       // Clean up old modal dismissal entries (older than 30 days)
-      const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000)
-      Object.keys(localStorage).forEach(key => {
-        if (key.startsWith(GOAL_LEVEL_MODAL_KEY_PREFIX) && key.endsWith('_timestamp')) {
-          const timestamp = parseInt(localStorage.getItem(key) || '0')
+      const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+      Object.keys(localStorage).forEach((key) => {
+        if (
+          key.startsWith(GOAL_LEVEL_MODAL_KEY_PREFIX) &&
+          key.endsWith("_timestamp")
+        ) {
+          const timestamp = parseInt(localStorage.getItem(key) || "0");
           if (timestamp < thirtyDaysAgo) {
-            const modalKey = key.replace('_timestamp', '')
-            localStorage.removeItem(modalKey)
-            localStorage.removeItem(key)
+            const modalKey = key.replace("_timestamp", "");
+            localStorage.removeItem(modalKey);
+            localStorage.removeItem(key);
           }
         }
-      })
+      });
     }
-  }, [campaignFormData?.id, campaignFormData?.media_plan_id])
+  }, []);
+
+  // Clear granularity data when component unmounts or plan changes
+  useEffect(() => {
+    return () => {
+      // Clear granularity data when leaving this plan
+      if (typeof window !== "undefined") {
+        try {
+          // Clear granularity from localStorage
+          const planKey = getPlanKey();
+          if (planKey) {
+            const granularityKey = `granularity_${planKey}`;
+            localStorage.removeItem(granularityKey);
+          }
+
+          // Clear modal dismissal state
+          const modalKey = getModalKey();
+          if (modalKey) {
+            localStorage.removeItem(modalKey);
+            localStorage.removeItem(`${modalKey}_timestamp`);
+          }
+
+          // Clear any in-memory granularity state
+          if ((window as any).channelLevelAudienceState) {
+            Object.keys((window as any).channelLevelAudienceState).forEach(
+              (stageName) => {
+                delete (window as any).channelLevelAudienceState[stageName];
+              }
+            );
+          }
+
+          // Clear sessionStorage granularity data
+          const campaignId =
+            campaignFormData?.id || campaignFormData?.media_plan_id;
+          if (campaignId) {
+            const sessionKey = `channelLevelAudienceState_${campaignId}`;
+            sessionStorage.removeItem(sessionKey);
+          }
+
+          // Also clear all granularity-related data when unmounting
+          clearGranularityData();
+        } catch (error) {
+          console.error("Error clearing granularity data:", error);
+        }
+      }
+    };
+  }, [
+    campaignFormData?.id,
+    campaignFormData?.media_plan_id,
+    clearGranularityData,
+  ]);
+
+  // Clear granularity data when plan changes (not just when unmounting)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        // Clear previous plan's granularity data
+        const currentPlanKey = getPlanKey();
+
+        // Clear all granularity-related localStorage entries except current plan
+        Object.keys(localStorage).forEach((key) => {
+          if (
+            key.startsWith("granularity_") ||
+            key.startsWith(GOAL_LEVEL_MODAL_KEY_PREFIX)
+          ) {
+            // Only clear if it's not for the current plan
+            if (!currentPlanKey || !key.includes(currentPlanKey)) {
+              localStorage.removeItem(key);
+            }
+          }
+        });
+
+        // Clear all sessionStorage granularity data except current plan
+        Object.keys(sessionStorage).forEach((key) => {
+          if (key.startsWith("channelLevelAudienceState_")) {
+            // Only clear if it's not for the current plan
+            if (!currentPlanKey || !key.includes(currentPlanKey)) {
+              sessionStorage.removeItem(key);
+            }
+          }
+        });
+
+        // Clear in-memory state if it's not for current plan
+        if ((window as any).channelLevelAudienceState) {
+          const currentCampaignId =
+            campaignFormData?.id || campaignFormData?.media_plan_id;
+          if (currentCampaignId) {
+            // Only clear if the in-memory state is for a different campaign
+            const memoryStateKeys = Object.keys(
+              (window as any).channelLevelAudienceState
+            );
+            if (memoryStateKeys.length > 0) {
+              // Check if any of the stored stages belong to current campaign
+              const hasCurrentCampaignData = memoryStateKeys.some(
+                (stageName) => {
+                  // This is a simplified check - in practice you might want more sophisticated logic
+                  return campaignFormData?.funnel_stages?.includes(stageName);
+                }
+              );
+
+              if (!hasCurrentCampaignData) {
+                // Clear if no current campaign data found
+                Object.keys((window as any).channelLevelAudienceState).forEach(
+                  (stageName) => {
+                    delete (window as any).channelLevelAudienceState[stageName];
+                  }
+                );
+              }
+            }
+          }
+        }
+
+        // Reset granularity fields in campaign form data when switching plans
+        if (campaignFormData?.id || campaignFormData?.media_plan_id) {
+          // Only reset if we have a new plan (not on initial load)
+          const hasGranularityData =
+            campaignFormData?.ad_sets_granularity ||
+            campaignFormData?.goal_level;
+          if (hasGranularityData) {
+            // Reset granularity fields to force fresh selection
+            setCampaignFormData((prev: any) => ({
+              ...prev,
+              ad_sets_granularity: undefined,
+              goal_level: "",
+              granularity: undefined,
+            }));
+          }
+        }
+      } catch (error) {
+        console.error("Error clearing granularity data on plan change:", error);
+      }
+    }
+  }, [
+    campaignFormData?.id,
+    campaignFormData?.media_plan_id,
+    campaignFormData?.funnel_stages,
+    setCampaignFormData,
+  ]);
 
   // Handle ad_sets_granularity from campaign data
   useEffect(() => {
     if (loadingCampaign) {
-      setIsLoadingGranularity(true)
-      return
+      setIsLoadingGranularity(true);
+      return;
     }
 
     // If campaign data is still being loaded or not available yet
     if (!campaignFormData) {
-      setIsLoadingGranularity(true)
-      return
+      setIsLoadingGranularity(true);
+      return;
     }
 
-    if (campaignFormData?.ad_sets_granularity && campaignFormData.ad_sets_granularity !== view) {
-      setIsLoadingGranularity(true)
-      onToggleChange(campaignFormData.ad_sets_granularity)
+    if (
+      campaignFormData?.ad_sets_granularity &&
+      campaignFormData.ad_sets_granularity !== view
+    ) {
+      setIsLoadingGranularity(true);
+      onToggleChange(campaignFormData.ad_sets_granularity);
       // Add a small delay to ensure the transition is smooth
       setTimeout(() => {
-        setIsLoadingGranularity(false)
-      }, 500)
+        setIsLoadingGranularity(false);
+      }, 500);
     } else if (campaignFormData?.ad_sets_granularity || campaignFormData) {
       // If we have campaign data but no granularity change needed, stop loading
-      setIsLoadingGranularity(false)
+      setIsLoadingGranularity(false);
     } else {
       // If no campaign data yet, keep loading
-      setIsLoadingGranularity(true)
+      setIsLoadingGranularity(true);
     }
-  }, [campaignFormData?.ad_sets_granularity, view, onToggleChange, campaignFormData, loadingCampaign])
+  }, [
+    campaignFormData?.ad_sets_granularity,
+    view,
+    onToggleChange,
+    campaignFormData,
+    loadingCampaign,
+  ]);
 
   // Initial loading state when component mounts
   useEffect(() => {
     if (!campaignFormData && !loadingCampaign) {
-      setIsLoadingGranularity(false)
+      setIsLoadingGranularity(false);
     }
-  }, [campaignFormData, loadingCampaign])
+  }, [campaignFormData, loadingCampaign]);
 
   useEffect(() => {
-    if (!campaignFormData) return
+    if (!campaignFormData) return;
 
-    const goalLevel = campaignFormData?.goal_level
-    const expectedGoalLevel = view === "adset" ? "Adset level" : "Channel level"
-    const modalKey = getModalKey()
+    const goalLevel = campaignFormData?.goal_level;
+    const expectedGoalLevel =
+      view === "adset" ? "Adset level" : "Channel level";
+    const modalKey = getModalKey();
 
     // Check if modal was already dismissed for this plan
-    const isModalDismissed = typeof window !== "undefined" && modalKey ? localStorage.getItem(modalKey) === "true" : false
+    const isModalDismissed =
+      typeof window !== "undefined" && modalKey
+        ? localStorage.getItem(modalKey) === "true"
+        : false;
 
-    // Only show modal if not dismissed for this plan and no goal level is set
-    if (!goalLevel) {
+    // Check if this is a new campaign (no campaign ID yet) or if granularity is explicitly set
+    const isNewCampaign =
+      !campaignFormData?.id &&
+      !campaignFormData?.cId &&
+      !campaignFormData?.media_plan_id;
+    const hasExplicitGranularity = campaignFormData?.ad_sets_granularity;
+
+    // Check if campaign has been properly loaded from server (has funnel stages or other campaign data)
+    const hasCampaignData =
+      campaignFormData?.funnel_stages?.length > 0 ||
+      campaignFormData?.channel_mix?.length > 0 ||
+      campaignFormData?.client_selection?.id ||
+      campaignFormData?.level_1?.id ||
+      campaignFormData?.media_plan;
+
+    // Only show modal if:
+    // 1. This is a new campaign (no ID yet), OR
+    // 2. Campaign loading is complete AND campaign has no data AND no goal level is set AND no explicit granularity AND not dismissed
+    if (isNewCampaign) {
+      // For new campaigns, always show modal
+      setIsModalOpen(true);
+    } else if (
+      !loadingCampaign &&
+      !hasCampaignData &&
+      !goalLevel &&
+      !hasExplicitGranularity
+    ) {
       if (isModalDismissed) {
         // Modal was dismissed, don't show it again
-        setIsModalOpen(false)
+        setIsModalOpen(false);
         // Set a default goal level to prevent the modal from showing again
-        if (!goalLevelUpdateRef.current[view]) {
-          setCampaignFormData((prev: any) => ({
-            ...prev,
-            goal_level: expectedGoalLevel,
-            granularity: view,
-          }))
-          goalLevelUpdateRef.current[view] = true
-        }
+        setCampaignFormData((prev: any) => ({
+          ...prev,
+          goal_level: expectedGoalLevel,
+          granularity: view,
+        }));
       } else {
         // Show modal only if not dismissed
-        setIsModalOpen(true)
+        setIsModalOpen(true);
       }
-      goalLevelUpdateRef.current[view] = false
     } else if (goalLevel !== expectedGoalLevel) {
-      // Only update if we haven't already done so for this view
-      if (!goalLevelUpdateRef.current[view]) {
-        setCampaignFormData((prev: any) => {
-          if (prev?.goal_level === expectedGoalLevel) return prev
-          return {
-            ...prev,
-            goal_level: expectedGoalLevel,
-            granularity: view, // Ensure granularity is also updated
-          }
-        })
-        goalLevelUpdateRef.current[view] = true
-      }
-      // Don't close modal here, let the next effect run after update
+      // Update goal level to match current view
+      setCampaignFormData((prev: any) => ({
+        ...prev,
+        goal_level: expectedGoalLevel,
+        granularity: view,
+      }));
+      // Close modal after updating
+      setIsModalOpen(false);
     } else {
-      setIsModalOpen(false)
-      // Reset the ref for the other view so that switching back will allow update if needed
-      goalLevelUpdateRef.current[view] = false
+      // Goal level matches expected, close modal
+      setIsModalOpen(false);
     }
-    // Only depend on campaignFormData?.goal_level and view
-  }, [campaignFormData?.goal_level, view, setCampaignFormData])
+  }, [
+    campaignFormData?.goal_level,
+    view,
+    setCampaignFormData,
+    loadingCampaign,
+  ]);
 
   // Restore granularity setting from localStorage when component loads
   useEffect(() => {
     if (typeof window !== "undefined" && campaignFormData) {
-      const planKey = getPlanKey()
+      const planKey = getPlanKey();
       if (planKey) {
-        const granularityKey = `granularity_${planKey}`
-        const savedGranularity = localStorage.getItem(granularityKey)
+        const granularityKey = `granularity_${planKey}`;
+        const savedGranularity = localStorage.getItem(granularityKey);
 
-        if (savedGranularity && (savedGranularity === "channel" || savedGranularity === "adset")) {
-          const expectedView = savedGranularity
+        if (
+          savedGranularity &&
+          (savedGranularity === "channel" || savedGranularity === "adset")
+        ) {
+          const expectedView = savedGranularity;
           if (view !== expectedView) {
-            onToggleChange(expectedView)
+            onToggleChange(expectedView);
           }
         }
       }
     }
-  }, [campaignFormData, view, onToggleChange])
+  }, [campaignFormData, view, onToggleChange]);
 
   useEffect(() => {
-    if (!campaignFormData?.funnel_stages || initialized.current) return
+    if (!campaignFormData?.funnel_stages || initialized.current) return;
 
-    initialized.current = true
-    const initialOpenItems: Record<string, boolean> = {}
+    initialized.current = true;
+    const initialOpenItems: Record<string, boolean> = {};
 
     for (const stageName of campaignFormData.funnel_stages) {
-      initialOpenItems[stageName] = false
+      initialOpenItems[stageName] = false;
 
-      const stage = campaignFormData.channel_mix?.find((s: any) => s.funnel_stage === stageName)
+      const stage = campaignFormData.channel_mix?.find(
+        (s: any) => s.funnel_stage === stageName
+      );
 
       if (stage) {
         const platforms = [
@@ -273,60 +515,70 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
           ...(stage.e_commerce || []),
           ...(stage.in_game || []),
           ...(stage.mobile || []),
-        ]
+        ];
 
         // GRANULARITY SEPARATION: Check for data based on current view
-        let hasData = false
+        let hasData = false;
         if (view === "adset") {
-          hasData = platforms.some((platform: any) => platform.ad_sets && platform.ad_sets.length > 0)
+          hasData = platforms.some(
+            (platform: any) => platform.ad_sets && platform.ad_sets.length > 0
+          );
         } else {
           // For channel view, check channel-level state
-          if (typeof window !== "undefined" && (window as any).channelLevelAudienceState) {
-            const channelState = (window as any).channelLevelAudienceState[stageName]
+          if (
+            typeof window !== "undefined" &&
+            (window as any).channelLevelAudienceState
+          ) {
+            const channelState = (window as any).channelLevelAudienceState[
+              stageName
+            ];
             if (channelState) {
-              hasData = Object.values(channelState).some((data: any) => data.audience_type || data.name || data.size)
+              hasData = Object.values(channelState).some(
+                (data: any) => data.audience_type || data.name || data.size
+              );
             }
           }
         }
 
         if (hasData) {
-          initialOpenItems[stageName] = true
+          initialOpenItems[stageName] = true;
         }
       }
     }
 
-    setOpenItems(initialOpenItems)
-  }, [campaignFormData, view])
+    setOpenItems(initialOpenItems);
+  }, [campaignFormData, view]);
 
   const toggleItem = (stage: string) => {
     setOpenItems((prev) => {
-      const newOpenItems = { ...prev, [stage]: !prev[stage] }
-      return newOpenItems
-    })
-  }
+      const newOpenItems = { ...prev, [stage]: !prev[stage] };
+      return newOpenItems;
+    });
+  };
 
   // Remove completed status: no handleInteraction, handleValidate, resetInteraction
 
   // GRANULARITY SEPARATION: Returns true if there is audience data for the stage based on current granularity
   const hasAnyAudience = (stageName: string) => {
-    if (!campaignFormData) return false
+    if (!campaignFormData) return false;
 
     if (view === "channel") {
       // For channel view, check both in-memory and stored channel-level audience data
-      const campaignId = campaignFormData?.id || campaignFormData?.media_plan_id
+      const campaignId =
+        campaignFormData?.id || campaignFormData?.media_plan_id;
 
       // Check sessionStorage first
       if (typeof window !== "undefined") {
         try {
-          const key = `channelLevelAudienceState_${campaignId || "default"}`
-          const stored = sessionStorage.getItem(key)
+          const key = `channelLevelAudienceState_${campaignId || "default"}`;
+          const stored = sessionStorage.getItem(key);
           if (stored) {
-            const storedState = JSON.parse(stored)
+            const storedState = JSON.parse(stored);
             if (storedState[stageName]) {
               const hasStoredData = Object.values(storedState[stageName]).some(
-                (data: any) => data.audience_type || data.name || data.size,
-              )
-              if (hasStoredData) return true
+                (data: any) => data.audience_type || data.name || data.size
+              );
+              if (hasStoredData) return true;
             }
           }
         } catch (error) {
@@ -334,22 +586,31 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
             const event = new Event("unauthorizedEvent");
             window.dispatchEvent(event);
           }
-          console.error("Error checking stored channel state:", error)
+          console.error("Error checking stored channel state:", error);
         }
       }
 
       // Fallback to in-memory check
-      if (typeof window !== "undefined" && (window as any).channelLevelAudienceState) {
-        const channelState = (window as any).channelLevelAudienceState[stageName]
+      if (
+        typeof window !== "undefined" &&
+        (window as any).channelLevelAudienceState
+      ) {
+        const channelState = (window as any).channelLevelAudienceState[
+          stageName
+        ];
         if (channelState) {
-          return Object.values(channelState).some((data: any) => data.audience_type || data.name || data.size)
+          return Object.values(channelState).some(
+            (data: any) => data.audience_type || data.name || data.size
+          );
         }
       }
-      return false
+      return false;
     } else {
       // For adset view, ONLY check ad sets with audience data
-      const stage = campaignFormData?.channel_mix?.find((s: any) => s.funnel_stage === stageName)
-      if (!stage) return false
+      const stage = campaignFormData?.channel_mix?.find(
+        (s: any) => s.funnel_stage === stageName
+      );
+      if (!stage) return false;
 
       const platforms = [
         ...(stage.search_engines || []),
@@ -363,7 +624,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
         ...(stage.e_commerce || []),
         ...(stage.in_game || []),
         ...(stage.mobile || []),
-      ]
+      ];
       return platforms.some((platform: any) =>
         (platform.ad_sets || []).some(
           (adSet: any) =>
@@ -371,25 +632,29 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
             adSet.name ||
             adSet.size ||
             (Array.isArray(adSet.extra_audiences) &&
-              adSet.extra_audiences.some((ea: any) => ea.audience_type || ea.name || ea.size)),
-        ),
-      )
+              adSet.extra_audiences.some(
+                (ea: any) => ea.audience_type || ea.name || ea.size
+              ))
+        )
+      );
     }
-  }
+  };
 
   // COMPLETE GRANULARITY SEPARATION: Fixed function to properly handle granularity-specific recap data
   const getRecapRows = (stageName: string) => {
     const recapRows: {
-      platform: string
-      type: string
-      name: string
-      size: string
-      adSetNumber?: number
-      isExtra: boolean
-    }[] = []
+      platform: string;
+      type: string;
+      name: string;
+      size: string;
+      adSetNumber?: number;
+      isExtra: boolean;
+    }[] = [];
 
-    const stage = campaignFormData?.channel_mix?.find((s: any) => s.funnel_stage === stageName)
-    if (!stage) return recapRows
+    const stage = campaignFormData?.channel_mix?.find(
+      (s: any) => s.funnel_stage === stageName
+    );
+    if (!stage) return recapRows;
 
     const platforms = [
       ...(stage.search_engines || []),
@@ -403,50 +668,56 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
       ...(stage.e_commerce || []),
       ...(stage.in_game || []),
       ...(stage.mobile || []),
-    ]
+    ];
 
     if (view === "channel") {
       // Channel level: Check both sessionStorage and in-memory state
       const platformAggregation: Record<
         string,
         {
-          audiences: Set<string>
-          totalSize: number
-          names: Set<string>
+          audiences: Set<string>;
+          totalSize: number;
+          names: Set<string>;
         }
-      > = {}
+      > = {};
 
-      const campaignId = campaignFormData?.id || campaignFormData?.media_plan_id
+      const campaignId =
+        campaignFormData?.id || campaignFormData?.media_plan_id;
 
       // First check sessionStorage
       if (typeof window !== "undefined") {
         try {
-          const key = `channelLevelAudienceState_${campaignId || "default"}`
-          const stored = sessionStorage.getItem(key)
+          const key = `channelLevelAudienceState_${campaignId || "default"}`;
+          const stored = sessionStorage.getItem(key);
           if (stored) {
-            const storedState = JSON.parse(stored)
+            const storedState = JSON.parse(stored);
             if (storedState[stageName]) {
-              Object.entries(storedState[stageName]).forEach(([platformName, data]: [string, any]) => {
-                if (data?.audience_type || data?.name || data?.size) {
-                  if (!platformAggregation[platformName]) {
-                    platformAggregation[platformName] = {
-                      audiences: new Set(),
-                      totalSize: 0,
-                      names: new Set(),
+              Object.entries(storedState[stageName]).forEach(
+                ([platformName, data]: [string, any]) => {
+                  if (data?.audience_type || data?.name || data?.size) {
+                    if (!platformAggregation[platformName]) {
+                      platformAggregation[platformName] = {
+                        audiences: new Set(),
+                        totalSize: 0,
+                        names: new Set(),
+                      };
+                    }
+
+                    if (data?.audience_type) {
+                      platformAggregation[platformName].audiences.add(
+                        data?.audience_type
+                      );
+                    }
+                    if (data?.name) {
+                      platformAggregation[platformName].names.add(data?.name);
+                    }
+                    if (data?.size) {
+                      platformAggregation[platformName].totalSize +=
+                        Number.parseInt(data?.size.replace(/,/g, "")) || 0;
                     }
                   }
-
-                  if (data?.audience_type) {
-                    platformAggregation[platformName].audiences.add(data?.audience_type)
-                  }
-                  if (data?.name) {
-                    platformAggregation[platformName].names.add(data?.name)
-                  }
-                  if (data?.size) {
-                    platformAggregation[platformName].totalSize += Number.parseInt(data?.size.replace(/,/g, "")) || 0
-                  }
                 }
-              })
+              );
             }
           }
         } catch (error) {
@@ -459,30 +730,40 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
 
       // Fallback to in-memory state if no stored data
       if (Object.keys(platformAggregation).length === 0) {
-        if (typeof window !== "undefined" && (window as any).channelLevelAudienceState) {
-          const channelState = (window as any).channelLevelAudienceState[stageName]
+        if (
+          typeof window !== "undefined" &&
+          (window as any).channelLevelAudienceState
+        ) {
+          const channelState = (window as any).channelLevelAudienceState[
+            stageName
+          ];
           if (channelState) {
-            Object.entries(channelState).forEach(([platformName, data]: [string, any]) => {
-              if (data.audience_type || data.name || data.size) {
-                if (!platformAggregation[platformName]) {
-                  platformAggregation[platformName] = {
-                    audiences: new Set(),
-                    totalSize: 0,
-                    names: new Set(),
+            Object.entries(channelState).forEach(
+              ([platformName, data]: [string, any]) => {
+                if (data.audience_type || data.name || data.size) {
+                  if (!platformAggregation[platformName]) {
+                    platformAggregation[platformName] = {
+                      audiences: new Set(),
+                      totalSize: 0,
+                      names: new Set(),
+                    };
+                  }
+
+                  if (data.audience_type) {
+                    platformAggregation[platformName].audiences.add(
+                      data.audience_type
+                    );
+                  }
+                  if (data.name) {
+                    platformAggregation[platformName].names.add(data.name);
+                  }
+                  if (data.size) {
+                    platformAggregation[platformName].totalSize +=
+                      Number.parseInt(data.size.replace(/,/g, "")) || 0;
                   }
                 }
-
-                if (data.audience_type) {
-                  platformAggregation[platformName].audiences.add(data.audience_type)
-                }
-                if (data.name) {
-                  platformAggregation[platformName].names.add(data.name)
-                }
-                if (data.size) {
-                  platformAggregation[platformName].totalSize += Number.parseInt(data.size.replace(/,/g, "")) || 0
-                }
               }
-            })
+            );
           }
         }
       }
@@ -495,8 +776,8 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
           name: Array.from(data.names).join(", "),
           size: data.totalSize.toString(),
           isExtra: false,
-        })
-      })
+        });
+      });
     } else {
       // Ad set level: ONLY show individual ad sets, completely ignore channel data
       platforms.forEach((platform: any) => {
@@ -510,7 +791,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                 size: adSet.size || "",
                 adSetNumber: idx + 1,
                 isExtra: false,
-              })
+              });
             }
             if (Array.isArray(adSet.extra_audiences)) {
               adSet.extra_audiences.forEach((ea: any) => {
@@ -522,21 +803,21 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                     size: ea.size || "",
                     adSetNumber: idx + 1,
                     isExtra: true,
-                  })
+                  });
                 }
-              })
+              });
             }
-          })
+          });
         }
-      })
+      });
     }
 
-    return recapRows
-  }
+    return recapRows;
+  };
 
   const handleToggleChange = (checked: boolean) => {
-    const newView = checked ? "adset" : "channel"
-    onToggleChange(newView)
+    const newView = checked ? "adset" : "channel";
+    onToggleChange(newView);
 
     // Save granularity setting to campaign form data
     setCampaignFormData((prev: any) => ({
@@ -544,25 +825,25 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
       goal_level: checked ? "Adset level" : "Channel level",
       granularity: newView, // Add explicit granularity field
       ad_sets_granularity: newView, // Add backend field for granularity
-    }))
+    }));
 
     // Save granularity setting to localStorage for persistence
     if (typeof window !== "undefined") {
       try {
-        const modalKey = getModalKey()
+        const modalKey = getModalKey();
         if (modalKey) {
-          localStorage.setItem(modalKey, "true")
-          localStorage.setItem(`${modalKey}_timestamp`, Date.now().toString())
+          localStorage.setItem(modalKey, "true");
+          localStorage.setItem(`${modalKey}_timestamp`, Date.now().toString());
         }
 
         // Save granularity setting using the same plan key
-        const planKey = getPlanKey()
+        const planKey = getPlanKey();
         if (planKey) {
-          const granularityKey = `granularity_${planKey}`
-          localStorage.setItem(granularityKey, newView)
+          const granularityKey = `granularity_${planKey}`;
+          localStorage.setItem(granularityKey, newView);
         }
       } catch (error) {
-        console.error("Error saving granularity setting:", error)
+        console.error("Error saving granularity setting:", error);
       }
     }
 
@@ -573,24 +854,26 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
           await updateCampaign({
             ad_sets_granularity: newView,
             goal_level: checked ? "Adset level" : "Channel level",
-          })
+          });
         }
       } catch (error) {
-        console.error("Error saving granularity to backend:", error)
+        console.error("Error saving granularity to backend:", error);
       }
-    }
+    };
 
     // Call the backend save function
-    saveGranularityToBackend()
+    saveGranularityToBackend();
 
     // Clear previous granularity data when switching
     if (typeof window !== "undefined") {
       if (newView === "channel") {
         // Clear adset-level data when switching to channel
         if ((window as any).channelLevelAudienceState) {
-          Object.keys((window as any).channelLevelAudienceState).forEach((stageName) => {
-            delete (window as any).channelLevelAudienceState[stageName];
-          });
+          Object.keys((window as any).channelLevelAudienceState).forEach(
+            (stageName) => {
+              delete (window as any).channelLevelAudienceState[stageName];
+            }
+          );
         }
       } else {
         // Clear channel-level data when switching to adset
@@ -604,7 +887,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
         keysToRemove.forEach((key) => sessionStorage.removeItem(key));
       }
     }
-  }
+  };
 
   return (
     <div className="mt-12 flex items-start flex-col cursor-pointer mx-auto gap-12 w-full">
@@ -613,7 +896,9 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
         {isLoadingGranularity ? (
           <div className="flex justify-center items-center gap-3">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#3175FF]"></div>
-            <p className="font-medium text-[#3175FF]">Loading granularity settings...</p>
+            <p className="font-medium text-[#3175FF]">
+              Loading granularity settings...
+            </p>
           </div>
         ) : (
           <div className="flex justify-center items-center gap-3">
@@ -636,103 +921,144 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
         )}
       </div>
 
-      {campaignFormData?.funnel_stages?.map((stageName: string, index: number) => {
-        const stage = campaignFormData?.custom_funnels?.find((s: any) => s.name === stageName)
-        if (!stage) return null
+      {campaignFormData?.funnel_stages?.map(
+        (stageName: string, index: number) => {
+          const stage = campaignFormData?.custom_funnels?.find(
+            (s: any) => s.name === stageName
+          );
+          if (!stage) return null;
 
-        // Remove completed status: don't show completed UI
-        const recapRows = getRecapRows(stageName)
+          // Remove completed status: don't show completed UI
+          const recapRows = getRecapRows(stageName);
 
-        // Find the corresponding channel_mix stage for platform/adset data
-        const channelMixStage = campaignFormData?.channel_mix?.find((s: any) => s.funnel_stage === stageName)
+          // Find the corresponding channel_mix stage for platform/adset data
+          const channelMixStage = campaignFormData?.channel_mix?.find(
+            (s: any) => s.funnel_stage === stageName
+          );
 
-        // GRANULARITY SEPARATION: Show recap based on current granularity
-        const shouldShowRecap = hasAnyAudience(stageName)
+          // GRANULARITY SEPARATION: Show recap based on current granularity
+          const shouldShowRecap = hasAnyAudience(stageName);
 
-        return (
-          <div key={stageName} className="w-full">
-            <div
-              className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
-                ${openItems[stageName] ? "rounded-t-[10px]" : "rounded-[10px]"}`}
-              onClick={() => toggleItem(stageName)}
-              style={{ cursor: "pointer" }}
-            >
-              <div className="flex items-center gap-4">
-                {stage.icon && (
-                  <Image src={stage.icon || "/placeholder.svg"} alt={`${stage.name} icon`} width={20} height={20} />
-                )}
-                <p className="text-md font-semibold text-black">{stage.name}</p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {(!openPlatforms[stageName] || openPlatforms[stageName].length === 0) && (
-                  <p className="text-black text-base">Not started</p>
-                )}
-              </div>
-
-              <div>
-                <Image
-                  src={openItems[stageName] ? up : down2}
-                  alt={openItems[stageName] ? "collapse" : "expand"}
-                  width={24}
-                  height={24}
-                />
-              </div>
-            </div>
-            {openItems[stageName] && (
+          return (
+            <div key={stageName} className="w-full">
               <div
-                className={`card_bucket_container_main_sub flex flex-col pb-6 w-full cursor-pointer min-h-[300px] overflow-x-scroll`}
-              >
-                <AdSetsFlow
-                  stageName={stageName}
-                  modalOpen={isModalOpen}
-                  granularity={view} // Pass the current granularity
-                  onPlatformStateChange={handlePlatformStateChange}
-                />
-              </div>
-            )}
-            {!openItems[stageName] && shouldShowRecap && recapRows.length > 0 && (
-              <div className="mt-2 mb-4">
-                <div className="bg-[#F5F7FA] border border-[#E5E7EB] rounded-lg px-4 py-3">
-                  <div className="font-bold text-black mb-2 text-sm">
-                    Audience Recap ({view === "channel" ? "Channel Level" : "Ad Set Level"})
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full text-xs text-black">
-                      <thead>
-                        <tr>
-                          <th className="text-left pr-4 py-1 font-bold">Platform</th>
-                          {view === "adset" && <th className="text-left pr-4 py-1 font-bold">Ad Set</th>}
-                          <th className="text-left pr-4 py-1 font-bold">Audience Type</th>
-                          <th className="text-left pr-4 py-1 font-bold">Audience Name</th>
-                          <th className="text-left pr-4 py-1 font-bold">
-                            {view === "channel" ? "Total Size" : "Audience Size"}
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {recapRows.map((row, idx) => (
-                          <tr key={idx} className={row.isExtra ? "bg-[#F9FAFB]" : ""}>
-                            <td className="pr-4 py-1 font-normal">{row.platform}</td>
-                            {view === "adset" && row.adSetNumber && (
-                              <td className="pr-4 py-1 font-normal">
-                                {row.isExtra ? `Ad set n°${row.adSetNumber} (Extra)` : `Ad set n°${row.adSetNumber}`}
-                              </td>
-                            )}
-                            <td className="pr-4 py-1 font-normal">{row.type}</td>
-                            <td className="pr-4 py-1 font-normal">{row.name}</td>
-                            <td className="pr-4 py-1 font-normal">{formatWithThousandSeparator(row.size)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
+                ${
+                  openItems[stageName] ? "rounded-t-[10px]" : "rounded-[10px]"
+                }`}
+                onClick={() => toggleItem(stageName)}
+                style={{ cursor: "pointer" }}>
+                <div className="flex items-center gap-4">
+                  {stage.icon && (
+                    <Image
+                      src={stage.icon || "/placeholder.svg"}
+                      alt={`${stage.name} icon`}
+                      width={20}
+                      height={20}
+                    />
+                  )}
+                  <p className="text-md font-semibold text-black">
+                    {stage.name}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {(!openPlatforms[stageName] ||
+                    openPlatforms[stageName].length === 0) && (
+                    <p className="text-black text-base">Not started</p>
+                  )}
+                </div>
+
+                <div>
+                  <Image
+                    src={openItems[stageName] ? up : down2}
+                    alt={openItems[stageName] ? "collapse" : "expand"}
+                    width={24}
+                    height={24}
+                  />
                 </div>
               </div>
-            )}
-          </div>
-        )
-      })}
+              {openItems[stageName] && (
+                <div
+                  className={`card_bucket_container_main_sub flex flex-col pb-6 w-full cursor-pointer min-h-[300px] overflow-x-scroll`}>
+                  <AdSetsFlow
+                    stageName={stageName}
+                    modalOpen={isModalOpen}
+                    granularity={view} // Pass the current granularity
+                    onPlatformStateChange={handlePlatformStateChange}
+                  />
+                </div>
+              )}
+              {!openItems[stageName] &&
+                shouldShowRecap &&
+                recapRows.length > 0 && (
+                  <div className="mt-2 mb-4">
+                    <div className="bg-[#F5F7FA] border border-[#E5E7EB] rounded-lg px-4 py-3">
+                      <div className="font-bold text-black mb-2 text-sm">
+                        Audience Recap (
+                        {view === "channel" ? "Channel Level" : "Ad Set Level"})
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full text-xs text-black">
+                          <thead>
+                            <tr>
+                              <th className="text-left pr-4 py-1 font-bold">
+                                Platform
+                              </th>
+                              {view === "adset" && (
+                                <th className="text-left pr-4 py-1 font-bold">
+                                  Ad Set
+                                </th>
+                              )}
+                              <th className="text-left pr-4 py-1 font-bold">
+                                Audience Type
+                              </th>
+                              <th className="text-left pr-4 py-1 font-bold">
+                                Audience Name
+                              </th>
+                              <th className="text-left pr-4 py-1 font-bold">
+                                {view === "channel"
+                                  ? "Total Size"
+                                  : "Audience Size"}
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {recapRows.map((row, idx) => (
+                              <tr
+                                key={idx}
+                                className={row.isExtra ? "bg-[#F9FAFB]" : ""}>
+                                <td className="pr-4 py-1 font-normal">
+                                  {row.platform}
+                                </td>
+                                {view === "adset" && row.adSetNumber && (
+                                  <td className="pr-4 py-1 font-normal">
+                                    {row.isExtra
+                                      ? `Ad set n°${row.adSetNumber} (Extra)`
+                                      : `Ad set n°${row.adSetNumber}`}
+                                  </td>
+                                )}
+                                <td className="pr-4 py-1 font-normal">
+                                  {row.type}
+                                </td>
+                                <td className="pr-4 py-1 font-normal">
+                                  {row.name}
+                                </td>
+                                <td className="pr-4 py-1 font-normal">
+                                  {formatWithThousandSeparator(row.size)}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                )}
+            </div>
+          );
+        }
+      )}
 
       {/* Center the modal content using flex utilities */}
       <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
@@ -740,12 +1066,27 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
           <div className="w-full flex items-center justify-center">
             {step === 1 && (
               <div className="card bg-base-100 w-[418px]">
-                <form method="dialog" className="flex justify-between p-6 !pb-0" onSubmit={(e) => e.preventDefault()}>
+                <form
+                  method="dialog"
+                  className="flex justify-between p-6 !pb-0"
+                  onSubmit={(e) => e.preventDefault()}>
                   <span></span>
                   <span className="w-[44px] h-[44px] grid place-items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25" fill="none">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="25"
+                      height="25"
+                      viewBox="0 0 25 25"
+                      fill="none">
                       <g clipPath="url(#clip0_1_23349)">
-                        <rect x="0.710938" y="0.710938" width="24" height="24" rx="12" fill="white" />
+                        <rect
+                          x="0.710938"
+                          y="0.710938"
+                          width="24"
+                          height="24"
+                          rx="12"
+                          fill="white"
+                        />
                         <path
                           d="M12.7109 24.761C25.8935 24.7617 18.9458 23.4974 21.1962 21.2469C23.4467 18.9965 24.7109 15.9443 24.7109 12.7617C24.7109 9.57914 23.4467 6.5269 21.1962 4.27446C18.9458 2.02402 15.8935 0.759766 12.7109 0.759761C9.52834 0.759761 6.47609 2.02404 4.22566 4.27448C1.97522 6.52492 0.710938 9.57718 0.710938 12.7598C0.710938 15.9423 1.97522 18.9945 4.22566 21.245C6.47609 23.4963 9.52834 24.761 12.7109 24.761ZM18.0078 10.8221L12.745 16.8221C11.5672 17.2628 10.8547 17.2628 10.4188 16.8226L7.41875 13.8226C6.97813 12.3815 6.97813 12.6391 7.41875 12.2032C7.85938 11.7673 8.57188 11.7626 9.00781 12.2032L11.2109 14.4062L16.4141 9.19845C16.8547 8.75783 17.5672 8.75783 18.0031 9.19845C18.4391 9.63907 18.4438 10.3516 18.0031 10.7875L18.0078 10.7922Z"
                           fill="#0ABF7E"
@@ -753,13 +1094,25 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                       </g>
                       <defs>
                         <clipPath id="clip0_1_23349">
-                          <rect x="0.710938" y="24" width="24" height="24" rx="0.710938" fill="white" />
+                          <rect
+                            x="0.710938"
+                            y="24"
+                            width="24"
+                            height="24"
+                            rx="0.710938"
+                            fill="white"
+                          />
                         </clipPath>
                       </defs>
                     </svg>
                   </span>
                   <button type="button" onClick={handleCloseModal}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="25"
+                      height="24"
+                      viewBox="0 0 25 24"
+                      fill="none">
                       <path
                         d="M18.7266 6L6.72656 18M6.72656 6L18.7266 18"
                         stroke="#717680"
@@ -772,15 +1125,21 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                 </form>
 
                 <div className="p-6 pb-0 text-center">
-                  <h2 className="text-xl mb-4 text-[#181D27] font-[500]">Congratulations on completing your media plan!</h2>
+                  <h2 className="text-xl mb-4 text-[#181D27] font-[500]">
+                    Congratulations on completing your media plan!
+                  </h2>
                   <p className="text-[15px] font-[500] text-[#535862]">
-                    In this last step, we will take care of the numbers behind the structure. We will define the objectives
-                    and benchmarks for each phase, channel, and ad set.
+                    In this last step, we will take care of the numbers behind
+                    the structure. We will define the objectives and benchmarks
+                    for each phase, channel, and ad set.
                   </p>
                 </div>
 
                 <div className="card-title p-6">
-                  <button className="btn btn-primary w-full text-sm bg-[#3175FF]" type="button" onClick={() => setStep(2)}>
+                  <button
+                    className="btn btn-primary w-full text-sm bg-[#3175FF]"
+                    type="button"
+                    onClick={() => setStep(2)}>
                     Start setting goals
                   </button>
                 </div>
@@ -789,11 +1148,26 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
 
             {step === 2 && (
               <div className="flex flex-col gap-3 w-[672px] bg-white p-6 rounded-[20px]">
-                <form method="dialog" className="flex justify-between p-2 !pb-0" onSubmit={(e) => e.preventDefault()}>
+                <form
+                  method="dialog"
+                  className="flex justify-between p-2 !pb-0"
+                  onSubmit={(e) => e.preventDefault()}>
                   <span></span>
                   <span className="w-[44px] h-[44px] grid place-items-center">
-                    <svg width="45" height="44" viewBox="0 0 45 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect x="0.71" y="0" width="44" height="44" rx="22" fill="#E8F6FF" />
+                    <svg
+                      width="45"
+                      height="44"
+                      viewBox="0 0 45 44"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg">
+                      <rect
+                        x="0.71"
+                        y="0"
+                        width="44"
+                        height="44"
+                        rx="22"
+                        fill="#E8F6FF"
+                      />
                       <mask
                         id="mask0"
                         style={{ maskType: "luminance" }}
@@ -801,8 +1175,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                         x="13"
                         y="14"
                         width="19"
-                        height="16"
-                      >
+                        height="16">
                         <path
                           d="M17.7044 25.7497H14.3711V15H31.8378V25.7497H27.7044H17.7044Z"
                           fill="white"
@@ -840,13 +1213,24 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                         />
                       </mask>
                       <g mask="url(#mask0)">
-                        <rect x="12.71" y="0" width="20" height="20" fill="#3175FF" />
+                        <rect
+                          x="12.71"
+                          y="0"
+                          width="20"
+                          height="20"
+                          fill="#3175FF"
+                        />
                       </g>
                     </svg>
                   </span>
 
                   <button type="button" onClick={handleCloseModal}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25" fill="none">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="25"
+                      height="25"
+                      viewBox="0 0 25 25"
+                      fill="none">
                       <path
                         d="M18.7266 6.5L6.72656 18.5M6.72656 6.5L18.7266 18.5"
                         stroke="#717680"
@@ -863,7 +1247,8 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                     Choose your goal level
                   </h1>
                   <p className="font-general font-medium text-[16px] leading-[150%] text-gray-600 text-center">
-                    Define how you want to set your benchmarks and goals for your media plan.
+                    Define how you want to set your benchmarks and goals for
+                    your media plan.
                   </p>
                 </div>
                 <section className="flex gap-6 mt-[20px] justify-center">
@@ -883,17 +1268,27 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                      This focuses on specific ad sets in each phase and channel.`,
                     },
                   ].map((item, index) => (
-                    <div key={index} className="card bg-base-100 shadow p-2 rounded-[16px]">
+                    <div
+                      key={index}
+                      className="card bg-base-100 shadow p-2 rounded-[16px]">
                       <div className="card-title relative w-full h-[135px]">
                         <figure className="relative w-full h-full rounded-[8px]">
-                          <Image src={item.img || "/placeholder.svg"} fill alt={item.alt} />
+                          <Image
+                            src={item.img || "/placeholder.svg"}
+                            fill
+                            alt={item.alt}
+                          />
                         </figure>
                       </div>
 
                       <div>
                         <div className="p-2 text-center">
-                          <h2 className="text-[16px] mb-4 text-[#181D27] font-[600]">{item.label}</h2>
-                          <p className="text-[14px] font-[500] text-[#535862]">{item.description}</p>
+                          <h2 className="text-[16px] mb-4 text-[#181D27] font-[600]">
+                            {item.label}
+                          </h2>
+                          <p className="text-[14px] font-[500] text-[#535862]">
+                            {item.description}
+                          </p>
                         </div>
 
                         <div>
@@ -901,7 +1296,10 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                             className="btn btn-primary w-full text-sm bg-[#3175FF]"
                             type="button"
                             onClick={() => {
-                              const newView = item.label === "Adset level" ? "adset" : "channel"
+                              const newView =
+                                item.label === "Adset level"
+                                  ? "adset"
+                                  : "channel";
 
                               // Update campaign form data
                               setCampaignFormData((prev: any) => ({
@@ -909,13 +1307,13 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                                 goal_level: item.label,
                                 granularity: newView, // Add explicit granularity field
                                 ad_sets_granularity: newView, // Add backend field for granularity
-                              }))
+                              }));
 
                               // Update view
-                              onToggleChange(newView)
+                              onToggleChange(newView);
 
                               // Close modal and persist dismissal
-                              handleCloseModal()
+                              handleCloseModal();
 
                               // Save granularity to backend if campaign exists
                               const saveGranularityToBackend = async () => {
@@ -924,37 +1322,48 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                                     await updateCampaign({
                                       ad_sets_granularity: newView,
                                       goal_level: item.label,
-                                    })
+                                    });
                                   }
                                 } catch (error) {
-                                  console.error("Error saving granularity to backend:", error)
+                                  console.error(
+                                    "Error saving granularity to backend:",
+                                    error
+                                  );
                                 }
-                              }
+                              };
 
                               // Call the backend save function
-                              saveGranularityToBackend()
+                              saveGranularityToBackend();
 
                               // Mark modal as dismissed for this plan in localStorage
                               if (typeof window !== "undefined") {
                                 try {
-                                  const modalKey = getModalKey()
+                                  const modalKey = getModalKey();
                                   if (modalKey) {
-                                    localStorage.setItem(modalKey, "true")
-                                    localStorage.setItem(`${modalKey}_timestamp`, Date.now().toString())
+                                    localStorage.setItem(modalKey, "true");
+                                    localStorage.setItem(
+                                      `${modalKey}_timestamp`,
+                                      Date.now().toString()
+                                    );
                                   }
 
                                   // Save granularity setting to localStorage for persistence
-                                  const planKey = getPlanKey()
+                                  const planKey = getPlanKey();
                                   if (planKey) {
-                                    const granularityKey = `granularity_${planKey}`
-                                    localStorage.setItem(granularityKey, newView)
+                                    const granularityKey = `granularity_${planKey}`;
+                                    localStorage.setItem(
+                                      granularityKey,
+                                      newView
+                                    );
                                   }
                                 } catch (error) {
-                                  console.error("Error saving goal level selection:", error)
+                                  console.error(
+                                    "Error saving goal level selection:",
+                                    error
+                                  );
                                 }
                               }
-                            }}
-                          >
+                            }}>
                             Select
                           </button>
                         </div>
@@ -968,7 +1377,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
         </div>
       </Modal>
     </div>
-  )
-}
+  );
+};
 
-export default DefineAdSetPage
+export default DefineAdSetPage;
