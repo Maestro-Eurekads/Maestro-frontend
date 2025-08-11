@@ -210,13 +210,41 @@ const getChannelStateKey = (campaignId?: string | number) => {
   return `channelLevelAudienceState_${campaignId || "default"}`
 }
 
-// Load initial state from sessionStorage
+// Load initial state from sessionStorage and localStorage for persistence
 const loadChannelStateFromStorage = (campaignId?: string | number) => {
   if (typeof window === "undefined") return {}
   try {
     const key = getChannelStateKey(campaignId)
-    const stored = sessionStorage.getItem(key)
-    return stored ? JSON.parse(stored) : {}
+    
+    // First try to load from sessionStorage (most recent)
+    let stored = sessionStorage.getItem(key)
+    let source = "sessionStorage"
+    
+    // If no sessionStorage data, try localStorage for persistence
+    if (!stored) {
+      const localStorageKey = `persistent_${key}`
+      stored = localStorage.getItem(localStorageKey)
+      source = "localStorage"
+      
+      // If we found data in localStorage, restore it to sessionStorage
+      if (stored) {
+        try {
+          sessionStorage.setItem(key, stored)
+          console.log("Restored channel state from localStorage to sessionStorage:", {
+            localStorageKey,
+            sessionKey: key,
+            data: JSON.parse(stored)
+          })
+        } catch (restoreError) {
+          console.error("Error restoring to sessionStorage:", restoreError)
+        }
+      }
+    }
+    
+    const result = stored ? JSON.parse(stored) : {}
+    console.log("Loaded channel state:", { source, key, hasData: Object.keys(result).length > 0 })
+    
+    return result
   } catch (error) {
     if (error?.response?.status === 401) {
       const event = new Event("unauthorizedEvent")
@@ -227,12 +255,24 @@ const loadChannelStateFromStorage = (campaignId?: string | number) => {
   }
 }
 
-// Save state to sessionStorage
+// Save state to both sessionStorage and localStorage for persistence
 const saveChannelStateToStorage = (state: any, campaignId?: string | number) => {
   if (typeof window === "undefined") return
   try {
     const key = getChannelStateKey(campaignId)
+    
+    // Save to sessionStorage for immediate access
     sessionStorage.setItem(key, JSON.stringify(state))
+    
+    // Also save to localStorage for persistence across navigation
+    const localStorageKey = `persistent_${key}`
+    localStorage.setItem(localStorageKey, JSON.stringify(state))
+    
+    console.log("Saved channel state to both storages:", {
+      sessionKey: key,
+      localStorageKey,
+      state
+    })
   } catch (error) {
     if (error?.response?.status === 401) {
       const event = new Event("unauthorizedEvent")
@@ -1001,20 +1041,34 @@ const AdsetSettings = memo(function AdsetSettings({
   useEffect(() => {
     if (!channelLevelAudienceState[stageName]) channelLevelAudienceState[stageName] = {}
     channelLevelAudienceState[stageName][outlet.outlet] = { ...channelAudienceState }
+    
     // Update global reference for recap access
     if (typeof window !== "undefined") {
       ; (window as any).channelLevelAudienceState = channelLevelAudienceState
     }
-    // Persist to sessionStorage
+    
+    // Persist to both sessionStorage and localStorage
     const campaignId = campaignFormData?.id || campaignFormData?.media_plan_id
     saveChannelStateToStorage(channelLevelAudienceState, campaignId)
+    
+    console.log("Channel audience state updated and saved:", {
+      stageName,
+      outlet: outlet.outlet,
+      audienceState: channelAudienceState,
+      campaignId,
+      timestamp: new Date().toISOString()
+    })
   }, [channelAudienceState, stageName, outlet.outlet, campaignFormData?.id, campaignFormData?.media_plan_id])
 
   useEffect(() => {
     // Load channel state from storage on component mount
     if (effectiveGranularity === "channel") {
       const campaignId = campaignFormData?.id || campaignFormData?.media_plan_id
+      console.log("Loading channel state from storage:", { stageName, outlet: outlet.outlet, campaignId })
+      
       const storedState = loadChannelStateFromStorage(campaignId)
+      console.log("Retrieved stored state:", { storedState, hasData: Object.keys(storedState).length > 0 })
+      
       // Merge stored state into in-memory state
       Object.keys(storedState).forEach((stageName) => {
         if (!channelLevelAudienceState[stageName]) {
@@ -1024,13 +1078,18 @@ const AdsetSettings = memo(function AdsetSettings({
           channelLevelAudienceState[stageName][platformName] = storedState[stageName][platformName]
         })
       })
+      
       // Update global reference
       if (typeof window !== "undefined") {
         ; (window as any).channelLevelAudienceState = channelLevelAudienceState
       }
+      
       // Update local state if this platform has stored data
       if (storedState[stageName] && storedState[stageName][outlet.outlet]) {
+        console.log("Restoring channel audience state:", storedState[stageName][outlet.outlet])
         setChannelAudienceState({ ...storedState[stageName][outlet.outlet] })
+      } else {
+        console.log("No stored data found for this platform")
       }
     }
   }, [effectiveGranularity, stageName, outlet.outlet, campaignFormData?.id, campaignFormData?.media_plan_id])

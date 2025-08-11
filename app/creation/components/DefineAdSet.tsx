@@ -11,7 +11,32 @@ import SaveAllProgressButton from "./SaveProgres/SaveAllProgressButton";
 const DefineAdSet = () => {
   const { setIsEditing } = useEditing();
   const { setIsDrawerOpen, setClose } = useComments();
-  const [view, setView] = useState<"channel" | "adset">("channel");
+  const [view, setView] = useState<"channel" | "adset">(() => {
+    // Try to get the stored granularity selection from localStorage
+    if (typeof window !== "undefined") {
+      try {
+        // Look for any granularity data in localStorage
+        const granularityKeys = Object.keys(localStorage).filter(key => 
+          key.startsWith("granularity_")
+        );
+        
+        if (granularityKeys.length > 0) {
+          // Get the most recent granularity selection
+          const mostRecentKey = granularityKeys[granularityKeys.length - 1];
+          const granularity = localStorage.getItem(mostRecentKey);
+          if (granularity === "adset" || granularity === "channel") {
+            console.log("Initializing view from localStorage:", granularity);
+            return granularity;
+          }
+        }
+      } catch (error) {
+        console.error("Error reading granularity from localStorage:", error);
+      }
+    }
+    
+    // Default to channel if no stored selection
+    return "channel";
+  });
 
   useEffect(() => {
     setIsDrawerOpen(false);
@@ -19,8 +44,49 @@ const DefineAdSet = () => {
     setIsEditing(true);
   }, [setIsDrawerOpen, setClose, setIsEditing]);
 
-  const handleToggleChange = (newView: "channel" | "adset") => {
+  // Sync view state with localStorage granularity changes
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const handleStorageChange = () => {
+        try {
+          const granularityKeys = Object.keys(localStorage).filter(key => 
+            key.startsWith("granularity_")
+          );
+          
+          if (granularityKeys.length > 0) {
+            const mostRecentKey = granularityKeys[granularityKeys.length - 1];
+            const granularity = localStorage.getItem(mostRecentKey);
+            if (granularity === "adset" || granularity === "channel") {
+              console.log("Storage change detected, updating view to:", granularity);
+              setView(granularity);
+            }
+          }
+        } catch (error) {
+          console.error("Error handling storage change:", error);
+        }
+      };
 
+      // Listen for storage changes
+      window.addEventListener('storage', handleStorageChange);
+      
+      // Also check for changes when the component becomes visible
+      const handleVisibilityChange = () => {
+        if (!document.hidden) {
+          handleStorageChange();
+        }
+      };
+      
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      
+      return () => {
+        window.removeEventListener('storage', handleStorageChange);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      };
+    }
+  }, []);
+
+  const handleToggleChange = (newView: "channel" | "adset") => {
+    console.log("DefineAdSet handleToggleChange called with:", newView);
     setView(newView);
   };
 
