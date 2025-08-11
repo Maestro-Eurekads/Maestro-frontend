@@ -201,18 +201,6 @@ const MainSection = ({
             <DayInterval daysCount={dayDifference + 1} src="campaign" />
           </>
         )
-      case "Month":
-        return (
-          <>
-            <MonthInterval
-              monthsCount={monthDifference === 0 ? 1 : monthDifference + 1}
-              view={view}
-              getDaysInEachMonth={getDaysInEachMonth}
-              funnelData={funnelsData}
-              disableDrag={disableDrag}
-            />
-          </>
-        )
       case "Year":
         return (
           <>
