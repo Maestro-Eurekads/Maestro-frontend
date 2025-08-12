@@ -110,7 +110,7 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
     <div className="w-full border-y py-1">
       {/* Month Headers Row */}
       <div
-        className="sticky top-0 z-50 bg-white border-b mb-4"
+        className="sticky top-0 z-50 bg-white border-b border-gray-200"
         style={{
           display: "grid",
           gridTemplateColumns: gridTemplateColumns,
@@ -160,8 +160,8 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
         })}
       </div>
 
-      {/* Day Grid Lines Row */}
-      <div
+      {/* Day Grid Lines Row - Connected to header */}
+      {/* <div
         className="relative"
         style={{
           display: "grid",
@@ -169,21 +169,11 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
           backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
           backgroundSize: `${dailyWidth}px 100%`,
           minHeight: "20px",
+          marginTop: "0px",
         }}
-      >
-        {/* Day labels would go here if needed */}
-        {range?.map((date, index) => (
-          <div
-            key={index}
-            className="text-center text-xs text-gray-400 py-1"
-            style={{
-              gridColumn: `${index + 1} / ${index + 2}`,
-            }}
-          >
-            {format(date, "dd")}
-          </div>
-        ))}
-      </div>
+      > */}
+        {/* Day grid lines without labels */}
+      {/* </div> */}
     </div>
   );
 };
