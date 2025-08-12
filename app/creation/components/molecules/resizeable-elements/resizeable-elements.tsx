@@ -573,7 +573,7 @@ const ResizeableElements = ({
               return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
             } else if (rrange === "Month") {
               // Month view - no background lines, we'll use border elements instead
-              return `none`;
+              return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`
             } else {
               return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
             }
@@ -589,8 +589,9 @@ const ResizeableElements = ({
               return `${dailyGridSize}, calc(${dailyWidth * totalDays
                 }px) 100%`;
             } else if (rrange === "Month") {
+              const dailyGridSize = `${dailyWidth}px 100%`;
               // Month view - no background size needed
-              return `100% 100%`;
+              return dailyGridSize;
             } else {
               return `${dailyWidth}px 100%`;
             }
