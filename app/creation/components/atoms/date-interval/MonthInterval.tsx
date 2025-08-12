@@ -108,14 +108,14 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
 
   return (
     <div className="w-full border-y py-1">
+      {/* Month Headers Row */}
       <div
-        className="inline-flex"
+        className="sticky top-0 z-50 bg-white border-b mb-4"
         style={{
           display: "grid",
           gridTemplateColumns: gridTemplateColumns,
         }}
       >
-        {/* Create month headers that span the correct number of days */}
         {headerMonths.map((monthDate, i) => {
           const isEdge = i === 0 || i === (headerMonths.length - 1);
           const monthName = format(monthDate, "MMMM yyyy");
@@ -147,36 +147,42 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
           return (
             <div 
               key={i} 
-              className="flex flex-col items-center relative"
+              className="text-center text-sm font-medium py-2 border-r border-gray-200"
               style={{
                 gridColumn: `${startColumn} / span ${gridColumnSpan}`,
               }}
             >
-              <div
-                className={`relative w-full text-center text-sm font-medium px-1 py-1 rounded-md border-r border-gray-300 ${
-                  i === 0 ? "border-l border-gray-300" : ""
-                } ${
-                  isEdge ? "bg-[#f05406] text-white" : "bg-white"
-                }`}
-                style={{ minWidth: `${dailyWidth * gridColumnSpan}px` }}
-              >
-                <span className={`block ${isEdge ? "text-white" : "text-black"}`}>
-                  {monthName}
-                </span>
-                <span className={`block text-xs ${isEdge ? "text-white" : "text-blue-500"}`}>
-                  ({daysInMonthInRange} days)
-                </span>
-
-                {/* Triangle for Edge Dates */}
-                {isEdge && (
-                  <div className="absolute left-1/2 -bottom-[4.2px] transform -translate-x-1/2">
-                    <div className="w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-[#f05406]" />
-                  </div>
-                )}
-              </div>
+              <p className="text-blue-500">{format(monthDate, "MMM")}</p>
+              <p>{format(monthDate, "yyyy")}</p>
+              <p className="text-xs text-gray-500">({daysInMonthInRange} days)</p>
             </div>
           );
         })}
+      </div>
+
+      {/* Day Grid Lines Row */}
+      <div
+        className="relative"
+        style={{
+          display: "grid",
+          gridTemplateColumns: gridTemplateColumns,
+          backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
+          backgroundSize: `${dailyWidth}px 100%`,
+          minHeight: "20px",
+        }}
+      >
+        {/* Day labels would go here if needed */}
+        {range?.map((date, index) => (
+          <div
+            key={index}
+            className="text-center text-xs text-gray-400 py-1"
+            style={{
+              gridColumn: `${index + 1} / ${index + 2}`,
+            }}
+          >
+            {format(date, "dd")}
+          </div>
+        ))}
       </div>
     </div>
   );
