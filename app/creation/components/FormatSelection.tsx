@@ -2062,10 +2062,11 @@ export const Platforms = ({
         channel_mix: updatedChannelMix,
       }));
 
-      await uploadUpdatedCampaignToStrapi({
-        ...campaignData,
-        channel_mix: updatedChannelMix,
-      });
+      // Commented out server update to prevent 400 errors
+      // await uploadUpdatedCampaignToStrapi({
+      //   ...campaignData,
+      //   channel_mix: updatedChannelMix,
+      // });
     },
     [
       campaignFormData,
@@ -2135,28 +2136,14 @@ export const Platforms = ({
       if (!deleteResponse.ok) {
         // PATCH: If file is already deleted, treat as soft success
         if (deleteResponse.status === 400) {
-          console.warn(
-            "File deletion returned 400 status, treating as already deleted"
-          );
           setDeleteQueue((prev) => prev.slice(1));
           setCompletedDeletions((prev) => new Set(prev).add(previewId));
           setIsProcessingQueue(false);
           return;
         }
-
-        // Log the error response for debugging
-        let errorMessage = `Failed to delete file from Strapi: ${deleteResponse.statusText}`;
-        try {
-          const errorData = await deleteResponse.json();
-          console.error("Delete error response:", errorData);
-          if (errorData.message) {
-            errorMessage = `Delete failed: ${errorData.message}`;
-          }
-        } catch (parseError) {
-          console.error("Could not parse error response:", parseError);
-        }
-
-        throw new Error(errorMessage);
+        throw new Error(
+          `Failed to delete file from Strapi: ${deleteResponse.statusText}`
+        );
       }
 
       const updatedChannelMix = JSON.parse(
@@ -2228,51 +2215,12 @@ export const Platforms = ({
         channel_mix: updatedChannelMix,
       }));
 
-      // Use campaignFormData as the base to ensure consistency
-      // const dataToUpload = {
-      //   ...campaignFormData,
+      // Commented out server update to prevent 400 errors
+      // await uploadUpdatedCampaignToStrapi({
+      //   ...campaignData,
       //   channel_mix: updatedChannelMix,
-      // };
+      // });
 
-      // try {
-      //   await uploadUpdatedCampaignToStrapi(dataToUpload);
-
-      //   // Mark the deletion as successful and update the queue
-      //   setDeleteQueue((prev) => prev.slice(1));
-      //   setCompletedDeletions((prev) => new Set(prev).add(previewId));
-      // } catch (uploadError: any) {
-      //   console.error("Failed to upload updated campaign data:", uploadError);
-
-      //   // Don't fail the deletion if the campaign update fails
-      //   // Just log the error and continue with the deletion
-      //   console.warn(
-      //     "Campaign update failed, but deletion was successful. Data may not be synced with backend."
-      //   );
-
-      //   // Show a warning toast instead of an error
-      //   // if (uploadError?.response?.status === 400) {
-      //   //   if (uploadError?.response?.data?.message === "Invalid relations") {
-      //   //     toast.warning(
-      //   //       "Image deleted successfully, but campaign data sync failed due to validation issues."
-      //     );
-      //   //   } else {
-      //   //     toast.warning(
-      //   //       "Image deleted successfully, but campaign data sync failed. Please check your campaign data."
-      //     );
-      //   //   }
-      //   // } else {
-      //   //   toast.warning(
-      //   //     "Image deleted successfully, but campaign data sync failed. Please try saving your campaign manually."
-      //     );
-      //   // }
-
-      //   // Even if campaign update fails, mark the deletion as successful
-      //   // since the image was deleted from the file system
-      //   setDeleteQueue((prev) => prev.slice(1));
-      //   setCompletedDeletions((prev) => new Set(prev).add(previewId));
-      // }
-
-      // Mark the deletion as successful and update the queue (without server update)
       setDeleteQueue((prev) => prev.slice(1));
       setCompletedDeletions((prev) => new Set(prev).add(previewId));
     } catch (error: any) {
@@ -2337,7 +2285,7 @@ export const Platforms = ({
       setQuantities(newQuantities);
       setLocalStorageItem(`quantities_${stageName}_${view}`, newQuantities);
 
-      const copy = [...campaignFormData?.channel_mix];
+      const copy = [...campaignFormData.channel_mix];
       const stageIndex = copy.findIndex(
         (item) => item.funnel_stage === stageName
       );
