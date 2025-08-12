@@ -246,8 +246,15 @@ const ResizeableElements = ({
         // Year view - calculate width per month (12 months)
         const monthWidth = contWidth / 12;
         dailyWidth = Math.max(monthWidth, 60); // Minimum 60px per month
+      } else if (viewType === "Month") {
+        // Month view - calculate width per day for day-level precision
+        const totalDays = range?.length || 1;
+        dailyWidth = contWidth / totalDays;
+        // Make day columns much smaller for month view to fit more months
+        dailyWidth = Math.max(dailyWidth, 8); // Much smaller minimum for day columns
+        dailyWidth = Math.min(dailyWidth, 15); // Much smaller maximum width
       } else {
-        // Month - ensure all months fit within screen width
+        // Default - ensure all months fit within screen width
         const totalDays = totalDaysInRange || funnelData?.endDay || 30;
         dailyWidth = contWidth / totalDays;
         dailyWidth = Math.max(dailyWidth, 10);
@@ -260,7 +267,7 @@ const ResizeableElements = ({
 
       return Math.round(dailyWidth);
     },
-    [disableDrag, funnelData?.endDay, funnelData?.endMonth, close]
+    [disableDrag, funnelData?.endDay, funnelData?.endMonth, close, range]
   );
 
   useEffect(() => {
@@ -357,6 +364,10 @@ const ResizeableElements = ({
       const endDate = endOfYear(range[range.length - 1]);
       const months = eachMonthOfInterval({ start: startDate, end: endDate });
       return `repeat(${months.length}, ${dailyWidth}px)`;
+    } else if (rrange === "Month") {
+      // Month view - use day-level precision for smooth positioning
+      const numberOfDays = range?.length || 1;
+      return `repeat(${numberOfDays}, ${dailyWidth}px)`;
     }
   }, [
     rrange,
@@ -364,6 +375,7 @@ const ResizeableElements = ({
     monthsByYear,
     dailyWidthByView,
     funnelData?.endDay,
+    range,
   ]);
 
   // Enhanced function to get grid column end position for different views
@@ -377,8 +389,11 @@ const ResizeableElements = ({
       const endDate = endOfYear(range[range.length - 1]);
       const months = eachMonthOfInterval({ start: startDate, end: endDate });
       return months; // 12 months
+    } else if (rrange === "Month") {
+      // Month view - return number of days for day-level precision
+      return range?.length || 1;
     }
-  }, [rrange, funnelData?.endDay, funnelData?.endWeek, daysInEachMonth]);
+  }, [rrange, funnelData?.endDay, funnelData?.endWeek, daysInEachMonth, range]);
 
   const getDailyWidth = useCallback(
     (viewType?: string): number => {
@@ -440,6 +455,31 @@ const ResizeableElements = ({
           );
           initialPositions[stageName] = yearCalc.position;
           initialWidths[stageName] = yearCalc.width;
+        } else if (rrange === "Month" && stageStartDate && stageEndDate) {
+          // Month view calculations - calculate position based on actual dates
+          const startDateIndex = range?.findIndex((date) => isEqual(date, stageStartDate)) || 0;
+          const endDateIndex = range?.findIndex((date) => isEqual(date, stageEndDate)) || 0;
+          
+          const dailyWidth = getDailyWidth("Month");
+          
+          // Calculate position based on start date
+          initialPositions[stageName] = startDateIndex * dailyWidth;
+          
+          // Calculate width based on number of days between start and end
+          const daysBetween = endDateIndex - startDateIndex + 1;
+          initialWidths[stageName] = Math.max(daysBetween * dailyWidth, dailyWidth);
+          
+          console.log("Month view position calculation:", {
+            stageName,
+            stageStartDate: stageStartDate.toISOString().split('T')[0],
+            stageEndDate: stageEndDate.toISOString().split('T')[0],
+            startDateIndex,
+            endDateIndex,
+            dailyWidth,
+            position: initialPositions[stageName],
+            width: initialWidths[stageName],
+            daysBetween
+          });
         } else {
           // Existing logic for other views
           const startDateIndex = stageStartDate
@@ -495,15 +535,22 @@ const ResizeableElements = ({
     calculateYearViewPosition,
   ]);
 
-  // Generate background grid for year view
-  const generateYearBackground = useCallback(() => {
-    if (rrange !== "Year") return {};
-
-    const monthWidth = getDailyWidth("Year");
-    return {
-      backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
-      backgroundSize: `${monthWidth}px 100%`,
-    };
+  // Generate background grid for year and month views
+  const generateBackground = useCallback(() => {
+    if (rrange === "Year") {
+      const monthWidth = getDailyWidth("Year");
+      return {
+        backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
+        backgroundSize: `${monthWidth}px 100%`,
+      };
+    } else if (rrange === "Month") {
+      const monthWidth = getDailyWidth("Month");
+      return {
+        backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
+        backgroundSize: `${monthWidth}px 100%`,
+      };
+    }
+    return {};
   }, [rrange, getDailyWidth]);
 
   return (
@@ -511,10 +558,9 @@ const ResizeableElements = ({
       className={`w-full relative pb-5 grid-container ${"overflow-x-hidden"}`}
       ref={gridRef}
       style={{
-        ...(rrange === "Year" ? generateYearBackground() : {}),
-        ...(rrange === "Year"
-          ? {}
-          : {
+        ...generateBackground(),
+        ...(rrange !== "Year" && rrange !== "Month"
+          ? {
               backgroundImage: (() => {
                 if (rrange === "Day" || rrange === "Week") {
                   return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
@@ -537,7 +583,8 @@ const ResizeableElements = ({
                   return `${dailyWidth}px 100%`;
                 }
               })(),
-            }),
+            }
+          : {}),
       }}
     >
       
@@ -646,6 +693,7 @@ const ResizeableElements = ({
                   endDay={funnelData?.endDay}
                   endWeek={funnelData?.endWeek}
                   dailyWidth={getDailyWidth()}
+                  rangeType={rrange}
                 />
 
                 {isOpen && (

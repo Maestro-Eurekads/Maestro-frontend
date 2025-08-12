@@ -11,7 +11,7 @@ import moment from "moment";
 import { useDateRange as useDRange } from "src/date-context";
 import { useDateRange } from "src/date-range-context";
 import { getCurrencySymbol } from "./data";
-import { addDays, subDays } from "date-fns";
+import { addDays, subDays, format } from "date-fns";
 
 // Helper to convert screen X (scaled) to layout X
 const getLayoutX = (clientX: number) => {
@@ -81,6 +81,7 @@ interface DraggableChannelProps {
   endDay?: any;
   endWeek?: any;
   dailyWidth?: number;
+  rangeType?: string; // Add range type prop
 }
 
 interface TooltipState {
@@ -115,6 +116,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   endDay,
   endWeek,
   dailyWidth,
+  rangeType,
 }) => {
   const { funnelWidths, setFunnelWidth } = useFunnelContext();
   const [position, setPosition] = useState(parentLeft || 0);
@@ -159,7 +161,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   ) => {
     if (!dateList.length) return new Date();
 
-    if (range === "Year") {
+    if (rangeType === "Year") {
       // Year view - consistent with ResizableChannels
       const numberOfMonths = 12;
       const actualStepWidth = containerWidth / numberOfMonths;
@@ -189,8 +191,54 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         // Default to first day of the month
         return new Date(year, monthIndex, 1);
       }
+    } else if (rangeType === "Month") {
+      // Month view - calculate specific days within months for smooth dragging
+      const uniqueMonths = new Set();
+      dateList?.forEach(date => {
+        uniqueMonths.add(format(date, 'yyyy-MM'));
+      });
+      const numberOfMonths = uniqueMonths.size;
+      const stepWidth = containerWidth / numberOfMonths;
+      
+      // Calculate which month we're in and the position within that month
+      const monthIndex = Math.floor(pixel / stepWidth);
+      const positionWithinMonth = (pixel % stepWidth) / stepWidth; // 0 to 1
+      
+      console.log("DraggableChannel pixelToDate Month debug:", {
+        pixel,
+        containerWidth,
+        numberOfMonths,
+        stepWidth,
+        monthIndex,
+        positionWithinMonth,
+        fieldName
+      });
+
+      // Get the month dates sorted
+      const monthDates = Array.from(uniqueMonths).map((monthStr: string) => {
+        const [year, month] = monthStr.split('-');
+        return new Date(parseInt(year), parseInt(month) - 1, 1);
+      }).sort((a, b) => a.getTime() - b.getTime());
+
+      const targetMonth = monthDates[Math.min(monthIndex, numberOfMonths - 1)];
+      if (targetMonth) {
+        // Calculate the number of days in the target month
+        const daysInMonth = new Date(targetMonth.getFullYear(), targetMonth.getMonth() + 1, 0).getDate();
+        
+        // Calculate the specific day within the month based on position
+        const dayInMonth = Math.max(1, Math.min(daysInMonth, Math.round(positionWithinMonth * daysInMonth)));
+        
+        if (fieldName === "endDate") {
+          // For end date, ensure we don't go beyond the month
+          return new Date(targetMonth.getFullYear(), targetMonth.getMonth(), dayInMonth);
+        } else {
+          // For start date, use the calculated day
+          return new Date(targetMonth.getFullYear(), targetMonth.getMonth(), dayInMonth);
+        }
+      }
+      return dateList[0];
     } else {
-      // Day, Week, Month view - consistent grid-based calculation
+      // Day, Week view - consistent grid-based calculation
       const numberOfGridColumns = dateList.length;
       const stepWidth = containerWidth / numberOfGridColumns;
       
@@ -229,11 +277,14 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     const gridPositions = [];
     let numberOfGridColumns;
     
-    if (range === "Year") {
+    if (rangeType === "Year") {
       // Year view - 12 months
       numberOfGridColumns = 12;
+    } else if (rangeType === "Month") {
+      // Month view - use the full dateList for smooth day-level dragging
+      numberOfGridColumns = dateList.length;
     } else {
-      // Day, Week, Month view - based on dateList length
+      // Day, Week view - based on dateList length
       numberOfGridColumns = dateList?.length || 1;
     }
     
@@ -304,7 +355,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     let startDateValue: Date;
     let endDateValue: Date;
 
-    if (range === "Year") {
+    if (rangeType === "Year") {
       // Year view - consistent with ResizableChannels
       const numberOfMonths = 12;
       const monthStartIndex = Math.min(
@@ -329,11 +380,32 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       const year = dateList[0]?.getFullYear() || new Date().getFullYear();
       startDateValue = new Date(year, monthStartIndex, 1);
       endDateValue = new Date(year, monthEndIndex + 1, 0); // Last day of the month
+    } else if (rangeType === "Month") {
+      // Month view - use day-level precision for smooth dragging
+      const numberOfGridColumns = dateList.length;
+      const stepWidth = containerWidth / numberOfGridColumns;
+
+      const startGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, Math.floor(startPixel / stepWidth)));
+      const endGridIndexRaw = Math.floor((endPixel - 1) / stepWidth);
+      const endGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, endGridIndexRaw));
+
+      console.log("DraggableChannel Month view date conversion debug:", {
+        startPixel,
+        endPixel,
+        containerWidth,
+        numberOfGridColumns,
+        startGridIndex,
+        endGridIndex,
+        type
+      });
+
+      startDateValue = dateList[startGridIndex] || dateList[0];
+      endDateValue = dateList[endGridIndex] || dateList[numberOfGridColumns - 1];
     } else {
-      // Day, Week, Month view - use same logic as ResizableChannels
+      // Day, Week view - use same logic as ResizableChannels
       const numberOfGridColumns = dateList.length;
 
-      // Day, Week, Month view - compute grid indices using floor for correct mapping
+      // Day, Week view - compute grid indices using floor for correct mapping
       const stepWidth = containerWidth / numberOfGridColumns;
       const startGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, Math.floor(startPixel / stepWidth)));
       // Use (endPixel-1) so that exact edge aligns with previous day, giving inclusive range
@@ -356,7 +428,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
     let formattedDateRange;
 
-    if (range === "Year") {
+    if (rangeType === "Year") {
       // For year view, show month ranges
       const startMonth = startDateValue?.toLocaleDateString("en-US", {
         month: "short",
@@ -377,6 +449,19 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         // Different years - show "Feb 25 - Mar 25" format
         formattedDateRange = `${startMonth} ${startYear} - ${endMonth} ${endYear}`;
       }
+    } else if (rangeType === "Month") {
+      // For month view, show specific dates for smooth dragging
+      const formattedStartDate = startDateValue?.toLocaleDateString("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+      });
+      const formattedEndDate = endDateValue?.toLocaleDateString("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+      });
+      formattedDateRange = `${formattedStartDate} - ${formattedEndDate}`;
     } else {
       // For other views, show specific dates
       const formattedStartDate = startDateValue?.toLocaleDateString("en-US", {
@@ -502,9 +587,13 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       
       // Calculate minimum width based on view type
       const getMinWidth = () => {
-        if (range === "Year") {
+        if (rangeType === "Year") {
           const monthWidth = dailyWidth || containerWidth / 12;
           return Math.max(monthWidth, 100); // Increased minimum for Year view
+        } else if (rangeType === "Month") {
+          // For month view, use day-level precision for smooth dragging
+          const dayWidth = dailyWidth || containerWidth / dateList.length;
+          return Math.max(dayWidth, 50); // Standard minimum for day-level dragging
         }
         return 50; // Standard minimum for other views
       };
@@ -728,7 +817,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         disableDrag ? "h-auto" : "h-14"
       } flex select-none rounded-[10px] cont-${id?.replaceAll(" ", "_")}`}
       style={{
-        transform: `translateX(${position + (range === "Month" ? 4 : 0)}px)`,
+                    transform: `translateX(${position + (rangeType === "Month" ? 4 : 0)}px)`,
       }}
     >
       {tooltip.visible && (
@@ -758,7 +847,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         } rounded-[10px] cont-${id?.replaceAll(" ", "_")} z-50`}
         style={{
           width: disableDrag
-            ? `${(parentWidth || 0) + (range === "Month" ? 0 : 0)}px`
+            ? `${(parentWidth || 0) + (rangeType === "Month" ? 0 : 0)}px`
             : parentWidth,
           backgroundColor: color,
           transition: "transform 0.2s ease-out",
@@ -766,7 +855,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         onMouseDown={disableDrag || openItems ? undefined : handleMouseDownDrag}
       >
         {/* Left resize handle */}
-        {range === "Month" ? (
+                    {rangeType === "Month" ? (
           <div
             className={`absolute left-0 w-5 h-1/2 bg-opacity-80 ${
               disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
@@ -846,7 +935,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         </div>
 
         {/* Right resize handle */}
-        {range === "Month" ? (
+                    {rangeType === "Month" ? (
           <div
             className={`absolute right-0 w-5 h-1/2 bg-opacity-80 ${
               disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
