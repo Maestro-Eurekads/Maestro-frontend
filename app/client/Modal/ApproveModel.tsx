@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import closefill from "../../../public/close-fill.svg";
@@ -15,9 +14,14 @@ import { useUserPrivileges } from "utils/userPrivileges";
 
 const ApproveModel = ({ isOpen, setIsOpen }) => {
   const { campaignData, jwt } = useCampaigns();
-  const { setIsLoadingApproval, isLoadingApproval, createAsignatureapproval, createApprovalSuccess } = useComments();
+  const {
+    setIsLoadingApproval,
+    isLoadingApproval,
+    createAsignatureapproval,
+    createApprovalSuccess,
+  } = useComments();
 
-  const isdocumentId = campaignData?.documentId
+  const isdocumentId = campaignData?.documentId;
 
   const {
     loggedInUser,
@@ -27,25 +31,23 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
     isFinancialApprover,
     isClientApprover,
     isClient,
-    userID
+    userID,
   } = useUserPrivileges();
 
-
   const { data: session }: any = useSession();
-  const [sign, setSign] = useState('');
-  const id = session?.user?.id
+  const [sign, setSign] = useState("");
+  const id = session?.user?.id;
   const [inputs, setInputs] = useState({
     name: "",
     date: "",
     signature: "",
-    initials: ""
+    initials: "",
   });
 
-
   useEffect(() => {
-    setInputs(prev => ({
+    setInputs((prev) => ({
       ...prev,
-      signature: sign
+      signature: sign,
     }));
   }, [sign]);
 
@@ -61,11 +63,7 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
   // setStatusMessage('Please approve the media plan or request changes.');
   // }, [campaignData?.isStatus?.stage, stage]);
 
-
   //  Automatically reset alert after showing
-
-
-
 
   const handleOnChange = (input: string, value: string) => {
     setInputs((prevState) => ({
@@ -99,16 +97,20 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
       };
 
       const patchData = {
-        isStatus: newStatus
+        isStatus: newStatus,
       };
 
-      await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${campaignData?.documentId}`, {
-        data: patchData,
-      }, {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
+      await axios.put(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${campaignData?.documentId}`,
+        {
+          data: patchData,
         },
-      });
+        {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        }
+      );
 
       toast.success(`Media plan marked as '${label}'`);
     } catch (error) {
@@ -125,38 +127,23 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
     if (Object.values(inputs).some((value) => value.trim() === "")) return;
     try {
       await createAsignatureapproval(sign, inputs, id, isdocumentId);
-      await updateStatus('approved', 'Approved');
-      setIsLoadingApproval(false)
+      await updateStatus("approved", "Approved");
+      setIsLoadingApproval(false);
       setSign("");
-    } catch (error) {
-    }
+    } catch (error) {}
   };
-
-
-
-
-
-
-
-
-
-
-
 
   useEffect(() => {
     if (createApprovalSuccess) {
-      toast.success("Aprroval is Successful!")
+      toast.success("Aprroval is Successful!");
     }
     setInputs({
       name: "",
       date: "",
       signature: "",
-      initials: ""
-    })
-
+      initials: "",
+    });
   }, [createApprovalSuccess]);
-
-
 
   return (
     <div className="z-50">
@@ -176,8 +163,7 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
               </div>
               <button
                 className="text-gray-500 hover:text-gray-800"
-                onClick={() => setIsOpen(false)}
-              >
+                onClick={() => setIsOpen(false)}>
                 <Image src={closefill} alt="menu" />
               </button>
             </div>
@@ -186,13 +172,17 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
             <div className="p-6 overflow-y-auto max-h-[60vh]">
               <div className="flex items-start gap-3 mb-5">
                 <div className="flex flex-col w-full">
-                  <label className="w-[124px] h-[19px]   text-[14px] leading-[19px] text-[#061237]  " htmlFor="custom-textarea">
+                  <label
+                    className="w-[124px] h-[19px]   text-[14px] leading-[19px] text-[#061237]  "
+                    htmlFor="custom-textarea">
                     Enter Full Name
                   </label>
                   <Input
                     type="text"
                     value={inputs.name}
-                    handleOnChange={(e) => handleOnChange("name", e.target.value)}
+                    handleOnChange={(e) =>
+                      handleOnChange("name", e.target.value)
+                    }
                     label=""
                     placeholder=""
                   />
@@ -200,32 +190,38 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
                 <div className="w-[50%] shrink-0">
                   <div className="shrink-0 flex items-center w-full gap-3">
                     <div className="flex flex-col w-full">
-                      <label className="w-[124px] h-[19px]   text-[14px] leading-[19px] text-[#061237]  " htmlFor="custom-textarea">
+                      <label
+                        className="w-[124px] h-[19px]   text-[14px] leading-[19px] text-[#061237]  "
+                        htmlFor="custom-textarea">
                         Enter date
                       </label>
                       <DatePickerInput
                         type="date"
                         value={inputs.date}
-                        handleOnChange={(e) => handleOnChange("date", e.target.value)}
+                        handleOnChange={(e) =>
+                          handleOnChange("date", e.target.value)
+                        }
                         label=""
                         placeholder=""
                       />
                     </div>
-
                   </div>
                 </div>
-
               </div>
 
               <div className="mb-5">
                 <div className="flex flex-col w-full">
-                  <label className="w-[124px] h-[19px] text-[14px] leading-[19px] text-[#061237]  " htmlFor="custom-textarea">
+                  <label
+                    className="w-[124px] h-[19px] text-[14px] leading-[19px] text-[#061237]  "
+                    htmlFor="custom-textarea">
                     Enter Initials
                   </label>
                   <Input
                     type="initials"
                     value={inputs.initials}
-                    handleOnChange={(e) => handleOnChange("initials", e.target.value)}
+                    handleOnChange={(e) =>
+                      handleOnChange("initials", e.target.value)
+                    }
                     label=""
                     placeholder=""
                   />
@@ -234,7 +230,9 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
 
               <div className="shrink-0 flex items-center w-full gap-3 mb-5">
                 <div className="flex flex-col w-full">
-                  <label className="w-[124px] h-[19px] text-[14px] leading-[19px] text-[#061237]  " htmlFor="custom-textarea">
+                  <label
+                    className="w-[124px] h-[19px] text-[14px] leading-[19px] text-[#061237]  "
+                    htmlFor="custom-textarea">
                     Signature
                   </label>
                   <SignatureInput
@@ -243,7 +241,6 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
                     onChange={(val) => setInputs({ ...inputs, signature: val })}
                   />
                 </div>
-
               </div>
             </div>
             {/* Footer  */}
@@ -251,11 +248,12 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
               <div className="flex items-center gap-5">
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="btn_model_outline">Cancel</button>
+                  className="btn_model_outline">
+                  Cancel
+                </button>
                 <button
                   className="btn_model_active whitespace-nowrap"
-                  onClick={handleSubmit}
-                >
+                  onClick={handleSubmit}>
                   {isLoadingApproval ? (
                     <SVGLoader width={"30px"} height={"30px"} color={"#FFF"} />
                   ) : (
@@ -272,5 +270,3 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
 };
 
 export default ApproveModel;
-
-

@@ -57,10 +57,10 @@ const Header = ({ setIsOpen, setIsView }) => {
     selectedId,
     setSelectedId,
     setFC,
-    FC
+    FC,
   } = useCampaigns();
 
-  const { setSelectedDates } = useSelectedDates()
+  const { setSelectedDates } = useSelectedDates();
 
   const { setActive, setSubStep, setChange } = useActive();
   const { fetchClientCampaign, fetchClientPOS } = useCampaignHook();
@@ -73,26 +73,22 @@ const Header = ({ setIsOpen, setIsView }) => {
 
   const latestFetchRef = useRef(null);
 
-
   const clients: any = getCreateClientData;
-
-
-
 
   useEffect(() => {
     setActive(0);
     if (profile && agencyId) {
-      dispatch(getCreateClient({ userId: isAdmin ? null : userType, jwt, agencyId }));
+      dispatch(
+        getCreateClient({ userId: isAdmin ? null : userType, jwt, agencyId })
+      );
 
       const timer = setTimeout(() => {
         setAlert(null);
       }, 5000);
 
       return () => clearTimeout(timer);
-
     }
   }, [dispatch, session, profile, agencyId, userType]);
-
 
   //  LocalStorage prioritized
   useEffect(() => {
@@ -113,8 +109,6 @@ const Header = ({ setIsOpen, setIsView }) => {
       }
     }
   }, [userType, getCreateClientIsLoading, profile?.clients]);
-
-
 
   useEffect(() => {
     setActive(0);
@@ -200,9 +194,11 @@ const Header = ({ setIsOpen, setIsView }) => {
 
       // Clear window channel state
       if ((window as any).channelLevelAudienceState) {
-        Object.keys((window as any).channelLevelAudienceState).forEach((stageName) => {
-          delete (window as any).channelLevelAudienceState[stageName];
-        });
+        Object.keys((window as any).channelLevelAudienceState).forEach(
+          (stageName) => {
+            delete (window as any).channelLevelAudienceState[stageName];
+          }
+        );
       }
 
       // Clear all localStorage items related to campaign creation
@@ -218,42 +214,47 @@ const Header = ({ setIsOpen, setIsView }) => {
         "change",
         "comments",
         "subStep",
-        "verifybeforeMove"
+        "verifybeforeMove",
       ];
 
       // Remove campaign-specific localStorage items
-      localStorageKeysToRemove.forEach(key => {
+      localStorageKeysToRemove.forEach((key) => {
         localStorage.removeItem(key);
       });
 
       // Remove quantities-related localStorage items (format selection)
-      Object.keys(localStorage).forEach(key => {
+      Object.keys(localStorage).forEach((key) => {
         if (key.startsWith("quantities_")) {
           localStorage.removeItem(key);
         }
       });
 
       // Remove modal dismissal keys
-      Object.keys(localStorage).forEach(key => {
-        if (key.includes("modal_dismissed") || key.includes("goalLevelModalDismissed")) {
+      Object.keys(localStorage).forEach((key) => {
+        if (
+          key.includes("modal_dismissed") ||
+          key.includes("goalLevelModalDismissed")
+        ) {
           localStorage.removeItem(key);
         }
       });
 
       // Remove format error trigger keys
-      Object.keys(localStorage).forEach(key => {
+      Object.keys(localStorage).forEach((key) => {
         if (key.startsWith("triggerFormatError_")) {
           localStorage.removeItem(key);
         }
       });
 
       // Remove channel mix related localStorage items
-      Object.keys(localStorage).forEach(key => {
-        if (key.includes("openItems") ||
+      Object.keys(localStorage).forEach((key) => {
+        if (
+          key.includes("openItems") ||
           key.includes("selected") ||
           key.includes("stageStatuses") ||
           key.includes("showMoreMap") ||
-          key.includes("openChannelTypes")) {
+          key.includes("openChannelTypes")
+        ) {
           localStorage.removeItem(key);
         }
       });
@@ -264,6 +265,17 @@ const Header = ({ setIsOpen, setIsView }) => {
     }
   };
 
+  // Compute client options to prevent hydration issues
+  const clientOptions = (() => {
+    const clientData = isAdmin ? clients?.data : profile?.clients;
+    if (!clientData || !Array.isArray(clientData)) return [];
+    return clientData
+      .filter((c) => !!c?.client_name && !!c?.id && !!c?.createdAt)
+      .map((c) => ({
+        label: c?.client_name,
+        value: c?.id.toString(),
+      }));
+  })();
 
   return (
     <div id="header" className="relative w-full">
@@ -276,17 +288,10 @@ const Header = ({ setIsOpen, setIsView }) => {
         ) : (
           <>
             <CustomSelect
-              options={(isAdmin ? clients?.data : profile?.clients)
-                ?.filter((c) => !!c?.client_name && !!c?.id && !!c?.createdAt)
-                // ?.sort(
-                //  (a, b) =>
-                //   new Date(b?.createdAt || 0).getTime() -
-                //   new Date(a?.createdAt || 0).getTime()
-                // )
-                ?.map((c) => ({
-                  label: c?.client_name,
-                  value: c?.id.toString(),
-                }))}
+              key={`client-select-${isAdmin ? "admin" : "user"}-${
+                clients?.data?.length || 0
+              }-${profile?.clients?.length || 0}`}
+              options={clientOptions}
               className="min-w-[150px] z-[20]"
               placeholder="Search"
               onChange={(value) => {
@@ -299,16 +304,25 @@ const Header = ({ setIsOpen, setIsView }) => {
                       const keysToRemove: string[] = [];
                       for (let i = 0; i < sessionStorage.length; i++) {
                         const key = sessionStorage.key(i);
-                        if (key && key.startsWith("channelLevelAudienceState_")) {
+                        if (
+                          key &&
+                          key.startsWith("channelLevelAudienceState_")
+                        ) {
                           keysToRemove.push(key);
                         }
                       }
-                      keysToRemove.forEach((key) => sessionStorage.removeItem(key));
+                      keysToRemove.forEach((key) =>
+                        sessionStorage.removeItem(key)
+                      );
 
                       // Clear window channel state
                       if ((window as any).channelLevelAudienceState) {
-                        Object.keys((window as any).channelLevelAudienceState).forEach((stageName) => {
-                          delete (window as any).channelLevelAudienceState[stageName];
+                        Object.keys(
+                          (window as any).channelLevelAudienceState
+                        ).forEach((stageName) => {
+                          delete (window as any).channelLevelAudienceState[
+                            stageName
+                          ];
                         });
                       }
 
@@ -325,47 +339,54 @@ const Header = ({ setIsOpen, setIsView }) => {
                         "change",
                         "comments",
                         "subStep",
-                        "verifybeforeMove"
+                        "verifybeforeMove",
                       ];
 
                       // Remove campaign-specific localStorage items
-                      localStorageKeysToRemove.forEach(key => {
+                      localStorageKeysToRemove.forEach((key) => {
                         localStorage.removeItem(key);
                       });
 
                       // Remove quantities-related localStorage items (format selection)
-                      Object.keys(localStorage).forEach(key => {
+                      Object.keys(localStorage).forEach((key) => {
                         if (key.startsWith("quantities_")) {
                           localStorage.removeItem(key);
                         }
                       });
 
                       // Remove modal dismissal keys
-                      Object.keys(localStorage).forEach(key => {
-                        if (key.includes("modal_dismissed") || key.includes("goalLevelModalDismissed")) {
+                      Object.keys(localStorage).forEach((key) => {
+                        if (
+                          key.includes("modal_dismissed") ||
+                          key.includes("goalLevelModalDismissed")
+                        ) {
                           localStorage.removeItem(key);
                         }
                       });
 
                       // Remove format error trigger keys
-                      Object.keys(localStorage).forEach(key => {
+                      Object.keys(localStorage).forEach((key) => {
                         if (key.startsWith("triggerFormatError_")) {
                           localStorage.removeItem(key);
                         }
                       });
 
                       // Remove channel mix related localStorage items
-                      Object.keys(localStorage).forEach(key => {
-                        if (key.includes("openItems") ||
+                      Object.keys(localStorage).forEach((key) => {
+                        if (
+                          key.includes("openItems") ||
                           key.includes("selected") ||
                           key.includes("stageStatuses") ||
                           key.includes("showMoreMap") ||
-                          key.includes("openChannelTypes")) {
+                          key.includes("openChannelTypes")
+                        ) {
                           localStorage.removeItem(key);
                         }
                       });
 
-                      console.log("Cleared all campaign data when switching clients");
+                      console.log(
+                        "Cleared all campaign data when switching clients"
+                      );
                     } catch (error) {
                       console.error("Error clearing campaign data:", error);
                     }
@@ -418,33 +439,34 @@ const Header = ({ setIsOpen, setIsView }) => {
             />
 
             <button
-              className={`new_plan_btn ml-8 mr-4 ${(!profile?.clients || !clients?.data || !selectedId)
-                ? "!bg-gray-400 cursor-not-allowed"
-                : ""
-                }`}
+              className={`new_plan_btn ml-8 mr-4 ${
+                !profile?.clients || !clients?.data || !selectedId
+                  ? "!bg-gray-400 cursor-not-allowed"
+                  : ""
+              }`}
               disabled={!profile?.clients || !clients?.data || !selectedId}
               onClick={() => {
                 if (isAgencyCreator) {
-                  toast.error("You do not have permission to perform this action.");
+                  toast.error(
+                    "You do not have permission to perform this action."
+                  );
                   return;
                 }
                 setIsView(true);
-              }}
-            >
+              }}>
               <p className="new_plan_btn_text">View Client</p>
             </button>
-
 
             {(isAdmin || isFinancialApprover || isAgencyApprover) && (
               <button
                 className="client_btn_text whitespace-nowrap w-fit"
-                onClick={() => { setIsOpen(true) }}  >
+                onClick={() => {
+                  setIsOpen(true);
+                }}>
                 <Image src={plus} alt="plus" />
                 New Client
               </button>
             )}
-
-
           </>
         )}
       </div>
@@ -457,53 +479,50 @@ const Header = ({ setIsOpen, setIsView }) => {
             isFinancialApprover ||
             isAgencyApprover ||
             isAgencyCreator) && (
-              <Link
-                href={`/creation`}
-                onClick={() => {
-                  // Set flag to indicate this is a new plan navigation
-                  if (typeof window !== "undefined") {
-                    sessionStorage.setItem('isNewPlanNavigation', 'true');
-                  }
+            <Link
+              href={`/creation`}
+              onClick={() => {
+                // Set flag to indicate this is a new plan navigation
+                if (typeof window !== "undefined") {
+                  sessionStorage.setItem("isNewPlanNavigation", "true");
+                }
 
-                  // Clear all campaign data comprehensively
-                  clearCampaignData();
+                // Clear all campaign data comprehensively
+                clearCampaignData();
 
-                  // Reset context state
-                  setCampaignFormData({});
-                  setCampaignData(null);
-                  setActive(0);
-                  setSubStep(0);
-                  setSelectedDates({
-                    from: null,
-                    to: null
-                  });
+                // Reset context state
+                setCampaignFormData({});
+                setCampaignData(null);
+                setActive(0);
+                setSubStep(0);
+                setSelectedDates({
+                  from: null,
+                  to: null,
+                });
 
-                  // Clear any pending changes
-                  setChange(false);
+                // Clear any pending changes
+                setChange(false);
 
-                  // Reset Redux state
-                  dispatch(reset());
-                }}>
-                <button
-                  className={`new_plan_btn ${!profile?.clients || !clients?.data || !selectedId ? "!bg-gray-400" : ""
-                    }`}
-                  disabled={!profile?.clients || !clients?.data || !selectedId}
-                >
-                  <Image src={white} alt="white" />
-                  <p className="new_plan_btn_text">New media plan</p>
-                </button>
-              </Link>
-            )}
+                // Reset Redux state
+                dispatch(reset());
+              }}>
+              <button
+                className={`new_plan_btn ${
+                  !profile?.clients || !clients?.data || !selectedId
+                    ? "!bg-gray-400"
+                    : ""
+                }`}
+                disabled={!profile?.clients || !clients?.data || !selectedId}>
+                <Image src={white} alt="white" />
+                <p className="new_plan_btn_text">New media plan</p>
+              </button>
+            </Link>
+          )}
 
           <div
             className="profile_container"
-            onClick={() => setShow((prev) => !prev)}
-          >
-            <p className="capitalize">
-
-              {getFirstLetters(session?.user?.name)}
-            </p>
-
+            onClick={() => setShow((prev) => !prev)}>
+            <p className="capitalize">{getFirstLetters(session?.user?.name)}</p>
 
             {show && (
               <div className="absolute right-0 top-[60px] w-[200px] bg-white border border-gray-200   shadow-lg z-50 !rounded-[5px]">
@@ -523,8 +542,7 @@ const Header = ({ setIsOpen, setIsView }) => {
                         callbackUrl: "/",
                       });
                     }}
-                    className="w-full px-4 py-2 text-sm text-white !bg-[#3175FF]   hover:bg-blue-700 !rounded-[5px]"
-                  >
+                    className="w-full px-4 py-2 text-sm text-white !bg-[#3175FF]   hover:bg-blue-700 !rounded-[5px]">
                     Logout
                   </button>
                 </div>
@@ -533,7 +551,7 @@ const Header = ({ setIsOpen, setIsView }) => {
           </div>
         </div>
       </div>
-    </div >
+    </div>
   );
 };
 
