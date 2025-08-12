@@ -585,6 +585,37 @@ const ResizeableElements = ({
               })(),
             }
           : {}),
+
+        ...(rrange === "Year" ? {} : {
+          backgroundImage: (() => {
+            if (rrange === "Day" || rrange === "Week") {
+              return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
+            } else if (rrange === "Month") {
+              // Month view - no background lines, we'll use border elements instead
+              return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`
+            } else {
+              return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
+            }
+          })(),
+          backgroundSize: (() => {
+            const dailyWidth = getDailyWidth();
+            if (rrange === "Day" || rrange === "Week") {
+              const totalDays = funnelData?.endDay || 1;
+              const dailyGridSize = `${dailyWidth}px 100%`;
+              if (rrange === "Week") {
+                return dailyGridSize;
+              }
+              return `${dailyGridSize}, calc(${dailyWidth * totalDays
+                }px) 100%`;
+            } else if (rrange === "Month") {
+              const dailyGridSize = `${dailyWidth}px 100%`;
+              // Month view - no background size needed
+              return dailyGridSize;
+            } else {
+              return `${dailyWidth}px 100%`;
+            }
+          })(),
+        }),
       }}
     >
       
