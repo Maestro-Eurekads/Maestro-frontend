@@ -40,20 +40,23 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 
   const commentRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
-  // console.log("campaignFormData=====", data);
+  console.log("campaignFormData=====", data);
 
-  // const comment = useMemo(() => {
-  //   if (!data) return [];
-  //   return data?.filter((comment) => comment?.client_commentID === null);
-  // }, [data]);
+  const comment = useMemo(() => {
+    if (!data) return [];
+    return data?.filter(
+      (comment) =>
+        comment?.client_commentID === null || comment?.client_commentID !== null
+    );
+  }, [data]);
 
   const comments = useMemo(() => {
-    return [...data].sort(
+    return [...comment].sort(
       (a, b) =>
         new Date(b?.createdAt || 0).getTime() -
         new Date(a?.createdAt || 0).getTime()
     );
-  }, [data]);
+  }, [comment]);
 
   useEffect(() => {
     const newColors = {};

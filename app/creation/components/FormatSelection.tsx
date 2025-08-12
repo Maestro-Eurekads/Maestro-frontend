@@ -2062,11 +2062,19 @@ export const Platforms = ({
         channel_mix: updatedChannelMix,
       }));
 
-      // Commented out server update to prevent 400 errors
-      // await uploadUpdatedCampaignToStrapi({
-      //   ...campaignData,
-      //   channel_mix: updatedChannelMix,
-      // });
+      // Use campaignFormData instead of campaignData to ensure consistent structure
+      try {
+        await uploadUpdatedCampaignToStrapi({
+          ...campaignFormData,
+          channel_mix: updatedChannelMix,
+        });
+      } catch (uploadError: any) {
+        console.error("Failed to upload updated campaign data:", uploadError);
+        // Don't fail the deletion if the campaign update fails
+        console.warn(
+          "Campaign update failed, but deletion was successful. Data may not be synced with backend."
+        );
+      }
     },
     [
       campaignFormData,
@@ -2215,11 +2223,19 @@ export const Platforms = ({
         channel_mix: updatedChannelMix,
       }));
 
-      // Commented out server update to prevent 400 errors
-      // await uploadUpdatedCampaignToStrapi({
-      //   ...campaignData,
-      //   channel_mix: updatedChannelMix,
-      // });
+      // Use campaignFormData instead of campaignData to ensure consistent structure
+      try {
+        await uploadUpdatedCampaignToStrapi({
+          ...campaignFormData,
+          channel_mix: updatedChannelMix,
+        });
+      } catch (uploadError: any) {
+        console.error("Failed to upload updated campaign data:", uploadError);
+        // Don't fail the deletion if the campaign update fails
+        console.warn(
+          "Campaign update failed, but deletion was successful. Data may not be synced with backend."
+        );
+      }
 
       setDeleteQueue((prev) => prev.slice(1));
       setCompletedDeletions((prev) => new Set(prev).add(previewId));

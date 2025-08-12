@@ -129,7 +129,8 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
       await createAsignatureapproval(sign, inputs, id, isdocumentId);
       await updateStatus("approved", "Approved");
       setIsLoadingApproval(false);
-      setSign("");
+      // Commented out to keep signature visible after approval
+      // setSign("");
     } catch (error) {}
   };
 
@@ -137,12 +138,13 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
     if (createApprovalSuccess) {
       toast.success("Aprroval is Successful!");
     }
-    setInputs({
-      name: "",
-      date: "",
-      signature: "",
-      initials: "",
-    });
+    // Commented out to keep approval data visible after successful approval
+    // setInputs({
+    //   name: "",
+    //   date: "",
+    //   signature: "",
+    //   initials: "",
+    // });
   }, [createApprovalSuccess]);
 
   return (
