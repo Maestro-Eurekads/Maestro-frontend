@@ -5,6 +5,7 @@ import Select, {
   type Props,
 } from "react-select";
 import { ChevronDown } from "lucide-react";
+import { useEffect, useState } from "react";
 
 // Define the option type
 export type SelectOption = {
@@ -32,6 +33,15 @@ export function CustomSelect({
   label,
   ...props
 }: CustomSelectProps) {
+  // Client-side only rendering to prevent hydration issues
+  const [isClient, setIsClient] = useState(false);
+  
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Ensure options is always an array to prevent hydration issues
+  const safeOptions = Array.isArray(options) ? options : [];
   // Custom styles to match our UI
   const customStyles: StylesConfig<SelectOption, false> = {
     control: (provided, state) => ({
@@ -119,6 +129,21 @@ export function CustomSelect({
     );
   };
 
+  // Don't render the select until client-side to prevent hydration issues
+  if (!isClient) {
+    return (
+      <div className={`w-full ${className}`}>
+        {label && (
+          <label className="block text-sm font-medium mb-2">{label}</label>
+        )}
+        <div className="h-[38px] bg-white border border-gray-300 rounded-md px-3 py-2 flex items-center">
+          <span className="text-gray-500">{placeholder}</span>
+        </div>
+        {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+      </div>
+    );
+  }
+
   return (
     <div className={`w-full ${className}`}>
       {label && (
@@ -127,7 +152,7 @@ export function CustomSelect({
 
       <Select
         required={required}
-        options={options}
+        options={safeOptions}
         value={value}
         onChange={onChange as any}
         placeholder={placeholder}

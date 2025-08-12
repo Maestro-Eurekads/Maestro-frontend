@@ -19,8 +19,15 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
   const [openItems, setOpenItems] = useState({ Awareness: true });
   const [selected, setSelected] = useState({});
   const [validatedStages, setValidatedStages] = useState({});
-  const { campaignFormData, setCampaignFormData, setCopy, cId, campaignData, jwt, getActiveCampaign } =
-    useCampaigns();
+  const {
+    campaignFormData,
+    setCampaignFormData,
+    setCopy,
+    cId,
+    campaignData,
+    jwt,
+    getActiveCampaign,
+  } = useCampaigns();
   const [openChannelTypes, setOpenChannelTypes] = useState({});
   const [showMoreMap, setShowMoreMap] = useState({});
   const [stageStatuses, setStageStatuses] = useState({});
@@ -31,7 +38,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
   const [id, setId] = useState(null);
 
   const sendUpdatedDataToAPI = async (updatedData) => {
-    const { media_plan_details, user, ...rest } = campaignData
+    const { media_plan_details, user, ...rest } = campaignData;
     try {
       setDeleting(true);
       const response = await axios.put(
@@ -284,8 +291,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
                 width="25"
                 height="25"
                 viewBox="0 0 25 25"
-                fill="none"
-              >
+                fill="none">
                 <path
                   d="M18.7266 6.5L6.72656 18.5M6.72656 6.5L18.7266 18.5"
                   stroke="#717680"
@@ -299,29 +305,28 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
             <div className="w-fit ml-auto">
               <button
                 className="w-fit bg-blue-500 text-white rounded-md p-2 text-[16px]"
-                onClick={() => setOpenAdset(true)}
-              >
+                onClick={() => setOpenAdset(true)}>
                 Configure Adset and Audiences
               </button>
             </div>
           </div>
         </div>
       )}
-      {openAdset &&
-        <Modal isOpen={(selectedStage && openAdset) ? true : false} onClose={() => setOpenAdset(false)}>
+      {openAdset && (
+        <Modal
+          isOpen={selectedStage && openAdset ? true : false}
+          onClose={() => setOpenAdset(false)}>
           <div className="bg-white w-[1000px] p-2 rounded-lg max-h-[600px] overflow-y-scroll">
             <div className="w-full">
               <button
                 className="flex justify-end w-fit ml-auto"
-                onClick={() => setOpenAdset(false)}
-              >
+                onClick={() => setOpenAdset(false)}>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="25"
                   height="25"
                   viewBox="0 0 25 25"
-                  fill="none"
-                >
+                  fill="none">
                   <path
                     d="M18.7266 6.5L6.72656 18.5M6.72656 6.5L18.7266 18.5"
                     stroke="#717680"
@@ -341,20 +346,22 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
                 <button
                   className="bg-blue-500 text-white rounded-md p-2"
                   onClick={async () => {
-                    await sendUpdatedDataToAPI(campaignFormData)
+                    await sendUpdatedDataToAPI(campaignFormData);
                     await setOpenAdset(false);
                     await setIsOpen(false);
                   }}
-                  disabled={deleting}
-                >
-                  {deleting ? <FaSpinner className="animate-spin" /> : "Confirm Changes"}
+                  disabled={deleting}>
+                  {deleting ? (
+                    <FaSpinner className="animate-spin" />
+                  ) : (
+                    "Confirm Changes"
+                  )}
                 </button>
               </div>
             </div>
-
           </div>
         </Modal>
-      }
+      )}
     </div>
   );
 };

@@ -350,7 +350,15 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   }, [isLoadingRecap]);
 
   // Handle ad_sets_granularity from campaign data and localStorage
+  const isUpdatingView = useRef(false);
+
   useEffect(() => {
+    // Prevent infinite loop - don't run if we're already updating the view
+    if (isUpdatingView.current) {
+      console.log("Skipping granularity useEffect - already updating view");
+      return;
+    }
+
     if (loadingCampaign) {
       setIsLoadingGranularity(true);
       return;
@@ -392,11 +400,13 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
           "Updating view from campaign data:",
           campaignFormData.ad_sets_granularity
         );
+        isUpdatingView.current = true;
         setIsLoadingGranularity(true);
         setIsLoadingRecap(true); // Also set recap loading while granularity changes
         onToggleChange(campaignFormData.ad_sets_granularity);
         setTimeout(() => {
           setIsLoadingGranularity(false);
+          isUpdatingView.current = false;
           // Don't automatically stop recap loading - let the data loading logic handle it
           console.log(
             "Granularity loading complete, recap loading continues until data is ready"
@@ -414,11 +424,13 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
           "Updating view from localStorage:",
           localStorageGranularity
         );
+        isUpdatingView.current = true;
         setIsLoadingGranularity(true);
         setIsLoadingRecap(true); // Also set recap loading while granularity changes
         onToggleChange(localStorageGranularity as "channel" | "adset");
         setTimeout(() => {
           setIsLoadingGranularity(false);
+          isUpdatingView.current = false;
           // Don't automatically stop recap loading - let the data loading logic handle it
           console.log(
             "Granularity loading complete, recap loading continues until data is ready"
@@ -631,7 +643,17 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   ]);
 
   // Restore granularity setting from localStorage when component loads
+  const isRestoringFromStorage = useRef(false);
+
   useEffect(() => {
+    // Prevent infinite loop - don't restore if we're already updating the view
+    if (isUpdatingView.current || isRestoringFromStorage.current) {
+      console.log(
+        "Skipping granularity restoration - already updating or restoring"
+      );
+      return;
+    }
+
     if (typeof window !== "undefined" && campaignFormData) {
       const planKey = getPlanKey();
       if (planKey) {
@@ -644,7 +666,16 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
         ) {
           const expectedView = savedGranularity;
           if (view !== expectedView) {
+            console.log(
+              "Restoring granularity from localStorage:",
+              expectedView
+            );
+            isRestoringFromStorage.current = true;
             onToggleChange(expectedView);
+            // Reset the flag after a short delay
+            setTimeout(() => {
+              isRestoringFromStorage.current = false;
+            }, 100);
           }
         }
       }
@@ -1055,7 +1086,24 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   };
 
   const handleToggleChange = (checked: boolean) => {
+    // Prevent infinite loop - don't run if we're already updating the view
+    if (isUpdatingView.current || isRestoringFromStorage.current) {
+      console.log(
+        "Skipping handleToggleChange - already updating or restoring view"
+      );
+      return;
+    }
+
     const newView = checked ? "adset" : "channel";
+    console.log("handleToggleChange called with:", {
+      checked,
+      newView,
+      currentView: view,
+    });
+
+    // Set the updating flag to prevent infinite loops
+    isUpdatingView.current = true;
+
     onToggleChange(newView);
 
     // Save granularity setting to campaign form data
@@ -1146,9 +1194,13 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
           );
         }
       }
-    } else {
-      console.log("Granularity restoration detected, preserving audience data");
     }
+
+    // Reset the updating flag after a short delay to allow the state updates to complete
+    setTimeout(() => {
+      isUpdatingView.current = false;
+      console.log("handleToggleChange completed, reset updating flag");
+    }, 200);
   };
 
   return (
