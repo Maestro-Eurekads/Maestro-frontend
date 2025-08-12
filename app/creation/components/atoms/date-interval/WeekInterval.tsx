@@ -105,8 +105,9 @@ const WeekInterval = ({
         .join(", ");
 
       return (
-        <div className="w-full border-y">
+        <div className="w-full border-y bg-white">
           <div
+            className="bg-white"
             style={{
               display: "grid",
               gridTemplateColumns: gridTemplateColumns,
@@ -119,7 +120,7 @@ const WeekInterval = ({
         {datesByWeek.map((week, i) => (
           <div
             key={i}
-            className="flex flex-col items-center justify-center relative py-2"
+            className="flex flex-col items-center justify-center relative py-2 bg-white"
             style={{
               width: `${weekWidths[i]}px`,
             }}

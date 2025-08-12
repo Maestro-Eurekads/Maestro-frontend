@@ -177,7 +177,7 @@ const ResizeableElements = ({
                   (style) => style.name === platform.platform_name
                 ) ||
                 platformStyles[
-                Math.floor(Math.random() * platformStyles.length)
+                  Math.floor(Math.random() * platformStyles.length)
                 ];
               platformsByStage[funnel_stage].push({
                 name: platform.platform_name,
@@ -246,8 +246,15 @@ const ResizeableElements = ({
         // Year view - calculate width per month (12 months)
         const monthWidth = contWidth / 12;
         dailyWidth = Math.max(monthWidth, 60); // Minimum 60px per month
+      } else if (viewType === "Month") {
+        // Month view - calculate width per day for day-level precision
+        const totalDays = range?.length || 1;
+        dailyWidth = contWidth / totalDays;
+        // Make day columns much smaller for month view to fit more months
+        dailyWidth = Math.max(dailyWidth, 8); // Much smaller minimum for day columns
+        dailyWidth = Math.min(dailyWidth, 15); // Much smaller maximum width
       } else {
-        // Month - ensure all months fit within screen width
+        // Default - ensure all months fit within screen width
         const totalDays = totalDaysInRange || funnelData?.endDay || 30;
         dailyWidth = contWidth / totalDays;
         dailyWidth = Math.max(dailyWidth, 10);
@@ -260,7 +267,7 @@ const ResizeableElements = ({
 
       return Math.round(dailyWidth);
     },
-    [disableDrag, funnelData?.endDay, funnelData?.endMonth, close]
+    [disableDrag, funnelData?.endDay, funnelData?.endMonth, close, range]
   );
 
   useEffect(() => {
@@ -357,39 +364,10 @@ const ResizeableElements = ({
       const endDate = endOfYear(range[range.length - 1]);
       const months = eachMonthOfInterval({ start: startDate, end: endDate });
       return `repeat(${months.length}, ${dailyWidth}px)`;
-    } else {
-      // Month view - use proportional logic like MonthInterval
-      const months = Object.keys(daysInEachMonth);
-      if (months.length === 0)
-        return `repeat(${funnelData?.endDay || 30}, ${dailyWidth}px)`;
-
-      // Calculate total days for proportional sizing (same as MonthInterval)
-      const totalDays = Object.values(daysInEachMonth).reduce(
-        (sum: number, days: number) => sum + days,
-        0
-      );
-
-      // Generate proportional column definitions with minimum width constraint
-      const columnDefinitions: string[] = [];
-      
-      if (months.length > 3) {
-        // When more than 3 months, each month takes at least 20% of container
-        months.forEach((month) => {
-          const daysInThisMonth = daysInEachMonth[month];
-          const proportionalWidth = (daysInThisMonth / totalDays) * 100;
-          const monthWidth = Math.max(proportionalWidth, 20); // Minimum 20%
-          columnDefinitions.push(`${Math.round(monthWidth)}%`);
-        });
-      } else {
-        // For 3 or fewer months, use proportional sizing
-        months.forEach((month) => {
-          const daysInThisMonth = daysInEachMonth[month];
-          const monthWidth = Math.round((daysInThisMonth / totalDays) * 100);
-          columnDefinitions.push(`${monthWidth}%`);
-        });
-      }
-
-      return columnDefinitions.join(" ");
+    } else if (rrange === "Month") {
+      // Month view - use day-level precision for smooth positioning
+      const numberOfDays = range?.length || 1;
+      return `repeat(${numberOfDays}, ${dailyWidth}px)`;
     }
   }, [
     rrange,
@@ -397,6 +375,7 @@ const ResizeableElements = ({
     monthsByYear,
     dailyWidthByView,
     funnelData?.endDay,
+    range,
   ]);
 
   // Enhanced function to get grid column end position for different views
@@ -410,12 +389,11 @@ const ResizeableElements = ({
       const endDate = endOfYear(range[range.length - 1]);
       const months = eachMonthOfInterval({ start: startDate, end: endDate });
       return months; // 12 months
-    } else {
-      // Month view - return number of months for proportional grid
-      const months = Object.keys(daysInEachMonth);
-      return months.length || 1;
+    } else if (rrange === "Month") {
+      // Month view - return number of days for day-level precision
+      return range?.length || 1;
     }
-  }, [rrange, funnelData?.endDay, funnelData?.endWeek, daysInEachMonth]);
+  }, [rrange, funnelData?.endDay, funnelData?.endWeek, daysInEachMonth, range]);
 
   const getDailyWidth = useCallback(
     (viewType?: string): number => {
@@ -477,28 +455,53 @@ const ResizeableElements = ({
           );
           initialPositions[stageName] = yearCalc.position;
           initialWidths[stageName] = yearCalc.width;
+        } else if (rrange === "Month" && stageStartDate && stageEndDate) {
+          // Month view calculations - calculate position based on actual dates
+          const startDateIndex = range?.findIndex((date) => isEqual(date, stageStartDate)) || 0;
+          const endDateIndex = range?.findIndex((date) => isEqual(date, stageEndDate)) || 0;
+          
+          const dailyWidth = getDailyWidth("Month");
+          
+          // Calculate position based on start date
+          initialPositions[stageName] = startDateIndex * dailyWidth;
+          
+          // Calculate width based on number of days between start and end
+          const daysBetween = endDateIndex - startDateIndex + 1;
+          initialWidths[stageName] = Math.max(daysBetween * dailyWidth, dailyWidth);
+          
+          console.log("Month view position calculation:", {
+            stageName,
+            stageStartDate: stageStartDate.toISOString().split('T')[0],
+            stageEndDate: stageEndDate.toISOString().split('T')[0],
+            startDateIndex,
+            endDateIndex,
+            dailyWidth,
+            position: initialPositions[stageName],
+            width: initialWidths[stageName],
+            daysBetween
+          });
         } else {
           // Existing logic for other views
           const startDateIndex = stageStartDate
             ? range?.findIndex((date) => isEqual(date, stageStartDate)) *
-            getDailyWidth()
+              getDailyWidth()
             : 0;
 
           const daysBetween =
             stageStartDate && stageEndDate
               ? eachDayOfInterval({ start: stageStartDate, end: stageEndDate })
-                .length
+                  .length
               : 0;
 
           const daysFromStart =
             campaignFormData?.campaign_timeline_start_date &&
-              campaignFormData?.campaign_timeline_end_date
+            campaignFormData?.campaign_timeline_end_date
               ? eachDayOfInterval({
-                start: parseISO(
-                  campaignFormData.campaign_timeline_start_date
-                ),
-                end: parseISO(campaignFormData.campaign_timeline_end_date),
-              }).length
+                  start: parseISO(
+                    campaignFormData.campaign_timeline_start_date
+                  ),
+                  end: parseISO(campaignFormData.campaign_timeline_end_date),
+                }).length
               : 0;
 
           const dailyWidth = getDailyWidth();
@@ -508,17 +511,6 @@ const ResizeableElements = ({
               return daysBetween > 0
                 ? dailyWidth * daysBetween
                 : dailyWidth * daysFromStart - 0;
-            } else {
-              // Month view
-              const totalDaysInRange = Object.values(
-                daysInEachMonth || {}
-              ).reduce((sum: number, days: number) => sum + days, 0);
-              const widthPerDay = Math.round(
-                availableWidth / (totalDaysInRange || 30)
-              );
-              return daysBetween > 0
-                ? widthPerDay * daysBetween
-                : widthPerDay * daysFromStart - 0;
             }
           })();
 
@@ -543,30 +535,57 @@ const ResizeableElements = ({
     calculateYearViewPosition,
   ]);
 
-  // Generate background grid for year view
-  const generateYearBackground = useCallback(() => {
-    if (rrange !== "Year") return {};
-
-    const monthWidth = getDailyWidth("Year");
-    return {
-      backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
-      backgroundSize: `${monthWidth}px 100%`,
-    };
+  // Generate background grid for year and month views
+  const generateBackground = useCallback(() => {
+    if (rrange === "Year") {
+      const monthWidth = getDailyWidth("Year");
+      return {
+        backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
+        backgroundSize: `${monthWidth}px 100%`,
+      };
+    } else if (rrange === "Month") {
+      const monthWidth = getDailyWidth("Month");
+      return {
+        backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
+        backgroundSize: `${monthWidth}px 100%`,
+      };
+    }
+    return {};
   }, [rrange, getDailyWidth]);
 
   return (
     <div
-      className={`w-full relative pb-5 grid-container ${rrange === "Month" ? "overflow-x-auto" : "overflow-x-hidden"}`}
+      className={`w-full relative pb-5 grid-container ${"overflow-x-hidden"}`}
       ref={gridRef}
       style={{
-        ...(rrange === "Year"
-          ? generateYearBackground()
-          : rrange === "Month"
+        ...generateBackground(),
+        ...(rrange !== "Year" && rrange !== "Month"
           ? {
-              minWidth: "max-content",
-              width: "max-content",
+              backgroundImage: (() => {
+                if (rrange === "Day" || rrange === "Week") {
+                  return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
+                } else {
+                  return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
+                }
+              })(),
+              backgroundSize: (() => {
+                const dailyWidth = getDailyWidth();
+                if (rrange === "Day" || rrange === "Week") {
+                  const totalDays = funnelData?.endDay || 1;
+                  const dailyGridSize = `${dailyWidth}px 100%`;
+                  if (rrange === "Week") {
+                    return dailyGridSize;
+                  }
+                  return `${dailyGridSize}, calc(${
+                    dailyWidth * totalDays
+                  }px) 100%`;
+                } else {
+                  return `${dailyWidth}px 100%`;
+                }
+              })(),
             }
           : {}),
+
         ...(rrange === "Year" ? {} : {
           backgroundImage: (() => {
             if (rrange === "Day" || rrange === "Week") {
@@ -599,63 +618,7 @@ const ResizeableElements = ({
         }),
       }}
     >
-      {/* Month boundary lines for month view */}
-      {rrange === "Month" && (() => {
-        const months = Object.keys(daysInEachMonth);
-        if (months.length === 0) return null;
-
-        // Calculate total days for proportional sizing
-        const totalDays = Object.values(daysInEachMonth).reduce(
-          (sum: number, days: number) => sum + days,
-          0
-        );
-
-        let cumulativePercentage = 0;
-        const boundaryLines: React.ReactElement[] = [];
-
-        if (months.length > 3) {
-          // When more than 3 months, each month takes at least 20%
-          months.forEach((month, index) => {
-            const daysInThisMonth = daysInEachMonth[month];
-            const proportionalWidth = (daysInThisMonth / totalDays) * 100;
-            const monthPercentage = Math.max(proportionalWidth, 20); // Minimum 20%
-            cumulativePercentage += monthPercentage;
-
-            if (index < months.length - 1) {
-              boundaryLines.push(
-                <div
-                  key={`boundary-${index}`}
-                  className="absolute top-0 bottom-0 w-px bg-slate-300 z-50"
-                  style={{
-                    left: `${Math.round(cumulativePercentage)}%`,
-                  }}
-                />
-              );
-            }
-          });
-        } else {
-          // For 3 or fewer months, use proportional sizing
-          months.forEach((month, index) => {
-            const daysInThisMonth = daysInEachMonth[month];
-            const monthPercentage = (daysInThisMonth / totalDays) * 100;
-            cumulativePercentage += monthPercentage;
-
-            if (index < months.length - 1) {
-              boundaryLines.push(
-                <div
-                  key={`boundary-${index}`}
-                  className="absolute top-0 bottom-0 w-px bg-blue-300 z-50"
-                  style={{
-                    left: `${Math.round(cumulativePercentage)}%`,
-                  }}
-                />
-              );
-            }
-          });
-        }
-
-        return boundaryLines;
-      })()}
+      
 
       {/* Year view month headers */}
       {rrange === "Year" && (
@@ -663,7 +626,7 @@ const ResizeableElements = ({
           className="sticky top-0 z-50 bg-transparent border-b mb-4"
           style={{
             display: "grid",
-            gridTemplateColumns: generateGridColumns(), 
+            gridTemplateColumns: generateGridColumns(),
             gap: "0px",
           }}
         >
@@ -761,6 +724,7 @@ const ResizeableElements = ({
                   endDay={funnelData?.endDay}
                   endWeek={funnelData?.endWeek}
                   dailyWidth={getDailyWidth()}
+                  rangeType={rrange}
                 />
 
                 {isOpen && (

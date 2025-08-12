@@ -227,8 +227,11 @@ const ResizableChannels = ({
     if (rrange === "Year") {
       // Year view - 12 months
       numberOfGridColumns = 12;
+    } else if (rrange === "Month") {
+      // Month view - use day-level precision for smooth dragging
+      numberOfGridColumns = dateList?.length || 1;
     } else {
-      // Day, Week, Month view - based on dateList length
+      // Day, Week view - based on dateList length
       numberOfGridColumns = dateList?.length || 1;
     }
     
@@ -359,8 +362,29 @@ const ResizableChannels = ({
           endDateValue = new Date(year, monthEndIndex + 1, 0); // Last day of the month
         }
       }
+    } else if (rrange === "Month") {
+      // Month view - use day-level precision for smooth dragging
+      const numberOfGridColumns = dateList.length;
+      const stepWidth = parentWidth / numberOfGridColumns;
+
+      const startGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, Math.floor(startPixel / stepWidth)));
+      const endGridIndexRaw = Math.floor((endPixel - 1) / stepWidth);
+      const endGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, endGridIndexRaw));
+
+      console.log("Date conversion tooltip Month:", {
+        startPixel,
+        endPixel,
+        parentWidth,
+        numberOfGridColumns,
+        stepWidth,
+        startGridIndex,
+        endGridIndex
+      });
+
+      startDateValue = dateList[startGridIndex] || startDate;
+      endDateValue = dateList[endGridIndex] || endDate;
     } else {
-      // Day, Week, Month view - calculate based on days
+      // Day, Week view - calculate based on days
       const numberOfGridColumns = dateList.length;
       const stepWidth = parentWidth / numberOfGridColumns;
 
@@ -415,6 +439,11 @@ const ResizableChannels = ({
         // Different years - show "Feb 25 - Mar 25" format
         formattedDateRange = `${startMonth} ${startYear} - ${endMonth} ${endYear}`;
       }
+    } else if (rrange === "Month") {
+      // For month view, show specific dates for smooth dragging
+      const formattedStartDate = format(startDateValue, "MMM dd");
+      const formattedEndDate = format(endDateValue, "MMM dd");
+      formattedDateRange = `${formattedStartDate} - ${formattedEndDate}`;
     } else {
       // For other views, show specific dates
       const formattedStartDate = format(startDateValue, "MMM dd");
@@ -512,7 +541,11 @@ const ResizableChannels = ({
         // For year view, ensure minimum is at least one month width with better fallback
         const monthWidth = dailyWidth || parentWidth / 12;
         return Math.max(monthWidth, 80); // Increased minimum for better UX
-      }
+              } else if (rrange === "Month") {
+          // For month view, use day-level precision for smooth dragging
+          const dayWidth = dailyWidth || parentWidth / dateList.length;
+          return Math.max(dayWidth, 8); // Much smaller minimum for day-level dragging
+        }
       return 50; // Standard minimum for other views
     };
     
@@ -741,8 +774,41 @@ const ResizableChannels = ({
         // First day of the target month
         calculatedDate = new Date(year, monthIndex, 1);
       }
+    } else if (rrange === "Month") {
+      // Month view - use day-level precision for smooth dragging
+      const numberOfGridColumns = dRange?.length || dateList?.length || 1;
+      const stepWidth = containerWidth / numberOfGridColumns;
+
+      // Determine if pixel is at the very end of the timeline
+      const isAtEnd = pixel >= containerWidth - stepWidth / 2;
+
+      let gridIndex;
+      if (isAtEnd) {
+        // Use the last date
+        gridIndex = numberOfGridColumns - 1;
+      } else {
+        gridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, Math.floor(pixel / stepWidth)));
+
+        // Ensure inclusive end date (if exactly on grid line, step back one index)
+        if (fieldName === "endDate" && pixel % stepWidth === 0 && gridIndex > 0 && !isAtEnd) {
+          gridIndex -= 1;
+        }
+      }
+
+      console.log("pixelToDate Month debug:", {
+        pixel,
+        containerWidth,
+        numberOfGridColumns,
+        stepWidth,
+        gridIndex,
+        fieldName,
+        isAtEnd
+      });
+
+      const dateToUse = (dRange?.[gridIndex] || dateList?.[gridIndex] || startDate);
+      calculatedDate = new Date(dateToUse);
     } else {
-      // Day, Week, Month view - consistent with DraggableChannel logic
+      // Day, Week view - consistent with DraggableChannel logic
       const numberOfGridColumns = dRange?.length || dateList?.length || 1;
       const stepWidth = containerWidth / numberOfGridColumns;
 
@@ -1124,8 +1190,33 @@ const ResizableChannels = ({
                 left = parentLeft;
               }
             }
+          } else if (rrange === "Month") {
+            // Month view calculations - use day-level precision for smooth dragging
+            const startDateIndex = adjustedStageStartDate
+              ? dateList?.findIndex((date) =>
+                  isEqual(date, adjustedStageStartDate)
+                ) * dailyWidth
+              : 0;
+
+            let daysBetween;
+            if (adjustedStageStartDate && adjustedStageEndDate) {
+              daysBetween = eachDayOfInterval({
+                start: adjustedStageStartDate,
+                end: adjustedStageEndDate,
+              })?.length;
+            } else {
+              daysBetween = eachDayOfInterval({
+                start: new Date(findChannel?.campaign_start_date) || null,
+                end: isEndDateExceeded
+                  ? endDate
+                  : new Date(findChannel?.campaign_end_date) || null,
+              })?.length;
+            }
+
+            left = Math.abs(startDateIndex < 0 ? 0 : startDateIndex);
+            width = daysBetween > 0 ? dailyWidth * daysBetween : parentWidth;
           } else {
-            // Day, Week, Month view calculations - based on days
+            // Day, Week view calculations - based on days
             const startDateIndex = adjustedStageStartDate
               ? dateList?.findIndex((date) =>
                   isEqual(date, adjustedStageStartDate)
@@ -1157,6 +1248,10 @@ const ResizableChannels = ({
             if (rrange === "Year") {
               const monthWidth = dailyWidth || parentWidth / 12;
               return Math.max(monthWidth, 80);
+            } else if (rrange === "Month") {
+              // For month view, use day-level precision for smooth dragging
+              const dayWidth = dailyWidth || parentWidth / dateList.length;
+              return Math.max(dayWidth, 8); // Much smaller minimum for day-level dragging
             }
             return 50;
           };

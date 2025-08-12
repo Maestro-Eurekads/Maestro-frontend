@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import { useCampaigns } from "app/utils/CampaignsContext"
-import { useDateRange } from "../../../../../src/date-context"
-import DateComponent from "../../molecules/date-component/date-component"
-import ResizeableElements from "../../molecules/resizeable-elements/resizeable-elements"
+import { useCampaigns } from "app/utils/CampaignsContext";
+import { useDateRange } from "../../../../../src/date-context";
+import DateComponent from "../../molecules/date-component/date-component";
+import ResizeableElements from "../../molecules/resizeable-elements/resizeable-elements";
 import {
   differenceInCalendarDays,
   differenceInCalendarMonths,
@@ -12,93 +12,105 @@ import {
   format,
   isSameWeek,
   parseISO,
-} from "date-fns"
-import DayInterval from "../../atoms/date-interval/DayInterval"
-import MonthInterval from "../../atoms/date-interval/MonthInterval"
-import WeekInterval from "../../atoms/date-interval/WeekInterval"
-import { useState, useEffect, useCallback, useRef } from "react"
-import { ZoomIn, ZoomOut, RotateCcw } from "lucide-react"
-import AddNewChennelsModel from "components/Modals/AddNewChennelsModel"
-import { useDateRange as useRange } from "src/date-range-context"
-import YearInterval from "../../atoms/date-interval/YearInterval"
-import { useActive } from "app/utils/ActiveContext"
-import { useComments } from "app/utils/CommentProvider"
+} from "date-fns";
+import DayInterval from "../../atoms/date-interval/DayInterval";
+import MonthInterval from "../../atoms/date-interval/MonthInterval";
+import WeekInterval from "../../atoms/date-interval/WeekInterval";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
+import AddNewChennelsModel from "components/Modals/AddNewChennelsModel";
+import { useDateRange as useRange } from "src/date-range-context";
+import YearInterval from "../../atoms/date-interval/YearInterval";
+import { useActive } from "app/utils/ActiveContext";
+import { useComments } from "app/utils/CommentProvider";
+import OldMonthInterval from "../../atoms/date-interval/old-month-interval";
+import OldResizableElement from "../../molecules/resizeable-elements/old-resizable-elements";
 
 const MainSection = ({
   hideDate,
   disableDrag,
   view,
 }: {
-  hideDate?: boolean
-  disableDrag?: boolean
-  view?: boolean
+  hideDate?: boolean;
+  disableDrag?: boolean;
+  view?: boolean;
 }) => {
-  const { clientCampaignData, campaignFormData } = useCampaigns()
-  const { range: dateRange } = useRange()
-  const [daysInEachMonth, setDaysInEachMonth] = useState<Record<any, any>>({})
-  const { range } = useDateRange()
-  const [isOpen, setIsOpen] = useState(false)
-  
+  const { clientCampaignData, campaignFormData } = useCampaigns();
+  const { range: dateRange } = useRange();
+  const [daysInEachMonth, setDaysInEachMonth] = useState<Record<any, any>>({});
+  const { range } = useDateRange();
+  const [isOpen, setIsOpen] = useState(false);
+
   // Use the date range directly
-  const currentRange = dateRange
-  const [selectedStage, setSelectedStage] = useState("")
-  const { active, subStep } = useActive()
-  const { setClose } = useComments()
+  const currentRange = dateRange;
+  const [selectedStage, setSelectedStage] = useState("");
+  const { active, subStep } = useActive();
+  const { setClose } = useComments();
 
   // Zoom state management
-  const [zoomLevel, setZoomLevel] = useState(1)
-  const minZoom = 0.1
-  const maxZoom = 3
-  const zoomStep = 0.05
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const minZoom = 0.1;
+  const maxZoom = 3;
+  const zoomStep = 0.05;
 
   const startDates = campaignFormData?.campaign_timeline_start_date
     ? campaignFormData?.campaign_timeline_start_date
-    : ""
-  const endDates = campaignFormData?.campaign_timeline_end_date ? campaignFormData?.campaign_timeline_end_date : ""
+    : "";
+  const endDates = campaignFormData?.campaign_timeline_end_date
+    ? campaignFormData?.campaign_timeline_end_date
+    : "";
 
-  const dayDifference = differenceInCalendarDays(endDates, startDates)
+  const dayDifference = differenceInCalendarDays(endDates, startDates);
   const weekDifference =
     startDates && endDates
-      ? eachWeekOfInterval({ start: new Date(startDates), end: new Date(endDates) }, { weekStartsOn: 1 }).length
-      : 0
-  const monthDifference = differenceInCalendarMonths(endDates, startDates)
-  const yearDifference = differenceInCalendarYears(endDates, startDates)
+      ? eachWeekOfInterval(
+          { start: new Date(startDates), end: new Date(endDates) },
+          { weekStartsOn: 1 }
+        ).length
+      : 0;
+  const monthDifference = differenceInCalendarMonths(endDates, startDates);
+  const yearDifference = differenceInCalendarYears(endDates, startDates);
 
-  const isValidDateFormat = (date: string) => /^\d{4}-\d{2}-\d{2}$/.test(date)
+  const isValidDateFormat = (date: string) => /^\d{4}-\d{2}-\d{2}$/.test(date);
 
   const start = campaignFormData?.campaign_timeline_start_date
     ? typeof campaignFormData.campaign_timeline_start_date === "string" &&
       isValidDateFormat(campaignFormData.campaign_timeline_start_date)
       ? parseISO(campaignFormData.campaign_timeline_start_date)
       : campaignFormData.campaign_timeline_start_date
-    : null
+    : null;
 
   const end = campaignFormData?.campaign_timeline_end_date
     ? typeof campaignFormData.campaign_timeline_end_date === "string" &&
       isValidDateFormat(campaignFormData.campaign_timeline_end_date)
       ? parseISO(campaignFormData.campaign_timeline_end_date)
       : campaignFormData.campaign_timeline_end_date
-    : null
+    : null;
 
   // Get the list of weeks
   const allWeeks =
     startDates && endDates
-      ? eachWeekOfInterval({ start: new Date(startDates), end: new Date(endDates) }, { weekStartsOn: 1 })
-      : []
+      ? eachWeekOfInterval(
+          { start: new Date(startDates), end: new Date(endDates) },
+          { weekStartsOn: 1 }
+        )
+      : [];
 
   // Helper to get week index in the range
   const findWeekIndex = (date: Date | null) =>
-    allWeeks.findIndex((weekStart) => (date ? isSameWeek(weekStart, date, { weekStartsOn: 1 }) : false)) + 1
+    allWeeks.findIndex((weekStart) =>
+      date ? isSameWeek(weekStart, date, { weekStartsOn: 1 }) : false
+    ) + 1;
 
   // Calculate positions for different time ranges
-  const startDay = differenceInCalendarDays(start, startDates) + 1
-  const endDay = differenceInCalendarDays(end, startDates) + 1
-  const startWeek = findWeekIndex(start) - 1
-  const endWeek = findWeekIndex(end) - 1
-  const startMonth = differenceInCalendarMonths(start, startDates) + 1
-  const endMonth = differenceInCalendarMonths(end, startDates) + 1
-  const startYear = differenceInCalendarYears(start, startDates) + 1
-  const endYear = differenceInCalendarYears(end, startDates) + 1
+  const startDay = differenceInCalendarDays(start, startDates) + 1;
+  const endDay = differenceInCalendarDays(end, startDates) + 1;
+  const startWeek = findWeekIndex(start) - 1;
+  const endWeek = findWeekIndex(end) - 1;
+  const startMonth = differenceInCalendarMonths(start, startDates) + 1;
+  const endMonth = differenceInCalendarMonths(end, startDates) + 1;
+  const startYear = differenceInCalendarYears(start, startDates) + 1;
+  const endYear = differenceInCalendarYears(end, startDates) + 1;
 
   const funnelsData = {
     startDay,
@@ -109,89 +121,94 @@ const MainSection = ({
     endMonth,
     startYear,
     endYear,
-  }
+  };
 
   // Zoom functions
   const zoomIn = useCallback(() => {
-    setZoomLevel((prev) => Math.min(prev + zoomStep, maxZoom))
-  }, [])
+    setZoomLevel((prev) => Math.min(prev + zoomStep, maxZoom));
+  }, []);
 
   const zoomOut = useCallback(() => {
-    setZoomLevel((prev) => Math.max(prev - zoomStep, minZoom))
-  }, [])
+    setZoomLevel((prev) => Math.max(prev - zoomStep, minZoom));
+  }, []);
 
   const resetZoom = useCallback(() => {
-    setZoomLevel(1)
-  }, [])
+    setZoomLevel(1);
+  }, []);
 
   // Keyboard shortcuts for zoom
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.ctrlKey || event.metaKey) {
         if (event.key === "=" || event.key === "+") {
-          event.preventDefault()
-          zoomIn()
+          event.preventDefault();
+          zoomIn();
         } else if (event.key === "-") {
-          event.preventDefault()
-          zoomOut()
+          event.preventDefault();
+          zoomOut();
         } else if (event.key === "0") {
-          event.preventDefault()
-          resetZoom()
+          event.preventDefault();
+          resetZoom();
         }
       }
-    }
+    };
 
-    window.addEventListener("keydown", handleKeyDown)
-    return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [zoomIn, zoomOut, resetZoom])
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [zoomIn, zoomOut, resetZoom]);
 
   // Ref to the horizontal scroll container
-  const scrollContainerRef = useRef<HTMLDivElement | null>(null)
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
   // Prevent scrolling past the actual end of the scaled content
   useEffect(() => {
-    const container = scrollContainerRef.current
-    if (!container) return
+    const container = scrollContainerRef.current;
+    if (!container) return;
 
     const handleScroll = () => {
-      const realContentWidth = container.scrollWidth * zoomLevel
-      const maxScrollLeft = Math.max(realContentWidth - container.clientWidth, 0)
+      const realContentWidth = container.scrollWidth * zoomLevel;
+      const maxScrollLeft = Math.max(
+        realContentWidth - container.clientWidth,
+        0
+      );
       if (container.scrollLeft > maxScrollLeft) {
-        container.scrollLeft = maxScrollLeft
+        container.scrollLeft = maxScrollLeft;
       }
-    }
+    };
 
-    container.addEventListener("scroll", handleScroll)
+    container.addEventListener("scroll", handleScroll);
     // Immediately clamp after zoom change
-    handleScroll()
-    return () => container.removeEventListener("scroll", handleScroll)
-  }, [zoomLevel])
+    handleScroll();
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, [zoomLevel]);
 
   function getDaysInEachMonth(): Record<string, number> {
-    const daysInMonth: Record<string, number> = {}
+    const daysInMonth: Record<string, number> = {};
     currentRange?.forEach((date) => {
-      const monthYear = format(date, "MMMM yyyy")
-      daysInMonth[monthYear] = (daysInMonth[monthYear] || 0) + 1
-    })
-    return daysInMonth
+      const monthYear = format(date, "MMMM yyyy");
+      daysInMonth[monthYear] = (daysInMonth[monthYear] || 0) + 1;
+    });
+    return daysInMonth;
   }
 
   useEffect(() => {
     if (active === 7) {
       if (subStep === 1) {
-        setClose(true)
+        setClose(true);
       }
     }
-  }, [active, subStep, close])
+  }, [active, subStep, close]);
 
   function getDaysInEachYear(): Record<string, number> {
-    const daysInYear: Record<string, number> = {}
+    const daysInYear: Record<string, number> = {};
     currentRange?.forEach((date) => {
-      const year = format(date, "yyyy")
-      daysInYear[year] = (daysInYear[year] || 0) + 1
-    })
-    return daysInYear
+      const year = format(date, "yyyy");
+      daysInYear[year] = (daysInYear[year] || 0) + 1;
+    });
+    return daysInYear;
   }
+
+  console.log("this is the month difference", monthDifference);
 
   const renderTimeline = () => {
     switch (range) {
@@ -200,19 +217,31 @@ const MainSection = ({
           <>
             <DayInterval daysCount={dayDifference + 1} src="campaign" />
           </>
-        )
+        );
       case "Month":
         return (
           <>
-            <MonthInterval
-              monthsCount={monthDifference === 0 ? 1 : monthDifference + 1}
-              view={view}
-              getDaysInEachMonth={getDaysInEachMonth}
-              funnelData={funnelsData}
-              disableDrag={disableDrag}
-            />
+            {monthDifference < 3 ? (
+              <MonthInterval
+                monthsCount={monthDifference === 0 ? 1 : monthDifference + 1}
+                view={view}
+                getDaysInEachMonth={getDaysInEachMonth}
+                funnelData={funnelsData}
+                disableDrag={disableDrag}
+              />
+            ) : (
+              <OldMonthInterval
+                monthsCount={monthDifference === 0 ? 1 : monthDifference + 1}
+                view={view}
+                getDaysInEachMonth={getDaysInEachMonth}
+                funnelData={funnelsData}
+                disableDrag={disableDrag}
+                range={currentRange}
+                src="campaign"
+              />
+            )}
           </>
-        )
+        );
       case "Year":
         return (
           <>
@@ -224,7 +253,7 @@ const MainSection = ({
               disableDrag={disableDrag}
             />
           </>
-        )
+        );
       default: // Week is default
         return (
           <>
@@ -234,9 +263,9 @@ const MainSection = ({
               disableDrag={disableDrag}
             />
           </>
-        )
+        );
     }
-  }
+  };
 
   return (
     <div className="mt-[32px] w-full">
@@ -262,7 +291,11 @@ const MainSection = ({
             <ZoomIn className="w-4 h-4" />
           </button>
           <div className="w-px h-4 bg-gray-300 mx-1" />
-          <button onClick={resetZoom} className="p-1 rounded hover:bg-gray-100" title="Reset Zoom (Ctrl + 0)">
+          <button
+            onClick={resetZoom}
+            className="p-1 rounded hover:bg-gray-100"
+            title="Reset Zoom (Ctrl + 0)"
+          >
             <RotateCcw className="w-4 h-4" />
           </button>
         </div>
@@ -292,26 +325,50 @@ const MainSection = ({
             </div>
 
             {/* Side indicators */}
-            <div className="absolute right-[4px] top-18 w-1 bg-orange-500 z-20" style={{ height: "94%" }} />
-            <div className="absolute left-[8px] top-18 w-1 bg-orange-500 z-20" style={{ height: "94%" }} />
-
-            {/* Resizable Elements */}
-            <ResizeableElements
-              funnelData={funnelsData}
-              disableDrag={disableDrag}
-              isOpen={isOpen}
-              setIsOpen={setIsOpen}
-              selectedStage={selectedStage}
-              setSelectedStage={setSelectedStage}
+            <div
+              className="absolute right-[4px] top-18 w-1 bg-orange-500 z-20"
+              style={{ height: "94%" }}
             />
+            <div
+              className="absolute left-[8px] top-18 w-1 bg-orange-500 z-20"
+              style={{ height: "94%" }}
+            />
+
+            {/* when rrange is on month and monthdifference is less than 3, then render old resizable element instead */}
+
+            {range === "Month" && monthDifference < 3 ? (
+              <OldResizableElement
+                funnelData={funnelsData}
+                disableDrag={disableDrag}
+                isOpen={isOpen}
+                setIsOpen={setIsOpen}
+                selectedStage={selectedStage}
+                setSelectedStage={setSelectedStage}
+              />
+            ) : (
+              <ResizeableElements
+                funnelData={funnelsData}
+                disableDrag={disableDrag}
+                isOpen={isOpen}
+                setIsOpen={setIsOpen}
+                selectedStage={selectedStage}
+                setSelectedStage={setSelectedStage}
+              />
+            )}
           </div>
         </div>
       </div>
 
       {/* Modal */}
-      {isOpen && <AddNewChennelsModel isOpen={isOpen} setIsOpen={setIsOpen} selectedStage={selectedStage} />}
+      {isOpen && (
+        <AddNewChennelsModel
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
+          selectedStage={selectedStage}
+        />
+      )}
     </div>
-  )
-}
+  );
+};
 
-export default MainSection
+export default MainSection;

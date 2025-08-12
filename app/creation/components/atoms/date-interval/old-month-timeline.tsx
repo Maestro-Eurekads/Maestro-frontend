@@ -14,7 +14,7 @@ interface MonthTimelineProps {
   range;
 }
 
-const MonthTimeline: React.FC<MonthTimelineProps> = ({
+const OldMonthTimeline: React.FC<MonthTimelineProps> = ({
   monthsCount,
   funnels,
   range,
@@ -315,4 +315,4 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
   );
 };
 
-export default MonthTimeline;
+export default OldMonthTimeline;
