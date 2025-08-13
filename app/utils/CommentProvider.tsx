@@ -449,7 +449,7 @@ export const CommentProvider = ({ children }) => {
       }
 
       setIsLoadingApproval(false);
-      toast.success("Signed approval deleted successfully");
+      // toast.success("Signed approval deleted successfully");
     } catch (error: any) {
       if (error?.response?.status === 401) {
         const event = new Event("unauthorizedEvent");

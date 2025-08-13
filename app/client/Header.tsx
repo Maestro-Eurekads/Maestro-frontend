@@ -21,15 +21,15 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
     selected,
     setSelected,
   } = useComments();
-  const { dataApprove, isLoadingApprove } = useAppSelector((state) => state.comment);
+  const { dataApprove, isLoadingApprove } = useAppSelector(
+    (state) => state.comment
+  );
   const { data: session }: any = useSession();
-  const { jwt, campaignData } = useCampaigns()
+  const { jwt, campaignData } = useCampaigns();
   const dispatch = useAppDispatch();
   const id = session?.user?.id;
-
-  const isdocumentId = campaignData?.documentId
+  const isdocumentId = campaignData?.documentId;
   const [show, setShow] = useState(false);
-
 
   // console.log("campaignData---", session);
 
@@ -54,20 +54,22 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
   // Check if user has any assigned campaigns
   const hasCampaigns = campaigns && `campaigns`?.length > 0;
 
-
-
-  const isApproverForSelectedCampaign = campaigns?.find((cam) => cam?.documentId === selected)?.media_plan_details?.client_approver?.map((approver) => approver?.id)?.filter((aId) => aId === id)?.length > 0
+  const isApproverForSelectedCampaign =
+    campaigns
+      ?.find((cam) => cam?.documentId === selected)
+      ?.media_plan_details?.client_approver?.map((approver) => approver?.id)
+      ?.filter((aId) => aId === id)?.length > 0;
 
   const handleCheckCampaign = () => {
     toast.error("Please Select a Campaign!");
-  }
+  };
 
   return (
     <div
       id="client_header"
-      className={`py-[2.8rem] px-[30px] ${isDrawerOpen ? "md:px-[50px]" : "xl:px-[100px]"
-        } relative`}>
-
+      className={`py-[2.8rem] px-[30px] ${
+        isDrawerOpen ? "md:px-[50px]" : "xl:px-[100px]"
+      } relative`}>
       <div className="flex items-end">
         {loading ? (
           <Skeleton height={20} width={200} />
@@ -95,7 +97,6 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
                     className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start flex items-center	gap-[10px]"
                     style={{ border: "1px solid #3175FF" }}
                     onClick={handleDrawerOpen}>
-
                     <Image
                       src={tickcircles}
                       alt="tickcircle"
@@ -103,21 +104,21 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
                     />
                     Approved
                   </button>
-                ) : true && (
-                  <button
-                    className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start"
-                    style={{ border: "1px solid #3175FF" }}
-
-                    onClick={() => {
-                      if (campaignData) {
-                        setIsOpen(true);
-                      } else {
-                        handleCheckCampaign();
-                      }
-                    }}
-                  >
-                    Approve & Sign Media plan
-                  </button>
+                ) : (
+                  true && (
+                    <button
+                      className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start"
+                      style={{ border: "1px solid #3175FF" }}
+                      onClick={() => {
+                        if (campaignData) {
+                          setIsOpen(true);
+                        } else {
+                          handleCheckCampaign();
+                        }
+                      }}>
+                      Approve & Sign Media plan
+                    </button>
+                  )
                 )}
               </div>
             )
@@ -125,13 +126,8 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
         </div>
         <div
           className="profile_container relative"
-          onClick={() => setShow((prev) => !prev)}
-        >
-          <p className="capitalize">
-
-            {getFirstLetters(session?.user?.name)}
-          </p>
-
+          onClick={() => setShow((prev) => !prev)}>
+          <p className="capitalize">{getFirstLetters(session?.user?.name)}</p>
 
           {show && (
             <div className="absolute right-0 top-[55px] w-[200px] bg-white border border-gray-200   shadow-lg z-50 !rounded-[5px]">
@@ -146,13 +142,14 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
                     localStorage.removeItem("campaignFormData");
                     localStorage.removeItem("selectedClient");
                     localStorage.removeItem("profileclients");
-                    localStorage.removeItem(session?.user?.data?.user?.id?.toString() || "");
+                    localStorage.removeItem(
+                      session?.user?.data?.user?.id?.toString() || ""
+                    );
                     await signOut({
                       callbackUrl: "/",
                     });
                   }}
-                  className="w-full px-4 py-2 text-sm text-white !bg-[#3175FF]   hover:bg-blue-700 !rounded-[5px]"
-                >
+                  className="w-full px-4 py-2 text-sm text-white !bg-[#3175FF]   hover:bg-blue-700 !rounded-[5px]">
                   Logout
                 </button>
               </div>

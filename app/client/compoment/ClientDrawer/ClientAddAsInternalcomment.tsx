@@ -13,6 +13,7 @@ import { cleanName } from "components/Options";
 import { useUserPrivileges } from "utils/userPrivileges";
 import { toast } from "sonner";
 import axios from "axios";
+import { useAppSelector } from "store/useStore";
 
 const ClientAddAsInternalcomment = ({ position, setShow, campaign }) => {
   const { data: session }: any = useSession();
@@ -27,9 +28,13 @@ const ClientAddAsInternalcomment = ({ position, setShow, campaign }) => {
   } = useComments();
   const { campaignData, jwt } = useCampaigns();
   const [alert, setAlert] = useState(null);
-  const { isClient, loggedInUser } = useUserPrivileges();
+  const { loggedInUser } = useUserPrivileges();
   const addcomment_as = "";
   const client_commentID = session?.user?.id.toString();
+  const { dataApprove, isLoadingApprove } = useAppSelector(
+    (state) => state.comment
+  );
+
   const commentId = campaign?.campaign?.documentId;
   const creator = {
     id: session?.user?.id,
@@ -74,8 +79,8 @@ const ClientAddAsInternalcomment = ({ position, setShow, campaign }) => {
   };
 
   // After comment is added, change the campaign status to "Changes Needed"
-  const stage = isClient ? "client_changes_needed" : "changes_needed";
-  const label = isClient ? "Client Changes Needed" : "Changes Needed";
+  const stage = "client_changes_needed";
+  const label = "Client Changes Needed";
   const handleAddComment = async () => {
     if (comment.trim() === "") return;
 
@@ -90,45 +95,18 @@ const ClientAddAsInternalcomment = ({ position, setShow, campaign }) => {
       );
 
       // Automatically delete signed approvals when a comment is created
-      try {
-        // Get existing signed approvals for this document
-        const signedApprovalsResponse = await axios.get(
-          `${process.env.NEXT_PUBLIC_STRAPI_URL}/client-signature-approvals`,
-          {
-            params: {
-              "filters[isdocumentId][$eq]": commentId,
-            },
-            headers: {
-              Authorization: `Bearer ${jwt}`,
-            },
-          }
-        );
+      await updateStatus(stage, label);
 
-        // Delete each signed approval using the existing function
-        if (
-          signedApprovalsResponse.data?.data &&
-          signedApprovalsResponse.data.data.length > 0
-        ) {
-          console.log(
-            "Found signed approvals to delete:",
-            signedApprovalsResponse.data.data
-          );
-          for (const approval of signedApprovalsResponse.data.data) {
-            console.log("Deleting approval:", approval.id);
-            await deleteSignedApproval(approval.id);
-          }
-          console.log(
-            "Automatically deleted signed approvals when comment was created"
-          );
-        } else {
-          console.log("No signed approvals found to delete");
-        }
-      } catch (deleteError) {
-        // Don't fail the comment creation if signature deletion fails
-        console.warn("Failed to delete signed approvals:", deleteError);
+      // Only delete signed approval if dataApprove exists and has a documentId
+      if (
+        dataApprove &&
+        Array.isArray(dataApprove) &&
+        dataApprove.length > 0 &&
+        dataApprove[0]?.documentId
+      ) {
+        await deleteSignedApproval(dataApprove[0].documentId);
       }
 
-      await updateStatus(stage, label);
       await updatePosition(commentId, position);
       setComment("");
     } catch (error) {
