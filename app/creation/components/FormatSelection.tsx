@@ -80,13 +80,25 @@ type QuantitiesType = {
 // Helper functions
 const getLocalStorageItem = (key: string, defaultValue: any = null) => {
   if (typeof window === "undefined") return defaultValue;
-  const item = localStorage.getItem(key);
+
+  // Get campaign ID from URL or use default
+  const urlParams = new URLSearchParams(window.location.search);
+  const campaignId = urlParams.get("campaignId") || "default";
+  const storageKey = `${campaignId}_${key}`;
+
+  const item = localStorage.getItem(storageKey);
   return item ? JSON.parse(item) : defaultValue;
 };
 
 const setLocalStorageItem = (key: string, value: any) => {
   if (typeof window === "undefined") return;
-  localStorage.setItem(key, JSON.stringify(value));
+
+  // Get campaign ID from URL or use default
+  const urlParams = new URLSearchParams(window.location.search);
+  const campaignId = urlParams.get("campaignId") || "default";
+  const storageKey = `${campaignId}_${key}`;
+
+  localStorage.setItem(storageKey, JSON.stringify(value));
 };
 
 // Helper function to format audience display name like in ad-set-flow
@@ -2488,26 +2500,53 @@ export const FormatSelection = ({
         goal_level: openView === "channel" ? "Channel level" : "Adset level",
       }));
     } else {
-      // Always default to channel unless explicitly overridden
-      // Don't automatically use ad_sets_granularity from campaign data as it might be a default value
-      setView("channel");
-      setCampaignFormData((prev) => ({
-        ...prev,
-        goal_level: "Channel level",
-      }));
+      // Check if granularity is already set in campaign data
+      if (campaignFormData?.ad_sets_granularity) {
+        // Use existing granularity setting
+        setView(campaignFormData.ad_sets_granularity);
+        setCampaignFormData((prev) => ({
+          ...prev,
+          goal_level:
+            campaignFormData.ad_sets_granularity === "channel"
+              ? "Channel level"
+              : "Adset level",
+        }));
+      } else {
+        // Only default to channel if no granularity is set
+        setView("channel");
+        setCampaignFormData((prev) => ({
+          ...prev,
+          goal_level: "Channel level",
+        }));
+      }
     }
 
     setIsDrawerOpen(false);
     !openView && setClose(false);
-  }, [setIsDrawerOpen, setClose, setCampaignFormData, openView]);
+  }, [
+    setIsDrawerOpen,
+    setClose,
+    openView,
+    campaignFormData?.ad_sets_granularity,
+  ]);
 
   // Watch for changes in ad_sets_granularity from campaign data
   useEffect(() => {
     if (campaignFormData?.ad_sets_granularity && !openView) {
       // Only update if no openView prop is provided and granularity is explicitly set
-      setView(campaignFormData.ad_sets_granularity);
+      // Also check if the view is different to avoid unnecessary updates
+      if (view !== campaignFormData.ad_sets_granularity) {
+        setView(campaignFormData.ad_sets_granularity);
+        setCampaignFormData((prev) => ({
+          ...prev,
+          goal_level:
+            campaignFormData.ad_sets_granularity === "channel"
+              ? "Channel level"
+              : "Adset level",
+        }));
+      }
     }
-  }, [campaignFormData?.ad_sets_granularity, openView]);
+  }, [campaignFormData?.ad_sets_granularity, openView, view]);
 
   useEffect(() => {
     const savedOpenTabs = getLocalStorageItem("formatSelectionOpenTabs");
