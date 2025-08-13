@@ -113,7 +113,21 @@ import mingcute_basket from "../public/mingcute_basket-fill.svg";
 import mdi_leads from "../public/mdi_leads.svg";
 import apple from "../public/social/apple.jpeg";
 import Image, { StaticImageData } from "next/image";
-import DocViewer, { DocViewerRenderers } from "react-doc-viewer";
+import { useState, useEffect } from "react";
+// Dynamic import to avoid SSR issues
+let DocViewer: any;
+let DocViewerRenderers: any;
+
+// Initialize on client side only
+if (typeof window !== 'undefined') {
+  // Only import on client side
+  import("react-doc-viewer").then((module) => {
+    DocViewer = module.default;
+    DocViewerRenderers = module.DocViewerRenderers;
+  }).catch((error) => {
+    console.warn("Failed to load react-doc-viewer:", error);
+  });
+}
 import Link from "next/link";
 export const platformIcons: Record<string, StaticImageData> = {
   Facebook: facebook,
@@ -850,8 +864,18 @@ export const formatNumberWithCommas = (value: string | number): string => {
 };
 
 export const PPTXRenderer = ({ file }: { file: string }) => {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   if (!file) {
     return <div>Error: No file provided</div>;
+  }
+
+  if (!isClient || !DocViewer || !DocViewerRenderers) {
+    return <div>Loading document viewer...</div>;
   }
 
   return (

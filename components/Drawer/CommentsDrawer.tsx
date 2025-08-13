@@ -48,6 +48,9 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
   // }, [data]);
 
   const comments = useMemo(() => {
+    if (!data || !Array.isArray(data)) {
+      return [];
+    }
     return [...data].sort(
       (a, b) =>
         new Date(b?.createdAt || 0).getTime() -
