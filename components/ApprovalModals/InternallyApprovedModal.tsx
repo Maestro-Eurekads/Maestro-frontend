@@ -230,6 +230,7 @@ const InternallyApprovedModal = ({ isOpen, setIsOpen, setChange }) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="relative bg-white rounded-lg w-[440px] p-6 shadow-xl text-center">
             <button
+              disabled={loading || loadings}
               onClick={() => setIsOpen(false)}
               className="absolute top-4 right-4">
               <X className="w-5 h-5 text-gray-500 hover:text-gray-700" />
@@ -252,7 +253,7 @@ const InternallyApprovedModal = ({ isOpen, setIsOpen, setChange }) => {
               <button
                 className="btn_model_active w-full"
                 onClick={handleApprove}
-                disabled={loading}>
+                disabled={loading || loadings}>
                 {loading ? (
                   <SVGLoader width="30px" height="30px" color="#fff" />
                 ) : (
@@ -263,7 +264,7 @@ const InternallyApprovedModal = ({ isOpen, setIsOpen, setChange }) => {
               <button
                 className="btn_model_outline w-full"
                 onClick={handleRequestChanges}
-                disabled={loadings}>
+                disabled={loadings || loading}>
                 {loadings ? (
                   <SVGLoader width="30px" height="30px" color="#0866FF" />
                 ) : (
