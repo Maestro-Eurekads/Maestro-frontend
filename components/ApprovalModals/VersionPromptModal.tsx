@@ -199,7 +199,7 @@ const VersionPromptModal = () => {
 
       // Clean channel mix data - only if it exists (SaveAllProgressButton pattern)
       const channelMixCleaned = cleanedFormData?.channel_mix
-        ? removeKeysRecursively(cleanedFormData.channel_mix, [
+        ? removeKeysRecursively(cleanedFormData?.channel_mix, [
             "id",
             "isValidated",
             "formatValidated",
@@ -350,10 +350,10 @@ const VersionPromptModal = () => {
             ...(Array.isArray(loggedInUser?.id)
               ? loggedInUser?.id
               : [loggedInUser?.id]),
-            ...cleanedFormData.internal_approver.map((item: any) =>
+            ...cleanedFormData.internal_approver?.map((item: any) =>
               String(item.id)
             ),
-            ...cleanedFormData.client_approver.map((item: any) =>
+            ...cleanedFormData.client_approver?.map((item: any) =>
               String(item.id)
             ),
           ],
@@ -459,13 +459,13 @@ const VersionPromptModal = () => {
           media_plan_details: {
             plan_name: cleanedFormData?.media_plan,
             internal_approver: validateUserIds(
-              cleanedFormData.internal_approver.map((item: any) => item.id)
+              cleanedFormData?.internal_approver?.map((item: any) => item.id)
             ),
             client_approver: validateUserIds(
-              cleanedFormData.client_approver.map((item: any) => item.id)
+              cleanedFormData?.client_approver?.map((item: any) => item.id)
             ),
             approved_by: validateUserIds(
-              cleanedFormData.approved_by.map((item: any) => item.id)
+              cleanedFormData?.approved_by?.map((item: any) => item.id)
             ),
           },
           budget_details: {
@@ -555,10 +555,10 @@ const VersionPromptModal = () => {
           ...(Array.isArray(loggedInUser?.id)
             ? loggedInUser?.id
             : [loggedInUser?.id]),
-          ...cleanedFormData.internal_approver.map((item: any) =>
+          ...cleanedFormData?.internal_approver?.map((item: any) =>
             String(item.id)
           ),
-          ...cleanedFormData.client_approver.map((item: any) =>
+          ...cleanedFormData?.client_approver?.map((item: any) =>
             String(item.id)
           ),
         ],
