@@ -123,10 +123,6 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
           localStorage.removeItem(key);
         }
       });
-
-      console.log(
-        "Cleared all campaign data from localStorage and sessionStorage"
-      );
     } catch (error) {
       console.error("Error clearing campaign data:", error);
     }
@@ -443,8 +439,6 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
 
   // Handle "No" button to allow navigation without saving
   const handleNoClick = () => {
-    console.log("handleNoClick: Starting navigation without saving");
-
     // Clear all campaign data comprehensively
     clearAllCampaignData();
 
@@ -463,17 +457,12 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
     setActive(0);
     setSubStep(0);
 
-    console.log("handleNoClick: All state cleared, navigating to dashboard");
-
     // Hardcode navigation to dashboard
     router.push("/");
 
     // Fallback navigation in case router.push fails
     setTimeout(() => {
       if (window.location.pathname !== "/") {
-        console.log(
-          "handleNoClick: Router navigation failed, using window.location"
-        );
         window.location.href = "/";
       }
     }, 100);
@@ -513,6 +502,7 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
         </p>
         <div className="flex flex-col gap-3">
           <button
+            disabled={loading}
             className="btn_model_active w-full"
             onClick={handleSaveAllSteps}>
             {loading ? (
@@ -521,10 +511,14 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
               "Save & Continue"
             )}
           </button>
-          <button className="btn_model_outline w-full" onClick={handleNoClick}>
+          <button
+            disabled={loading}
+            className="btn_model_outline w-full"
+            onClick={handleNoClick}>
             Leave Without Saving
           </button>
           <button
+            disabled={loading}
             className="btn_model_outline w-full"
             onClick={handleStayOnPage}>
             Stay on This Page

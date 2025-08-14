@@ -216,7 +216,6 @@ export const CommentProvider = ({ children }) => {
           signedApprovalsResponse.data.data.length > 0
         ) {
           for (const approval of signedApprovalsResponse.data.data) {
-            console.log("Deleting approval:", approval.id);
             await axios.delete(
               `${process.env.NEXT_PUBLIC_STRAPI_URL}/client-signature-approvals/${approval.id}`,
               {
@@ -229,10 +228,7 @@ export const CommentProvider = ({ children }) => {
         } else {
           console.log("No signed approvals found to delete");
         }
-      } catch (deleteError) {
-        // Don't fail the comment creation if signature deletion fails
-        console.warn("Failed to delete signed approvals:", deleteError);
-      }
+      } catch (deleteError) {}
 
       setOpportunities([]);
       localStorage.setItem("opportunities", JSON.stringify(null));
