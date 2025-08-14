@@ -22,7 +22,6 @@ import SaveProgressButton from "app/utils/SaveProgressButton";
 import { useActive } from "app/utils/ActiveContext";
 import BackConfirmModal from "../../../components/BackConfirmModal";
 
-
 interface DropdownOption {
   label: string;
   value: string;
@@ -56,19 +55,23 @@ export const SetupScreen = () => {
     setFC,
     selectedId,
     selectedOption,
-    setSelectedOption
+    setSelectedOption,
   } = useCampaigns();
   const query = useSearchParams();
   const documentId = query.get("campaignId");
   const lastFetchedClientId = useRef(null);
-  const { data: session } = useSession()
+  const { data: session } = useSession();
   const { client_selection } = campaignFormData || {};
   const [isInitialized, setIsInitialized] = useState(false);
   const [users, setUsers] = useState({ agencyAccess: [], clientAccess: [] });
   const { setIsDrawerOpen, setClose } = useComments();
   const { isAdmin, userID } = useUserPrivileges();
-  const [internalapproverOptions, setInternalApproverOptions] = useState<DropdownOption[]>([]);
-  const [clientapprovalOptions, setClientApprovalOptions] = useState<DropdownOption[]>([]);
+  const [internalapproverOptions, setInternalApproverOptions] = useState<
+    DropdownOption[]
+  >([]);
+  const [clientapprovalOptions, setClientApprovalOptions] = useState<
+    DropdownOption[]
+  >([]);
   const [level1Options, setlevel1Options] = useState<DropdownOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [clientId, setClientId] = useState(null);
@@ -76,8 +79,6 @@ export const SetupScreen = () => {
   // --- Navigation/modal logic (moved here to fix linter errors) ---
   const { change, setChange, showModal, setShowModal } = useActive();
   const [showBackModal, setShowBackModal] = useState(false);
-
-
 
   useEffect(() => {
     window.onpopstate = (event) => {
@@ -99,15 +100,12 @@ export const SetupScreen = () => {
     router.push("/dashboard");
   };
 
-
-
-
   useEffect(() => {
     setIsDrawerOpen(false);
     setClose(false);
     const cached = localStorage.getItem("filteredClient");
     const storedClientId = localStorage.getItem(userID);
-    setClientId(storedClientId)
+    setClientId(storedClientId);
     if (cached) {
       try {
         const parsed = JSON.parse(cached);
@@ -118,27 +116,28 @@ export const SetupScreen = () => {
     }
   }, []);
 
-
-
-
-
   const fetchUsers = async () => {
     // Pick the first available ID
     const effectiveClientId = clientId || selectedClient || FC?.id;
     if (!effectiveClientId) return;
 
     const baseUrl = `${process.env.NEXT_PUBLIC_STRAPI_URL}/users`;
-    const filterParams = [`filters[clients][id][$eq]=${encodeURIComponent(effectiveClientId)}`];
-    const populateParams = ['populate=*'];
+    const filterParams = [
+      `filters[clients][id][$eq]=${encodeURIComponent(effectiveClientId)}`,
+    ];
+    const populateParams = ["populate=*"];
 
     setLoading(true);
 
     try {
-      const response = await fetch(`${baseUrl}?${[...filterParams, ...populateParams].join('&')}`, {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      });
+      const response = await fetch(
+        `${baseUrl}?${[...filterParams, ...populateParams].join("&")}`,
+        {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        }
+      );
 
       if (response.status === 401) {
         const event = new Event("unauthorizedEvent");
@@ -154,10 +153,12 @@ export const SetupScreen = () => {
       const data = await response.json();
 
       const agencyAccess = data?.filter((user) =>
-        ['agency_creator', 'agency_approver', 'financial_approver'].includes(user.user_type)
+        ["agency_creator", "agency_approver", "financial_approver"].includes(
+          user.user_type
+        )
       );
       const clientAccess = data?.filter((user) =>
-        ['client', 'client_approver'].includes(user.user_type)
+        ["client", "client_approver"].includes(user.user_type)
       );
 
       setUsers({ agencyAccess, clientAccess });
@@ -168,19 +169,25 @@ export const SetupScreen = () => {
     }
   };
 
-
-
   useEffect(() => {
     fetchUsers();
-  }, [clientId, selectedClient, FC?.id, campaignFormData?.client_selection?.id]);
-
-
+  }, [
+    clientId,
+    selectedClient,
+    FC?.id,
+    campaignFormData?.client_selection?.id,
+  ]);
 
   useEffect(() => {
     //@ts-ignore
-    dispatch(getCreateClient({ userId: !isAdmin ? session?.user?.data?.user?.id : null, jwt }));
+    dispatch(
+      getCreateClient({
+        userId: !isAdmin ? session?.user?.data?.user?.id : null,
+        agencyId: FC?.id,
+        jwt,
+      })
+    );
   }, [isAdmin, session, dispatch]);
-
 
   useEffect(() => {
     if (FC) {
@@ -188,7 +195,8 @@ export const SetupScreen = () => {
         users?.agencyAccess
           ?.filter(
             (user) =>
-              user?.user_type === "agency_approver" || user?.user_type === "financial_approver"
+              user?.user_type === "agency_approver" ||
+              user?.user_type === "financial_approver"
           )
           .map((user) => ({
             value: user?.id,
@@ -206,14 +214,14 @@ export const SetupScreen = () => {
       setInternalApproverOptions(agencyUserOptions);
       setClientApprovalOptions(clientUserOptions);
       setClientUsers(FC || []);
-      setCampaignFormData(prev => ({
+      setCampaignFormData((prev) => ({
         ...prev,
         campaign_budget: {
           currency: campaignFormData?.budget_details_currency?.id,
         },
         ["client_selection"]: {
           id: selectedClient || FC?.id,
-          value: FC?.client_name || '',
+          value: FC?.client_name || "",
         },
         level_1: prev.level_1 || campaignFormData?.level_1, // always preserve if present
       }));
@@ -222,13 +230,10 @@ export const SetupScreen = () => {
 
   useEffect(() => {
     if (FC) {
-      const data = FC
+      const data = FC;
       setlevel1Options(data?.level_1);
     }
   }, [FC]);
-
-
-
 
   useEffect(() => {
     // Only load from localStorage if campaignFormData is empty/null
@@ -240,14 +245,14 @@ export const SetupScreen = () => {
         const normalizeApprovers = (approvers: any[]) =>
           Array.isArray(approvers)
             ? approvers?.map((val: any) =>
-              typeof val === "string"
-                ? { id: "", clientId: "", value: val }
-                : {
-                  id: val?.id ?? "",
-                  clientId: val?.clientId ?? "",
-                  value: val?.value ?? "",
-                }
-            )
+                typeof val === "string"
+                  ? { id: "", clientId: "", value: val }
+                  : {
+                      id: val?.id ?? "",
+                      clientId: val?.clientId ?? "",
+                      value: val?.value ?? "",
+                    }
+              )
             : [];
 
         setCampaignFormData({
@@ -258,7 +263,6 @@ export const SetupScreen = () => {
       }
     }
   }, [campaignFormData]);
-
 
   // useEffect(() => {
   //   if (documentId === null && !isInitialized) {
@@ -305,21 +309,22 @@ export const SetupScreen = () => {
   //   }
   // }, [documentId, isInitialized, selectedClient, FC, campaignFormData]);
 
-
-
-
-
-
   useEffect(() => {
     if (campaignFormData?.campaign_budget?.currency) {
       const currency = selectCurrency?.find(
         (c) => c?.value === campaignFormData?.campaign_budget?.currency
       );
       if (currency) {
-        if (campaignFormData?.budget_details_fee_type?.id === "Fix budget fee") {
+        if (
+          campaignFormData?.budget_details_fee_type?.id === "Fix budget fee"
+        ) {
           setCurrencySign(currency.sign);
-        } else if (campaignFormData?.budget_details_fee_type?.id === "Tooling") {
-          setCurrencySign(selectedOption === "percentage" ? "%" : currency.sign);
+        } else if (
+          campaignFormData?.budget_details_fee_type?.id === "Tooling"
+        ) {
+          setCurrencySign(
+            selectedOption === "percentage" ? "%" : currency.sign
+          );
         }
       }
     }
@@ -342,37 +347,37 @@ export const SetupScreen = () => {
 
   useEffect(() => {
     // If form is already filled, stop loading immediately
-    if (campaignFormData?.media_plan && campaignFormData?.budget_details_currency?.id) {
+    if (
+      campaignFormData?.media_plan &&
+      campaignFormData?.budget_details_currency?.id
+    ) {
       setLoading(false);
     }
   }, [campaignFormData]);
-
 
   if (!campaignFormData) {
     return <div>Loading...</div>;
   }
 
   return (
-
     <div className="container mx-auto px-4">
       <div className="flex flex-row justify-between w-full align-center">
         <PageHeaderWrapper t1="Set up your new campaign" />
         <SaveProgressButton setIsOpen={undefined} />
       </div>
 
-
       {loading ? (
         <div className="flex flex-col gap-6 mt-5">
           <div>
-            <Skeleton height={50} width={'60%'} />
-            <Skeleton height={30} width={'80%'} />
-            <Skeleton height={30} width={'100%'} />
-            <Skeleton height={30} width={'100%'} />
+            <Skeleton height={50} width={"60%"} />
+            <Skeleton height={30} width={"80%"} />
+            <Skeleton height={30} width={"100%"} />
+            <Skeleton height={30} width={"100%"} />
           </div>
           <div>
-            <Skeleton height={70} width={'50%'} />
-            <Skeleton height={50} width={'60%'} />
-            <Skeleton height={30} width={'80%'} />
+            <Skeleton height={70} width={"50%"} />
+            <Skeleton height={50} width={"60%"} />
+            <Skeleton height={30} width={"80%"} />
           </div>
         </div>
       ) : (
@@ -388,7 +393,9 @@ export const SetupScreen = () => {
                   data={level1Options}
                   setCampaignFormData={setCampaignFormData}
                   formId="level_1"
-                  title={"Client Architecture"} campaignFormData={campaignFormData} />
+                  title={"Client Architecture"}
+                  campaignFormData={campaignFormData}
+                />
               </div>
             </div>
           </div>
@@ -399,7 +406,7 @@ export const SetupScreen = () => {
               Media Plan Details
             </Title>
             <div className="flex flex-wrap items-start gap-6">
-              <div >
+              <div>
                 <label className="block text-sm font-medium text-gray-700  ">
                   Name
                 </label>
@@ -408,7 +415,7 @@ export const SetupScreen = () => {
                   formId="media_plan"
                 />
               </div>
-              <div >
+              <div>
                 <label className="block text-sm font-medium text-gray-700">
                   Internal Approver
                 </label>
@@ -419,8 +426,7 @@ export const SetupScreen = () => {
                 />
               </div>
 
-
-              <div >
+              <div>
                 <label className="block text-sm font-medium text-gray-700 ">
                   Client Approver
                 </label>
@@ -429,14 +435,15 @@ export const SetupScreen = () => {
                   label="Client Approver"
                   formId={"client_approver"}
                   options={clientapprovalOptions}
-
                 />
               </div>
             </div>
           </div>
           <div className="flex flex-wrap items-start gap-6 mb-14">
             <div className="pb-1">
-              <Title className="text-2xl font-semibold text-gray-800 mb-4">Budget details</Title>
+              <Title className="text-2xl font-semibold text-gray-800 mb-4">
+                Budget details
+              </Title>
               <div className="mt-4">
                 <label className="block text-sm font-medium text-gray-700 ">
                   Currency
@@ -450,7 +457,9 @@ export const SetupScreen = () => {
             </div>
           </div>
           <div className="">
-            <Title className="text-2xl font-semibold text-gray-800 mb-4">Country details</Title>
+            <Title className="text-2xl font-semibold text-gray-800 mb-4">
+              Country details
+            </Title>
             <div className="mt-4">
               <label className="block text-sm font-medium text-gray-700 ">
                 Country
@@ -462,8 +471,8 @@ export const SetupScreen = () => {
               />
             </div>
           </div>
-        </div>)
-      }
+        </div>
+      )}
 
       {/* BackConfirmModal for step 0 */}
       <BackConfirmModal
@@ -471,7 +480,6 @@ export const SetupScreen = () => {
         onClose={() => setShowBackModal(false)}
         onNavigate={handleNavigate}
       />
-
-    </div >
+    </div>
   );
 };

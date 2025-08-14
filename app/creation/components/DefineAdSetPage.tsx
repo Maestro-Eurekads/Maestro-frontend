@@ -9,6 +9,7 @@ import adset from "../../../public/adset_level.svg";
 import channel from "../../../public/channel_level.svg";
 import AdSetsFlow from "./common/AdSetsFlow";
 import { useCampaigns } from "../../utils/CampaignsContext";
+import { useActive } from "app/utils/ActiveContext";
 import Modal from "components/Modals/Modal";
 import Switch from "react-switch";
 
@@ -46,6 +47,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     updateCampaign,
     loadingCampaign,
   } = useCampaigns();
+  const { setChange } = useActive();
   const [step, setStep] = useState(2);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const initialized = useRef(false);
@@ -1107,6 +1109,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     onToggleChange(newView);
 
     // Save granularity setting to campaign form data
+    setChange(true); // Mark that changes have been made
     setCampaignFormData((prev: any) => ({
       ...prev,
       goal_level: checked ? "Adset level" : "Channel level",
@@ -1636,6 +1639,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                               setIsModalOpen(false);
 
                               // Update campaign form data
+                              setChange(true); // Mark that changes have been made
                               setCampaignFormData((prev: any) => {
                                 const updatedData = {
                                   ...prev,

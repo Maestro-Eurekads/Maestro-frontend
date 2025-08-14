@@ -30,8 +30,6 @@ interface Reply {
 }
 
 const ClientCommentsDrawer = ({ isOpen, onClose, campaign }) => {
-  const [isClient, setIsClient] = useState(false);
-
   const {
     opportunities,
     setViewcommentsId,
@@ -55,40 +53,17 @@ const ClientCommentsDrawer = ({ isOpen, onClose, campaign }) => {
   const dispatch = useAppDispatch();
   const [alert, setAlert] = useState(null);
   const [commentColors, setCommentColors] = useState({});
-  const [commentCounter, setCommentCounter] = useState(0);
   const commentId = campaign?.documentId;
   const { jwt, campaignFormData } = useCampaigns();
-
-  // Ensure consistent rendering between server and client
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   useEffect(() => {
     const newColors = {};
     comments?.forEach((comment) => {
       if (!commentColors[comment?.documentId]) {
-        // Use deterministic color based on comment ID to avoid hydration issues
-        const colorIndex =
-          comment?.documentId
-            ?.split("")
-            .reduce((acc, char) => acc + char.charCodeAt(0), 0) % 10;
-        const colors = [
-          "#00A36C",
-          "#EE1514",
-          "#00A52C",
-          "#FF8C00",
-          "#C67003",
-          "#14539A",
-          "#02393E",
-          "#275D2B",
-          "#660D33",
-          "#6F4439",
-        ];
-        const deterministicColor = colors[colorIndex];
+        const randomColor = getRandomColor();
         newColors[comment?.documentId] = {
-          color: deterministicColor,
-          contrastingColor: getContrastingColor(deterministicColor),
+          color: randomColor,
+          contrastingColor: getContrastingColor(randomColor),
         };
       }
     });
@@ -98,7 +73,7 @@ const ClientCommentsDrawer = ({ isOpen, onClose, campaign }) => {
   // Function to create a new Comment Opportunity
   const createCommentOpportunity = () => {
     const newOpportunity = {
-      commentId: `comment-${commentCounter}`,
+      commentId: Date.now(),
       text: "New Comment Opportunity",
       position: { x: 400, y: -500 },
     };
@@ -107,7 +82,6 @@ const ClientCommentsDrawer = ({ isOpen, onClose, campaign }) => {
     if (opportunities.length === 0) {
       setIsCreateOpen(true);
       addCommentOpportunity(newOpportunity);
-      setCommentCounter((prev) => prev + 1);
     }
   };
 
@@ -176,7 +150,7 @@ const ClientCommentsDrawer = ({ isOpen, onClose, campaign }) => {
           <h3 className="font-medium text-2xl text-[#292929]">Comments For</h3>
           <div className="flex items-center gap-2 w-full">
             <p className="font-medium text-[16px] text-[#292929] mb-4">
-              {isClient && campaignFormData?.funnel_stages?.length > 0
+              {campaignFormData?.funnel_stages?.length > 0
                 ? (() => {
                     // Use selected phases from campaignFormData instead of all phases from campaignData
                     const selectedStages =

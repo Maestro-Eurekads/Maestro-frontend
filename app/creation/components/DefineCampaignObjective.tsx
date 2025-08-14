@@ -15,6 +15,7 @@ import { SVGLoader } from "components/SVGLoader";
 import { useSearchParams } from "next/navigation";
 import { FaSpinner } from "react-icons/fa";
 import { useComments } from "app/utils/CommentProvider";
+import { useActive } from "app/utils/ActiveContext";
 
 const DefineCampaignObjective = () => {
   const {
@@ -25,6 +26,7 @@ const DefineCampaignObjective = () => {
     getActiveCampaign,
     cId,
   } = useCampaigns();
+  const { setChange } = useActive();
   const searchParams = useSearchParams();
   const { selectedObjectives, setSelectedObjectives } = useObjectives();
   const { verifyStep, validateStep, setHasChanges, hasChanges } =
@@ -84,7 +86,7 @@ const DefineCampaignObjective = () => {
   useEffect(() => {
     if (campaignData?.campaign_objective) {
       const matchingObjective = objectives?.find(
-        obj => obj?.title === campaignData?.campaign_objective
+        (obj) => obj?.title === campaignData?.campaign_objective
       );
       if (matchingObjective) {
         setSelectedObjectives([
@@ -99,6 +101,7 @@ const DefineCampaignObjective = () => {
             title: matchingObjective.title,
           },
         ]);
+        setChange(true); // Mark that changes have been made
         setCampaignFormData((prev) => ({
           ...prev,
           campaign_objectives: matchingObjective?.title,
@@ -136,7 +139,7 @@ const DefineCampaignObjective = () => {
       "createdAt",
       "publishedAt",
       "updatedAt",
-      "_aggregated"
+      "_aggregated",
     ]);
 
     try {
@@ -149,23 +152,32 @@ const DefineCampaignObjective = () => {
       // Update the actual selected objectives after validation
       setSelectedObjectives(tempSelectedObjective);
 
-      setAlert({ variant: "success", message: "Campaign Objective successfully updated!", position: "bottom-right" });
+      setAlert({
+        variant: "success",
+        message: "Campaign Objective successfully updated!",
+        position: "bottom-right",
+      });
       setIsEditing(false);
       setHasChanges(false);
 
       // Save validation state after successful update
       if (campaignId) {
-        localStorage.setItem(`step1_validated_${campaignId}`, JSON.stringify(true));
+        localStorage.setItem(
+          `step1_validated_${campaignId}`,
+          JSON.stringify(true)
+        );
       }
-
     } catch (error) {
       if (error?.response?.status === 401) {
         const event = new Event("unauthorizedEvent");
         window.dispatchEvent(event);
       }
-      const errors: any = error.response?.data?.error?.details?.errors || error.response?.data?.error?.message || error.message || [];
+      const errors: any =
+        error.response?.data?.error?.details?.errors ||
+        error.response?.data?.error?.message ||
+        error.message ||
+        [];
       setAlert({ variant: "error", message: errors, position: "bottom-right" });
-
     }
 
     setHasChanges(false);
@@ -181,6 +193,7 @@ const DefineCampaignObjective = () => {
       }
       return [{ id, title }]; // Store both ID & Title
     });
+    setChange(true); // Mark that changes have been made
     setCampaignFormData((prev) => ({
       ...prev,
       campaign_objectives: title,
@@ -226,18 +239,18 @@ const DefineCampaignObjective = () => {
           return (
             <div
               key={item.id}
-              className={`relative p-4 rounded-lg transition-all duration-300 ${isSelected ? "creation_card_active shadow-lg" : "creation_card"
-                } ${isEditing ? "cursor-pointer" : "cursor-not-allowed"}`}
+              className={`relative p-4 rounded-lg transition-all duration-300 ${
+                isSelected ? "creation_card_active shadow-lg" : "creation_card"
+              } ${isEditing ? "cursor-pointer" : "cursor-not-allowed"}`}
               onClick={() =>
                 isEditing
                   ? handleSelect(item.id, item.title)
                   : setAlert({
-                    variant: "info",
-                    message: "Please click on Edit!",
-                    position: "bottom-right",
-                  })
-              }
-            >
+                      variant: "info",
+                      message: "Please click on Edit!",
+                      position: "bottom-right",
+                    })
+              }>
               {isSelected && (
                 <div className="absolute right-4 top-4">
                   <Image src={Mark} alt="Selected" />
@@ -266,8 +279,7 @@ const DefineCampaignObjective = () => {
         <div className="flex justify-end pr-6 mt-[50px]">
           <button
             onClick={handleStepOne}
-            className="flex items-center justify-center w-[142px] h-[52px] px-10 py-4 gap-2 rounded-lg text-white font-semibold text-base leading-6 transition-colors bg-[#3175FF] hover:bg-[#2557D6]"
-          >
+            className="flex items-center justify-center w-[142px] h-[52px] px-10 py-4 gap-2 rounded-lg text-white font-semibold text-base leading-6 transition-colors bg-[#3175FF] hover:bg-[#2557D6]">
             {loading ? (
               <SVGLoader width="30px" height="30px" color="#FFF" />
             ) : (
