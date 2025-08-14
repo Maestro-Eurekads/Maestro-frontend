@@ -172,13 +172,21 @@ const OldResizableElement = ({
           platforms.forEach((platform: any) => {
             const icon = getPlatformIcon(platform?.platform_name);
             if (icon) {
-              const style =
-                platformStyles.find(
-                  (style) => style.name === platform.platform_name
-                ) ||
-                platformStyles[
-                  Math.floor(Math.random() * platformStyles.length)
-                ];
+              // Find exact match first
+              let style = platformStyles.find(
+                (style) => style.name === platform.platform_name
+              );
+              
+              // If no exact match, use deterministic fallback based on platform name
+              if (!style) {
+                const hash = platform.platform_name.split("").reduce((a, b) => {
+                  a = (a << 5) - a + b.charCodeAt(0);
+                  return a & a;
+                }, 0);
+                const index = Math.abs(hash) % platformStyles.length;
+                style = platformStyles[index];
+              }
+              
               platformsByStage[funnel_stage].push({
                 name: platform.platform_name,
                 icon,

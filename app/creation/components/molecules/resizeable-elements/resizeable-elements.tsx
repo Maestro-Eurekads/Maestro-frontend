@@ -172,13 +172,21 @@ const ResizeableElements = ({
           platforms.forEach((platform: any) => {
             const icon = getPlatformIcon(platform?.platform_name);
             if (icon) {
-              const style =
-                platformStyles.find(
-                  (style) => style.name === platform.platform_name
-                ) ||
-                platformStyles[
-                  Math.floor(Math.random() * platformStyles.length)
-                ];
+              // Find exact match first
+              let style = platformStyles.find(
+                (style) => style.name === platform.platform_name
+              );
+
+              // If no exact match, use deterministic fallback based on platform name
+              if (!style) {
+                const hash = platform.platform_name.split("").reduce((a, b) => {
+                  a = (a << 5) - a + b.charCodeAt(0);
+                  return a & a;
+                }, 0);
+                const index = Math.abs(hash) % platformStyles.length;
+                style = platformStyles[index];
+              }
+
               platformsByStage[funnel_stage].push({
                 name: platform.platform_name,
                 icon,
@@ -221,7 +229,7 @@ const ResizeableElements = ({
       const data = getPlatformsFromStage();
       setPlatforms(data);
     }
-  }, [campaignFormData]);
+  }, [campaignFormData, channelWidths]);
 
   const calculateAndCacheDailyWidth = useCallback(
     (
@@ -457,28 +465,33 @@ const ResizeableElements = ({
           initialWidths[stageName] = yearCalc.width;
         } else if (rrange === "Month" && stageStartDate && stageEndDate) {
           // Month view calculations - calculate position based on actual dates
-          const startDateIndex = range?.findIndex((date) => isEqual(date, stageStartDate)) || 0;
-          const endDateIndex = range?.findIndex((date) => isEqual(date, stageEndDate)) || 0;
-          
+          const startDateIndex =
+            range?.findIndex((date) => isEqual(date, stageStartDate)) || 0;
+          const endDateIndex =
+            range?.findIndex((date) => isEqual(date, stageEndDate)) || 0;
+
           const dailyWidth = getDailyWidth("Month");
-          
+
           // Calculate position based on start date
           initialPositions[stageName] = startDateIndex * dailyWidth;
-          
+
           // Calculate width based on number of days between start and end
           const daysBetween = endDateIndex - startDateIndex + 1;
-          initialWidths[stageName] = Math.max(daysBetween * dailyWidth, dailyWidth);
-          
+          initialWidths[stageName] = Math.max(
+            daysBetween * dailyWidth,
+            dailyWidth
+          );
+
           console.log("Month view position calculation:", {
             stageName,
-            stageStartDate: stageStartDate.toISOString().split('T')[0],
-            stageEndDate: stageEndDate.toISOString().split('T')[0],
+            stageStartDate: stageStartDate.toISOString().split("T")[0],
+            stageEndDate: stageEndDate.toISOString().split("T")[0],
             startDateIndex,
             endDateIndex,
             dailyWidth,
             position: initialPositions[stageName],
             width: initialWidths[stageName],
-            daysBetween
+            daysBetween,
           });
         } else {
           // Existing logic for other views
@@ -586,40 +599,41 @@ const ResizeableElements = ({
             }
           : {}),
 
-        ...(rrange === "Year" ? {} : {
-          backgroundImage: (() => {
-            if (rrange === "Day" || rrange === "Week") {
-              return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
-            } else if (rrange === "Month") {
-              // Month view - no background lines, we'll use border elements instead
-              return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`
-            } else {
-              return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
-            }
-          })(),
-          backgroundSize: (() => {
-            const dailyWidth = getDailyWidth();
-            if (rrange === "Day" || rrange === "Week") {
-              const totalDays = funnelData?.endDay || 1;
-              const dailyGridSize = `${dailyWidth}px 100%`;
-              if (rrange === "Week") {
-                return dailyGridSize;
-              }
-              return `${dailyGridSize}, calc(${dailyWidth * totalDays
-                }px) 100%`;
-            } else if (rrange === "Month") {
-              const dailyGridSize = `${dailyWidth}px 100%`;
-              // Month view - no background size needed
-              return dailyGridSize;
-            } else {
-              return `${dailyWidth}px 100%`;
-            }
-          })(),
-        }),
+        ...(rrange === "Year"
+          ? {}
+          : {
+              backgroundImage: (() => {
+                if (rrange === "Day" || rrange === "Week") {
+                  return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
+                } else if (rrange === "Month") {
+                  // Month view - no background lines, we'll use border elements instead
+                  return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
+                } else {
+                  return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
+                }
+              })(),
+              backgroundSize: (() => {
+                const dailyWidth = getDailyWidth();
+                if (rrange === "Day" || rrange === "Week") {
+                  const totalDays = funnelData?.endDay || 1;
+                  const dailyGridSize = `${dailyWidth}px 100%`;
+                  if (rrange === "Week") {
+                    return dailyGridSize;
+                  }
+                  return `${dailyGridSize}, calc(${
+                    dailyWidth * totalDays
+                  }px) 100%`;
+                } else if (rrange === "Month") {
+                  const dailyGridSize = `${dailyWidth}px 100%`;
+                  // Month view - no background size needed
+                  return dailyGridSize;
+                } else {
+                  return `${dailyWidth}px 100%`;
+                }
+              })(),
+            }),
       }}
     >
-      
-
       {/* Year view month headers */}
       {rrange === "Year" && (
         <div
