@@ -2,8 +2,6 @@
 
 import { CheckCircle, X } from "lucide-react";
 import { toast } from "sonner";
-import Continue from "../../public/arrow-back-outline.svg";
-import Image from "next/image";
 import { useState } from "react";
 import axios from "axios";
 import { useActive } from "app/utils/ActiveContext";
@@ -22,7 +20,6 @@ const VersionPromptModal = () => {
   const {
     campaignData,
     campaignFormData,
-    setCampaignFormData,
     cId,
     getActiveCampaign,
     jwt,
@@ -143,7 +140,6 @@ const VersionPromptModal = () => {
 
       return cleanedData;
     } catch (error) {
-      console.error("Error sanitizing version data:", error);
       return { campaign_version: "V1" };
     }
   };

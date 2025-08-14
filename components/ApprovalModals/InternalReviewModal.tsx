@@ -62,6 +62,7 @@ const InternalReviewModal = ({ isOpen, setIsOpen }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="relative bg-white rounded-lg w-[440px] p-6 shadow-xl text-center">
         <button
+          disabled={loading}
           onClick={() => setIsOpen(false)}
           className="absolute top-4 right-4">
           <X className="w-5 h-5 text-gray-500 hover:text-gray-700" />
@@ -92,6 +93,7 @@ const InternalReviewModal = ({ isOpen, setIsOpen }) => {
             )}
           </button>
           <button
+            disabled={loading}
             className="btn_model_outline w-full"
             onClick={() => setIsOpen(false)}>
             Cancel
