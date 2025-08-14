@@ -58,9 +58,14 @@ export const CommentProvider = ({ children }) => {
 
   // Load comments from local storage on mount
   useEffect(() => {
-    const storedComments = JSON.parse(localStorage.getItem("comments")) || [];
+    // Get campaign ID from URL or use default
+    const urlParams = new URLSearchParams(window.location.search);
+    const campaignId = urlParams.get("campaignId") || "default";
+
+    const storedComments =
+      JSON.parse(localStorage.getItem(`comments_${campaignId}`)) || [];
     const storedOpportunities =
-      JSON.parse(localStorage.getItem("opportunities")) || [];
+      JSON.parse(localStorage.getItem(`opportunities_${campaignId}`)) || [];
     setComments(storedComments);
     setOpportunities(storedOpportunities);
     if (active === 7) {
@@ -72,8 +77,11 @@ export const CommentProvider = ({ children }) => {
 
   // Save comments & opportunities to local storage whenever they change
   useEffect(() => {
-    localStorage.setItem("comments", JSON.stringify(comments));
-    // localStorage.setItem("opportunities", JSON.stringify(opportunities));
+    const urlParams = new URLSearchParams(window.location.search);
+    const campaignId = urlParams.get("campaignId") || "default";
+
+    localStorage.setItem(`comments_${campaignId}`, JSON.stringify(comments));
+    // localStorage.setItem(`opportunities_${campaignId}`, JSON.stringify(opportunities));
   }, [comments, opportunities]);
 
   // Sync local state with Redux when comments change
@@ -202,20 +210,12 @@ export const CommentProvider = ({ children }) => {
           }
         );
 
-        console.log("Signed approvals response:", signedApprovalsResponse);
-        console.log("Response data structure:", signedApprovalsResponse.data);
-
         // Delete each signed approval
         if (
           signedApprovalsResponse.data?.data &&
           signedApprovalsResponse.data.data.length > 0
         ) {
-          console.log(
-            "Found signed approvals to delete:",
-            signedApprovalsResponse.data.data
-          );
           for (const approval of signedApprovalsResponse.data.data) {
-            console.log("Deleting approval:", approval.id);
             await axios.delete(
               `${process.env.NEXT_PUBLIC_STRAPI_URL}/client-signature-approvals/${approval.id}`,
               {
@@ -225,16 +225,10 @@ export const CommentProvider = ({ children }) => {
               }
             );
           }
-          console.log(
-            "Automatically deleted signed approvals when comment was created"
-          );
         } else {
           console.log("No signed approvals found to delete");
         }
-      } catch (deleteError) {
-        // Don't fail the comment creation if signature deletion fails
-        console.warn("Failed to delete signed approvals:", deleteError);
-      }
+      } catch (deleteError) {}
 
       setOpportunities([]);
       localStorage.setItem("opportunities", JSON.stringify(null));
