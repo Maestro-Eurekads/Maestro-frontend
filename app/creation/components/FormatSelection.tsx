@@ -1369,7 +1369,7 @@ export const Platforms = ({
   stageName: string;
   view?: "channel" | "adset";
   platformName?: string;
-  setChange: (value: boolean) => void;
+  setChange?: (value: boolean) => void;
 }) => {
   const [quantities, setQuantities] = useState<QuantitiesType>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
