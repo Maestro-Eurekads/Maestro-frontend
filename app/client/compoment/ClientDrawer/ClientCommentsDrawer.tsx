@@ -108,26 +108,51 @@ const ClientCommentsDrawer = ({ isOpen, onClose, campaign }) => {
       });
     }
     if (createCommentsError) {
+      let errorMessage = "An error occurred while creating the comment";
+      if (createCommentsError.response?.data) {
+        // Handle different types of error data
+        if (typeof createCommentsError.response.data === "string") {
+          errorMessage = createCommentsError.response.data;
+        } else if (createCommentsError.response.data?.message) {
+          errorMessage = createCommentsError.response.data.message;
+        } else if (createCommentsError.response.data?.error?.message) {
+          errorMessage = createCommentsError.response.data.error.message;
+        }
+      } else if (createCommentsError.message) {
+        errorMessage = createCommentsError.message;
+      }
+
       setAlert({
         variant: "error",
-        message:
-          createCommentsError.response.data || createCommentsError.message,
+        message: errorMessage,
         position: "bottom-right",
       });
     }
     if (replyError) {
+      let errorMessage = "An error occurred while adding the reply";
+      if (replyError.response?.data?.error?.message) {
+        errorMessage = replyError.response.data.error.message;
+      } else if (replyError.message) {
+        errorMessage = replyError.message;
+      }
+
       setAlert({
         variant: "error",
-        message:
-          replyError.response.data?.error?.message || replyError?.message,
+        message: errorMessage,
         position: "bottom-right",
       });
     }
     if (approvedError) {
+      let errorMessage = "An error occurred with approval";
+      if (approvedError.response?.data?.error?.message) {
+        errorMessage = approvedError.response.data.error.message;
+      } else if (approvedError.message) {
+        errorMessage = approvedError.message;
+      }
+
       setAlert({
         variant: "error",
-        message:
-          replyError.response.data?.error?.message || replyError?.message,
+        message: errorMessage,
         position: "bottom-right",
       });
     }
@@ -192,21 +217,23 @@ const ClientCommentsDrawer = ({ isOpen, onClose, campaign }) => {
               return (
                 <div
                   key={comment?.documentId}
-                  className=" relative flex flex-col p-5 gap-4 w-full min-h-[203px] bg-white shadow-[0px_4px_10px_rgba(0,0,0,0.1)] rounded-lg border-box mb-5">
+                  className="relative flex flex-col p-5 gap-4 w-full min-h-[203px] max-h-[70vh] bg-white shadow-[0px_4px_10px_rgba(0,0,0,0.1)] rounded-lg border-box mb-5 overflow-y-auto">
                   <button
-                    className="cursor-pointer absolute right-2 top-2 group"
+                    className="cursor-pointer absolute right-2 top-2 group z-10"
                     onClick={() => setViewcommentsId("")}>
                     <BsXLg className="text-[#29292968] group-hover:text-red-500 transition-colors duration-200" />
                   </button>
-                  <ClientComments
-                    comment={comment}
-                    contrastingColor={contrastingColor}
-                  />
-                  <ClientAddCommentReply
-                    documentId={comment?.documentId}
-                    contrastingColor={contrastingColor}
-                    commentId={comment?.commentId}
-                  />
+                  <div className="flex flex-col gap-4 w-full">
+                    <ClientComments
+                      comment={comment}
+                      contrastingColor={contrastingColor}
+                    />
+                    <ClientAddCommentReply
+                      documentId={comment?.documentId}
+                      contrastingColor={contrastingColor}
+                      commentId={comment?.commentId}
+                    />
+                  </div>
                 </div>
               );
             })
@@ -217,16 +244,18 @@ const ClientCommentsDrawer = ({ isOpen, onClose, campaign }) => {
             return (
               <div
                 key={comment?.documentId}
-                className="flex flex-col p-5 gap-4 w-full min-h-[203px] bg-white shadow-[0px_4px_10px_rgba(0,0,0,0.1)] rounded-lg border-box mb-5">
-                <ClientComments
-                  comment={comment}
-                  contrastingColor={contrastingColor}
-                />
-                <ClientAddCommentReply
-                  documentId={comment?.documentId}
-                  contrastingColor={contrastingColor}
-                  commentId={comment?.commentId}
-                />
+                className="flex flex-col p-5 gap-4 w-full min-h-[203px] max-h-[60vh] bg-white shadow-[0px_4px_10px_rgba(0,0,0,0.1)] rounded-lg border-box mb-5 overflow-y-auto">
+                <div className="flex flex-col gap-4 w-full">
+                  <ClientComments
+                    comment={comment}
+                    contrastingColor={contrastingColor}
+                  />
+                  <ClientAddCommentReply
+                    documentId={comment?.documentId}
+                    contrastingColor={contrastingColor}
+                    commentId={comment?.commentId}
+                  />
+                </div>
               </div>
             );
           })
