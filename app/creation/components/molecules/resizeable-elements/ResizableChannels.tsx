@@ -187,7 +187,6 @@ const ResizableChannels = ({
   const [userIsInteracting, setUserIsInteracting] = useState(false);
   const [manuallyPositioned, setManuallyPositioned] = useState<Set<number>>(new Set());
 
-  const [dragging, setDragging] = useState(null);
   const [draggingPosition, setDraggingPosition] = useState(null);
 
   const [tooltip, setTooltip] = useState<TooltipState>({
@@ -667,6 +666,10 @@ const ResizableChannels = ({
     // Clear interaction flag
     setUserIsInteracting(false);
 
+    // IMMEDIATELY remove event listeners to stop any further dragging
+    document.removeEventListener("mousemove", handleMouseMoveResize);
+    document.removeEventListener("mouseup", handleMouseUpResize);
+
     if (draggingDataRef.current) {
       const { index, newStartDate, newEndDate } = draggingDataRef.current;
       console.log({ index, newStartDate, newEndDate });
@@ -680,8 +683,6 @@ const ResizableChannels = ({
     }
 
     isResizing.current = null;
-    document.removeEventListener("mousemove", handleMouseMoveResize);
-    document.removeEventListener("mouseup", handleMouseUpResize);
   };
 
   useEffect(() => {
@@ -970,6 +971,10 @@ const ResizableChannels = ({
        
        // Clear interaction flag
        setUserIsInteracting(false);
+       
+       // IMMEDIATELY remove event listeners to stop any further dragging
+       document.removeEventListener("mousemove", handleDragMove);
+       document.removeEventListener("mouseup", handleDragEnd);
  
        if (draggingDataRef.current) {
          const { index, startDate, endDate } = draggingDataRef.current;
@@ -997,7 +1002,6 @@ const ResizableChannels = ({
 
       isDraggingRef.current = false;
       setDraggingPosition(null);
-      setDragging(null);
     };
 
     document.addEventListener("mousemove", handleDragMove);
@@ -1009,7 +1013,7 @@ const ResizableChannels = ({
       isDraggingRef.current = false;
       draggingDataRef.current = null;
     };
-  }, [draggingPosition, parentLeft, channelState]);
+  }, [draggingPosition, parentLeft]); // Remove channelState from dependencies
 
   const handleDeleteChannel = async (indexToDelete) => {
     const updatedChannels = channels.filter(
@@ -1357,99 +1361,9 @@ const ResizableChannels = ({
     }
   }, [channelState.length, parentLeft, parentWidth]);
 
-  useEffect(() => {
-    if (!dragging) return;
-
-    const totalDays = dateList.length - 1;
-
-    const handleMouseMove = (event) => {
-      event.preventDefault();
-      const { index, direction, startX } = dragging;
-      const deltaX = event.clientX - startX;
-      console.log("triggered");
-      setChannelState((prev) =>
-        prev.map((state, i) => {
-          if (i !== index) return state;
-
-          let newWidth,
-            newLeft = state.left;
-
-          if (direction === "left") {
-            const minWidth =
-              rrange === "Year" ? dailyWidth || parentWidth / 12 : 50;
-            newWidth = Math.max(
-              minWidth,
-              Math.min(
-                state.width - deltaX,
-                parentWidth - (state.left - parentLeft)
-              )
-            );
-            newLeft = state.left + deltaX;
-
-            newLeft = Math.max(
-              parentLeft,
-              Math.min(newLeft, parentLeft + parentWidth - newWidth)
-            );
-
-            newWidth = state.left + state.width - newLeft;
-          } else {
-            const rightEdge = state.left + state.width + deltaX;
-            const maxRightEdge = parentLeft + parentWidth;
-            const adjustedRightEdge = Math.min(rightEdge, maxRightEdge);
-
-            const minWidth =
-              rrange === "Year" ? dailyWidth || parentWidth / 12 : 50;
-            newWidth = Math.max(
-              minWidth,
-              Math.min(
-                adjustedRightEdge - state.left,
-                parentWidth - (state.left - parentLeft)
-              )
-            );
-          }
-
-          const startPixel = newLeft - parentLeft;
-          const endPixel = startPixel - 1 + newWidth;
-
-          const startDate = pixelToDate(
-            startPixel,
-            parentWidth,
-            index,
-            "startDate"
-          );
-
-          const rawEndDate = pixelToDate(
-            endPixel - parentWidth / totalDays,
-            parentWidth,
-            index,
-            "endDate"
-          );
-
-          if (endDate > endDate) {
-            const parentEndPixel = parentWidth;
-            const maxWidth = parentEndPixel - startPixel + parentLeft;
-            newWidth = Math.min(newWidth, maxWidth);
-          }
-
-          return { ...state, left: newLeft, width: newWidth };
-        })
-      );
-
-      setDragging((prev) => ({ ...prev, startX: event.clientX }));
-    };
-
-    const handleMouseUp = () => {
-      setDragging(null);
-    };
-
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
-
-    return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [dragging, parentWidth]);
+  // REMOVED: Second drag system that was causing conflicts
+  // This useEffect was interfering with the main drag system
+  // and causing dragging to continue after mouse release
 
   function replaceSpacesAndSpecialCharsWithUnderscore(str) {
     // Replace all spaces, special characters, and symbols except underscores with underscores
