@@ -40,8 +40,6 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 
   const commentRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
-  console.log("campaignFormData=====", data);
-
   const comment = useMemo(() => {
     if (!data) return [];
     return data?.filter(
@@ -122,26 +120,51 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
       });
     }
     if (createCommentsError) {
+      let errorMessage = "An error occurred while creating the comment";
+      if (createCommentsError.response?.data) {
+        // Handle different types of error data
+        if (typeof createCommentsError.response.data === "string") {
+          errorMessage = createCommentsError.response.data;
+        } else if (createCommentsError.response.data?.message) {
+          errorMessage = createCommentsError.response.data.message;
+        } else if (createCommentsError.response.data?.error?.message) {
+          errorMessage = createCommentsError.response.data.error.message;
+        }
+      } else if (createCommentsError.message) {
+        errorMessage = createCommentsError.message;
+      }
+
       setAlert({
         variant: "error",
-        message:
-          createCommentsError.response.data || createCommentsError.message,
+        message: errorMessage,
         position: "bottom-right",
       });
     }
     if (replyError) {
+      let errorMessage = "An error occurred while adding the reply";
+      if (replyError.response?.data?.error?.message) {
+        errorMessage = replyError.response.data.error.message;
+      } else if (replyError.message) {
+        errorMessage = replyError.message;
+      }
+
       setAlert({
         variant: "error",
-        message:
-          replyError.response.data?.error?.message || replyError?.message,
+        message: errorMessage,
         position: "bottom-right",
       });
     }
     if (approvedError) {
+      let errorMessage = "An error occurred with approval";
+      if (approvedError.response?.data?.error?.message) {
+        errorMessage = approvedError.response.data.error.message;
+      } else if (approvedError.message) {
+        errorMessage = approvedError.message;
+      }
+
       setAlert({
         variant: "error",
-        message:
-          replyError.response.data?.error?.message || replyError?.message,
+        message: errorMessage,
         position: "bottom-right",
       });
     }

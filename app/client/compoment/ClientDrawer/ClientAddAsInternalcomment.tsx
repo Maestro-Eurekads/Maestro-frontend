@@ -134,7 +134,7 @@ const ClientAddAsInternalcomment = ({ position, setShow, campaign }) => {
 
         {/* Textarea for Adding a Comment */}
         <textarea
-          className="w-full font-medium text-[16px] text-[#292929] py-3 px-4 rounded-md resize-none overflow-hidden focus:outline-none"
+          className="w-full font-medium text-[16px] text-[#292929] py-3 px-4 rounded-md resize-none overflow-y-auto focus:outline-none max-h-[200px]"
           rows={4}
           value={comment}
           onChange={(e) => setComment(e.target.value)}
