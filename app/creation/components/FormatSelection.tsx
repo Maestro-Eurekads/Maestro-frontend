@@ -124,7 +124,7 @@ const CreativesModal = ({
   view: "channel" | "adset";
 }) => {
   if (!isOpen) return null;
-
+  const { change, setChange, showModal, setShowModal } = useActive();
   const stage = campaignFormData?.channel_mix?.find(
     (chan: any) => chan?.funnel_stage === stageName
   );
@@ -160,9 +160,7 @@ const CreativesModal = ({
     const handleVideoClick = useCallback(() => {
       if (videoRef.current) {
         if (videoRef.current.paused) {
-          videoRef.current.play().catch((error) => {
-            console.error("Error playing video:", error);
-          });
+          videoRef.current.play().catch((error) => {});
         } else {
           videoRef.current.pause();
         }
@@ -436,10 +434,6 @@ const MediaOption = ({
 
   useEffect(() => {
     if (!STRAPI_URL || !STRAPI_TOKEN) {
-      console.error("Missing Strapi configuration:", {
-        STRAPI_URL,
-        STRAPI_TOKEN,
-      });
       toast.error("Server configuration error. Please contact support.");
       return;
     }
@@ -648,6 +642,7 @@ const MediaSelectionGrid = ({
   onDeletePreview,
   completedDeletions,
   isFormatLoading,
+  setChange,
 }: {
   mediaOptions: MediaOptionType[];
   platformName: string;
@@ -673,6 +668,7 @@ const MediaSelectionGrid = ({
   ) => void;
   completedDeletions: Set<string>;
   isFormatLoading: { [key: string]: boolean };
+  setChange: (value: boolean) => void;
 }) => {
   const { campaignFormData, setPlatformName } = useCampaigns();
   const channelKey = channelName.toLowerCase().replace(/\s+/g, "_");
@@ -807,6 +803,7 @@ const PlatformItem = ({
   view,
   onDeletePreview,
   completedDeletions,
+  setChange,
 }: {
   platform: PlatformType;
   channelTitle: string;
@@ -832,6 +829,7 @@ const PlatformItem = ({
     adSetIndex?: number
   ) => void;
   completedDeletions: Set<string>;
+  setChange: (value: boolean) => void;
 }) => {
   const [isExpanded, setIsExpanded] = useState<{ [key: string]: boolean }>({});
   const [expandedAdsets, setExpandedAdsets] = useState<{
@@ -1002,6 +1000,7 @@ const PlatformItem = ({
         }
       }
 
+      setChange(true); // Mark that changes have been made
       setCampaignFormData((prev) => ({
         ...prev,
         channel_mix: copy,
@@ -1013,6 +1012,7 @@ const PlatformItem = ({
     [
       campaignFormData,
       setCampaignFormData,
+      setChange,
       channelTitle,
       stageName,
       platform.platform_name,
@@ -1082,6 +1082,7 @@ const PlatformItem = ({
               onDeletePreview={onDeletePreview}
               completedDeletions={completedDeletions}
               isFormatLoading={isFormatLoading}
+              setChange={setChange}
             />
           </div>
         )}
@@ -1156,6 +1157,7 @@ const PlatformItem = ({
                       onDeletePreview={onDeletePreview}
                       completedDeletions={completedDeletions}
                       isFormatLoading={isFormatLoading}
+                      setChange={setChange}
                     />
                   </div>
                 )}
@@ -1178,6 +1180,7 @@ const ChannelSection = ({
   view,
   onDeletePreview,
   completedDeletions,
+  setChange,
 }: {
   channelTitle: string;
   platforms: PlatformType[];
@@ -1203,6 +1206,7 @@ const ChannelSection = ({
     adSetIndex?: number
   ) => void;
   completedDeletions: Set<string>;
+  setChange: (value: boolean) => void;
 }) => {
   const filteredPlatforms =
     view === "adset"
@@ -1227,6 +1231,7 @@ const ChannelSection = ({
             view={view}
             onDeletePreview={onDeletePreview}
             completedDeletions={completedDeletions}
+            setChange={setChange}
           />
         ))}
       </div>
@@ -1359,10 +1364,12 @@ export const Platforms = ({
   stageName,
   view = "channel",
   platformName,
+  setChange,
 }: {
   stageName: string;
   view?: "channel" | "adset";
   platformName?: string;
+  setChange: (value: boolean) => void;
 }) => {
   const [quantities, setQuantities] = useState<QuantitiesType>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -2446,6 +2453,7 @@ export const Platforms = ({
             )
           }
           completedDeletions={completedDeletions}
+          setChange={setChange}
         />
       ))}
 
@@ -2489,7 +2497,7 @@ export const FormatSelection = ({
   const { campaignFormData, setCampaignFormData, campaignData } =
     useCampaigns();
   const { setIsDrawerOpen, setClose } = useComments();
-  const { active } = useActive();
+  const { active, setChange } = useActive();
 
   useEffect(() => {
     // First check if there's an openView prop
@@ -2718,6 +2726,7 @@ export const FormatSelection = ({
                       stageName={stage?.name}
                       view={view}
                       platformName={platformName}
+                      setChange={setChange}
                     />
                   </div>
                 )}
