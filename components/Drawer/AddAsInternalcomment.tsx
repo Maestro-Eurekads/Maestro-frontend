@@ -10,6 +10,7 @@ import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useAppSelector } from "store/useStore";
 import InternalVisibilityToggle from "components/InternalDropdowns";
+import { toast } from "sonner";
 
 const AddAsInternalcomment = ({ position, setShow }) => {
   const { data: session }: any = useSession();
@@ -25,14 +26,34 @@ const AddAsInternalcomment = ({ position, setShow }) => {
     name: session?.user?.name,
   };
 
+  const MAX_COMMENT_LENGTH = 250;
+  const [charWarning, setCharWarning] = useState("");
+
   const handleAddComment = async () => {
     if (comment.trim() === "") return;
+    if (comment.length > MAX_COMMENT_LENGTH) {
+      toast.error(`Comment cannot exceed ${MAX_COMMENT_LENGTH} characters.`);
+      return;
+    }
     try {
       await addComment(commentId, comment, position, addcomment_as, creator);
     } catch (error) {
       if (error?.response?.status === 401) {
         const event = new Event("unauthorizedEvent");
         window.dispatchEvent(event);
+      } else if (
+        error?.response?.data?.error?.message
+          ?.toLowerCase()
+          .includes("length") ||
+        error?.response?.data?.message?.toLowerCase().includes("length")
+      ) {
+        toast.error(
+          `Comment is too long. Please keep it under ${MAX_COMMENT_LENGTH} characters.`
+        );
+      } else if (error?.response?.status === 500) {
+        toast.error("Internal Server Error. Please try again later.");
+      } else {
+        toast.error(error?.message || "Failed to add comment.");
       }
     }
   };
@@ -57,9 +78,23 @@ const AddAsInternalcomment = ({ position, setShow }) => {
           className="w-full font-medium text-[14px] text-[#292929] py-2 px-3 rounded-md resize-none overflow-y-auto focus:outline-none max-h-[150px]"
           rows={3}
           value={comment}
-          onChange={(e) => setComment(e.target.value)}
+          maxLength={MAX_COMMENT_LENGTH}
+          onChange={(e) => {
+            setComment(e.target.value);
+            if (e.target.value.length >= MAX_COMMENT_LENGTH) {
+              setCharWarning("Maximum character limit reached.");
+            } else {
+              setCharWarning("");
+            }
+          }}
           placeholder="Write your comment..."
         />
+        <div className="w-full flex justify-end text-xs text-gray-500 mt-1">
+          {comment.length}/{MAX_COMMENT_LENGTH}
+          {charWarning && (
+            <span className="text-red-500 ml-2">{charWarning}</span>
+          )}
+        </div>
 
         <div className="flex items-center w-full justify-between mt-1">
           <InternalVisibilityToggle

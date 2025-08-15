@@ -81,8 +81,15 @@ const ClientAddAsInternalcomment = ({ position, setShow, campaign }) => {
   // After comment is added, change the campaign status to "Changes Needed"
   const stage = "client_changes_needed";
   const label = "Client Changes Needed";
+  const MAX_COMMENT_LENGTH = 250;
+  const [charWarning, setCharWarning] = useState("");
+
   const handleAddComment = async () => {
     if (comment.trim() === "") return;
+    if (comment.length > MAX_COMMENT_LENGTH) {
+      toast.error(`Comment cannot exceed ${MAX_COMMENT_LENGTH} characters.`);
+      return;
+    }
 
     try {
       await addComment(
@@ -110,7 +117,18 @@ const ClientAddAsInternalcomment = ({ position, setShow, campaign }) => {
       await updatePosition(commentId, position);
       setComment("");
     } catch (error) {
-      toast.error(error.message);
+      if (
+        error?.response?.data?.error?.message
+          ?.toLowerCase()
+          .includes("length") ||
+        error?.response?.data?.message?.toLowerCase().includes("length")
+      ) {
+        toast.error(
+          `Comment is too long. Please keep it under ${MAX_COMMENT_LENGTH} characters.`
+        );
+      } else {
+        toast.error(error.message || "Failed to add comment.");
+      }
     }
   };
 
@@ -137,9 +155,23 @@ const ClientAddAsInternalcomment = ({ position, setShow, campaign }) => {
           className="w-full font-medium text-[16px] text-[#292929] py-3 px-4 rounded-md resize-none overflow-y-auto focus:outline-none max-h-[200px]"
           rows={4}
           value={comment}
-          onChange={(e) => setComment(e.target.value)}
+          maxLength={MAX_COMMENT_LENGTH}
+          onChange={(e) => {
+            setComment(e.target.value);
+            if (e.target.value.length >= MAX_COMMENT_LENGTH) {
+              setCharWarning("Maximum character limit reached.");
+            } else {
+              setCharWarning("");
+            }
+          }}
           placeholder="Write your comment..."
         />
+        <div className="w-full flex justify-end text-xs text-gray-500 mt-1">
+          {comment.length}/{MAX_COMMENT_LENGTH}
+          {charWarning && (
+            <span className="text-red-500 ml-2">{charWarning}</span>
+          )}
+        </div>
 
         {/* Buttons */}
         <div className="flex items-center w-full justify-between">
