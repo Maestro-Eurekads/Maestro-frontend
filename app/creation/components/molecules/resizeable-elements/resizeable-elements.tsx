@@ -368,10 +368,8 @@ const ResizeableElements = ({
     if (rrange === "Day" || rrange === "Week") {
       return `repeat(${funnelData?.endDay || 1}, ${dailyWidth}px)`;
     } else if (rrange === "Year") {
-      const startDate = startOfYear(range[0]);
-      const endDate = endOfYear(range[range.length - 1]);
-      const months = eachMonthOfInterval({ start: startDate, end: endDate });
-      return `repeat(${months.length}, ${dailyWidth}px)`;
+      // Year view - always 12 months grid
+      return `repeat(12, ${dailyWidth}px)`;
     } else if (rrange === "Month") {
       // Month view - use day-level precision for smooth positioning
       const numberOfDays = range?.length || 1;
@@ -393,10 +391,8 @@ const ResizeableElements = ({
     } else if (rrange === "Week") {
       return funnelData?.endDay || 1;
     } else if (rrange === "Year") {
-      const startDate = startOfYear(range[0]);
-      const endDate = endOfYear(range[range.length - 1]);
-      const months = eachMonthOfInterval({ start: startDate, end: endDate });
-      return months; // 12 months
+      // Year view - always 12 months
+      return 12;
     } else if (rrange === "Month") {
       // Month view - return number of days for day-level precision
       return range?.length || 1;
@@ -411,21 +407,27 @@ const ResizeableElements = ({
     [dailyWidthByView, rrange]
   );
 
-  // Calculate phase positioning for year view
+  // Remove or fix the calculateYearViewPosition function
   const calculateYearViewPosition = useCallback(
     (startDate: Date, endDate: Date) => {
       if (!range || range.length === 0)
         return { position: 0, width: 0, spans: [] };
 
-      const monthSpans = calculatePhaseMonthSpans(startDate, endDate);
+      // FIXED: Use the same coordinate system as day view - month by month grid
       const monthWidth = getDailyWidth("Year");
-
-      // Find the starting month index (0-11)
-      const startMonth = startDate.getMonth();
+      
+      // Calculate position based on month index (0-11) - same as day view logic
+      // Use the actual month index from the date, but ensure it's within 0-11 range
+      const startMonth = Math.min(11, Math.max(0, startDate.getMonth()));
       const position = startMonth * monthWidth;
-
-      // Calculate total width across all months the phase spans
-      const width = monthSpans.length * monthWidth;
+      
+      // Calculate width based on number of months spanned
+      const endMonth = Math.min(11, Math.max(0, endDate.getMonth()));
+      const monthsSpanned = Math.max(1, endMonth - startMonth + 1);
+      const width = monthsSpanned * monthWidth;
+      
+      // Keep the spans for debugging if needed
+      const monthSpans = calculatePhaseMonthSpans(startDate, endDate);
 
       return { position, width, spans: monthSpans };
     },
@@ -456,13 +458,36 @@ const ResizeableElements = ({
           : null;
 
         if (rrange === "Year" && stageStartDate && stageEndDate) {
-          // Year view calculations
-          const yearCalc = calculateYearViewPosition(
-            stageStartDate,
-            stageEndDate
-          );
-          initialPositions[stageName] = yearCalc.position;
-          initialWidths[stageName] = yearCalc.width;
+          // FIXED: Use the same coordinate system as day view - month by month grid
+          const monthWidth = getDailyWidth("Year"); // This is the width per month
+          
+        
+          // Calculate position based on month index (0-11) - same as day view logic
+          // Use the actual month index from the date, but ensure it's within 0-11 range
+          const startMonth = Math.min(11, Math.max(0, stageStartDate.getMonth()));
+          const position = startMonth * monthWidth;
+          
+          // Calculate width based on number of months spanned
+          const endMonth = Math.min(11, Math.max(0, stageEndDate.getMonth()));
+          const monthsSpanned = Math.max(1, endMonth - startMonth + 1);
+          const width = monthsSpanned * monthWidth;
+
+          console.log("monthWidth", stageStartDate, stageEndDate, endMonth, startMonth, monthsSpanned, width);
+          
+          initialPositions[stageName] = position;
+          initialWidths[stageName] = width;
+          
+          console.log("Year view position calculation:", {
+            stageName,
+            stageStartDate: stageStartDate.toISOString().split("T")[0],
+            stageEndDate: stageEndDate.toISOString().split("T")[0],
+            startMonth,
+            endMonth,
+            monthsSpanned,
+            monthWidth,
+            position,
+            width,
+          });
         } else if (rrange === "Month" && stageStartDate && stageEndDate) {
           // Month view calculations - calculate position based on actual dates
           const startDateIndex =
@@ -494,7 +519,7 @@ const ResizeableElements = ({
             daysBetween,
           });
         } else {
-          // Existing logic for other views
+          // Existing logic for other views (Day, Week)
           const startDateIndex = stageStartDate
             ? range?.findIndex((date) => isEqual(date, stageStartDate)) *
               getDailyWidth()
@@ -545,7 +570,6 @@ const ResizeableElements = ({
     range,
     getDailyWidth,
     close,
-    calculateYearViewPosition,
   ]);
 
   // Generate background grid for year and month views
