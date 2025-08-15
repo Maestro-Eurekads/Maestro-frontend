@@ -25,32 +25,54 @@ export function extractPlatforms(data) {
         "mobile",
       ]?.forEach((channelType) => {
         stage[channelType]?.forEach((platform) => {
-          const platformName = platform.platform_name;
-          const existingPlatform = platforms[stageName].find(
-            (p) => p.name === platformName
-          );
-
-          if (!existingPlatform) {
-            // Find platform style or use random one
-            const style =
-              platformStyles.find((style) => style.name === platformName) ||
-              platformStyles[Math.floor(Math.random() * platformStyles.length)];
-
-            // Map headers to values
-            const rowData = mapHeadersToValues(headers, platform);
-
-            // Create platform object with all necessary data
-            platforms[stageName].push(
-              createPlatformObject(
-                platformName,
-                style,
-                platform,
-                channelType,
-                rowData,
-                data
-              )
-            );
+          let platformName = platform.platform_name;
+          // Normalize and alias for Google and other common platforms
+          const normalize = (str) =>
+            str?.toLowerCase().replace(/\s+/g, "").replace(/&/g, "and").replace(/\(.*\)/, "").trim();
+          const normalizedName = normalize(platformName);
+          const aliasMap = {
+            google: "Google",
+            googleads: "Google",
+            googledisplay: "Google",
+            googlesearch: "Google",
+            googleadwords: "Google",
+            "google(search)": "Google",
+            "google(display)": "Google",
+            "google-ads": "Google",
+            googlead: "Google",
+            // Add more aliases as needed
+          };
+          const canonicalName = aliasMap[normalizedName] || platformName;
+          // Find platform style or use random one
+          let style =
+            platformStyles.find((style) => style.name === canonicalName);
+          let color = style?.color;
+          if (!style) {
+            // Robust fallback: use a consistent gray color and log the missing name
+            color = '#A0AEC0'; // Tailwind gray-400
+            style = { name: canonicalName, color, icon: undefined, bg: '#F5F6F7' };
+            if (typeof window !== 'undefined' && window.console) {
+              // Only log in browser
+              console.warn('Missing platform style for:', canonicalName);
+            }
           }
+          // Always ensure color is set from platformStyles
+          // const color = style?.color; // This line is now redundant as color is set above
+
+          // Map headers to values
+          const rowData = mapHeadersToValues(headers, platform);
+
+          // Create platform object with all necessary data
+          platforms[stageName].push(
+            createPlatformObject(
+              canonicalName,
+              { ...style, color }, // ensure color is always present
+              platform,
+              channelType,
+              rowData,
+              data
+            )
+          );
         });
       });
     });
