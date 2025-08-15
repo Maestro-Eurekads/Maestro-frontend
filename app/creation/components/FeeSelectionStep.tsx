@@ -62,9 +62,7 @@ function FeeSelectionStep({
             `campaignFormData_${cId}`,
             JSON.stringify(updatedData)
           );
-        } catch (error) {
-          console.error("Error saving budget to localStorage:", error);
-        }
+        } catch (error) {}
       }
 
       return updatedData;
@@ -226,9 +224,7 @@ function FeeSelectionStep({
             `campaignFormData_${cId}`,
             JSON.stringify(updatedData)
           );
-        } catch (error) {
-          console.error("Error saving budget fees to localStorage:", error);
-        }
+        } catch (error) {}
       }
 
       return updatedData;
@@ -316,9 +312,7 @@ function FeeSelectionStep({
               `campaignFormData_${cId}`,
               JSON.stringify(updatedData)
             );
-          } catch (error) {
-            console.error("Error saving budget fees to localStorage:", error);
-          }
+          } catch (error) {}
         }
 
         return updatedData;
@@ -650,12 +644,7 @@ function FeeSelectionStep({
                                           `campaignFormData_${cId}`,
                                           JSON.stringify(updatedData)
                                         );
-                                      } catch (error) {
-                                        console.error(
-                                          "Error saving budget fees to localStorage:",
-                                          error
-                                        );
-                                      }
+                                      } catch (error) {}
                                     }
 
                                     return updatedData;
@@ -866,12 +855,7 @@ function FeeSelectionStep({
                                             `campaignFormData_${cId}`,
                                             JSON.stringify(updatedData)
                                           );
-                                        } catch (error) {
-                                          console.error(
-                                            "Error saving budget fees to localStorage:",
-                                            error
-                                          );
-                                        }
+                                        } catch (error) {}
                                       }
 
                                       return updatedData;

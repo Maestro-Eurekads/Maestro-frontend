@@ -29,14 +29,8 @@ const TreeDropdownFilter: React.FC<Props> = ({
 
   useEffect(() => {
     if (data) {
-      console.log("TreeDropdownFilter: Building tree with data:", data);
-
       // Validate data structure before building tree
       if (!data.parameters || !Array.isArray(data.parameters)) {
-        console.warn(
-          "TreeDropdownFilter: Invalid data structure, missing parameters array:",
-          data
-        );
         setTreeOptions([]);
         return;
       }
@@ -47,10 +41,6 @@ const TreeDropdownFilter: React.FC<Props> = ({
         (name, index) => paramNames.indexOf(name) !== index
       );
       if (duplicateNames.length > 0) {
-        console.warn(
-          "TreeDropdownFilter: Duplicate parameter names found:",
-          duplicateNames
-        );
       }
 
       const tree = buildTree(data);
@@ -75,7 +65,7 @@ const TreeDropdownFilter: React.FC<Props> = ({
     return (
       <div className="min-w-[180px]">
         <div className="w-full h-[40px] px-4 py-2 border border-gray-300 rounded-md bg-gray-50 flex items-center">
-          <span className="text-gray-500">No options available</span>
+          <span className="text-gray-500">Client Architecture</span>
         </div>
       </div>
     );

@@ -943,10 +943,7 @@ const PlatformItem = ({
 
             try {
               await Promise.all(deletePromises);
-            } catch (error) {
-              console.error("Error deleting previews:", error);
-              // Continue with format removal even if some deletions fail
-            }
+            } catch (error) {}
           }
           adset.format.splice(adsetFormatIndex, 1);
         } else {
@@ -985,10 +982,7 @@ const PlatformItem = ({
 
             try {
               await Promise.all(deletePromises);
-            } catch (error) {
-              console.error("Error deleting previews:", error);
-              // Continue with format removal even if some deletions fail
-            }
+            } catch (error) {}
           }
           platformCopy.format.splice(formatIndex, 1);
         } else {
@@ -1473,9 +1467,6 @@ export const Platforms = ({
 
       // Check if campaign exists before attempting to save
       if (!campaignData?.id && !campaignFormData?.cId) {
-        console.warn(
-          "No campaign exists yet. File upload will be saved locally only."
-        );
         toast.warning(
           "Please save your campaign first (Step 0) to persist file uploads."
         );
@@ -1835,18 +1826,6 @@ export const Platforms = ({
         const finalSanitizedData = finalCleanup(cleanedData);
 
         // Log the final data structure for debugging
-        console.log("Final sanitized data structure:", {
-          hasChannelMix: !!finalSanitizedData.channel_mix,
-          channelMixLength: finalSanitizedData.channel_mix?.length,
-          hasClient: !!finalSanitizedData.client,
-          hasClientLevel1: !!finalSanitizedData.client?.level_1,
-          hasClientLevel1Parameters:
-            !!finalSanitizedData.client?.level_1?.parameters,
-          clientLevel1ParametersLength:
-            finalSanitizedData.client?.level_1?.parameters?.length,
-          campaignId: finalSanitizedData.id || finalSanitizedData.cId,
-          mediaPlanId: finalSanitizedData.media_plan_id,
-        });
 
         // Log any remaining potentially problematic fields
         const problematicFields = [
@@ -1864,38 +1843,19 @@ export const Platforms = ({
         );
 
         if (remainingProblematicFields.length > 0) {
-          console.warn(
-            "Warning: Potentially problematic fields still present:",
-            remainingProblematicFields
-          );
-          console.warn(
-            "These fields might cause validation errors:",
-            remainingProblematicFields.map((field) => ({
-              field,
-              value: finalSanitizedData[field],
-            }))
-          );
+          
         }
 
-        console.log("Sending cleaned data to backend:", finalSanitizedData);
+        
 
         await updateCampaign(finalSanitizedData);
         toast.success("File upload saved successfully!");
       } catch (error: any) {
-        console.error("Error in uploadUpdatedCampaignToStrapi:", {
-          message: error.message,
-          details: error.details,
-          response: error.response?.data,
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-        });
+        
 
         // Log the specific validation errors if available
         if (error?.response?.data?.details?.errors) {
-          console.error(
-            "Backend validation errors:",
-            error.response.data.details.errors
-          );
+           
         }
 
         // Provide more specific error messages based on the error type
@@ -1908,10 +1868,7 @@ export const Platforms = ({
             toast.error(
               "Data validation error: Invalid relations detected. Please check your campaign data."
             );
-            console.error(
-              "Invalid relations error details:",
-              error.response.data
-            );
+            
           } else {
             toast.error(
               "Invalid data format. Please check your campaign data."
@@ -2016,13 +1973,12 @@ export const Platforms = ({
       platforms[platformIndex] = updatedPlatform;
 
       // Validate the updated data structure before sending
-      console.log("Updated channel mix before upload:", updatedChannelMix);
+     
 
       // Ensure all required fields are present and valid
       const validateChannelMix = (channelMix: any[]) => {
         return channelMix.every((channel: any) => {
-          if (!channel.funnel_stage) {
-            console.error("Channel missing funnel_stage:", channel);
+          if (!channel.funnel_stage) { 
             return false;
           }
 
@@ -2031,7 +1987,7 @@ export const Platforms = ({
             if (channel[key] && Array.isArray(channel[key])) {
               return channel[key].every((platform: any) => {
                 if (!platform.platform_name) {
-                  console.error("Platform missing platform_name:", platform);
+                
                   return false;
                 }
 
@@ -2039,7 +1995,7 @@ export const Platforms = ({
                 if (platform.format && Array.isArray(platform.format)) {
                   const validFormats = platform.format.every((fmt: any) => {
                     if (!fmt.format_type || !fmt.num_of_visuals) {
-                      console.error("Invalid format:", fmt);
+                     
                       return false;
                     }
                     return true;
@@ -2053,7 +2009,7 @@ export const Platforms = ({
                     if (adSet.format && Array.isArray(adSet.format)) {
                       return adSet.format.every((fmt: any) => {
                         if (!fmt.format_type || !fmt.num_of_visuals) {
-                          console.error("Invalid ad set format:", fmt);
+                        
                           return false;
                         }
                         return true;
@@ -2088,11 +2044,9 @@ export const Platforms = ({
           channel_mix: updatedChannelMix,
         });
       } catch (uploadError: any) {
-        console.error("Failed to upload updated campaign data:", uploadError);
+     
         // Don't fail the deletion if the campaign update fails
-        console.warn(
-          "Campaign update failed, but deletion was successful. Data may not be synced with backend."
-        );
+        
       }
     },
     [
@@ -2121,7 +2075,7 @@ export const Platforms = ({
           previews,
           adSetIndex
         ).catch((error) => {
-          console.error("Error in debouncedUpdateGlobalState:", error);
+         
         });
       },
       500,
@@ -2151,7 +2105,7 @@ export const Platforms = ({
       }
 
       const deleteUrl = `${STRAPI_URL}/upload/files/${previewId}`;
-      console.log("Deleting file at:", deleteUrl, "with previewId:", previewId);
+       
 
       const deleteResponse = await fetch(deleteUrl, {
         method: "DELETE",
@@ -2249,17 +2203,14 @@ export const Platforms = ({
           channel_mix: updatedChannelMix,
         });
       } catch (uploadError: any) {
-        console.error("Failed to upload updated campaign data:", uploadError);
+        
         // Don't fail the deletion if the campaign update fails
-        console.warn(
-          "Campaign update failed, but deletion was successful. Data may not be synced with backend."
-        );
+        
       }
 
       setDeleteQueue((prev) => prev.slice(1));
       setCompletedDeletions((prev) => new Set(prev).add(previewId));
-    } catch (error: any) {
-      console.error("Error processing delete queue:", error);
+    } catch (error: any) { 
       toast.error(`Failed to delete preview: ${error.message}`);
       setCompletedDeletions((prev) => new Set(prev).add(previewId));
       setDeleteQueue((prev) => prev.slice(1));

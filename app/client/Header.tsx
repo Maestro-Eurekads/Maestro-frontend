@@ -33,8 +33,6 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
   const [show, setShow] = useState(false);
   const [showClientChangesModal, setShowClientChangesModal] = useState(false);
 
-  // console.log("campaignData---", session);
-
   useEffect(() => {
     if (createApprovalSuccess) {
       setModalOpen(false);

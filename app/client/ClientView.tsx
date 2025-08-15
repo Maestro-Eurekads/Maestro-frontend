@@ -170,7 +170,7 @@ const ClientView = () => {
     }
   }, [kpiCategory]);
 
-  //console.log("Final Category Order:", campaignData);
+  
 
   const extractedData = extractKPIByFunnelStage(campaignData, kpiCategories);
   const aggregatedStats = aggregateKPIStatsFromExtracted(
