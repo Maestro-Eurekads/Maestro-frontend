@@ -6,25 +6,45 @@ import { useComments } from "app/utils/CommentProvider";
 import { SVGLoader } from "components/SVGLoader";
 import { useSession } from "next-auth/react";
 import { cleanName } from "components/Options";
+import { toast } from "sonner";
+const MAX_REPLY_LENGTH = 250;
 
 const ClientAddReplytothisComment = ({ onReplySubmit }) => {
   const { data: session }: any = useSession();
   const { isLoadingReply, setReplyText, replyText } = useComments();
+  const [charWarning, setCharWarning] = useState("");
 
   const handleReplySubmit = () => {
     if (!replyText.trim()) return;
-
-    const newReply = {
-      name: session?.user?.name,
-      date: new Date().toLocaleDateString(),
-      time: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      message: replyText,
-    };
-
-    onReplySubmit(newReply); // Pass reply back to parent component
+    if (replyText.length > MAX_REPLY_LENGTH) {
+      toast.error(`Reply cannot exceed ${MAX_REPLY_LENGTH} characters.`);
+      return;
+    }
+    try {
+      const newReply = {
+        name: session?.user?.name,
+        date: new Date().toLocaleDateString(),
+        time: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        message: replyText,
+      };
+      onReplySubmit(newReply);
+    } catch (error) {
+      if (
+        error?.response?.data?.error?.message
+          ?.toLowerCase()
+          .includes("length") ||
+        error?.response?.data?.message?.toLowerCase().includes("length")
+      ) {
+        toast.error(
+          `Reply is too long. Please keep it under ${MAX_REPLY_LENGTH} characters.`
+        );
+      } else {
+        toast.error(error?.message || "Failed to add reply.");
+      }
+    }
   };
 
   return (
@@ -62,12 +82,26 @@ const ClientAddReplytothisComment = ({ onReplySubmit }) => {
 
           <div className="font-[500] text-[16px] leading-[22px] text-[#292929] py-5">
             <textarea
-              className="w-full font-medium text-[16px] text-[#292929] py-3 px-4 rounded-md resize-none overflow-y-auto focus:outline-none max-h-[200px]"
-              rows={5}
+              className="font-[500] text-[16px] leading-[22px] text-[#292929] py-5 w-full"
+              rows={3}
               placeholder="Write your reply here..."
               value={replyText}
-              onChange={(e) => setReplyText(e.target.value)}
+              maxLength={MAX_REPLY_LENGTH}
+              onChange={(e) => {
+                setReplyText(e.target.value);
+                if (e.target.value.length >= MAX_REPLY_LENGTH) {
+                  setCharWarning("Maximum character limit reached.");
+                } else {
+                  setCharWarning("");
+                }
+              }}
             />
+            <div className="w-full flex justify-end text-xs text-gray-500 mt-1">
+              {replyText.length}/{MAX_REPLY_LENGTH}
+              {charWarning && (
+                <span className="text-red-500 ml-2">{charWarning}</span>
+              )}
+            </div>
           </div>
 
           <div className="flex w-full justify-between">
