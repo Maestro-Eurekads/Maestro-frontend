@@ -318,11 +318,11 @@ const ResizableChannels = ({
         const numberOfMonths = 12;
         const monthStartIndex = Math.min(
           numberOfMonths - 1,
-          Math.max(0, Math.round((startPixel / parentWidth) * numberOfMonths))
+          Math.max(0, Math.floor((startPixel / parentWidth) * numberOfMonths))
         );
         const monthEndIndex = Math.min(
           numberOfMonths - 1,
-          Math.max(0, Math.round((endPixel / parentWidth) * numberOfMonths))
+          Math.max(0, Math.round((endPixel / parentWidth) * numberOfMonths) - 1)
         );
 
         console.log("Year view date conversion debug:", {
@@ -349,11 +349,11 @@ const ResizableChannels = ({
           const numberOfMonths = 12;
           const monthStartIndex = Math.min(
             numberOfMonths - 1,
-            Math.max(0, Math.round((startPixel / parentWidth) * numberOfMonths))
+            Math.max(0, Math.floor((startPixel / parentWidth) * numberOfMonths))
           );
           const monthEndIndex = Math.min(
             numberOfMonths - 1,
-            Math.max(0, Math.round((endPixel / parentWidth) * numberOfMonths))
+            Math.max(0, Math.round((endPixel / parentWidth) * numberOfMonths) - 1)
           );
 
           const year = startDate?.getFullYear() || new Date().getFullYear();
@@ -754,7 +754,7 @@ const ResizableChannels = ({
       const actualStepWidth = containerWidth / numberOfMonths;
       const monthIndex = Math.min(
         numberOfMonths - 1,
-        Math.max(0, Math.round(pixel / actualStepWidth))
+        Math.max(0, Math.floor(pixel / actualStepWidth))
       );
 
       console.log("pixelToDate Year debug:", {
