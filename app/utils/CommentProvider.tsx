@@ -11,6 +11,7 @@ import { useAppDispatch, useAppSelector } from "store/useStore";
 import { client } from "../../types/types";
 import { useSession } from "next-auth/react";
 import { useActive } from "./ActiveContext";
+import { useCampaigns } from "./CampaignsContext";
 const CommentContext = createContext(null);
 
 export const useComments = () => {
@@ -53,6 +54,7 @@ export const CommentProvider = ({ children }) => {
   const { data } = useAppSelector((state) => state.comment);
   const { data: session } = useSession();
   const jwt = (session?.user as { data?: { jwt: string } })?.data?.jwt;
+  const { getActiveCampaign } = useCampaigns();
 
   const { active, subStep } = useActive();
 
@@ -440,6 +442,7 @@ export const CommentProvider = ({ children }) => {
       // Refresh the signed approval data
       if (selected) {
         dispatch(getSignedApproval({ isdocumentId: selected, jwt }));
+        getActiveCampaign(selected);
       }
 
       setIsLoadingApproval(false);

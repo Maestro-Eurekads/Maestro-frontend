@@ -43,23 +43,11 @@ const TreeDropdown: React.FC<Props> = ({
   const loadAttempts = useRef(0);
   const nested = convertToNestedStructure(campaignFormData?.[formId]?.value);
 
-  console.log("---campaignFormData", campaignFormData);
-  console.log("---nested", nested);
-  console.log("---treeOptions", treeOptions);
-  console.log("---value", value);
-  console.log("---data", data);
-
   // Build tree when data is ready
   useEffect(() => {
     if (data) {
-      console.log("TreeDropdown: Building tree with data:", data);
-
       // Validate data structure before building tree
       if (!data.parameters || !Array.isArray(data.parameters)) {
-        console.warn(
-          "TreeDropdown: Invalid data structure, missing parameters array:",
-          data
-        );
         setTreeOptions([]);
         return;
       }
@@ -70,10 +58,6 @@ const TreeDropdown: React.FC<Props> = ({
         (name, index) => paramNames.indexOf(name) !== index
       );
       if (duplicateNames.length > 0) {
-        console.warn(
-          "TreeDropdown: Duplicate parameter names found:",
-          duplicateNames
-        );
       }
 
       const tree = buildTree(data);
@@ -152,14 +136,13 @@ const TreeDropdown: React.FC<Props> = ({
   };
 
   const validatedTreeData = validateTreeData(treeOptions);
-  console.log("Validated tree data:", validatedTreeData);
 
   // If no valid tree data, show a placeholder
   if (!validatedTreeData || validatedTreeData.length === 0) {
     return (
       <div className="w-[330px]">
         <div className="w-full h-[40px] px-4 py-2 border border-gray-300 rounded-md bg-gray-50 flex items-center">
-          <span className="text-gray-500">No options available</span>
+          <span className="text-gray-500">Client Architecture</span>
         </div>
       </div>
     );

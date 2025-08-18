@@ -53,9 +53,7 @@ const saveStateToLocalStorage = (key: string, state: any, cId: string) => {
   const storageKey = cId ? `${cId}_${key}` : key;
   try {
     localStorage.setItem(storageKey, JSON.stringify(state));
-  } catch (e) {
-    console.error(`Error saving ${storageKey} to localStorage:`, e);
-  }
+  } catch (e) {}
 };
 
 const ONLINE_TYPES = [

@@ -125,11 +125,7 @@ const ClientsCampaignDropdown = ({
       setCampaignData(null);
       setActive(0);
       setSubStep(0);
-
-      console.log("Cleared all campaign data when switching plans");
-    } catch (error) {
-      console.error("Error clearing campaign data:", error);
-    }
+    } catch (error) {}
   };
 
   const toggleDropdown = () => {

@@ -107,6 +107,7 @@ const ClientView = () => {
     if (selected) {
       getActiveCampaign(selected);
     }
+    
   }, [selected]);
 
   useEffect(() => {
@@ -170,7 +171,7 @@ const ClientView = () => {
     }
   }, [kpiCategory]);
 
-  //console.log("Final Category Order:", campaignData);
+  
 
   const extractedData = extractKPIByFunnelStage(campaignData, kpiCategories);
   const aggregatedStats = aggregateKPIStatsFromExtracted(

@@ -36,7 +36,11 @@ const FormatSelectionsSection: React.FC<FormatSelectionsSectionProps> = ({
     format,
     formatIndex,
   }: {
-    format: { format_type: string; num_of_visuals: string; previews?: Array<{ id: string; url: string }> };
+    format: {
+      format_type: string;
+      num_of_visuals: string;
+      previews?: Array<{ id: string; url: string }>;
+    };
     formatIndex: number;
   }) => {
     // Create a ref for the video element to control playback
@@ -46,9 +50,7 @@ const FormatSelectionsSection: React.FC<FormatSelectionsSectionProps> = ({
     const handleVideoClick = useCallback(() => {
       if (videoRef.current) {
         if (videoRef.current.paused) {
-          videoRef.current.play().catch((error) => {
-            console.error("Error playing video:", error);
-          });
+          videoRef.current.play().catch((error) => {});
         } else {
           videoRef.current.pause();
         }
@@ -58,7 +60,9 @@ const FormatSelectionsSection: React.FC<FormatSelectionsSectionProps> = ({
     return (
       <div key={formatIndex} className="mb-2">
         <div className="font-semibold text-xs">{format.format_type}</div>
-        <div className="font-semibold text-xs">Number of visuals - {format.num_of_visuals}</div>
+        <div className="font-semibold text-xs">
+          Number of visuals - {format.num_of_visuals}
+        </div>
         {format?.previews?.length > 0 ? (
           <div className="mt-2">
             <h4 className="font-medium text-xs mb-1">Previews:</h4>
@@ -79,16 +83,20 @@ const FormatSelectionsSection: React.FC<FormatSelectionsSectionProps> = ({
                     ) : fileType === "video" && preview.url ? (
                       <div
                         className="relative aspect-square w-full cursor-pointer"
-                        onClick={handleVideoClick}
-                      >
+                        onClick={handleVideoClick}>
                         <video
                           ref={videoRef}
                           className="object-cover rounded w-full h-full"
                           controls
                           muted
-                          playsInline
-                        >
-                          <source src={preview.url} type={`video/${preview.url.split(".").pop()?.toLowerCase()}`} />
+                          playsInline>
+                          <source
+                            src={preview.url}
+                            type={`video/${preview.url
+                              .split(".")
+                              .pop()
+                              ?.toLowerCase()}`}
+                          />
                           Your browser does not support the video tag.
                         </video>
                       </div>
@@ -102,14 +110,15 @@ const FormatSelectionsSection: React.FC<FormatSelectionsSectionProps> = ({
                       </div>
                     ) : (
                       <div className="bg-gray-200 aspect-square flex items-center justify-center rounded">
-                        <span className="text-xs">Unsupported or missing preview</span>
+                        <span className="text-xs">
+                          Unsupported or missing preview
+                        </span>
                       </div>
                     )}
                     <Link
                       href={preview.url || "#"}
                       target="_blank"
-                      className="text-xs text-blue-500 mt-1"
-                    >
+                      className="text-xs text-blue-500 mt-1">
                       View {idx + 1}
                     </Link>
                   </div>
@@ -139,8 +148,7 @@ const FormatSelectionsSection: React.FC<FormatSelectionsSectionProps> = ({
                   {platforms[stage]?.map((platform) => (
                     <div
                       key={platform.id}
-                      className="p-4 bg-gray-100 rounded-lg shadow-sm w-full max-w-[300px]"
-                    >
+                      className="p-4 bg-gray-100 rounded-lg shadow-sm w-full max-w-[300px]">
                       <div className="flex items-center gap-2 mb-2">
                         {platform.icon && (
                           <Image
@@ -156,33 +164,42 @@ const FormatSelectionsSection: React.FC<FormatSelectionsSectionProps> = ({
                       {/* Channel-Level Formats */}
                       {platform?.formats?.length > 0 && (
                         <div className="mb-4">
-                          <h3 className="font-semibold text-sm mb-2">Channel Formats</h3>
+                          <h3 className="font-semibold text-sm mb-2">
+                            Channel Formats
+                          </h3>
                           <div className="text-sm text-gray-600">
                             {platform.formats.map((format, index) => (
-                              <RenderFormatDetails key={index} format={{
-                                format_type: format.format_type,
-                                num_of_visuals: format.num_of_visuals,
-                                previews: format.previews?.map(preview => ({
-                                  id: preview.url, // Using url as id since it's missing
-                                  url: preview.url
-                                }))
-                              }} formatIndex={index} />
+                              <RenderFormatDetails
+                                key={index}
+                                format={{
+                                  format_type: format.format_type,
+                                  num_of_visuals: format.num_of_visuals,
+                                  previews: format.previews?.map((preview) => ({
+                                    id: preview.url, // Using url as id since it's missing
+                                    url: preview.url,
+                                  })),
+                                }}
+                                formatIndex={index}
+                              />
                             ))}
                           </div>
                         </div>
                       )}
 
                       {/* Ad-Set-Level Formats */}
-                      {platform?.adSets?.some((adSet) => adSet?.format?.length > 0) && (
+                      {platform?.adSets?.some(
+                        (adSet) => adSet?.format?.length > 0
+                      ) && (
                         <div>
-                          <h3 className="font-semibold text-sm mb-2">Ad Set Formats</h3>
+                          <h3 className="font-semibold text-sm mb-2">
+                            Ad Set Formats
+                          </h3>
                           {platform.adSets
                             ?.filter((adSet) => adSet?.format?.length > 0)
                             .map((adSet, adSetIndex) => (
                               <div
                                 key={adSetIndex}
-                                className="mt-3 p-2 bg-white rounded border border-gray-200"
-                              >
+                                className="mt-3 p-2 bg-white rounded border border-gray-200">
                                 <div className="font-medium text-sm">
                                   {adSet.name || "Unnamed Ad Set"}
                                 </div>

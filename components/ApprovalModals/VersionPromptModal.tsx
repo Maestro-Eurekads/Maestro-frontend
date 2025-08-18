@@ -59,10 +59,7 @@ const VersionPromptModal = () => {
           }
         );
       }
-      console.log("Cleared all channel state for new campaign");
-    } catch (error) {
-      console.error("Error clearing channel state:", error);
-    }
+    } catch (error) {}
   };
 
   // const updateVersion = async (stage, label, versionData = null) => {

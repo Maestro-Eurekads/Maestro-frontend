@@ -259,9 +259,8 @@ const Header = ({ setIsOpen, setIsView }) => {
         }
       });
 
-      console.log("Cleared all campaign data for new media plan");
-    } catch (error) {
-      console.error("Error clearing campaign data:", error);
+      
+    } catch (error) { 
     }
   };
 
@@ -383,13 +382,7 @@ const Header = ({ setIsOpen, setIsView }) => {
                           localStorage.removeItem(key);
                         }
                       });
-
-                      console.log(
-                        "Cleared all campaign data when switching clients"
-                      );
-                    } catch (error) {
-                      console.error("Error clearing campaign data:", error);
-                    }
+                    } catch (error) {}
                   };
 
                   // Clear campaign data and reset context
