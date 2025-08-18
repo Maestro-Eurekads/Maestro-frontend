@@ -31,10 +31,6 @@ function YearTimeline({ range, funnels }) {
     }));
   };
 
-
-
-
-
   const calculateGridColumns = (start: Date, end: Date) => {
     const formattedStart = new Date(start);
     const formattedEnd = new Date(end);
@@ -73,7 +69,7 @@ function YearTimeline({ range, funnels }) {
               const style =
                 platformStyles.find((style) => style.name === platformName) ||
                 platformStyles[
-                Math.floor(Math.random() * platformStyles.length)
+                  Math.floor(Math.random() * platformStyles.length)
                 ];
               platforms.push({
                 platform_name: platformName,
@@ -126,20 +122,18 @@ function YearTimeline({ range, funnels }) {
   };
 
   return (
-    <div>
+    <div className="h-full">
       <div
         className="sticky top-0 z-10 bg-transparent border-b mb-0 border-l"
         style={{
           display: "grid",
           gridTemplateColumns: generateGridColumns(),
           gap: "0px",
-        }}
-      >
+        }}>
         {generateYearMonths().map((monthLabel, index) => (
           <div
             key={index}
-            className="text-center text-sm font-medium py-2 border-r border-gray-200"
-          >
+            className="text-center text-sm font-medium py-2 border-r border-gray-200">
             <p className="text-blue-500">{monthLabel?.split(" ")[0]}</p>
             <p>{monthLabel?.split(" ")[1]}</p>
           </div>
@@ -150,8 +144,7 @@ function YearTimeline({ range, funnels }) {
         style={{
           backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
           backgroundSize: `calc(${calcDailyWidth()}px) 100%`,
-        }}
-      >
+        }}>
         {funnels?.map(
           (
             { label, budget, stages, endMonth, startMonth, startDate, endDate },
@@ -163,63 +156,67 @@ function YearTimeline({ range, funnels }) {
               endDate
             );
 
-
-
-
-
             return (
               <div
                 key={index}
                 style={{
                   display: "grid",
-                  gridTemplateColumns: `repeat(${generateYearMonths()?.length
-                    }, ${calcDailyWidth()}px)`,
-                }}
-              >
+                  gridTemplateColumns: `repeat(${
+                    generateYearMonths()?.length
+                  }, ${calcDailyWidth()}px)`,
+                }}>
                 <div
                   className="flex flex-col bg-white border border-[rgba(0,0,0,0.1)] mt-6 shadow-sm rounded-[10px] overflow-hidden min-w-0"
                   style={{
                     gridColumnStart: gridStartColumn,
                     gridColumnEnd: gridEndColumn,
-                    maxHeight: expanded[index] ? '500px' : 'auto',
-                    width: '100%',
-                    maxWidth: '100%',
+                    maxHeight: expanded[index] ? "500px" : "auto",
+                    width: "100%",
+                    maxWidth: "100%",
                     minWidth: 0, // allow card to shrink to column width
-                  }}
-                >
+                  }}>
                   <div
                     onClick={() => toggleShow(index)}
-                    className={`cursor-pointer ${expanded[index]
-                      ? 'border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] flex items-center justify-between gap-2 p-4 bg-[#F9FAFB]'
-                      : 'flex items-center justify-between gap-2 p-4'
-                      }`}
-                  >
+                    className={`cursor-pointer ${
+                      expanded[index]
+                        ? "border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] flex items-center justify-between gap-2 p-4 bg-[#F9FAFB]"
+                        : "flex items-center justify-between gap-2 p-4"
+                    }`}>
                     {/* text container */}
                     <div className="flex-1 min-w-0" title={label}>
                       <h3
                         className="text-[#061237] font-semibold text-[16px] leading-5 overflow-hidden"
                         style={{
-                          display: '-webkit-box',
+                          display: "-webkit-box",
                           WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
+                          WebkitBoxOrient: "vertical",
                         }}
-                        title={label}
-                      >
+                        title={label}>
                         {label}
                       </h3>
-                      <p className="text-[#061237] font-medium text-[14px] truncate" title={budget}>
-                        {budget?.startsWith('null') || budget?.startsWith('undefined')
+                      <p
+                        className="text-[#061237] font-medium text-[14px] truncate"
+                        title={budget}>
+                        {budget?.startsWith("null") ||
+                        budget?.startsWith("undefined")
                           ? 0
-                          : `${Number(budget.replace(/[^\d.-]/g, '')).toLocaleString()} ${budget.replace(/[\d\s.,-]/g, '').trim()}`}
+                          : `${Number(
+                              budget.replace(/[^\d.-]/g, "")
+                            ).toLocaleString()} ${budget
+                              .replace(/[\d\s.,-]/g, "")
+                              .trim()}`}
                       </p>
                     </div>
 
                     {/* chevron */}
                     <button
                       onClick={() => toggleShow(index)}
-                      className="flex-shrink-0 text-[#061237] hover:text-[#0d1b47] transition-colors"
-                    >
-                      {expanded[index] ? <FiChevronUp size={20} /> : <FiChevronDown size={20} />}
+                      className="flex-shrink-0 text-[#061237] hover:text-[#0d1b47] transition-colors">
+                      {expanded[index] ? (
+                        <FiChevronUp size={20} />
+                      ) : (
+                        <FiChevronDown size={20} />
+                      )}
                     </button>
                   </div>
 
@@ -232,48 +229,49 @@ function YearTimeline({ range, funnels }) {
                         );
 
                         return (
-                          <div
-                            key={section?.name}
-                            className="space-y-2"
-                          >
+                          <div key={section?.name} className="space-y-2">
                             <div
                               onClick={() => toggleOpen(index, section?.name)}
-                              className={`w-full flex items-center justify-between rounded-[8px] text-[13px] font-[500] p-2 cursor-pointer hover:shadow-sm transition-shadow min-w-0 ${section?.name === "Awareness"
-                                ? "bg-[#3175FF]"
-                                : section?.name === "Consideration"
+                              className={`w-full flex items-center justify-between rounded-[8px] text-[13px] font-[500] p-2 cursor-pointer hover:shadow-sm transition-shadow min-w-0 ${
+                                section?.name === "Awareness"
+                                  ? "bg-[#3175FF]"
+                                  : section?.name === "Consideration"
                                   ? "bg-[#34A853]"
                                   : section?.name === "Conversion"
-                                    ? "bg-[#ff9037]"
-                                    : "bg-[#F05406]"
-                                } text-white`}
-                            >
-                              <div className="flex items-center gap-1 min-w-0 flex-1" title={section?.name}>
+                                  ? "bg-[#ff9037]"
+                                  : "bg-[#F05406]"
+                              } text-white`}>
+                              <div
+                                className="flex items-center gap-1 min-w-0 flex-1"
+                                title={section?.name}>
                                 <span
                                   className="font-semibold text-sm overflow-hidden min-w-0"
                                   style={{
-                                    display: '-webkit-box',
+                                    display: "-webkit-box",
                                     WebkitLineClamp: 2,
-                                    WebkitBoxOrient: 'vertical',
+                                    WebkitBoxOrient: "vertical",
                                   }}
-                                  title={section?.name}
-                                >
+                                  title={section?.name}>
                                   {section?.name}
                                 </span>
                                 <span
-                                  className={`transition-transform duration-200 flex-shrink-0 ${openSections[`${index}-${section?.name}`] ? 'rotate-180' : ''}`}
-                                >
+                                  className={`transition-transform duration-200 flex-shrink-0 ${
+                                    openSections[`${index}-${section?.name}`]
+                                      ? "rotate-180"
+                                      : ""
+                                  }`}>
                                   <FiChevronDown size={12} />
                                 </span>
                               </div>
                               <div className="text-xs opacity-90 flex-shrink-0 ml-2">
                                 {section?.budget?.startsWith("null") ||
-                                  section?.budget?.startsWith("undefined")
+                                section?.budget?.startsWith("undefined")
                                   ? 0
                                   : `${Number(
-                                    section?.budget.replace(/[^\d.-]/g, "")
-                                  ).toLocaleString()} ${section?.budget
-                                    .replace(/[\d\s.,-]/g, "")
-                                    .trim()}`}
+                                      section?.budget.replace(/[^\d.-]/g, "")
+                                    ).toLocaleString()} ${section?.budget
+                                      .replace(/[\d\s.,-]/g, "")
+                                      .trim()}`}
                               </div>
                             </div>
 
@@ -287,14 +285,12 @@ function YearTimeline({ range, funnels }) {
                                     ({ platform_name, icon, amount, bg }) => (
                                       <div
                                         key={platform_name}
-                                        className="hover:scale-[1.02] transition-transform duration-200"
-                                      >
+                                        className="hover:scale-[1.02] transition-transform duration-200">
                                         <div
                                           className={`py-1.5 px-2 text-[12px] font-[500] border w-full rounded-[6px] flex items-center justify-between shadow-sm min-w-0`}
                                           style={{
-                                            backgroundColor: bg || '#f8f9fa',
-                                          }}
-                                        >
+                                            backgroundColor: bg || "#f8f9fa",
+                                          }}>
                                           <div className="flex items-center gap-1.5 min-w-0 flex-1">
                                             <Image
                                               src={icon}
@@ -306,17 +302,16 @@ function YearTimeline({ range, funnels }) {
                                             <span
                                               className="font-medium text-gray-700 text-xs overflow-hidden min-w-0"
                                               style={{
-                                                display: '-webkit-box',
+                                                display: "-webkit-box",
                                                 WebkitLineClamp: 2,
-                                                WebkitBoxOrient: 'vertical',
+                                                WebkitBoxOrient: "vertical",
                                               }}
-                                              title={platform_name}
-                                            >
+                                              title={platform_name}>
                                               {platform_name}
                                             </span>
                                           </div>
                                           <div className="text-xs font-semibold text-gray-600 flex-shrink-0 ml-1">
-                                            {amount?.toLocaleString() || '0'}
+                                            {amount?.toLocaleString() || "0"}
                                           </div>
                                         </div>
                                       </div>
