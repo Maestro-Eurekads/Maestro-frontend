@@ -391,15 +391,15 @@ const ResizableChannels = ({
       const endGridIndexRaw = Math.floor((endPixel - 1) / stepWidth);
       const endGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, endGridIndexRaw));
 
-      // console.log("Date conversion tooltip FIXED:", {
-      //   startPixel,
-      //   endPixel,
-      //   parentWidth,
-      //   numberOfGridColumns,
-      //   stepWidth,
-      //   startGridIndex,
-      //   endGridIndex
-      // });
+      console.log("Date conversion tooltip FIXED:", {
+        startPixel,
+        endPixel,
+        parentWidth,
+        numberOfGridColumns,
+        stepWidth,
+        startGridIndex,
+        endGridIndex
+      });
 
       startDateValue = dateList[startGridIndex] || startDate;
       endDateValue = dateList[endGridIndex] || endDate;
@@ -445,6 +445,7 @@ const ResizableChannels = ({
       formattedDateRange = `${formattedStartDate} - ${formattedEndDate}`;
     } else {
       // For other views, show specific dates
+      console.log({startDateValue, endDateValue})
       const formattedStartDate = format(startDateValue, "MMM dd");
       const formattedEndDate = format(endDateValue, "MMM dd");
       formattedDateRange = `${formattedStartDate} - ${formattedEndDate}`;
