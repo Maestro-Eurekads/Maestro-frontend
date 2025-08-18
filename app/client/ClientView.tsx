@@ -107,6 +107,7 @@ const ClientView = () => {
     if (selected) {
       getActiveCampaign(selected);
     }
+    
   }, [selected]);
 
   useEffect(() => {

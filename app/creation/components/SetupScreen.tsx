@@ -110,9 +110,7 @@ export const SetupScreen = () => {
       try {
         const parsed = JSON.parse(cached);
         setFC(parsed);
-      } catch (err) {
-        console.error("Failed to parse FC from localStorage", err);
-      }
+      } catch (err) {}
     }
   }, []);
 

@@ -25,8 +25,9 @@ const ClientAddAsInternalcomment = ({ position, setShow, campaign }) => {
     setComment,
     updatePosition,
     deleteSignedApproval,
+    selected,
   } = useComments();
-  const { campaignData, jwt } = useCampaigns();
+  const { campaignData, jwt, getActiveCampaign } = useCampaigns();
   const [alert, setAlert] = useState(null);
   const { loggedInUser } = useUserPrivileges();
   const addcomment_as = "";
@@ -115,6 +116,7 @@ const ClientAddAsInternalcomment = ({ position, setShow, campaign }) => {
       }
 
       await updatePosition(commentId, position);
+      getActiveCampaign(selected);
       setComment("");
     } catch (error) {
       if (

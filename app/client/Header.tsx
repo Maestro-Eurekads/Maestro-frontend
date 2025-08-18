@@ -31,6 +31,7 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
   const id = session?.user?.id;
   const isdocumentId = campaignData?.documentId;
   const [show, setShow] = useState(false);
+  const [isClientChangesNeeded, setIsClientChangesNeeded] = useState(false);
   const [showClientChangesModal, setShowClientChangesModal] = useState(false);
 
   useEffect(() => {
@@ -61,15 +62,21 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
 
   const isSignature = dataApprove?.[0]?.isSignature || false;
 
-  // Check campaign status with useMemo to ensure proper updates
-  const campaignStatus = useMemo(
-    () => campaignData?.isStatus?.stage,
-    [campaignData?.isStatus?.stage]
+  console.log(
+    "campaignData?.isStatus?.stage----",
+    campaignData?.isStatus?.stage
   );
-  const isClientChangesNeeded = useMemo(
-    () => campaignStatus === "client_changes_needed",
-    [campaignStatus]
-  );
+
+  useEffect(() => {
+    if (
+      campaignData?.isStatus?.stage === "client_changes_needed" ||
+      campaignData?.isStatus?.stage === "in_internal_review"
+    ) {
+      setIsClientChangesNeeded(true);
+    } else {
+      setIsClientChangesNeeded(false);
+    }
+  }, [campaignData?.isStatus?.stage]);
 
   // Check if user has any assigned campaigns
   const hasCampaigns = campaigns && `campaigns`?.length > 0;
@@ -107,7 +114,7 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
 
       <div className="flex items-center justify-between gap-8">
         <div>
-          {isLoadingApprove ? (
+          {isLoadingApprove || loading ? (
             <Skeleton height={20} width={200} />
           ) : (
             hasCampaigns && (

@@ -36,6 +36,7 @@ const Dropdown = ({
         getCreateClient({
           userId: !isAdmin ? session?.user?.data?.user?.id : null,
           jwt,
+          agencyId: !isAdmin ? session?.user?.data?.user?.agencyId : null,
         })
       );
     }
