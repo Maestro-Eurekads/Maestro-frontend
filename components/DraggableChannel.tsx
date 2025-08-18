@@ -954,7 +954,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         <div />
 
         {/* Main content */}
-        <div className="flex justify-center items-center gap-5 w-full">
+        <div className={`flex justify-center items-center w-full ${disableDrag && parentWidth <=350  && rangeType  === "Year" ? "flex-col gap-1" : "flex-row gap-5"}`}>
           <button
             className="flex justify-center items-center gap-5 w-full"
             onClick={() => {
