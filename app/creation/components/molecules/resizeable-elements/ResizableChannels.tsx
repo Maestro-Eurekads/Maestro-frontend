@@ -1576,7 +1576,7 @@ const ResizableChannels = ({
                   disableDrag
                     ? "justify-between min-w-[50px]"
                     : "justify-center cursor-move"
-                }  items-center text-white py-[10px] px-4 gap-2 border shadow-md overflow-x-hidden ${
+                }  items-center text-white py-[10px] px-2 gap-2 border shadow-md overflow-x-hidden ${
                   rrange === "Year" ? "flex-col" : "flex-row"
                 }`}
                 style={{
