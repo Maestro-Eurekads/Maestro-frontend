@@ -176,7 +176,7 @@ const OldResizableElement = ({
               let style = platformStyles.find(
                 (style) => style.name === platform.platform_name
               );
-              
+
               // If no exact match, use deterministic fallback based on platform name
               if (!style) {
                 const hash = platform.platform_name.split("").reduce((a, b) => {
@@ -186,7 +186,7 @@ const OldResizableElement = ({
                 const index = Math.abs(hash) % platformStyles.length;
                 style = platformStyles[index];
               }
-              
+
               platformsByStage[funnel_stage].push({
                 name: platform.platform_name,
                 icon,
@@ -755,7 +755,9 @@ const OldResizableElement = ({
                   color={stage?.color}
                   description={stage?.name}
                   setIsOpen={setIsOpen}
-                  setOpenChannel={() => toggleChannel(stage?.name)}
+                  setOpenChannel={(open: boolean) =>
+                    setOpenChannels((prev) => ({ ...prev, [stage.name]: open }))
+                  }
                   Icon={stage?.activeIcon}
                   dateList={range}
                   dragConstraints={gridRef}
@@ -775,6 +777,7 @@ const OldResizableElement = ({
                   endDay={funnelData?.endDay}
                   endWeek={funnelData?.endWeek}
                   dailyWidth={getDailyWidth()}
+                  rangeType={rrange}
                 />
 
                 {isOpen && (

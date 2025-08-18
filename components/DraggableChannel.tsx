@@ -175,7 +175,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         Math.max(0, Math.floor(pixel / actualStepWidth))
       );
 
-      if (pixel >= containerWidth - (containerWidth / numberOfMonths / 2)) {
+      if (pixel >= containerWidth - containerWidth / numberOfMonths / 2) {
         monthIndex = numberOfMonths; // December (month 11)
       }
 
@@ -206,68 +206,34 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         return new Date(year, monthIndex, 1);
       }
     } else if (rangeType === "Month") {
-      // Month view - calculate specific days within months for smooth dragging
-      const uniqueMonths = new Set();
-      dateList?.forEach((date) => {
-        uniqueMonths.add(format(date, "yyyy-MM"));
-      });
-      const numberOfMonths = uniqueMonths.size;
-      const stepWidth = containerWidth / numberOfMonths;
+      // Month view - map by day (dateList) not by month
+      const numDays = dateList.length;
+      const dayWidth = containerWidth / numDays;
 
-      // Calculate which month we're in and the position within that month
-      const monthIndex = Math.floor(pixel / stepWidth);
-      const positionWithinMonth = (pixel % stepWidth) / stepWidth; // 0 to 1
+      const isEnd = fieldName === "endDate";
+      // clamp pixel into [0, containerWidth-1] and use -1 for end to keep it inclusive
+      const p = Math.max(
+        0,
+        Math.min(containerWidth - 1, isEnd ? pixel - 1 : pixel)
+      );
 
-      console.log("DraggableChannel pixelToDate Month debug:", {
-        pixel,
-        containerWidth,
-        numberOfMonths,
-        stepWidth,
-        monthIndex,
-        positionWithinMonth,
-        fieldName,
-      });
+      const dayIndex = Math.max(
+        0,
+        Math.min(
+          numDays - 1,
+          fieldName === "endDate"
+            ? Math.floor(p / dayWidth)
+            : Math.round(p / dayWidth)
+        )
+      );
 
-      // Get the month dates sorted
-      const monthDates = Array.from(uniqueMonths)
-        .map((monthStr: string) => {
-          const [year, month] = monthStr.split("-");
-          return new Date(parseInt(year), parseInt(month) - 1, 1);
-        })
-        .sort((a, b) => a.getTime() - b.getTime());
-
-      const targetMonth = monthDates[Math.min(monthIndex, numberOfMonths - 1)];
-      if (targetMonth) {
-        // Calculate the number of days in the target month
-        const daysInMonth = new Date(
-          targetMonth.getFullYear(),
-          targetMonth.getMonth() + 1,
-          0
-        ).getDate();
-
-        // Calculate the specific day within the month based on position
-        const dayInMonth = Math.max(
-          1,
-          Math.min(daysInMonth, Math.round(positionWithinMonth * daysInMonth))
-        );
-
-        if (fieldName === "endDate") {
-          // For end date, ensure we don't go beyond the month
-          return new Date(
-            targetMonth.getFullYear(),
-            targetMonth.getMonth(),
-            dayInMonth
-          );
-        } else {
-          // For start date, use the calculated day
-          return new Date(
-            targetMonth.getFullYear(),
-            targetMonth.getMonth(),
-            dayInMonth
-          );
-        }
-      }
-      return dateList[0];
+      console.log(
+        "This is the dayIndex, fieldName",
+        dayIndex,
+        dateList[dayIndex],
+        fieldName
+      );
+      return dateList[dayIndex] || dateList[0];
     } else {
       // Day, Week view - consistent grid-based calculation
       const numberOfGridColumns = dateList.length;
@@ -410,7 +376,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         Math.max(0, Math.floor((endPixel / containerWidth) * numberOfMonths))
       );
 
-      if (endPixel >= containerWidth - (containerWidth / numberOfMonths / 2)) {
+      if (endPixel >= containerWidth - containerWidth / numberOfMonths / 2) {
         monthEndIndex = numberOfMonths; // December (month 11)
       }
 
@@ -436,9 +402,23 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       const numberOfGridColumns = dateList.length;
       const stepWidth = containerWidth / numberOfGridColumns;
 
+      console.log(
+        "This is the stepWidth",
+        stepWidth,
+        numberOfGridColumns,
+        startPixel,
+        endPixel
+      );
+
       const startGridIndex = Math.max(
         0,
-        Math.min(numberOfGridColumns - 1, Math.floor(startPixel / stepWidth))
+        Math.min(numberOfGridColumns - 1, Math.round(startPixel / stepWidth))
+      );
+
+      console.log(
+        "This is the startGridIndex",
+        startGridIndex,
+        dateList[startGridIndex]
       );
       const endGridIndexRaw = Math.floor((endPixel - 1) / stepWidth);
       const endGridIndex = Math.max(
@@ -449,6 +429,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       console.log("DraggableChannel Month view date conversion debug:", {
         startPixel,
         endPixel,
+        stepWidth,
         containerWidth,
         numberOfGridColumns,
         startGridIndex,
@@ -459,6 +440,13 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       startDateValue = dateList[startGridIndex] || dateList[0];
       endDateValue =
         dateList[endGridIndex] || dateList[numberOfGridColumns - 1];
+
+      console.log(
+        "This is the startDateValue and endDateValue",
+        startDateValue,
+        endDateValue,
+        dateList
+      );
     } else {
       // Day, Week view - use same logic as ResizableChannels
       const numberOfGridColumns = dateList.length;
@@ -658,12 +646,8 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         if (rangeType === "Year") {
           const monthWidth = dailyWidth || containerWidth / 12;
           return Math.max(monthWidth, 100); // Increased minimum for Year view
-        } else if (rangeType === "Month") {
-          // For month view, use day-level precision for smooth dragging
-          const dayWidth = dailyWidth || containerWidth / dateList.length;
-          return Math.max(dayWidth, 50); // Standard minimum for day-level dragging
-        }
-        return 50; // Standard minimum for other views
+        } 
+        return rangeType === "Month" ? 5 : 50; // Standard minimum for other views
       };
 
       const minWidth = getMinWidth();
@@ -809,6 +793,12 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         updatedChannelMix.funnel_stage_timeline_end_date =
           moment(endDate).format("YYYY-MM-DD");
 
+        console.log(
+          "This is the updatedChannelMix",
+          updatedChannelMix.funnel_stage_timeline_start_date,
+          updatedChannelMix.funnel_stage_timeline_end_date
+        );
+
         const mediaTypes = [
           "social_media",
           "display_networks",
@@ -885,9 +875,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         disableDrag ? "h-auto" : "h-14"
       } flex select-none rounded-[10px] cont-${id?.replaceAll(" ", "_")}`}
       style={{
-        transform: `translateX(${
-          position + (rangeType === "Month" ? 4 : 0)
-        }px)`,
+        transform: `translateX(${position}px)`,
       }}
     >
       {tooltip.visible && (
@@ -925,31 +913,17 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         onMouseDown={disableDrag || openItems ? undefined : handleMouseDownDrag}
       >
         {/* Left resize handle */}
-        {rangeType === "Month" ? (
-          <div
-            className={`absolute left-0 w-5 h-1/2 bg-opacity-80 ${
-              disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
-            } rounded-l-lg text-white flex items-center justify-center z-50`}
-            onMouseDown={(e) => {
-              if (disableDrag) return;
-              handleMouseDownResize(e, "left");
-            }}
-          >
-            <MdDragHandle className="rotate-90" />
-          </div>
-        ) : (
-          <div
-            className={`absolute left-0 w-5 h-full bg-opacity-80 bg-black ${
-              disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
-            } rounded-l-lg text-white flex items-center justify-center z-50`}
-            onMouseDown={(e) => {
-              if (disableDrag) return;
-              handleMouseDownResize(e, "left");
-            }}
-          >
-            <MdDragHandle className="rotate-90" />
-          </div>
-        )}
+        <div
+          className={`absolute left-0 w-5 h-full bg-opacity-80 bg-black ${
+            disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
+          } rounded-l-lg text-white flex items-center justify-center z-50`}
+          onMouseDown={(e) => {
+            if (disableDrag) return;
+            handleMouseDownResize(e, "left");
+          }}
+        >
+          <MdDragHandle className="rotate-90" />
+        </div>
 
         <div />
 
@@ -1005,31 +979,17 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         </div>
 
         {/* Right resize handle */}
-        {rangeType === "Month" ? (
-          <div
-            className={`absolute right-0 w-5 h-1/2 bg-opacity-80 ${
-              disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
-            } rounded-r-lg text-white flex items-center justify-center`}
-            onMouseDown={(e) => {
-              if (disableDrag || openItems) return;
-              handleMouseDownResize(e, "right");
-            }}
-          >
-            <MdDragHandle className="rotate-90" />
-          </div>
-        ) : (
-          <div
-            className={`absolute right-0 w-5 h-full bg-opacity-80 bg-black ${
-              disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
-            } rounded-r-lg text-white flex items-center justify-center`}
-            onMouseDown={(e) => {
-              if (disableDrag || openItems) return;
-              handleMouseDownResize(e, "right");
-            }}
-          >
-            <MdDragHandle className="rotate-90" />
-          </div>
-        )}
+        <div
+          className={`absolute right-0 w-5 h-full bg-opacity-80 bg-black ${
+            disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
+          } rounded-r-lg text-white flex items-center justify-center`}
+          onMouseDown={(e) => {
+            if (disableDrag || openItems) return;
+            handleMouseDownResize(e, "right");
+          }}
+        >
+          <MdDragHandle className="rotate-90" />
+        </div>
       </div>
     </div>
   );
