@@ -415,17 +415,17 @@ const ResizeableElements = ({
 
       // FIXED: Use the same coordinate system as day view - month by month grid
       const monthWidth = getDailyWidth("Year");
-      
+
       // Calculate position based on month index (0-11) - same as day view logic
       // Use the actual month index from the date, but ensure it's within 0-11 range
       const startMonth = Math.min(11, Math.max(0, startDate.getMonth()));
       const position = startMonth * monthWidth;
-      
+
       // Calculate width based on number of months spanned
       const endMonth = Math.min(11, Math.max(0, endDate.getMonth()));
       const monthsSpanned = Math.max(1, endMonth - startMonth + 1);
       const width = monthsSpanned * monthWidth;
-      
+
       // Keep the spans for debugging if needed
       const monthSpans = calculatePhaseMonthSpans(startDate, endDate);
 
@@ -460,23 +460,33 @@ const ResizeableElements = ({
         if (rrange === "Year" && stageStartDate && stageEndDate) {
           // FIXED: Use the same coordinate system as day view - month by month grid
           const monthWidth = getDailyWidth("Year"); // This is the width per month
-          
-        
+
           // Calculate position based on month index (0-11) - same as day view logic
           // Use the actual month index from the date, but ensure it's within 0-11 range
-          const startMonth = Math.min(11, Math.max(0, stageStartDate.getMonth()));
+          const startMonth = Math.min(
+            11,
+            Math.max(0, stageStartDate.getMonth())
+          );
           const position = startMonth * monthWidth;
-          
+
           // Calculate width based on number of months spanned
           const endMonth = Math.min(11, Math.max(0, stageEndDate.getMonth()));
           const monthsSpanned = Math.max(1, endMonth - startMonth + 1);
           const width = monthsSpanned * monthWidth;
 
-          console.log("monthWidth", stageStartDate, stageEndDate, endMonth, startMonth, monthsSpanned, width);
-          
+          console.log(
+            "monthWidth",
+            stageStartDate,
+            stageEndDate,
+            endMonth,
+            startMonth,
+            monthsSpanned,
+            width
+          );
+
           initialPositions[stageName] = position;
           initialWidths[stageName] = width;
-          
+
           console.log("Year view position calculation:", {
             stageName,
             stageStartDate: stageStartDate.toISOString().split("T")[0],
@@ -742,7 +752,9 @@ const ResizeableElements = ({
                   color={stage?.color}
                   description={stage?.name}
                   setIsOpen={setIsOpen}
-                  setOpenChannel={() => toggleChannel(stage?.name)}
+                  setOpenChannel={(open: boolean) =>
+                    setOpenChannels((prev) => ({ ...prev, [stage.name]: open }))
+                  }
                   Icon={stage?.activeIcon}
                   dateList={range}
                   dragConstraints={gridRef}
