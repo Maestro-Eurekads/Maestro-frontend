@@ -263,19 +263,19 @@ const ResizableChannels = ({
     }
     
     // Debug logging
-    console.log("Snap Debug:", {
-      currentPosition,
-      containerWidth,
-      rrange,
-      numberOfGridColumns,
-      actualStepWidth,
-      dailyWidth, // Compare with actual step width
-      gridPositions: gridPositions.slice(0, 15), // Show first 15 for brevity
-      closestIndex,
-      closestPosition,
-      totalGridLines: gridPositions.length,
-      isFinalEdge: closestIndex === numberOfGridColumns
-    });
+    // console.log("Snap Debug:", {
+    //   currentPosition,
+    //   containerWidth,
+    //   rrange,
+    //   numberOfGridColumns,
+    //   actualStepWidth,
+    //   dailyWidth, // Compare with actual step width
+    //   gridPositions: gridPositions.slice(0, 15), // Show first 15 for brevity
+    //   closestIndex,
+    //   closestPosition,
+    //   totalGridLines: gridPositions.length,
+    //   isFinalEdge: closestIndex === numberOfGridColumns
+    // });
     
     // Ensure the position is within bounds
     return Math.max(0, Math.min(closestPosition, containerWidth));
@@ -325,16 +325,16 @@ const ResizableChannels = ({
           Math.max(0, Math.round((endPixel / parentWidth) * numberOfMonths) - 1)
         );
 
-        console.log("Year view date conversion debug:", {
-          startPixel,
-          endPixel,
-          parentWidth,
-          numberOfMonths,
-          monthStartIndex,
-          monthEndIndex,
-          startRatio: startPixel / parentWidth,
-          endRatio: endPixel / parentWidth
-        });
+        // console.log("Year view date conversion debug:", {
+        //   startPixel,
+        //   endPixel,
+        //   parentWidth,
+        //   numberOfMonths,
+        //   monthStartIndex,
+        //   monthEndIndex,
+        //   startRatio: startPixel / parentWidth,
+        //   endRatio: endPixel / parentWidth
+        // });
 
         const year = startDate?.getFullYear() || new Date().getFullYear();
         startDateValue = new Date(year, monthStartIndex, 1);
@@ -370,15 +370,15 @@ const ResizableChannels = ({
       const endGridIndexRaw = Math.floor((endPixel - 1) / stepWidth);
       const endGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, endGridIndexRaw));
 
-      console.log("Date conversion tooltip Month:", {
-        startPixel,
-        endPixel,
-        parentWidth,
-        numberOfGridColumns,
-        stepWidth,
-        startGridIndex,
-        endGridIndex
-      });
+      // console.log("Date conversion tooltip Month:", {
+      //   startPixel,
+      //   endPixel,
+      //   parentWidth,
+      //   numberOfGridColumns,
+      //   stepWidth,
+      //   startGridIndex,
+      //   endGridIndex
+      // });
 
       startDateValue = dateList[startGridIndex] || startDate;
       endDateValue = dateList[endGridIndex] || endDate;
@@ -391,15 +391,15 @@ const ResizableChannels = ({
       const endGridIndexRaw = Math.floor((endPixel - 1) / stepWidth);
       const endGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, endGridIndexRaw));
 
-      console.log("Date conversion tooltip FIXED:", {
-        startPixel,
-        endPixel,
-        parentWidth,
-        numberOfGridColumns,
-        stepWidth,
-        startGridIndex,
-        endGridIndex
-      });
+      // console.log("Date conversion tooltip FIXED:", {
+      //   startPixel,
+      //   endPixel,
+      //   parentWidth,
+      //   numberOfGridColumns,
+      //   stepWidth,
+      //   startGridIndex,
+      //   endGridIndex
+      // });
 
       startDateValue = dateList[startGridIndex] || startDate;
       endDateValue = dateList[endGridIndex] || endDate;
@@ -408,16 +408,16 @@ const ResizableChannels = ({
     console.log({ startDateValue, endDateValue, type });
 
     // Debug the actual channel dates
-    console.log("Channel dates from backend:", {
-      channelStartDate: findChannel?.campaign_start_date,
-      channelEndDate: findChannel?.campaign_end_date,
-      calculatedStartDate: startDateValue,
-      calculatedEndDate: endDateValue,
-      startPixel,
-      endPixel,
-      parentWidth,
-      type,
-    });
+    // console.log("Channel dates from backend:", {
+    //   channelStartDate: findChannel?.campaign_start_date,
+    //   channelEndDate: findChannel?.campaign_end_date,
+    //   calculatedStartDate: startDateValue,
+    //   calculatedEndDate: endDateValue,
+    //   startPixel,
+    //   endPixel,
+    //   parentWidth,
+    //   type,
+    // });
 
     let formattedDateRange;
 
@@ -757,14 +757,14 @@ const ResizableChannels = ({
         Math.max(0, Math.floor(pixel / actualStepWidth))
       );
 
-      console.log("pixelToDate Year debug:", {
-        pixel,
-        containerWidth,
-        numberOfMonths,
-        actualStepWidth,
-        monthIndex,
-        fieldName
-      });
+      // console.log("pixelToDate Year debug:", {
+      //   pixel,
+      //   containerWidth,
+      //   numberOfMonths,
+      //   actualStepWidth,
+      //   monthIndex,
+      //   fieldName
+      // });
 
       const year = startDate?.getFullYear() || new Date().getFullYear();
 
@@ -796,15 +796,15 @@ const ResizableChannels = ({
         }
       }
 
-      console.log("pixelToDate Month debug:", {
-        pixel,
-        containerWidth,
-        numberOfGridColumns,
-        stepWidth,
-        gridIndex,
-        fieldName,
-        isAtEnd
-      });
+      // console.log("pixelToDate Month debug:", {
+      //   pixel,
+      //   containerWidth,
+      //   numberOfGridColumns,
+      //   stepWidth,
+      //   gridIndex,
+      //   fieldName,
+      //   isAtEnd
+      // });
 
       const dateToUse = (dRange?.[gridIndex] || dateList?.[gridIndex] || startDate);
       calculatedDate = new Date(dateToUse);
@@ -829,15 +829,15 @@ const ResizableChannels = ({
         }
       }
 
-      console.log("pixelToDate Day debug FIXED:", {
-        pixel,
-        containerWidth,
-        numberOfGridColumns,
-        stepWidth,
-        gridIndex,
-        fieldName,
-        isAtEnd
-      });
+      // console.log("pixelToDate Day debug FIXED:", {
+      //   pixel,
+      //   containerWidth,
+      //   numberOfGridColumns,
+      //   stepWidth,
+      //   gridIndex,
+      //   fieldName,
+      //   isAtEnd
+      // });
 
       const dateToUse = (dRange?.[gridIndex] || dateList?.[gridIndex] || startDate);
       calculatedDate = new Date(dateToUse);
@@ -1106,15 +1106,15 @@ const ResizableChannels = ({
       parentLeft !== undefined &&
       parentWidth !== undefined
     ) {
-      console.log("Recalculating channel positions:", {
-        parentLeft,
-        parentWidth,
-        rrange,
-        dailyWidth,
-        startDate,
-        endDate,
-        userIsInteracting,
-      });
+      // console.log("Recalculating channel positions:", {
+      //   parentLeft,
+      //   parentWidth,
+      //   rrange,
+      //   dailyWidth,
+      //   startDate,
+      //   endDate,
+      //   userIsInteracting,
+      // });
 
       setChannels(initialChannels);
       setChannelState((prev) => {
@@ -1281,13 +1281,13 @@ const ResizableChannels = ({
 
           const existingState = prev[index];
 
-          console.log(`Channel ${ch.name} calculated position:`, {
-            left,
-            width,
-            parentLeft,
-            parentWidth,
-            rrange,
-          });
+          // console.log(`Channel ${ch.name} calculated position:`, {
+          //   left,
+          //   width,
+          //   parentLeft,
+          //   parentWidth,
+          //   rrange,
+          // });
 
           return existingState
             ? {
@@ -1513,7 +1513,7 @@ const ResizableChannels = ({
         </button>
       )}
       {channels?.map((channel, index) => {
-        console.log(channel, "channel");
+        // console.log(channel, "channel");
         const getColumnIndex = (date) =>
           dateList?.findIndex((d) => d.toISOString().split("T")[0] === date);
 
@@ -1576,8 +1576,8 @@ const ResizableChannels = ({
                   disableDrag
                     ? "justify-between min-w-[50px]"
                     : "justify-center cursor-move"
-                }  items-center text-white py-[10px] px-2 gap-2 border shadow-md overflow-x-hidden ${
-                  rrange === "Year" ? "flex-col" : "flex-row"
+                }   text-white py-[10px] px-2 gap-2 border shadow-md overflow-x-hidden ${
+                  (parentWidth <= 350 ||  channelState[index]?.width <=350) ? "flex-col justify-center items-center" : "flex-row items-center"
                 }`}
                 style={{
                   left: `${channelState[index]?.left || parentLeft}px`,
@@ -1601,9 +1601,9 @@ const ResizableChannels = ({
                     alt={channel.icon}
                     width={20}
                     height={20}
-                    className={`${rrange === "Year" ? "hidden" : "block"}`}
+                    className={`${(parentWidth <= 350 ||  channelState[index]?.width <=350) ? "hidden" : "block"}`}
                   />
-                  <span className="font-medium whitespace-nowrap">
+                  <span className="font-medium whitespace-nowrap break-words text-wrap">
                     {channel.name}
                   </span>
                 </div>
@@ -1635,7 +1635,7 @@ const ResizableChannels = ({
                 )}
                 {disableDrag && (
                   <div
-                    className="rounded-[5px] px-[12px] font-medium bg-opacity-15 text-[15px]"
+                    className="rounded-[5px] px-[2px] font-medium bg-opacity-15 text-[15px]"
                     style={{
                       color: "#061237",
                     }}
