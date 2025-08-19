@@ -86,6 +86,7 @@ interface DraggableChannelProps {
   endWeek?: any;
   dailyWidth?: number;
   rangeType?: string; // Add range type prop
+  yearMonthsLength?: number;
 }
 
 interface TooltipState {
@@ -121,6 +122,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   endWeek,
   dailyWidth,
   rangeType,
+  yearMonthsLength,
 }) => {
   const { funnelWidths, setFunnelWidth } = useFunnelContext();
   const [position, setPosition] = useState(parentLeft || 0);
@@ -167,7 +169,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
     if (rangeType === "Year") {
       // Year view - consistent with ResizableChannels
-      const numberOfMonths = 12;
+      const numberOfMonths = yearMonthsLength;
       const actualStepWidth = containerWidth / numberOfMonths;
       // FIXED: Use Math.floor for consistent month calculation
       let monthIndex = Math.min(
@@ -284,7 +286,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
     if (rangeType === "Year") {
       // Year view - 12 months
-      numberOfGridColumns = 12;
+      numberOfGridColumns = yearMonthsLength;
     } else if (rangeType === "Month") {
       // Month view - use the full dateList for smooth day-level dragging
       numberOfGridColumns = dateList.length;
@@ -365,7 +367,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
     if (rangeType === "Year") {
       // Year view - consistent with ResizableChannels
-      const numberOfMonths = 12;
+      const numberOfMonths = yearMonthsLength;
       const monthStartIndex = Math.min(
         numberOfMonths - 1,
         Math.max(0, Math.floor((startPixel / containerWidth) * numberOfMonths))
@@ -611,7 +613,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       // Calculate minimum width based on view type
       const getMinWidth = () => {
         if (range === "Year") {
-          const monthWidth = dailyWidth || containerWidth / 12;
+          const monthWidth = dailyWidth || containerWidth / yearMonthsLength;
           return Math.max(monthWidth, 100); // Increased minimum for Year view
         }
         return 50; // Standard minimum for other views
@@ -644,7 +646,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       // Calculate minimum width based on view type
       const getMinWidth = () => {
         if (rangeType === "Year") {
-          const monthWidth = dailyWidth || containerWidth / 12;
+          const monthWidth = dailyWidth || containerWidth / yearMonthsLength;
           return Math.max(monthWidth, 100); // Increased minimum for Year view
         } 
         return rangeType === "Month" ? 5 : 50; // Standard minimum for other views

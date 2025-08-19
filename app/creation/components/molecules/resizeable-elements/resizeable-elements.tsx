@@ -364,12 +364,12 @@ const ResizeableElements = ({
   // Enhanced function to generate dynamic grid template columns for different views
   const generateGridColumns = useCallback(() => {
     const dailyWidth = dailyWidthByView[rrange] || 50;
-
+    const yearMonths = generateYearMonths().length;
     if (rrange === "Day" || rrange === "Week") {
       return `repeat(${funnelData?.endDay || 1}, ${dailyWidth}px)`;
     } else if (rrange === "Year") {
       // Year view - always 12 months grid
-      return `repeat(12, ${dailyWidth}px)`;
+      return `repeat(${yearMonths}, ${dailyWidth}px)`;
     } else if (rrange === "Month") {
       // Month view - use day-level precision for smooth positioning
       const numberOfDays = range?.length || 1;
@@ -461,16 +461,15 @@ const ResizeableElements = ({
           // FIXED: Use the same coordinate system as day view - month by month grid
           const monthWidth = getDailyWidth("Year"); // This is the width per month
 
-          // Calculate position based on month index (0-11) - same as day view logic
-          // Use the actual month index from the date, but ensure it's within 0-11 range
-          const startMonth = Math.min(
-            11,
-            Math.max(0, stageStartDate.getMonth())
-          );
+          // Calculate position based on dynamic month index across full range
+          const monthsList = generateYearMonths();
+          const startKey = format(stageStartDate, "MMMM yyyy");
+          const endKey = format(stageEndDate, "MMMM yyyy");
+          const startMonth = Math.max(0, monthsList.indexOf(startKey));
           const position = startMonth * monthWidth;
 
-          // Calculate width based on number of months spanned
-          const endMonth = Math.min(11, Math.max(0, stageEndDate.getMonth()));
+          // Calculate width based on number of months spanned using dynamic indices
+          const endMonth = Math.max(startMonth, monthsList.indexOf(endKey));
           const monthsSpanned = Math.max(1, endMonth - startMonth + 1);
           const width = monthsSpanned * monthWidth;
 
@@ -770,6 +769,7 @@ const ResizeableElements = ({
                   disableDrag={disableDrag}
                   openItems={openItems}
                   setOpenItems={setOpenItems}
+                  yearMonthsLength={generateYearMonths().length}
                   endMonth={funnelData?.endMonth}
                   endDay={funnelData?.endDay}
                   endWeek={funnelData?.endWeek}
