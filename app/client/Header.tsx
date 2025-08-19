@@ -33,6 +33,7 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
   const [show, setShow] = useState(false);
   const [isClientChangesNeeded, setIsClientChangesNeeded] = useState(false);
   const [showClientChangesModal, setShowClientChangesModal] = useState(false);
+  const [showDelayedButton, setShowDelayedButton] = useState(false);
 
   useEffect(() => {
     if (createApprovalSuccess) {
@@ -73,6 +74,24 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
     }
   }, [campaignData?.isStatus?.stage]);
 
+  // Only trigger delay if all conditions for showing the button are met
+  useEffect(() => {
+    if (
+      !isSignature &&
+      campaignData?.isStatus?.stage !== undefined &&
+      campaignData?.isStatus?.stage !== null &&
+      campaignData?.isStatus?.stage
+    ) {
+      setShowDelayedButton(false);
+      const timer = setTimeout(() => {
+        setShowDelayedButton(true);
+      }, 5000);
+      return () => clearTimeout(timer);
+    } else {
+      setShowDelayedButton(false);
+    }
+  }, [isSignature, campaignData?.isStatus?.stage]);
+
   // Check if user has any assigned campaigns
   const hasCampaigns = campaigns && `campaigns`?.length > 0;
 
@@ -108,50 +127,62 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
       </div>
 
       <div className="flex items-center justify-between gap-8">
-        <div>
-          {isLoadingApprove || loading ? (
-            <Skeleton height={20} width={200} />
-          ) : (
-            hasCampaigns && (
-              <div>
-                {isSignature ? (
-                  <button
-                    className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start flex items-center	gap-[10px]"
-                    style={{ border: "1px solid #3175FF" }}
-                    onClick={handleDrawerOpen}>
-                    <Image
-                      src={tickcircles}
-                      alt="tickcircle"
-                      className="w-[18px] "
-                    />
-                    Approved
-                  </button>
-                ) : (
-                  true && (
+        {dataApprove && !campaignData ? null : (
+          <div>
+            {isLoadingApprove || loading ? (
+              <Skeleton height={20} width={200} />
+            ) : (
+              hasCampaigns && (
+                <div>
+                  {isSignature ? (
                     <button
-                      className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start"
+                      className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start flex items-center	gap-[10px]"
                       style={{ border: "1px solid #3175FF" }}
-                      onClick={() => {
-                        if (campaignData) {
-                          if (isClientChangesNeeded) {
-                            setShowClientChangesModal(true);
-                          } else {
-                            setIsOpen(true);
-                          }
-                        } else {
-                          handleCheckCampaign();
-                        }
-                      }}>
-                      {isClientChangesNeeded
-                        ? "Client changes have been requested"
-                        : "Approve & Sign Media plan"}
+                      onClick={handleDrawerOpen}>
+                      <Image
+                        src={tickcircles}
+                        alt="tickcircle"
+                        className="w-[18px] "
+                      />
+                      Approved
                     </button>
-                  )
-                )}
-              </div>
-            )
-          )}
-        </div>
+                  ) : campaignData?.isStatus?.stage === undefined ||
+                    campaignData?.isStatus?.stage === null ||
+                    !campaignData?.isStatus?.stage ? null : (
+                    showDelayedButton && (
+                      <button
+                        className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start"
+                        style={{ border: "1px solid #3175FF" }}
+                        onClick={async () => {
+                          if (campaignData) {
+                            if (
+                              campaignData?.isStatus?.stage ===
+                                "client_changes_needed" ||
+                              campaignData?.isStatus?.stage ===
+                                "in_internal_review"
+                            ) {
+                              setShowClientChangesModal(true);
+                            } else {
+                              setIsOpen(true);
+                            }
+                          } else {
+                            handleCheckCampaign();
+                          }
+                        }}>
+                        {campaignData?.isStatus?.stage ===
+                          "client_changes_needed" ||
+                        campaignData?.isStatus?.stage === "in_internal_review"
+                          ? "Client changes have been requested"
+                          : "Approve & Sign Media plan"}
+                      </button>
+                    )
+                  )}
+                </div>
+              )
+            )}
+          </div>
+        )}
+
         <div
           className="profile_container relative"
           onClick={() => setShow((prev) => !prev)}>
