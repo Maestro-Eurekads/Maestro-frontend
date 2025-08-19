@@ -78,9 +78,9 @@ const ClientCommentReply = ({ documentId, contrastingColor }) => {
             </div>
 
             {/* Reply Content */}
-            <p className="w-full font-medium text-[16px] text-[#292929] py-3 px-4 rounded-md resize-none overflow-hidden focus:outline-none">
-              {reply?.message}
-            </p>
+            <div className="w-full font-medium text-[16px] text-[#292929] py-3 px-4 rounded-md max-h-[150px] overflow-y-auto">
+              <p className="whitespace-pre-wrap">{reply?.message}</p>
+            </div>
           </div>
         ))}
       </div>

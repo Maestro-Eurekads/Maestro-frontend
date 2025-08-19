@@ -123,10 +123,6 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
           localStorage.removeItem(key);
         }
       });
-
-      console.log(
-        "Cleared all campaign data from localStorage and sessionStorage"
-      );
     } catch (error) {
       console.error("Error clearing campaign data:", error);
     }
@@ -148,6 +144,93 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
     jwt,
     agencyId,
   } = useCampaigns();
+
+  // Enhanced change detection - monitor form data changes and step changes
+  useEffect(() => {
+    if (campaignFormData && Object.keys(campaignFormData).length > 0) {
+      // Check if there are actual changes in the form data
+      const hasChanges = checkForFormChanges();
+
+      // Update the global change state if there are form changes
+      if (hasChanges !== change) {
+        setChange(hasChanges);
+      }
+    }
+  }, [campaignFormData, active, change, setChange]);
+
+  // Function to check for actual form changes
+  const checkForFormChanges = () => {
+    if (!campaignFormData || Object.keys(campaignFormData).length === 0) {
+      return false;
+    }
+
+    // Check for key form fields that indicate changes
+    const keyFields = [
+      "media_plan",
+      "budget_details_currency",
+      "funnel_stages",
+      "custom_funnels",
+      "channel_mix",
+      "goal_level",
+      "ad_sets_granularity",
+      "campaign_timeline_start_date",
+      "campaign_timeline_end_date",
+      "internal_approver",
+      "client_approver",
+    ];
+
+    // Check if any key fields have been modified
+    for (const field of keyFields) {
+      if (
+        campaignFormData[field] && Array.isArray(campaignFormData[field])
+          ? campaignFormData[field].length > 0
+          : campaignFormData[field]
+      ) {
+        return true;
+      }
+    }
+
+    // Check for specific step-based changes
+    if (active > 0) {
+      // If user is on any step beyond step 0, there are likely unsaved changes
+      return true;
+    }
+
+    // Check for any non-empty form data that indicates user interaction
+    const hasAnyFormData = Object.values(campaignFormData).some((value) => {
+      if (Array.isArray(value)) {
+        return value.length > 0;
+      }
+      if (typeof value === "object" && value !== null) {
+        return Object.keys(value).length > 0;
+      }
+      return value && value !== "";
+    });
+
+    if (hasAnyFormData) {
+      return true;
+    }
+
+    return false;
+  };
+
+  // Monitor step changes to detect when user moves between steps
+  useEffect(() => {
+    if (active > 0) {
+      // If user is on any step beyond step 0, there are likely unsaved changes
+      setChange(true);
+    }
+  }, [active, setChange]);
+
+  // Monitor form data changes more comprehensively
+  useEffect(() => {
+    if (campaignFormData && Object.keys(campaignFormData).length > 0) {
+      // If we have form data and we're not on step 0, there are likely changes
+      if (active > 0) {
+        setChange(true);
+      }
+    }
+  }, [campaignFormData, active, setChange]);
 
   const handleSaveAllSteps = async () => {
     // Use the same validation logic as Bottom component handleContinue
@@ -422,7 +505,7 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
     }
   };
 
-  // Modified beforeunload to prevent default refresh when change is true
+  // Enhanced beforeunload to prevent default refresh when there are changes
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       if (change) {
@@ -443,8 +526,6 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
 
   // Handle "No" button to allow navigation without saving
   const handleNoClick = () => {
-    console.log("handleNoClick: Starting navigation without saving");
-
     // Clear all campaign data comprehensively
     clearAllCampaignData();
 
@@ -463,17 +544,12 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
     setActive(0);
     setSubStep(0);
 
-    console.log("handleNoClick: All state cleared, navigating to dashboard");
-
     // Hardcode navigation to dashboard
     router.push("/");
 
     // Fallback navigation in case router.push fails
     setTimeout(() => {
       if (window.location.pathname !== "/") {
-        console.log(
-          "handleNoClick: Router navigation failed, using window.location"
-        );
         window.location.href = "/";
       }
     }, 100);
@@ -513,6 +589,7 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
         </p>
         <div className="flex flex-col gap-3">
           <button
+            disabled={loading}
             className="btn_model_active w-full"
             onClick={handleSaveAllSteps}>
             {loading ? (
@@ -521,10 +598,14 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
               "Save & Continue"
             )}
           </button>
-          <button className="btn_model_outline w-full" onClick={handleNoClick}>
+          <button
+            disabled={loading}
+            className="btn_model_outline w-full"
+            onClick={handleNoClick}>
             Leave Without Saving
           </button>
           <button
+            disabled={loading}
             className="btn_model_outline w-full"
             onClick={handleStayOnPage}>
             Stay on This Page

@@ -26,13 +26,10 @@ const DefineAdSet = () => {
           const mostRecentKey = granularityKeys[granularityKeys.length - 1];
           const granularity = localStorage.getItem(mostRecentKey);
           if (granularity === "adset" || granularity === "channel") {
-            console.log("Initializing view from localStorage:", granularity);
             return granularity;
           }
         }
-      } catch (error) {
-        console.error("Error reading granularity from localStorage:", error);
-      }
+      } catch (error) {}
     }
 
     // Default to channel if no stored selection
@@ -51,9 +48,6 @@ const DefineAdSet = () => {
       const handleStorageChange = () => {
         // Prevent infinite loop - don't update if we're already updating
         if (isUpdatingView.current) {
-          console.log(
-            "Skipping storage change handler - already updating view"
-          );
           return;
         }
 
@@ -66,10 +60,6 @@ const DefineAdSet = () => {
             const mostRecentKey = granularityKeys[granularityKeys.length - 1];
             const granularity = localStorage.getItem(mostRecentKey);
             if (granularity === "adset" || granularity === "channel") {
-              console.log(
-                "Storage change detected, updating view to:",
-                granularity
-              );
               isUpdatingView.current = true;
               setView(granularity);
               // Reset the flag after a short delay
@@ -78,9 +68,7 @@ const DefineAdSet = () => {
               }, 100);
             }
           }
-        } catch (error) {
-          console.error("Error handling storage change:", error);
-        }
+        } catch (error) {}
       };
 
       // Listen for storage changes
@@ -106,7 +94,6 @@ const DefineAdSet = () => {
   }, []);
 
   const handleToggleChange = (newView: "channel" | "adset") => {
-    console.log("DefineAdSet handleToggleChange called with:", newView);
     isUpdatingView.current = true;
     setView(newView);
     // Reset the flag after a short delay

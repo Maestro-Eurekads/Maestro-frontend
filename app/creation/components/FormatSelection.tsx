@@ -80,13 +80,25 @@ type QuantitiesType = {
 // Helper functions
 const getLocalStorageItem = (key: string, defaultValue: any = null) => {
   if (typeof window === "undefined") return defaultValue;
-  const item = localStorage.getItem(key);
+
+  // Get campaign ID from URL or use default
+  const urlParams = new URLSearchParams(window.location.search);
+  const campaignId = urlParams.get("campaignId") || "default";
+  const storageKey = `${campaignId}_${key}`;
+
+  const item = localStorage.getItem(storageKey);
   return item ? JSON.parse(item) : defaultValue;
 };
 
 const setLocalStorageItem = (key: string, value: any) => {
   if (typeof window === "undefined") return;
-  localStorage.setItem(key, JSON.stringify(value));
+
+  // Get campaign ID from URL or use default
+  const urlParams = new URLSearchParams(window.location.search);
+  const campaignId = urlParams.get("campaignId") || "default";
+  const storageKey = `${campaignId}_${key}`;
+
+  localStorage.setItem(storageKey, JSON.stringify(value));
 };
 
 // Helper function to format audience display name like in ad-set-flow
@@ -112,7 +124,7 @@ const CreativesModal = ({
   view: "channel" | "adset";
 }) => {
   if (!isOpen) return null;
-
+  const { change, setChange, showModal, setShowModal } = useActive();
   const stage = campaignFormData?.channel_mix?.find(
     (chan: any) => chan?.funnel_stage === stageName
   );
@@ -148,9 +160,7 @@ const CreativesModal = ({
     const handleVideoClick = useCallback(() => {
       if (videoRef.current) {
         if (videoRef.current.paused) {
-          videoRef.current.play().catch((error) => {
-            console.error("Error playing video:", error);
-          });
+          videoRef.current.play().catch((error) => {});
         } else {
           videoRef.current.pause();
         }
@@ -424,10 +434,6 @@ const MediaOption = ({
 
   useEffect(() => {
     if (!STRAPI_URL || !STRAPI_TOKEN) {
-      console.error("Missing Strapi configuration:", {
-        STRAPI_URL,
-        STRAPI_TOKEN,
-      });
       toast.error("Server configuration error. Please contact support.");
       return;
     }
@@ -636,6 +642,7 @@ const MediaSelectionGrid = ({
   onDeletePreview,
   completedDeletions,
   isFormatLoading,
+  setChange,
 }: {
   mediaOptions: MediaOptionType[];
   platformName: string;
@@ -661,6 +668,7 @@ const MediaSelectionGrid = ({
   ) => void;
   completedDeletions: Set<string>;
   isFormatLoading: { [key: string]: boolean };
+  setChange: (value: boolean) => void;
 }) => {
   const { campaignFormData, setPlatformName } = useCampaigns();
   const channelKey = channelName.toLowerCase().replace(/\s+/g, "_");
@@ -795,6 +803,7 @@ const PlatformItem = ({
   view,
   onDeletePreview,
   completedDeletions,
+  setChange,
 }: {
   platform: PlatformType;
   channelTitle: string;
@@ -820,6 +829,7 @@ const PlatformItem = ({
     adSetIndex?: number
   ) => void;
   completedDeletions: Set<string>;
+  setChange: (value: boolean) => void;
 }) => {
   const [isExpanded, setIsExpanded] = useState<{ [key: string]: boolean }>({});
   const [expandedAdsets, setExpandedAdsets] = useState<{
@@ -933,10 +943,7 @@ const PlatformItem = ({
 
             try {
               await Promise.all(deletePromises);
-            } catch (error) {
-              console.error("Error deleting previews:", error);
-              // Continue with format removal even if some deletions fail
-            }
+            } catch (error) {}
           }
           adset.format.splice(adsetFormatIndex, 1);
         } else {
@@ -975,10 +982,7 @@ const PlatformItem = ({
 
             try {
               await Promise.all(deletePromises);
-            } catch (error) {
-              console.error("Error deleting previews:", error);
-              // Continue with format removal even if some deletions fail
-            }
+            } catch (error) {}
           }
           platformCopy.format.splice(formatIndex, 1);
         } else {
@@ -990,6 +994,7 @@ const PlatformItem = ({
         }
       }
 
+      setChange(true); // Mark that changes have been made
       setCampaignFormData((prev) => ({
         ...prev,
         channel_mix: copy,
@@ -1001,6 +1006,7 @@ const PlatformItem = ({
     [
       campaignFormData,
       setCampaignFormData,
+      setChange,
       channelTitle,
       stageName,
       platform.platform_name,
@@ -1070,6 +1076,7 @@ const PlatformItem = ({
               onDeletePreview={onDeletePreview}
               completedDeletions={completedDeletions}
               isFormatLoading={isFormatLoading}
+              setChange={setChange}
             />
           </div>
         )}
@@ -1144,6 +1151,7 @@ const PlatformItem = ({
                       onDeletePreview={onDeletePreview}
                       completedDeletions={completedDeletions}
                       isFormatLoading={isFormatLoading}
+                      setChange={setChange}
                     />
                   </div>
                 )}
@@ -1166,6 +1174,7 @@ const ChannelSection = ({
   view,
   onDeletePreview,
   completedDeletions,
+  setChange,
 }: {
   channelTitle: string;
   platforms: PlatformType[];
@@ -1191,6 +1200,7 @@ const ChannelSection = ({
     adSetIndex?: number
   ) => void;
   completedDeletions: Set<string>;
+  setChange: (value: boolean) => void;
 }) => {
   const filteredPlatforms =
     view === "adset"
@@ -1215,6 +1225,7 @@ const ChannelSection = ({
             view={view}
             onDeletePreview={onDeletePreview}
             completedDeletions={completedDeletions}
+            setChange={setChange}
           />
         ))}
       </div>
@@ -1347,10 +1358,12 @@ export const Platforms = ({
   stageName,
   view = "channel",
   platformName,
+  setChange,
 }: {
   stageName: string;
   view?: "channel" | "adset";
   platformName?: string;
+  setChange?: (value: boolean) => void;
 }) => {
   const [quantities, setQuantities] = useState<QuantitiesType>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -1454,9 +1467,6 @@ export const Platforms = ({
 
       // Check if campaign exists before attempting to save
       if (!campaignData?.id && !campaignFormData?.cId) {
-        console.warn(
-          "No campaign exists yet. File upload will be saved locally only."
-        );
         toast.warning(
           "Please save your campaign first (Step 0) to persist file uploads."
         );
@@ -1816,18 +1826,6 @@ export const Platforms = ({
         const finalSanitizedData = finalCleanup(cleanedData);
 
         // Log the final data structure for debugging
-        console.log("Final sanitized data structure:", {
-          hasChannelMix: !!finalSanitizedData.channel_mix,
-          channelMixLength: finalSanitizedData.channel_mix?.length,
-          hasClient: !!finalSanitizedData.client,
-          hasClientLevel1: !!finalSanitizedData.client?.level_1,
-          hasClientLevel1Parameters:
-            !!finalSanitizedData.client?.level_1?.parameters,
-          clientLevel1ParametersLength:
-            finalSanitizedData.client?.level_1?.parameters?.length,
-          campaignId: finalSanitizedData.id || finalSanitizedData.cId,
-          mediaPlanId: finalSanitizedData.media_plan_id,
-        });
 
         // Log any remaining potentially problematic fields
         const problematicFields = [
@@ -1845,38 +1843,19 @@ export const Platforms = ({
         );
 
         if (remainingProblematicFields.length > 0) {
-          console.warn(
-            "Warning: Potentially problematic fields still present:",
-            remainingProblematicFields
-          );
-          console.warn(
-            "These fields might cause validation errors:",
-            remainingProblematicFields.map((field) => ({
-              field,
-              value: finalSanitizedData[field],
-            }))
-          );
+          
         }
 
-        console.log("Sending cleaned data to backend:", finalSanitizedData);
+        
 
         await updateCampaign(finalSanitizedData);
         toast.success("File upload saved successfully!");
       } catch (error: any) {
-        console.error("Error in uploadUpdatedCampaignToStrapi:", {
-          message: error.message,
-          details: error.details,
-          response: error.response?.data,
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-        });
+        
 
         // Log the specific validation errors if available
         if (error?.response?.data?.details?.errors) {
-          console.error(
-            "Backend validation errors:",
-            error.response.data.details.errors
-          );
+           
         }
 
         // Provide more specific error messages based on the error type
@@ -1889,10 +1868,7 @@ export const Platforms = ({
             toast.error(
               "Data validation error: Invalid relations detected. Please check your campaign data."
             );
-            console.error(
-              "Invalid relations error details:",
-              error.response.data
-            );
+            
           } else {
             toast.error(
               "Invalid data format. Please check your campaign data."
@@ -1997,13 +1973,12 @@ export const Platforms = ({
       platforms[platformIndex] = updatedPlatform;
 
       // Validate the updated data structure before sending
-      console.log("Updated channel mix before upload:", updatedChannelMix);
+     
 
       // Ensure all required fields are present and valid
       const validateChannelMix = (channelMix: any[]) => {
         return channelMix.every((channel: any) => {
-          if (!channel.funnel_stage) {
-            console.error("Channel missing funnel_stage:", channel);
+          if (!channel.funnel_stage) { 
             return false;
           }
 
@@ -2012,7 +1987,7 @@ export const Platforms = ({
             if (channel[key] && Array.isArray(channel[key])) {
               return channel[key].every((platform: any) => {
                 if (!platform.platform_name) {
-                  console.error("Platform missing platform_name:", platform);
+                
                   return false;
                 }
 
@@ -2020,7 +1995,7 @@ export const Platforms = ({
                 if (platform.format && Array.isArray(platform.format)) {
                   const validFormats = platform.format.every((fmt: any) => {
                     if (!fmt.format_type || !fmt.num_of_visuals) {
-                      console.error("Invalid format:", fmt);
+                     
                       return false;
                     }
                     return true;
@@ -2034,7 +2009,7 @@ export const Platforms = ({
                     if (adSet.format && Array.isArray(adSet.format)) {
                       return adSet.format.every((fmt: any) => {
                         if (!fmt.format_type || !fmt.num_of_visuals) {
-                          console.error("Invalid ad set format:", fmt);
+                        
                           return false;
                         }
                         return true;
@@ -2069,11 +2044,9 @@ export const Platforms = ({
           channel_mix: updatedChannelMix,
         });
       } catch (uploadError: any) {
-        console.error("Failed to upload updated campaign data:", uploadError);
+     
         // Don't fail the deletion if the campaign update fails
-        console.warn(
-          "Campaign update failed, but deletion was successful. Data may not be synced with backend."
-        );
+        
       }
     },
     [
@@ -2102,7 +2075,7 @@ export const Platforms = ({
           previews,
           adSetIndex
         ).catch((error) => {
-          console.error("Error in debouncedUpdateGlobalState:", error);
+         
         });
       },
       500,
@@ -2132,7 +2105,7 @@ export const Platforms = ({
       }
 
       const deleteUrl = `${STRAPI_URL}/upload/files/${previewId}`;
-      console.log("Deleting file at:", deleteUrl, "with previewId:", previewId);
+       
 
       const deleteResponse = await fetch(deleteUrl, {
         method: "DELETE",
@@ -2230,17 +2203,14 @@ export const Platforms = ({
           channel_mix: updatedChannelMix,
         });
       } catch (uploadError: any) {
-        console.error("Failed to upload updated campaign data:", uploadError);
+        
         // Don't fail the deletion if the campaign update fails
-        console.warn(
-          "Campaign update failed, but deletion was successful. Data may not be synced with backend."
-        );
+        
       }
 
       setDeleteQueue((prev) => prev.slice(1));
       setCompletedDeletions((prev) => new Set(prev).add(previewId));
-    } catch (error: any) {
-      console.error("Error processing delete queue:", error);
+    } catch (error: any) { 
       toast.error(`Failed to delete preview: ${error.message}`);
       setCompletedDeletions((prev) => new Set(prev).add(previewId));
       setDeleteQueue((prev) => prev.slice(1));
@@ -2434,6 +2404,7 @@ export const Platforms = ({
             )
           }
           completedDeletions={completedDeletions}
+          setChange={setChange}
         />
       ))}
 
@@ -2477,7 +2448,7 @@ export const FormatSelection = ({
   const { campaignFormData, setCampaignFormData, campaignData } =
     useCampaigns();
   const { setIsDrawerOpen, setClose } = useComments();
-  const { active } = useActive();
+  const { active, setChange } = useActive();
 
   useEffect(() => {
     // First check if there's an openView prop
@@ -2488,26 +2459,53 @@ export const FormatSelection = ({
         goal_level: openView === "channel" ? "Channel level" : "Adset level",
       }));
     } else {
-      // Always default to channel unless explicitly overridden
-      // Don't automatically use ad_sets_granularity from campaign data as it might be a default value
-      setView("channel");
-      setCampaignFormData((prev) => ({
-        ...prev,
-        goal_level: "Channel level",
-      }));
+      // Check if granularity is already set in campaign data
+      if (campaignFormData?.ad_sets_granularity) {
+        // Use existing granularity setting
+        setView(campaignFormData.ad_sets_granularity);
+        setCampaignFormData((prev) => ({
+          ...prev,
+          goal_level:
+            campaignFormData.ad_sets_granularity === "channel"
+              ? "Channel level"
+              : "Adset level",
+        }));
+      } else {
+        // Only default to channel if no granularity is set
+        setView("channel");
+        setCampaignFormData((prev) => ({
+          ...prev,
+          goal_level: "Channel level",
+        }));
+      }
     }
 
     setIsDrawerOpen(false);
     !openView && setClose(false);
-  }, [setIsDrawerOpen, setClose, setCampaignFormData, openView]);
+  }, [
+    setIsDrawerOpen,
+    setClose,
+    openView,
+    campaignFormData?.ad_sets_granularity,
+  ]);
 
   // Watch for changes in ad_sets_granularity from campaign data
   useEffect(() => {
     if (campaignFormData?.ad_sets_granularity && !openView) {
       // Only update if no openView prop is provided and granularity is explicitly set
-      setView(campaignFormData.ad_sets_granularity);
+      // Also check if the view is different to avoid unnecessary updates
+      if (view !== campaignFormData.ad_sets_granularity) {
+        setView(campaignFormData.ad_sets_granularity);
+        setCampaignFormData((prev) => ({
+          ...prev,
+          goal_level:
+            campaignFormData.ad_sets_granularity === "channel"
+              ? "Channel level"
+              : "Adset level",
+        }));
+      }
     }
-  }, [campaignFormData?.ad_sets_granularity, openView]);
+  }, [campaignFormData?.ad_sets_granularity, openView, view]);
 
   useEffect(() => {
     const savedOpenTabs = getLocalStorageItem("formatSelectionOpenTabs");
@@ -2679,6 +2677,7 @@ export const FormatSelection = ({
                       stageName={stage?.name}
                       view={view}
                       platformName={platformName}
+                      setChange={setChange}
                     />
                   </div>
                 )}

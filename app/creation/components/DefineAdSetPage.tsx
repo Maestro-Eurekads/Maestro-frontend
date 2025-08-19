@@ -9,6 +9,7 @@ import adset from "../../../public/adset_level.svg";
 import channel from "../../../public/channel_level.svg";
 import AdSetsFlow from "./common/AdSetsFlow";
 import { useCampaigns } from "../../utils/CampaignsContext";
+import { useActive } from "app/utils/ActiveContext";
 import Modal from "components/Modals/Modal";
 import Switch from "react-switch";
 
@@ -46,6 +47,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     updateCampaign,
     loadingCampaign,
   } = useCampaigns();
+  const { setChange } = useActive();
   const [step, setStep] = useState(2);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const initialized = useRef(false);
@@ -54,11 +56,6 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   );
   const [isLoadingGranularity, setIsLoadingGranularity] = useState(true);
   const [isLoadingRecap, setIsLoadingRecap] = useState(true);
-
-  // Debug loading state changes
-  useEffect(() => {
-    console.log("Recap loading state changed to:", isLoadingRecap);
-  }, [isLoadingRecap]);
 
   // Get a unique key for the current plan (use media_plan_id if available, fallback to campaignFormData id)
   const getPlanKey = () => {
@@ -74,7 +71,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
 
     if (identifiers.length > 0) {
       const planKey = identifiers[0]; // Use the first available identifier
-      console.log("getPlanKey - using identifier:", { identifiers, planKey });
+
       return planKey;
     }
 
@@ -84,7 +81,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
       campaignFormData?.funnel_stages.length > 0
     ) {
       const fallbackKey = campaignFormData?.funnel_stages?.join("_");
-      console.log("getPlanKey - using fallback:", { fallbackKey });
+
       return fallbackKey;
     }
 
@@ -96,11 +93,10 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
       const fallbackKey = `campaign_${
         campaignFormData?.client_selection?.id || "no_client"
       }_${campaignFormData?.level_1?.id || "no_level"}`;
-      console.log("getPlanKey - using campaign fallback:", { fallbackKey });
+
       return fallbackKey;
     }
 
-    console.log("getPlanKey - no key found");
     return null;
   };
 
@@ -109,7 +105,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     const modalKey = planKey
       ? `${GOAL_LEVEL_MODAL_KEY_PREFIX}${planKey}`
       : null;
-    console.log("getModalKey:", { planKey, modalKey });
+
     return modalKey;
   };
 
@@ -129,9 +125,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
           localStorage.setItem(modalKey, "true");
           // Also set a timestamp to track when it was dismissed
           localStorage.setItem(`${modalKey}_timestamp`, Date.now().toString());
-        } catch (error) {
-          console.error("Error saving modal dismissal state:", error);
-        }
+        } catch (error) {}
       }
     }
   };
@@ -209,13 +203,8 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
 
             // Note: We don't clear the persistent localStorage data here
             // as it's needed to restore audience data when returning to the page
-            console.log(
-              "Cleared sessionStorage but preserved localStorage for channel audience state"
-            );
           }
-        } catch (error) {
-          console.error("Error clearing granularity data:", error);
-        }
+        } catch (error) {}
       }
     };
   }, [campaignFormData?.id, campaignFormData?.media_plan_id]);
@@ -239,9 +228,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
             }
           }
         });
-      } catch (error) {
-        console.error("Error clearing granularity data on plan change:", error);
-      }
+      } catch (error) {}
     }
   }, [campaignFormData?.id, campaignFormData?.media_plan_id]);
 
@@ -259,18 +246,10 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
         if (hasAudience || recapRows.length > 0) {
           hasAnyRecapData = true;
         }
-
-        console.log("Recap data for stage:", stageName, {
-          hasAudience,
-          recapRowsLength: recapRows.length,
-          recapRows,
-          view,
-        });
       });
 
       // Update recap loading state
       if (hasAnyRecapData || totalRecapRows > 0) {
-        console.log("Recap data found, stopping loading state");
         setIsLoadingRecap(false);
       } else {
         // If no recap data found, check if we're still loading from storage
@@ -282,14 +261,9 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
           const hasPersistentData = localStorage.getItem(persistentKey);
           if (hasPersistentData) {
             // We have persistent data, so we're not really loading anymore
-            console.log(
-              "Persistent data found for channel view, stopping loading state"
-            );
+
             setIsLoadingRecap(false);
           } else {
-            console.log(
-              "No persistent data found for channel view, keeping loading state"
-            );
           }
         } else if (view === "adset") {
           // For adset view, check if we have campaign data that might still be loading
@@ -298,22 +272,14 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
             campaignFormData.channel_mix.length > 0
           ) {
             // We have campaign data, so we're not really loading anymore
-            console.log(
-              "Campaign data found for adset view, stopping loading state"
-            );
             setIsLoadingRecap(false);
           } else {
-            console.log(
-              "No campaign data found for adset view, keeping loading state"
-            );
           }
         } else {
-          console.log("No specific view logic, stopping loading state");
           setIsLoadingRecap(false);
         }
       }
     } else {
-      console.log("No funnel stages, stopping loading state");
       setIsLoadingRecap(false);
     }
   }, [
@@ -326,7 +292,6 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
 
   // Reset recap loading state when view changes
   useEffect(() => {
-    console.log("View changed to:", view, "- resetting recap loading state");
     setIsLoadingRecap(true);
 
     // Give a brief moment for the new view data to load
@@ -341,7 +306,6 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   useEffect(() => {
     if (isLoadingRecap) {
       const safetyTimer = setTimeout(() => {
-        console.log("Safety timeout reached, forcing recap loading to stop");
         setIsLoadingRecap(false);
       }, 5000); // 5 second safety timeout
 
@@ -355,7 +319,6 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   useEffect(() => {
     // Prevent infinite loop - don't run if we're already updating the view
     if (isUpdatingView.current) {
-      console.log("Skipping granularity useEffect - already updating view");
       return;
     }
 
@@ -381,25 +344,10 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     }
 
     // Priority: 1. Campaign data, 2. localStorage data, 3. current view
-    console.log("Granularity useEffect - checking sources:", {
-      campaignGranularity: campaignFormData?.ad_sets_granularity,
-      localStorageGranularity,
-      currentView: view,
-      loadingCampaign,
-      hasCampaignData: !!campaignFormData,
-    });
 
     if (campaignFormData?.ad_sets_granularity) {
       // Use campaign data if available
-      console.log(
-        "Using campaign data granularity:",
-        campaignFormData.ad_sets_granularity
-      );
       if (campaignFormData.ad_sets_granularity !== view) {
-        console.log(
-          "Updating view from campaign data:",
-          campaignFormData.ad_sets_granularity
-        );
         isUpdatingView.current = true;
         setIsLoadingGranularity(true);
         setIsLoadingRecap(true); // Also set recap loading while granularity changes
@@ -408,22 +356,13 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
           setIsLoadingGranularity(false);
           isUpdatingView.current = false;
           // Don't automatically stop recap loading - let the data loading logic handle it
-          console.log(
-            "Granularity loading complete, recap loading continues until data is ready"
-          );
         }, 500);
       } else {
-        console.log("View already matches campaign data");
         setIsLoadingGranularity(false);
       }
     } else if (localStorageGranularity) {
       // Use localStorage data if no campaign data
-      console.log("Using localStorage granularity:", localStorageGranularity);
       if (localStorageGranularity !== view) {
-        console.log(
-          "Updating view from localStorage:",
-          localStorageGranularity
-        );
         isUpdatingView.current = true;
         setIsLoadingGranularity(true);
         setIsLoadingRecap(true); // Also set recap loading while granularity changes
@@ -432,17 +371,12 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
           setIsLoadingGranularity(false);
           isUpdatingView.current = false;
           // Don't automatically stop recap loading - let the data loading logic handle it
-          console.log(
-            "Granularity loading complete, recap loading continues until data is ready"
-          );
         }, 500);
       } else {
-        console.log("View already matches localStorage data");
         setIsLoadingGranularity(false);
       }
     } else {
       // No granularity data available
-      console.log("No granularity data available");
       setIsLoadingGranularity(false);
     }
   }, [
@@ -503,33 +437,6 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
       }
     }
 
-    // Debug localStorage and component state
-    if (typeof window !== "undefined") {
-      console.log("localStorage and state check:", {
-        modalKey,
-        isModalDismissed,
-        hasGranularitySelection,
-        hasLocalStorageGranularity,
-        isPlanConfigured,
-        currentView: view,
-        campaignFormData: {
-          id: campaignFormData?.id,
-          media_plan_id: campaignFormData?.media_plan_id,
-          ad_sets_granularity: campaignFormData?.ad_sets_granularity,
-          goal_level: campaignFormData?.goal_level,
-        },
-        allKeys: Object.keys(localStorage).filter((key) =>
-          key.startsWith(GOAL_LEVEL_MODAL_KEY_PREFIX)
-        ),
-        granularityKeys: Object.keys(localStorage).filter((key) =>
-          key.startsWith("granularity_")
-        ),
-        configuredKeys: Object.keys(localStorage).filter((key) =>
-          key.startsWith("configured_")
-        ),
-      });
-    }
-
     // Check if campaign has been properly loaded from server
     const hasCampaignData =
       campaignFormData?.funnel_stages?.length > 0 ||
@@ -538,34 +445,11 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
       campaignFormData?.level_1?.id ||
       campaignFormData?.media_plan;
 
-    // Debug logging
-    console.log("Modal visibility check:", {
-      isNewCampaign,
-      goalLevel,
-      hasExplicitGranularity,
-      isModalDismissed,
-      loadingCampaign,
-      hasCampaignData,
-      modalKey,
-    });
-
     // SIMPLIFIED MODAL LOGIC: Only show when absolutely necessary
-    console.log("Modal visibility check - values:", {
-      isNewCampaign,
-      hasGranularitySelection,
-      hasLocalStorageGranularity,
-      isPlanConfigured,
-      isModalDismissed,
-      goalLevel,
-      ad_sets_granularity: campaignFormData?.ad_sets_granularity,
-      campaignId: campaignFormData?.id || campaignFormData?.media_plan_id,
-      loadingCampaign,
-    });
 
     const shouldShowModal = (() => {
       // SAFETY CHECK: Don't show modal while API is loading or hasn't been checked
       if (loadingCampaign) {
-        console.log("Not showing modal: API is still loading");
         return false;
       }
 
@@ -577,14 +461,8 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
           hasLocalStorageGranularity ||
           isPlanConfigured
         ) {
-          console.log(
-            "Not showing modal: new campaign but granularity already selected"
-          );
           return false;
         } else {
-          console.log(
-            "Showing modal: new campaign with no granularity selection"
-          );
           return true;
         }
       }
@@ -596,9 +474,6 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
         !hasLocalStorageGranularity &&
         !isPlanConfigured
       ) {
-        console.log(
-          "Showing modal: existing campaign with no granularity selection"
-        );
         return true;
       }
 
@@ -609,24 +484,18 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
           hasLocalStorageGranularity ||
           isPlanConfigured)
       ) {
-        console.log(
-          "Not showing modal: existing campaign with granularity already selected"
-        );
         return false;
       }
 
       // Case 4: Modal was dismissed
       if (isModalDismissed) {
-        console.log("Not showing modal: was previously dismissed");
         return false;
       }
 
       // Default: don't show modal
-      console.log("Not showing modal: default case");
       return false;
     })();
 
-    console.log("Final modal decision:", shouldShowModal);
     setIsModalOpen(shouldShowModal);
   }, [
     campaignFormData?.goal_level,
@@ -648,9 +517,6 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   useEffect(() => {
     // Prevent infinite loop - don't restore if we're already updating the view
     if (isUpdatingView.current || isRestoringFromStorage.current) {
-      console.log(
-        "Skipping granularity restoration - already updating or restoring"
-      );
       return;
     }
 
@@ -666,10 +532,6 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
         ) {
           const expectedView = savedGranularity;
           if (view !== expectedView) {
-            console.log(
-              "Restoring granularity from localStorage:",
-              expectedView
-            );
             isRestoringFromStorage.current = true;
             onToggleChange(expectedView);
             // Reset the flag after a short delay
@@ -772,27 +634,15 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
             const persistentKey = `persistent_${key}`;
             stored = localStorage.getItem(persistentKey);
             dataSource = "localStorage";
-
-            console.log("hasAnyAudience: Checking persistent storage:", {
-              stageName,
-              persistentKey,
-              hasData: !!stored,
-            });
           }
 
           if (stored) {
             const storedState = JSON.parse(stored);
-            console.log(
-              "hasAnyAudience: Retrieved state from",
-              dataSource,
-              storedState
-            );
 
             if (storedState[stageName]) {
               const hasStoredData = Object.values(storedState[stageName]).some(
                 (data: any) => data.audience_type || data.name || data.size
               );
-              console.log("hasAnyAudience: Has stored data:", hasStoredData);
               if (hasStoredData) return true;
             }
           }
@@ -801,7 +651,6 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
             const event = new Event("unauthorizedEvent");
             window.dispatchEvent(event);
           }
-          console.error("Error checking stored channel state:", error);
         }
       }
 
@@ -857,12 +706,6 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
 
   // COMPLETE GRANULARITY SEPARATION: Fixed function to properly handle granularity-specific recap data
   const getRecapRows = (stageName: string) => {
-    console.log("getRecapRows called with:", {
-      stageName,
-      view,
-      campaignFormData: !!campaignFormData,
-    });
-
     const recapRows: {
       platform: string;
       type: string;
@@ -879,9 +722,6 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     // For channel level, we don't need channel_mix data - we get data from storage
     // For adset level, we need channel_mix data to continue
     if (view === "adset" && !stage) {
-      console.log(
-        "getRecapRows: No stage found for adset view, returning empty rows"
-      );
       return recapRows;
     }
 
@@ -929,21 +769,10 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
             const persistentKey = `persistent_${key}`;
             stored = localStorage.getItem(persistentKey);
             dataSource = "localStorage";
-
-            console.log("getRecapRows: Loading from persistent storage:", {
-              stageName,
-              persistentKey,
-              hasData: !!stored,
-            });
           }
 
           if (stored) {
             const storedState = JSON.parse(stored);
-            console.log(
-              "getRecapRows: Retrieved state from",
-              dataSource,
-              storedState
-            );
 
             if (storedState[stageName]) {
               Object.entries(storedState[stageName]).forEach(
@@ -979,7 +808,6 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
             const event = new Event("unauthorizedEvent");
             window.dispatchEvent(event);
           }
-          console.error("Error loading recap data:", error);
         }
       }
 
@@ -1024,11 +852,6 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
       }
 
       // Convert aggregated data to rows
-      console.log("getRecapRows: Converting aggregated data to rows:", {
-        stageName,
-        platformAggregation,
-        platformCount: Object.keys(platformAggregation).length,
-      });
 
       Object.entries(platformAggregation).forEach(([platformName, data]) => {
         const row = {
@@ -1039,15 +862,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
           isExtra: false,
         };
         recapRows.push(row);
-        console.log("getRecapRows: Added row:", row);
       });
-
-      console.log(
-        "getRecapRows: Final recap rows for",
-        stageName,
-        ":",
-        recapRows
-      );
     } else {
       // Ad set level: ONLY show individual ad sets, completely ignore channel data
       platforms.forEach((platform: any) => {
@@ -1088,18 +903,10 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   const handleToggleChange = (checked: boolean) => {
     // Prevent infinite loop - don't run if we're already updating the view
     if (isUpdatingView.current || isRestoringFromStorage.current) {
-      console.log(
-        "Skipping handleToggleChange - already updating or restoring view"
-      );
       return;
     }
 
     const newView = checked ? "adset" : "channel";
-    console.log("handleToggleChange called with:", {
-      checked,
-      newView,
-      currentView: view,
-    });
 
     // Set the updating flag to prevent infinite loops
     isUpdatingView.current = true;
@@ -1107,6 +914,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     onToggleChange(newView);
 
     // Save granularity setting to campaign form data
+    setChange(true); // Mark that changes have been made
     setCampaignFormData((prev: any) => ({
       ...prev,
       goal_level: checked ? "Adset level" : "Channel level",
@@ -1129,9 +937,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
           const granularityKey = `granularity_${planKey}`;
           localStorage.setItem(granularityKey, newView);
         }
-      } catch (error) {
-        console.error("Error saving granularity setting:", error);
-      }
+      } catch (error) {}
     }
 
     // Save granularity to backend if campaign exists
@@ -1143,9 +949,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
             goal_level: checked ? "Adset level" : "Channel level",
           });
         }
-      } catch (error) {
-        console.error("Error saving granularity to backend:", error);
-      }
+      } catch (error) {}
     };
 
     // Call the backend save function
@@ -1154,14 +958,8 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     // Only clear audience data if this is a manual change by the user
     // Don't clear when restoring from storage to prevent data loss
     const isManualChange = view !== newView;
-    console.log("handleToggleChange - checking if manual change:", {
-      currentView: view,
-      newView,
-      isManualChange,
-    });
 
     if (isManualChange && typeof window !== "undefined") {
-      console.log("Manual granularity change detected, clearing audience data");
       if (newView === "channel") {
         // Clear adset-level data when switching to channel
         if ((window as any).channelLevelAudienceState) {
@@ -1188,10 +986,6 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
         if (campaignId) {
           const persistentKey = `persistent_channelLevelAudienceState_${campaignId}`;
           localStorage.removeItem(persistentKey);
-          console.log(
-            "Cleared persistent localStorage for channel audience state:",
-            persistentKey
-          );
         }
       }
     }
@@ -1199,7 +993,6 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     // Reset the updating flag after a short delay to allow the state updates to complete
     setTimeout(() => {
       isUpdatingView.current = false;
-      console.log("handleToggleChange completed, reset updating flag");
     }, 200);
   };
 
@@ -1636,6 +1429,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                               setIsModalOpen(false);
 
                               // Update campaign form data
+                              setChange(true); // Mark that changes have been made
                               setCampaignFormData((prev: any) => {
                                 const updatedData = {
                                   ...prev,
@@ -1644,24 +1438,10 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                                   ad_sets_granularity: newView, // Add backend field for granularity
                                 };
 
-                                console.log(
-                                  "Updated campaignFormData with granularity:",
-                                  {
-                                    previous: prev,
-                                    updated: updatedData,
-                                    newView,
-                                    itemLabel: item.label,
-                                  }
-                                );
-
                                 return updatedData;
                               });
 
                               // Update view
-                              console.log(
-                                "Calling onToggleChange with:",
-                                newView
-                              );
                               onToggleChange(newView);
 
                               // Mark modal as dismissed for this plan in localStorage
@@ -1693,12 +1473,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                                     `configured_${planKey}`,
                                     "true"
                                   );
-                                } catch (error) {
-                                  console.error(
-                                    "Error saving goal level selection:",
-                                    error
-                                  );
-                                }
+                                } catch (error) {}
                               }
 
                               // Save granularity to backend if campaign exists (async)
@@ -1711,10 +1486,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                                     });
                                   }
                                 } catch (error) {
-                                  console.error(
-                                    "Error saving granularity to backend:",
-                                    error
-                                  );
+                                   
                                 }
                               };
 
