@@ -101,7 +101,6 @@ const DefineCampaignObjective = () => {
             title: matchingObjective.title,
           },
         ]);
-        setChange(true); // Mark that changes have been made
         setCampaignFormData((prev) => ({
           ...prev,
           campaign_objectives: matchingObjective?.title,
