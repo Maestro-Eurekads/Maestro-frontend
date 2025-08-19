@@ -62,11 +62,6 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
 
   const isSignature = dataApprove?.[0]?.isSignature || false;
 
-  console.log(
-    "campaignData?.isStatus?.stage----",
-    campaignData?.isStatus?.stage
-  );
-
   useEffect(() => {
     if (
       campaignData?.isStatus?.stage === "client_changes_needed" ||
