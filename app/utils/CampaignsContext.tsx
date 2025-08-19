@@ -391,12 +391,13 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
               data?.media_plan_details?.approved_by ?? prev.approved_by,
             campaign_objectives:
               data?.campaign_objective ?? prev.campaign_objectives,
-            funnel_stages:
-              shouldPreserveLocalData &&
-              prev.funnel_stages &&
-              prev.funnel_stages.length > 0
-                ? prev.funnel_stages
-                : data?.funnel_stages ?? prev.funnel_stages,
+            funnel_stages: data?.funnel_stages ?? prev.funnel_stages,
+            // funnel_stages:
+            //   shouldPreserveLocalData &&
+            //   prev.funnel_stages &&
+            //   prev.funnel_stages.length > 0
+            //     ? prev.funnel_stages
+            //     : data?.funnel_stages ?? prev.funnel_stages,
             channel_mix:
               shouldPreserveLocalData &&
               prev.channel_mix &&
