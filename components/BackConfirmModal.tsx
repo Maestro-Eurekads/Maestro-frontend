@@ -17,6 +17,33 @@ import { useRouter } from "next/navigation";
 import { useComments } from "app/utils/CommentProvider";
 import { reset } from "features/Client/clientSlice";
 
+// Helper to validate and format dates
+const validateAndFormatDates = (data) => {
+  const isValidDate = (d) => {
+    if (!d || d === "" || d === null || d === undefined) return null;
+    if (
+      typeof d === "string" &&
+      d.length === 10 &&
+      /^\d{4}-\d{2}-\d{2}$/.test(d)
+    )
+      return d;
+    try {
+      const date = new Date(d);
+      if (isNaN(date.getTime())) return null;
+      return date.toISOString().split("T")[0];
+    } catch {
+      return null;
+    }
+  };
+  return {
+    ...data,
+    campaign_timeline_start_date: isValidDate(
+      data?.campaign_timeline_start_date
+    ),
+    campaign_timeline_end_date: isValidDate(data?.campaign_timeline_end_date),
+  };
+};
+
 interface BackConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -215,22 +242,22 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
   };
 
   // Monitor step changes to detect when user moves between steps
-  useEffect(() => {
-    if (active > 0) {
-      // If user is on any step beyond step 0, there are likely unsaved changes
-      setChange(true);
-    }
-  }, [active, setChange]);
+  // useEffect(() => {
+  //   if (active > 0) {
+  //     // If user is on any step beyond step 0, there are likely unsaved changes
+  //     setChange(true);
+  //   }
+  // }, [active, setChange]);
 
-  // Monitor form data changes more comprehensively
-  useEffect(() => {
-    if (campaignFormData && Object.keys(campaignFormData).length > 0) {
-      // If we have form data and we're not on step 0, there are likely changes
-      if (active > 0) {
-        setChange(true);
-      }
-    }
-  }, [campaignFormData, active, setChange]);
+  // // Monitor form data changes more comprehensively
+  // useEffect(() => {
+  //   if (campaignFormData && Object.keys(campaignFormData).length > 0) {
+  //     // If we have form data and we're not on step 0, there are likely changes
+  //     if (active > 0) {
+  //       setChange(true);
+  //     }
+  //   }
+  // }, [campaignFormData, active, setChange]);
 
   const handleSaveAllSteps = async () => {
     // Use the same validation logic as Bottom component handleContinue
@@ -252,94 +279,6 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
         client_approver: campaignFormData?.client_approver || [],
         approved_by: campaignFormData?.approved_by || [],
       };
-
-      // Validate and format dates
-      const validateAndFormatDates = (data) => {
-        const isValidDate = (d) => {
-          if (!d || d === "" || d === null || d === undefined) {
-            return null;
-          }
-          // Check if it's already in yyyy-MM-dd format
-          if (
-            typeof d === "string" &&
-            d.length === 10 &&
-            /^\d{4}-\d{2}-\d{2}$/.test(d)
-          ) {
-            return d;
-          }
-          // Try to parse and format the date
-          try {
-            const date = new Date(d);
-            if (isNaN(date.getTime())) {
-              return null;
-            }
-            return date.toISOString().split("T")[0]; // Convert to yyyy-MM-dd format
-          } catch (error) {
-            return null;
-          }
-        };
-
-        // Deep clone to avoid mutating original data
-        const validatedData = JSON.parse(JSON.stringify(data));
-
-        // Validate main campaign dates
-        validatedData.campaign_timeline_start_date = isValidDate(
-          data?.campaign_timeline_start_date
-        );
-        validatedData.campaign_timeline_end_date = isValidDate(
-          data?.campaign_timeline_end_date
-        );
-
-        // Validate nested dates in channel_mix
-        if (Array.isArray(validatedData.channel_mix)) {
-          validatedData.channel_mix = validatedData.channel_mix.map((stage) => {
-            const validatedStage = { ...stage };
-
-            // Validate stage timeline dates
-            validatedStage.funnel_stage_timeline_start_date = isValidDate(
-              stage?.funnel_stage_timeline_start_date
-            );
-            validatedStage.funnel_stage_timeline_end_date = isValidDate(
-              stage?.funnel_stage_timeline_end_date
-            );
-
-            // Validate dates in all media types
-            const mediaTypes = [
-              "social_media",
-              "display_networks",
-              "search_engines",
-              "streaming",
-              "ooh",
-              "broadcast",
-              "messaging",
-              "print",
-              "e_commerce",
-              "in_game",
-              "mobile",
-            ];
-
-            mediaTypes.forEach((mediaType) => {
-              if (Array.isArray(validatedStage[mediaType])) {
-                validatedStage[mediaType] = validatedStage[mediaType].map(
-                  (platform) => ({
-                    ...platform,
-                    campaign_start_date: isValidDate(
-                      platform?.campaign_start_date
-                    ),
-                    campaign_end_date: isValidDate(platform?.campaign_end_date),
-                  })
-                );
-              }
-            });
-
-            return validatedStage;
-          });
-        }
-
-        return validatedData;
-      };
-
-      // Apply date validation and formatting
       const validatedFormData = validateAndFormatDates(cleanedFormData);
 
       const objectives = await extractObjectives(validatedFormData);
@@ -403,9 +342,9 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
             cleanedFormData?.ad_sets_granularity ||
             cleanedFormData?.granularity,
           campaign_timeline_start_date:
-            cleanedFormData?.campaign_timeline_start_date,
+            validatedFormData?.campaign_timeline_start_date,
           campaign_timeline_end_date:
-            cleanedFormData?.campaign_timeline_end_date,
+            validatedFormData?.campaign_timeline_end_date,
           agency_profile: agencyId,
 
           progress_percent:
@@ -435,14 +374,13 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
         setOpportunities([]);
         setViewcommentsId("");
         setCampaignData(null);
-        clearAllCampaignData?.();
+        clearAllCampaignData();
         router.push("/");
-        // Use onNavigate if provided, otherwise navigate to home
-        // if (onNavigate) {
-        // 	onNavigate();
-        // } else {
-        // 	router.push("/");
-        // }
+        setTimeout(() => {
+          if (window.location.pathname !== "/") {
+            window.location.href = "/";
+          }
+        });
       } else {
         const response = await axios.post(
           `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`,
@@ -481,14 +419,13 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
         setOpportunities([]);
         setViewcommentsId("");
         setCampaignData(null);
-        clearAllCampaignData?.();
+        clearAllCampaignData();
         router.push("/");
-        // Use onNavigate if provided, otherwise navigate to home
-        // if (onNavigate) {
-        // 	router.push("/");
-        // } else {
-        // 	router.push("/");
-        // }
+        setTimeout(() => {
+          if (window.location.pathname !== "/") {
+            window.location.href = "/";
+          }
+        });
       }
     } catch (error: any) {
       if (error?.response?.status === 401) {
@@ -552,7 +489,7 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
       if (window.location.pathname !== "/") {
         window.location.href = "/";
       }
-    }, 100);
+    });
   };
 
   // Handle staying on the current page

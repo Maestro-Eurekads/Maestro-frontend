@@ -294,8 +294,6 @@ function FeeSelectionStep({
       }));
 
       updateNetAmount(updatedFees);
-
-      setChange(true); // Mark that changes have been made
       setCampaignFormData((prev) => {
         const updatedData = {
           ...prev,
@@ -396,7 +394,6 @@ function FeeSelectionStep({
                     className="relative bg-white rounded-lg border p-4 w-[350px] cursor-pointer"
                     onClick={() => {
                       setActive(1);
-                      setChange(true); // Mark that changes have been made
                       setCampaignFormData((prev) => ({
                         ...prev,
                         campaign_budget: {
@@ -432,7 +429,6 @@ function FeeSelectionStep({
                     className="relative bg-white rounded-lg border p-4 w-[350px] cursor-pointer"
                     onClick={() => {
                       setActive(2);
-                      setChange(true); // Mark that changes have been made
                       setCampaignFormData((prev) => ({
                         ...prev,
                         campaign_budget: {
@@ -621,7 +617,6 @@ function FeeSelectionStep({
                                     (_, i) => i !== index
                                   );
                                   setFees(updatedFees);
-                                  setChange(true); // Mark that changes have been made
                                   const budgetFees = updatedFees.map((fee) => ({
                                     fee_type: fee.type,
                                     value: fee.amount,
@@ -827,7 +822,6 @@ function FeeSelectionStep({
                                       (_, i) => i !== index
                                     );
                                     setFees(updatedFees);
-                                    setChange(true); // Mark that changes have been made
                                     const budgetFees = updatedFees.map(
                                       (fee) => ({
                                         fee_type: fee.type,

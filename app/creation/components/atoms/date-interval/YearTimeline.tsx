@@ -140,7 +140,7 @@ function YearTimeline({ range, funnels }) {
         ))}
       </div>
       <div
-        className="w-full min-h-auto relative pb-5"
+        className="w-full min-h-[519px] relative pb-5"
         style={{
           backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
           backgroundSize: `calc(${calcDailyWidth()}px) 100%`,

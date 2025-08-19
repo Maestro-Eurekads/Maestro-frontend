@@ -1427,9 +1427,6 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
 
                               // Close modal immediately to prevent any state issues
                               setIsModalOpen(false);
-
-                              // Update campaign form data
-                              setChange(true); // Mark that changes have been made
                               setCampaignFormData((prev: any) => {
                                 const updatedData = {
                                   ...prev,
@@ -1485,9 +1482,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                                       goal_level: item.label,
                                     });
                                   }
-                                } catch (error) {
-                                   
-                                }
+                                } catch (error) {}
                               };
 
                               // Call the backend save function
