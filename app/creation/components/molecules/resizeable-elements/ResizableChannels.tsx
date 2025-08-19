@@ -219,23 +219,43 @@ const ResizableChannels = ({
   } | null>(null);
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
-    // Create array of all valid grid positions based on actual container dimensions
+    // Create array of all valid grid positions based on parent phase card's date range
     const gridPositions = [];
     let numberOfGridColumns;
     
     if (rrange === "Year") {
-      // Year view - 12 months
-      numberOfGridColumns = 12;
+      // Year view - calculate based on parent phase card's month range
+      if (startDate && endDate) {
+        const startMonth = startDate.getMonth();
+        const endMonth = endDate.getMonth();
+        const startYear = startDate.getFullYear();
+        const endYear = endDate.getFullYear();
+        
+        // Calculate months between dates, accounting for different years
+        numberOfGridColumns = (endYear - startYear) * 12 + (endMonth - startMonth) + 1;
+      } else {
+        numberOfGridColumns = 12; // Fallback
+      }
     } else if (rrange === "Month") {
-      // Month view - use day-level precision for smooth dragging
-      numberOfGridColumns = dateList?.length || 1;
+      // Month view - calculate based on parent phase card's day range
+      if (startDate && endDate) {
+        const daysBetween = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        numberOfGridColumns = daysBetween;
+      } else {
+        numberOfGridColumns = dateList?.length || 1;
+      }
     } else {
-      // Day, Week view - based on dateList length
-      numberOfGridColumns = dateList?.length || 1;
+      // Day, Week view - calculate based on parent phase card's day range
+      if (startDate && endDate) {
+        const daysBetween = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        numberOfGridColumns = daysBetween;
+      } else {
+        numberOfGridColumns = dateList?.length || 1;
+      }
     }
     
-    // Calculate actual step width based on container and grid columns
-    const actualStepWidth = containerWidth / numberOfGridColumns;
+    // Calculate actual step width based on parent phase card width and grid columns
+    const actualStepWidth = parentWidth / numberOfGridColumns;
     
     // Generate grid positions - include the final edge position
     for (let i = 0; i <= numberOfGridColumns; i++) {
@@ -259,17 +279,18 @@ const ResizableChannels = ({
     // Special handling for the final edge position
     // If we're snapping to the very end (last grid line), ensure we stay there
     if (closestIndex === numberOfGridColumns && currentPosition >= closestPosition - actualStepWidth / 2) {
-      closestPosition = containerWidth; // Snap to the very end
+      closestPosition = parentWidth; // Snap to the very end of parent phase card
     }
     
     // Debug logging
-    console.log("Snap Debug:", {
+    console.log("Snap Debug (Parent-based):", {
       currentPosition,
-      containerWidth,
+      parentWidth,
       rrange,
       numberOfGridColumns,
       actualStepWidth,
-      dailyWidth, // Compare with actual step width
+      startDate,
+      endDate,
       gridPositions: gridPositions.slice(0, 15), // Show first 15 for brevity
       closestIndex,
       closestPosition,
@@ -277,8 +298,8 @@ const ResizableChannels = ({
       isFinalEdge: closestIndex === numberOfGridColumns
     });
     
-    // Ensure the position is within bounds
-    return Math.max(0, Math.min(closestPosition, containerWidth));
+    // Ensure the position is within parent phase card bounds
+    return Math.max(0, Math.min(closestPosition, parentWidth));
   };
 
   const updateTooltipWithDates = (
@@ -309,100 +330,120 @@ const ResizableChannels = ({
 
     let startDateValue, endDateValue;
 
+    // Calculate dates relative to the parent phase card's date range
     if (rrange === "Year") {
-      // For year view, use calculated dates during drag/resize, backend dates for initial click
+      // For year view, calculate relative to parent phase card's date range
       const isDraggingOrResizing = type === "drag" || type === "resize";
 
       if (isDraggingOrResizing) {
-        // Use pixel-based calculation for real-time updates
-        const numberOfMonths = 12;
-        const monthStartIndex = Math.min(
-          numberOfMonths - 1,
-          Math.max(0, Math.floor((startPixel / parentWidth) * numberOfMonths))
-        );
-        const monthEndIndex = Math.min(
-          numberOfMonths - 1,
-          Math.max(0, Math.round((endPixel / parentWidth) * numberOfMonths) - 1)
-        );
+        // Calculate the ratio of the channel position within the parent phase card
+        const channelRatioStart = startPixel / parentWidth;
+        const channelRatioEnd = endPixel / parentWidth;
 
-        console.log("Year view date conversion debug:", {
+        // Calculate the date range of the parent phase card
+        const parentStartDate = startDate;
+        const parentEndDate = endDate;
+        
+        // Calculate the total duration of the parent phase card in milliseconds
+        const parentDuration = parentEndDate.getTime() - parentStartDate.getTime();
+        
+        // Calculate the channel's start and end dates relative to the parent
+        const channelStartOffset = channelRatioStart * parentDuration;
+        const channelEndOffset = channelRatioEnd * parentDuration;
+        
+        startDateValue = new Date(parentStartDate.getTime() + channelStartOffset);
+        endDateValue = new Date(parentStartDate.getTime() + channelEndOffset);
+
+        console.log("Year view relative date calculation:", {
           startPixel,
           endPixel,
           parentWidth,
-          numberOfMonths,
-          monthStartIndex,
-          monthEndIndex,
-          startRatio: startPixel / parentWidth,
-          endRatio: endPixel / parentWidth
+          channelRatioStart,
+          channelRatioEnd,
+          parentStartDate,
+          parentEndDate,
+          parentDuration,
+          startDateValue,
+          endDateValue
         });
-
-        const year = startDate?.getFullYear() || new Date().getFullYear();
-        startDateValue = new Date(year, monthStartIndex, 1);
-        endDateValue = new Date(year, monthEndIndex + 1, 0); // Last day of the month
       } else {
         // Use backend dates for initial tooltip
         if (channelStartDate && channelEndDate) {
           startDateValue = channelStartDate;
           endDateValue = channelEndDate;
         } else {
-          // Fallback to pixel calculation
-          const numberOfMonths = 12;
-          const monthStartIndex = Math.min(
-            numberOfMonths - 1,
-            Math.max(0, Math.floor((startPixel / parentWidth) * numberOfMonths))
-          );
-          const monthEndIndex = Math.min(
-            numberOfMonths - 1,
-            Math.max(0, Math.round((endPixel / parentWidth) * numberOfMonths) - 1)
-          );
-
-          const year = startDate?.getFullYear() || new Date().getFullYear();
-          startDateValue = new Date(year, monthStartIndex, 1);
-          endDateValue = new Date(year, monthEndIndex + 1, 0); // Last day of the month
+          // Fallback to relative calculation
+          const channelRatioStart = startPixel / parentWidth;
+          const channelRatioEnd = endPixel / parentWidth;
+          const parentDuration = endDate.getTime() - startDate.getTime();
+          const channelStartOffset = channelRatioStart * parentDuration;
+          const channelEndOffset = channelRatioEnd * parentDuration;
+          startDateValue = new Date(startDate.getTime() + channelStartOffset);
+          endDateValue = new Date(startDate.getTime() + channelEndOffset);
         }
       }
     } else if (rrange === "Month") {
-      // Month view - use day-level precision for smooth dragging
-      const numberOfGridColumns = dateList.length;
-      const stepWidth = parentWidth / numberOfGridColumns;
+      // Month view - calculate relative to parent phase card's date range
+      const channelRatioStart = startPixel / parentWidth;
+      const channelRatioEnd = endPixel / parentWidth;
+      
+      // Calculate the date range of the parent phase card
+      const parentStartDate = startDate;
+      const parentEndDate = endDate;
+      
+      // Calculate the total duration of the parent phase card in milliseconds
+      const parentDuration = parentEndDate.getTime() - parentStartDate.getTime();
+      
+      // Calculate the channel's start and end dates relative to the parent
+      const channelStartOffset = channelRatioStart * parentDuration;
+      const channelEndOffset = channelRatioEnd * parentDuration;
+      
+      startDateValue = new Date(parentStartDate.getTime() + channelStartOffset);
+      endDateValue = new Date(parentStartDate.getTime() + channelEndOffset);
 
-      const startGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, Math.floor(startPixel / stepWidth)));
-      const endGridIndexRaw = Math.floor((endPixel - 1) / stepWidth);
-      const endGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, endGridIndexRaw));
-
-      console.log("Date conversion tooltip Month:", {
+      console.log("Month view relative date calculation:", {
         startPixel,
         endPixel,
         parentWidth,
-        numberOfGridColumns,
-        stepWidth,
-        startGridIndex,
-        endGridIndex
+        channelRatioStart,
+        channelRatioEnd,
+        parentStartDate,
+        parentEndDate,
+        parentDuration,
+        startDateValue,
+        endDateValue
       });
-
-      startDateValue = dateList[startGridIndex] || startDate;
-      endDateValue = dateList[endGridIndex] || endDate;
     } else {
-      // Day, Week view - calculate based on days
-      const numberOfGridColumns = dateList.length;
-      const stepWidth = parentWidth / numberOfGridColumns;
+      // Day, Week view - calculate relative to parent phase card's date range
+      const channelRatioStart = startPixel / parentWidth;
+      const channelRatioEnd = endPixel / parentWidth;
+      
+      // Calculate the date range of the parent phase card
+      const parentStartDate = startDate;
+      const parentEndDate = endDate;
+      
+      // Calculate the total duration of the parent phase card in milliseconds
+      const parentDuration = parentEndDate.getTime() - parentStartDate.getTime();
+      
+      // Calculate the channel's start and end dates relative to the parent
+      const channelStartOffset = channelRatioStart * parentDuration;
+      const channelEndOffset = channelRatioEnd * parentDuration;
+      
+      startDateValue = new Date(parentStartDate.getTime() + channelStartOffset);
+      endDateValue = new Date(parentStartDate.getTime() + channelEndOffset);
 
-      const startGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, Math.floor(startPixel / stepWidth)));
-      const endGridIndexRaw = Math.floor((endPixel - 1) / stepWidth);
-      const endGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, endGridIndexRaw));
-
-      console.log("Date conversion tooltip FIXED:", {
+      console.log("Day/Week view relative date calculation:", {
         startPixel,
         endPixel,
         parentWidth,
-        numberOfGridColumns,
-        stepWidth,
-        startGridIndex,
-        endGridIndex
+        channelRatioStart,
+        channelRatioEnd,
+        parentStartDate,
+        parentEndDate,
+        parentDuration,
+        startDateValue,
+        endDateValue
       });
-
-      startDateValue = dateList[startGridIndex] || startDate;
-      endDateValue = dateList[endGridIndex] || endDate;
     }
 
     console.log({ startDateValue, endDateValue, type });
@@ -671,11 +712,18 @@ const ResizableChannels = ({
     document.removeEventListener("mouseup", handleMouseUpResize);
 
     if (draggingDataRef.current) {
-      const { index, newStartDate, newEndDate } = draggingDataRef.current;
+      const { index, newStartDate, newEndDate } = draggingDataRef.current as any;
       console.log({ index, newStartDate, newEndDate });
       // Final update to campaign data
       try {
-        await sendUpdatedDataToAPI(campaignFormData);
+        const updated = updateCampaignFormWithChannelDates(
+          campaignFormData,
+          index,
+          newStartDate,
+          newEndDate
+        );
+        setCampaignFormData(updated);
+        await sendUpdatedDataToAPI(updated);
       } catch (err) {
         console.error('Failed to persist channel resize', err);
       }
@@ -749,98 +797,170 @@ const ResizableChannels = ({
     let calculatedDate;
 
     if (rrange === "Year") {
-      // Year view - calculate based on months with improved precision
-      const numberOfMonths = 12;
-      const actualStepWidth = containerWidth / numberOfMonths;
-      const monthIndex = Math.min(
-        numberOfMonths - 1,
-        Math.max(0, Math.floor(pixel / actualStepWidth))
-      );
+      // Year view - calculate based on parent phase card's month range
+      if (startDate && endDate) {
+        const startMonth = startDate.getMonth();
+        const endMonth = endDate.getMonth();
+        const startYear = startDate.getFullYear();
+        const endYear = endDate.getFullYear();
+        
+        // Calculate months between dates, accounting for different years
+        const numberOfMonths = (endYear - startYear) * 12 + (endMonth - startMonth) + 1;
+        const actualStepWidth = parentWidth / numberOfMonths;
+        const monthIndex = Math.min(
+          numberOfMonths - 1,
+          Math.max(0, Math.floor(pixel / actualStepWidth))
+        );
 
-      console.log("pixelToDate Year debug:", {
-        pixel,
-        containerWidth,
-        numberOfMonths,
-        actualStepWidth,
-        monthIndex,
-        fieldName
-      });
+        console.log("pixelToDate Year debug (Parent-based):", {
+          pixel,
+          parentWidth,
+          numberOfMonths,
+          actualStepWidth,
+          monthIndex,
+          fieldName,
+          startDate,
+          endDate
+        });
 
-      const year = startDate?.getFullYear() || new Date().getFullYear();
+        const year = startDate.getFullYear();
 
-      if (fieldName === "endDate") {
-        // Last day of the target month
-        calculatedDate = new Date(year, monthIndex + 1, 0); // +1 month, day 0 = last day of previous month
+        if (fieldName === "endDate") {
+          // Last day of the target month
+          calculatedDate = new Date(year, startMonth + monthIndex + 1, 0);
+        } else {
+          // First day of the target month
+          calculatedDate = new Date(year, startMonth + monthIndex, 1);
+        }
       } else {
-        // First day of the target month
-        calculatedDate = new Date(year, monthIndex, 1);
+        // Fallback to original logic
+        const numberOfMonths = 12;
+        const actualStepWidth = containerWidth / numberOfMonths;
+        const monthIndex = Math.min(
+          numberOfMonths - 1,
+          Math.max(0, Math.floor(pixel / actualStepWidth))
+        );
+
+        const year = startDate?.getFullYear() || new Date().getFullYear();
+
+        if (fieldName === "endDate") {
+          calculatedDate = new Date(year, monthIndex + 1, 0);
+        } else {
+          calculatedDate = new Date(year, monthIndex, 1);
+        }
       }
     } else if (rrange === "Month") {
-      // Month view - use day-level precision for smooth dragging
-      const numberOfGridColumns = dRange?.length || dateList?.length || 1;
-      const stepWidth = containerWidth / numberOfGridColumns;
+      // Month view - calculate based on parent phase card's day range
+      if (startDate && endDate) {
+        const daysBetween = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        const stepWidth = parentWidth / daysBetween;
 
-      // Determine if pixel is at the very end of the timeline
-      const isAtEnd = pixel >= containerWidth - stepWidth / 2;
+        // Determine if pixel is at the very end of the parent phase card
+        const isAtEnd = pixel >= parentWidth - stepWidth / 2;
 
-      let gridIndex;
-      if (isAtEnd) {
-        // Use the last date
-        gridIndex = numberOfGridColumns - 1;
-      } else {
-        gridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, Math.floor(pixel / stepWidth)));
+        let gridIndex;
+        if (isAtEnd) {
+          // Use the last date
+          gridIndex = daysBetween - 1;
+        } else {
+          gridIndex = Math.max(0, Math.min(daysBetween - 1, Math.floor(pixel / stepWidth)));
 
-        // Ensure inclusive end date (if exactly on grid line, step back one index)
-        if (fieldName === "endDate" && pixel % stepWidth === 0 && gridIndex > 0 && !isAtEnd) {
-          gridIndex -= 1;
+          // Ensure inclusive end date (if exactly on grid line, step back one index)
+          if (fieldName === "endDate" && pixel % stepWidth === 0 && gridIndex > 0 && !isAtEnd) {
+            gridIndex -= 1;
+          }
         }
+
+        console.log("pixelToDate Month debug (Parent-based):", {
+          pixel,
+          parentWidth,
+          daysBetween,
+          stepWidth,
+          gridIndex,
+          fieldName,
+          isAtEnd,
+          startDate,
+          endDate
+        });
+
+        // Calculate the date by adding gridIndex days to the start date
+        calculatedDate = new Date(startDate.getTime() + (gridIndex * 24 * 60 * 60 * 1000));
+      } else {
+        // Fallback to original logic
+        const numberOfGridColumns = dRange?.length || dateList?.length || 1;
+        const stepWidth = containerWidth / numberOfGridColumns;
+        const isAtEnd = pixel >= containerWidth - stepWidth / 2;
+
+        let gridIndex;
+        if (isAtEnd) {
+          gridIndex = numberOfGridColumns - 1;
+        } else {
+          gridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, Math.floor(pixel / stepWidth)));
+
+          if (fieldName === "endDate" && pixel % stepWidth === 0 && gridIndex > 0 && !isAtEnd) {
+            gridIndex -= 1;
+          }
+        }
+
+        const dateToUse = (dRange?.[gridIndex] || dateList?.[gridIndex] || startDate);
+        calculatedDate = new Date(dateToUse);
       }
-
-      console.log("pixelToDate Month debug:", {
-        pixel,
-        containerWidth,
-        numberOfGridColumns,
-        stepWidth,
-        gridIndex,
-        fieldName,
-        isAtEnd
-      });
-
-      const dateToUse = (dRange?.[gridIndex] || dateList?.[gridIndex] || startDate);
-      calculatedDate = new Date(dateToUse);
     } else {
-      // Day, Week view - consistent with DraggableChannel logic
-      const numberOfGridColumns = dRange?.length || dateList?.length || 1;
-      const stepWidth = containerWidth / numberOfGridColumns;
+      // Day, Week view - calculate based on parent phase card's day range
+      if (startDate && endDate) {
+        const daysBetween = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        const stepWidth = parentWidth / daysBetween;
 
-      // Determine if pixel is at the very end of the timeline
-      const isAtEnd = pixel >= containerWidth - stepWidth / 2;
+        // Determine if pixel is at the very end of the parent phase card
+        const isAtEnd = pixel >= parentWidth - stepWidth / 2;
 
-      let gridIndex;
-      if (isAtEnd) {
-        // Use the last date
-        gridIndex = numberOfGridColumns - 1;
-      } else {
-        gridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, Math.floor(pixel / stepWidth)));
+        let gridIndex;
+        if (isAtEnd) {
+          // Use the last date
+          gridIndex = daysBetween - 1;
+        } else {
+          gridIndex = Math.max(0, Math.min(daysBetween - 1, Math.floor(pixel / stepWidth)));
 
-        // Ensure inclusive end date (if exactly on grid line, step back one index)
-        if (fieldName === "endDate" && pixel % stepWidth === 0 && gridIndex > 0 && !isAtEnd) {
-          gridIndex -= 1;
+          // Ensure inclusive end date (if exactly on grid line, step back one index)
+          if (fieldName === "endDate" && pixel % stepWidth === 0 && gridIndex > 0 && !isAtEnd) {
+            gridIndex -= 1;
+          }
         }
+
+        console.log("pixelToDate Day debug (Parent-based):", {
+          pixel,
+          parentWidth,
+          daysBetween,
+          stepWidth,
+          gridIndex,
+          fieldName,
+          isAtEnd,
+          startDate,
+          endDate
+        });
+
+        // Calculate the date by adding gridIndex days to the start date
+        calculatedDate = new Date(startDate.getTime() + (gridIndex * 24 * 60 * 60 * 1000));
+      } else {
+        // Fallback to original logic
+        const numberOfGridColumns = dRange?.length || dateList?.length || 1;
+        const stepWidth = containerWidth / numberOfGridColumns;
+        const isAtEnd = pixel >= containerWidth - stepWidth / 2;
+
+        let gridIndex;
+        if (isAtEnd) {
+          gridIndex = numberOfGridColumns - 1;
+        } else {
+          gridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, Math.floor(pixel / stepWidth)));
+
+          if (fieldName === "endDate" && pixel % stepWidth === 0 && gridIndex > 0 && !isAtEnd) {
+            gridIndex -= 1;
+          }
+        }
+
+        const dateToUse = (dRange?.[gridIndex] || dateList?.[gridIndex] || startDate);
+        calculatedDate = new Date(dateToUse);
       }
-
-      console.log("pixelToDate Day debug FIXED:", {
-        pixel,
-        containerWidth,
-        numberOfGridColumns,
-        stepWidth,
-        gridIndex,
-        fieldName,
-        isAtEnd
-      });
-
-      const dateToUse = (dRange?.[gridIndex] || dateList?.[gridIndex] || startDate);
-      calculatedDate = new Date(dateToUse);
     }
 
     const updatedCampaignFormData = { ...campaignFormData };
@@ -870,6 +990,28 @@ const ResizableChannels = ({
     }
 
     return calculatedDate ? moment(calculatedDate).format("YYYY-MM-DD") : null;
+  };
+
+  // Helper to commit child channel dates into campaignFormData
+  const updateCampaignFormWithChannelDates = (
+    baseData: any,
+    index: number,
+    startDateStr: string | null,
+    endDateStr: string | null
+  ) => {
+    const updated = JSON.parse(JSON.stringify(baseData));
+    const channelMix = updated?.channel_mix?.find((ch) => ch?.funnel_stage === parentId);
+    if (!channelMix) return updated;
+
+    const list = channelMix?.[channels[index]?.channelName];
+    if (!Array.isArray(list)) return updated;
+
+    const plat = list.find((p: any) => p?.platform_name === channels[index]?.name);
+    if (!plat) return updated;
+
+    plat.campaign_start_date = startDateStr;
+    plat.campaign_end_date = endDateStr;
+    return updated;
   };
 
   const handleDragStart = (index) => (event) => {
@@ -954,7 +1096,7 @@ const ResizableChannels = ({
       );
       const endDate = pixelToDate(endPixel, gridWidth, index, "endDate");
 
-      draggingDataRef.current = { index, startDate, endDate };
+      draggingDataRef.current = { index, startDate, endDate } as any;
 
       updateTooltipWithDates(
         startPixel,
@@ -977,7 +1119,7 @@ const ResizableChannels = ({
        document.removeEventListener("mouseup", handleDragEnd);
  
        if (draggingDataRef.current) {
-         const { index, startDate, endDate } = draggingDataRef.current;
+         const { index, startDate, endDate } = draggingDataRef.current as any;
  
          setChannels((prevChannels) =>
            prevChannels.map((ch, i) =>
@@ -992,7 +1134,14 @@ const ResizableChannels = ({
          );
 
         try {
-          await sendUpdatedDataToAPI(campaignFormData);
+          const updated = updateCampaignFormWithChannelDates(
+            campaignFormData,
+            index,
+            startDate,
+            endDate
+          );
+          setCampaignFormData(updated);
+          await sendUpdatedDataToAPI(updated);
         } catch (err) {
           console.error('Failed to persist channel drag', err);
         }
@@ -1136,50 +1285,46 @@ const ResizableChannels = ({
             ? parseISO(findChannel?.campaign_start_date)
             : null;
 
-          const adjustedStageStartDate =
-            stageStartDate && stageStartDate < startDate
-              ? stageStartDate
-              : stageStartDate < startDate
-              ? startDate
-              : stageStartDate;
+          // Clamp start within parent phase bounds
+          const adjustedStageStartDate = stageStartDate
+            ? startDate
+              ? (stageStartDate < startDate ? startDate : stageStartDate)
+              : stageStartDate
+            : null;
 
           const stageEndDate = findChannel?.campaign_end_date
             ? parseISO(findChannel?.campaign_end_date)
             : null;
 
-          const isEndDateExceeded =
-            stageEndDate && endDate && stageEndDate > endDate;
+          const isEndDateExceeded = stageEndDate && endDate && stageEndDate > endDate;
 
-          const adjustedStageEndDate = isEndDateExceeded
+          // Clamp end within parent phase bounds
+          const adjustedStageEndDate = stageEndDate
             ? endDate
-            : stageEndDate;
+              ? (stageEndDate > endDate ? endDate : stageEndDate)
+              : stageEndDate
+            : null;
 
           let left, width;
 
           if (rrange === "Year") {
-            // Year view calculations - based on months, not days
-            if (adjustedStageStartDate && adjustedStageEndDate) {
-              const startMonth = adjustedStageStartDate.getMonth();
-              const endMonth = adjustedStageEndDate.getMonth();
-              const startYear = adjustedStageStartDate.getFullYear();
-              const endYear = adjustedStageEndDate.getFullYear();
+            // Year view calculations - based on months relative to parent start month
+            if (adjustedStageStartDate && adjustedStageEndDate && startDate && endDate) {
+              const startMonthIdx = (adjustedStageStartDate.getFullYear() - startDate.getFullYear()) * 12 + (adjustedStageStartDate.getMonth() - startDate.getMonth());
+              const endMonthIdx = (adjustedStageEndDate.getFullYear() - startDate.getFullYear()) * 12 + (adjustedStageEndDate.getMonth() - startDate.getMonth());
 
-              // Calculate months between dates, accounting for different years
-              const monthsBetween =
-                (endYear - startYear) * 12 + (endMonth - startMonth) + 1;
+              const monthsBetween = endMonthIdx - startMonthIdx + 1; // inclusive
 
-              // Use consistent month width calculation
-              const monthWidth = dailyWidth || parentWidth / 12;
+              const monthWidth = dailyWidth || parentWidth / Math.max(1, ((endDate.getFullYear() - startDate.getFullYear()) * 12 + (endDate.getMonth() - startDate.getMonth()) + 1));
               
-              // Calculate left position relative to parent
-              left = parentLeft + startMonth * monthWidth;
-              width = monthsBetween * monthWidth;
+              left = parentLeft + Math.max(0, startMonthIdx) * monthWidth;
+              width = Math.max(monthWidth, monthsBetween * monthWidth);
 
             } else {
               // Fallback to default positioning when dates are not available
               left = parentLeft;
               const monthWidth = dailyWidth || parentWidth / 12;
-              width = Math.max(monthWidth, 80); // Increased minimum for better visibility
+              width = Math.max(monthWidth, 80);
             }
 
             // Ensure the calculated position is within parent bounds
@@ -1195,56 +1340,47 @@ const ResizableChannels = ({
               }
             }
           } else if (rrange === "Month") {
-            // Month view calculations - use day-level precision for smooth dragging
-            const startDateIndex = adjustedStageStartDate
-              ? dateList?.findIndex((date) =>
-                  isEqual(date, adjustedStageStartDate)
-                ) * dailyWidth
-              : 0;
+            // Month view calculations - compute offset relative to parent start using date differences
+            if (startDate) {
+              const offsetDays = adjustedStageStartDate
+                ? Math.max(0, differenceInCalendarDays(adjustedStageStartDate, startDate))
+                : 0;
 
-            let daysBetween;
-            if (adjustedStageStartDate && adjustedStageEndDate) {
-              daysBetween = eachDayOfInterval({
-                start: adjustedStageStartDate,
-                end: adjustedStageEndDate,
-              })?.length;
+              const daysBetween = (adjustedStageStartDate && adjustedStageEndDate)
+                ? Math.max(1, differenceInCalendarDays(adjustedStageEndDate, adjustedStageStartDate) + 1)
+                : (stageStartDate && stageEndDate)
+                  ? Math.max(1, differenceInCalendarDays(isEndDateExceeded ? endDate : stageEndDate, stageStartDate) + 1)
+                  : 0;
+
+              const step = dailyWidth || (parentWidth / Math.max(1, (endDate && startDate) ? (differenceInCalendarDays(endDate, startDate) + 1) : (dateList?.length || 1)));
+
+              left = parentLeft + offsetDays * step;
+              width = daysBetween > 0 ? step * daysBetween : parentWidth;
             } else {
-              daysBetween = eachDayOfInterval({
-                start: new Date(findChannel?.campaign_start_date) || null,
-                end: isEndDateExceeded
-                  ? endDate
-                  : new Date(findChannel?.campaign_end_date) || null,
-              })?.length;
+              left = parentLeft;
+              width = parentWidth;
             }
-
-            left = Math.abs(startDateIndex < 0 ? 0 : startDateIndex);
-            width = daysBetween > 0 ? dailyWidth * daysBetween : parentWidth;
           } else {
-            // Day, Week view calculations - based on days
-            const startDateIndex = adjustedStageStartDate
-              ? dateList?.findIndex((date) =>
-                  isEqual(date, adjustedStageStartDate)
-                ) * dailyWidth
-              : 0;
+            // Day, Week view calculations - compute offset relative to parent start using date differences
+            if (startDate) {
+              const offsetDays = adjustedStageStartDate
+                ? Math.max(0, differenceInCalendarDays(adjustedStageStartDate, startDate))
+                : 0;
 
-            let daysBetween;
-            if (adjustedStageStartDate && adjustedStageEndDate) {
-              daysBetween = eachDayOfInterval({
-                start: adjustedStageStartDate,
-                end: adjustedStageEndDate,
-              })?.length;
+              const daysBetween = (adjustedStageStartDate && adjustedStageEndDate)
+                ? Math.max(1, differenceInCalendarDays(adjustedStageEndDate, adjustedStageStartDate) + 1)
+                : (stageStartDate && stageEndDate)
+                  ? Math.max(1, differenceInCalendarDays(isEndDateExceeded ? endDate : stageEndDate, stageStartDate) + 1)
+                  : 0;
+
+              const step = dailyWidth || (parentWidth / Math.max(1, (endDate && startDate) ? (differenceInCalendarDays(endDate, startDate) + 1) : (dateList?.length || 1)));
+
+              left = parentLeft + offsetDays * step;
+              width = daysBetween > 0 ? step * daysBetween : parentWidth;
             } else {
-              daysBetween = eachDayOfInterval({
-                start: new Date(findChannel?.campaign_start_date) || null,
-                end: isEndDateExceeded
-                  ? endDate
-                  : new Date(findChannel?.campaign_end_date) || null,
-              })?.length;
+              left = parentLeft;
+              width = parentWidth;
             }
-
-            left =
-               Math.abs(startDateIndex < 0 ? 0 : startDateIndex);
-            width = daysBetween > 0 ? dailyWidth * daysBetween : parentWidth;
           }
 
           // Ensure minimum width constraints
@@ -1254,8 +1390,8 @@ const ResizableChannels = ({
               return Math.max(monthWidth, 80);
             } else if (rrange === "Month") {
               // For month view, use day-level precision for smooth dragging
-              const dayWidth = dailyWidth || parentWidth / dateList.length;
-              return Math.max(dayWidth, 8); // Much smaller minimum for day-level dragging
+              const dayWidth = dailyWidth || parentWidth / Math.max(1, dateList.length);
+              return Math.max(dayWidth, 8);
             }
             return 50;
           };
@@ -1749,7 +1885,7 @@ const ResizableChannels = ({
                     toggleChannel(`${channel?.name}${index}`);
                     setSelectedCreative(channel?.format);
 
-                    // Measure and adjust popover so it doesn’t overflow viewport right edge
+                    // Measure and adjust popover so it doesn't overflow viewport right edge
                     // no-op
                   }}
                 >

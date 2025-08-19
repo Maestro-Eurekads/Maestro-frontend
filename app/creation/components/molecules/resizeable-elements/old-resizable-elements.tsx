@@ -366,38 +366,9 @@ const OldResizableElement = ({
       const months = eachMonthOfInterval({ start: startDate, end: endDate });
       return `repeat(${months.length}, ${dailyWidth}px)`;
     } else {
-      // Month view - use proportional logic like MonthInterval
-      const months = Object.keys(daysInEachMonth);
-      if (months.length === 0)
-        return `repeat(${funnelData?.endDay || 30}, ${dailyWidth}px)`;
-
-      // Calculate total days for proportional sizing (same as MonthInterval)
-      const totalDays = Object.values(daysInEachMonth).reduce(
-        (sum: number, days: number) => sum + days,
-        0
-      );
-
-      // Generate proportional column definitions with minimum width constraint
-      const columnDefinitions: string[] = [];
-
-      if (months.length > 3) {
-        // When more than 3 months, each month takes at least 20% of container
-        months.forEach((month) => {
-          const daysInThisMonth = daysInEachMonth[month];
-          const proportionalWidth = (daysInThisMonth / totalDays) * 100;
-          const monthWidth = Math.max(proportionalWidth, 20); // Minimum 20%
-          columnDefinitions.push(`${Math.round(monthWidth)}%`);
-        });
-      } else {
-        // For 3 or fewer months, use proportional sizing
-        months.forEach((month) => {
-          const daysInThisMonth = daysInEachMonth[month];
-          const monthWidth = Math.round((daysInThisMonth / totalDays) * 100);
-          columnDefinitions.push(`${monthWidth}%`);
-        });
-      }
-
-      return columnDefinitions.join(" ");
+      // Month view - use day-level precision for smooth positioning
+      const numberOfDays = range?.length || 1;
+      return `repeat(${numberOfDays}, ${dailyWidth}px)`;
     }
   }, [
     rrange,
@@ -405,6 +376,7 @@ const OldResizableElement = ({
     monthsByYear,
     dailyWidthByView,
     funnelData?.endDay,
+    range,
   ]);
 
   // Enhanced function to get grid column end position for different views
@@ -417,13 +389,12 @@ const OldResizableElement = ({
       const startDate = startOfYear(range[0]);
       const endDate = endOfYear(range[range.length - 1]);
       const months = eachMonthOfInterval({ start: startDate, end: endDate });
-      return months; // 12 months
+      return months.length;
     } else {
-      // Month view - return number of months for proportional grid
-      const months = Object.keys(daysInEachMonth);
-      return months.length || 1;
+      // Month view - return number of days for day-level precision
+      return range?.length || 1;
     }
-  }, [rrange, funnelData?.endDay, funnelData?.endWeek, daysInEachMonth]);
+  }, [rrange, funnelData?.endDay, funnelData?.endWeek, daysInEachMonth, range]);
 
   const getDailyWidth = useCallback(
     (viewType?: string): number => {
@@ -486,7 +457,7 @@ const OldResizableElement = ({
           initialPositions[stageName] = yearCalc.position;
           initialWidths[stageName] = yearCalc.width;
         } else {
-          // Existing logic for other views
+          // Existing logic for other views (Day, Week, Month)
           const startDateIndex = stageStartDate
             ? range?.findIndex((date) => isEqual(date, stageStartDate)) *
               getDailyWidth()
@@ -516,17 +487,11 @@ const OldResizableElement = ({
               return daysBetween > 0
                 ? dailyWidth * daysBetween
                 : dailyWidth * daysFromStart - 0;
-            } else {
-              // Month view
-              const totalDaysInRange = Object.values(
-                daysInEachMonth || {}
-              ).reduce((sum: number, days: number) => sum + days, 0);
-              const widthPerDay = Math.round(
-                availableWidth / (totalDaysInRange || 30)
-              );
+            } else if (rrange === "Month") {
+              // Month view - calculate width based on actual days
               return daysBetween > 0
-                ? widthPerDay * daysBetween
-                : widthPerDay * daysFromStart - 0;
+                ? dailyWidth * daysBetween
+                : dailyWidth * daysFromStart - 0;
             }
           })();
 
@@ -564,18 +529,11 @@ const OldResizableElement = ({
 
   return (
     <div
-      className={`w-full relative pb-5 grid-container ${
-        rrange === "Month" ? "overflow-x-auto" : "overflow-x-hidden"
-      }`}
+      className={`w-full relative pb-5 grid-container overflow-x-hidden`}
       ref={gridRef}
       style={{
         ...(rrange === "Year"
           ? generateYearBackground()
-          : rrange === "Month"
-          ? {
-              minWidth: "max-content",
-              width: "max-content",
-            }
           : {}),
         ...(rrange === "Year"
           ? {}
@@ -584,7 +542,6 @@ const OldResizableElement = ({
                 if (rrange === "Day" || rrange === "Week") {
                   return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
                 } else if (rrange === "Month") {
-                  // Month view - no background lines, we'll use border elements instead
                   return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
                 } else {
                   return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
@@ -603,7 +560,6 @@ const OldResizableElement = ({
                   }px) 100%`;
                 } else if (rrange === "Month") {
                   const dailyGridSize = `${dailyWidth}px 100%`;
-                  // Month view - no background size needed
                   return dailyGridSize;
                 } else {
                   return `${dailyWidth}px 100%`;
@@ -612,65 +568,6 @@ const OldResizableElement = ({
             }),
       }}
     >
-      {/* Month boundary lines for month view */}
-      {rrange === "Month" &&
-        (() => {
-          const months = Object.keys(daysInEachMonth);
-          if (months.length === 0) return null;
-
-          // Calculate total days for proportional sizing
-          const totalDays = Object.values(daysInEachMonth).reduce(
-            (sum: number, days: number) => sum + days,
-            0
-          );
-
-          let cumulativePercentage = 0;
-          const boundaryLines: React.ReactElement[] = [];
-
-          if (months.length > 3) {
-            // When more than 3 months, each month takes at least 20%
-            months.forEach((month, index) => {
-              const daysInThisMonth = daysInEachMonth[month];
-              const proportionalWidth = (daysInThisMonth / totalDays) * 100;
-              const monthPercentage = Math.max(proportionalWidth, 20); // Minimum 20%
-              cumulativePercentage += monthPercentage;
-
-              if (index < months.length - 1) {
-                boundaryLines.push(
-                  <div
-                    key={`boundary-${index}`}
-                    className="absolute top-0 bottom-0 w-px bg-slate-300 z-50"
-                    style={{
-                      left: `${Math.round(cumulativePercentage)}%`,
-                    }}
-                  />
-                );
-              }
-            });
-          } else {
-            // For 3 or fewer months, use proportional sizing
-            months.forEach((month, index) => {
-              const daysInThisMonth = daysInEachMonth[month];
-              const monthPercentage = (daysInThisMonth / totalDays) * 100;
-              cumulativePercentage += monthPercentage;
-
-              if (index < months.length - 1) {
-                boundaryLines.push(
-                  <div
-                    key={`boundary-${index}`}
-                    className="absolute top-0 bottom-0 w-px bg-blue-300 z-50"
-                    style={{
-                      left: `${Math.round(cumulativePercentage)}%`,
-                    }}
-                  />
-                );
-              }
-            });
-          }
-
-          return boundaryLines;
-        })()}
-
       {/* Year view month headers */}
       {rrange === "Year" && (
         <div
