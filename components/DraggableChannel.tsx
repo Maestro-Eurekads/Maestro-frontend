@@ -487,9 +487,11 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       // For year view, show month ranges
       const startMonth = startDateValue?.toLocaleDateString("en-US", {
         month: "short",
+        year: "2-digit"
       });
       const endMonth = endDateValue?.toLocaleDateString("en-US", {
         month: "short",
+        year: "2-digit"
       });
       const startYear = startDateValue?.getFullYear();
       const endYear = endDateValue?.getFullYear();

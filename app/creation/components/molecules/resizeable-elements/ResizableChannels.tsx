@@ -650,8 +650,8 @@ const ResizableChannels = ({
 
     if (rrange === "Year") {
       // For year view, show month ranges
-      const startMonth = format(startDateValue, "MMM");
-      const endMonth = format(endDateValue, "MMM");
+      const startMonth = format(startDateValue, "MMM yy");
+      const endMonth = format(endDateValue, "MMM yy");
       const startYear = startDateValue.getFullYear();
       const endYear = endDateValue.getFullYear();
 
