@@ -3,7 +3,7 @@ import { useComments } from "app/utils/CommentProvider";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import { useAppDispatch, useAppSelector } from "store/useStore";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { getSignedApproval } from "features/Comment/commentSlice";
 import Skeleton from "react-loading-skeleton";
 import tickcircles from "../../public/solid_circle-check.svg";
@@ -20,6 +20,8 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
     setCreateApprovalSuccess,
     selected,
     setSelected,
+    createCommentsSuccess,
+    isLoadingSaveProgress,
   } = useComments();
   const { dataApprove, isLoadingApprove } = useAppSelector(
     (state) => state.comment
@@ -30,8 +32,9 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
   const id = session?.user?.id;
   const isdocumentId = campaignData?.documentId;
   const [show, setShow] = useState(false);
-
-  // console.log("campaignData---", session);
+  const [isClientChangesNeeded, setIsClientChangesNeeded] = useState(false);
+  const [showClientChangesModal, setShowClientChangesModal] = useState(false);
+  const [showDelayedButton, setShowDelayedButton] = useState(false);
 
   useEffect(() => {
     if (createApprovalSuccess) {
@@ -44,12 +47,51 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
     }
   }, [dispatch, id, createApprovalSuccess, isdocumentId]);
 
+  // Refresh campaign data when comments are made
+  useEffect(() => {
+    if (createCommentsSuccess && isdocumentId && jwt) {
+      dispatch(getSignedApproval({ isdocumentId, jwt }));
+    }
+  }, [createCommentsSuccess, isdocumentId, jwt, dispatch]);
+
+  // Only refresh campaign data when there are actual changes (not continuously)
+  // The data will be refreshed when comments are made or status changes
+
   const handleDrawerOpen = () => {
     setModalOpen(true);
     dispatch(getSignedApproval({ isdocumentId, jwt }));
   };
 
   const isSignature = dataApprove?.[0]?.isSignature || false;
+
+  useEffect(() => {
+    if (
+      campaignData?.isStatus?.stage === "client_changes_needed" ||
+      campaignData?.isStatus?.stage === "in_internal_review"
+    ) {
+      setIsClientChangesNeeded(true);
+    } else {
+      setIsClientChangesNeeded(false);
+    }
+  }, [campaignData?.isStatus?.stage]);
+
+  // Only trigger delay if all conditions for showing the button are met
+  useEffect(() => {
+    if (
+      !isSignature &&
+      campaignData?.isStatus?.stage !== undefined &&
+      campaignData?.isStatus?.stage !== null &&
+      campaignData?.isStatus?.stage
+    ) {
+      setShowDelayedButton(false);
+      const timer = setTimeout(() => {
+        setShowDelayedButton(true);
+      }, 5000);
+      return () => clearTimeout(timer);
+    } else {
+      setShowDelayedButton(false);
+    }
+  }, [isSignature, campaignData?.isStatus?.stage]);
 
   // Check if user has any assigned campaigns
   const hasCampaigns = campaigns && `campaigns`?.length > 0;
@@ -86,44 +128,62 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
       </div>
 
       <div className="flex items-center justify-between gap-8">
-        <div>
-          {isLoadingApprove ? (
-            <Skeleton height={20} width={200} />
-          ) : (
-            hasCampaigns && (
-              <div>
-                {isSignature ? (
-                  <button
-                    className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start flex items-center	gap-[10px]"
-                    style={{ border: "1px solid #3175FF" }}
-                    onClick={handleDrawerOpen}>
-                    <Image
-                      src={tickcircles}
-                      alt="tickcircle"
-                      className="w-[18px] "
-                    />
-                    Approved
-                  </button>
-                ) : (
-                  true && (
+        {dataApprove && !campaignData ? null : (
+          <div>
+            {isLoadingApprove || loading || isLoadingSaveProgress ? (
+              <Skeleton height={20} width={200} />
+            ) : (
+              hasCampaigns && (
+                <div>
+                  {isSignature ? (
                     <button
-                      className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start"
+                      className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start flex items-center	gap-[10px]"
                       style={{ border: "1px solid #3175FF" }}
-                      onClick={() => {
-                        if (campaignData) {
-                          setIsOpen(true);
-                        } else {
-                          handleCheckCampaign();
-                        }
-                      }}>
-                      Approve & Sign Media plan
+                      onClick={handleDrawerOpen}>
+                      <Image
+                        src={tickcircles}
+                        alt="tickcircle"
+                        className="w-[18px] "
+                      />
+                      Approved
                     </button>
-                  )
-                )}
-              </div>
-            )
-          )}
-        </div>
+                  ) : campaignData?.isStatus?.stage === undefined ||
+                    campaignData?.isStatus?.stage === null ||
+                    !campaignData?.isStatus?.stage ? null : (
+                    showDelayedButton && (
+                      <button
+                        className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start"
+                        style={{ border: "1px solid #3175FF" }}
+                        onClick={async () => {
+                          if (campaignData) {
+                            if (
+                              campaignData?.isStatus?.stage ===
+                                "client_changes_needed" ||
+                              campaignData?.isStatus?.stage ===
+                                "in_internal_review"
+                            ) {
+                              setShowClientChangesModal(true);
+                            } else {
+                              setIsOpen(true);
+                            }
+                          } else {
+                            handleCheckCampaign();
+                          }
+                        }}>
+                        {campaignData?.isStatus?.stage ===
+                          "client_changes_needed" ||
+                        campaignData?.isStatus?.stage === "in_internal_review"
+                          ? "Client changes have been requested"
+                          : "Approve & Sign Media plan"}
+                      </button>
+                    )
+                  )}
+                </div>
+              )
+            )}
+          </div>
+        )}
+
         <div
           className="profile_container relative"
           onClick={() => setShow((prev) => !prev)}>
@@ -157,6 +217,27 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
           )}
         </div>
       </div>
+
+      {/* Client Changes Modal */}
+      {showClientChangesModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-[10px] p-6 max-w-md w-full mx-4">
+            <div className="text-center">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                Client Changes Requested
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Client changes have been requested for this media plan.
+              </p>
+              <button
+                onClick={() => setShowClientChangesModal(false)}
+                className="bg-[#3175FF] text-white px-6 py-3 rounded-[10px] font-medium hover:bg-blue-700 transition-colors">
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

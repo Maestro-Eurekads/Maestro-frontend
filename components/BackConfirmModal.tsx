@@ -17,6 +17,33 @@ import { useRouter } from "next/navigation";
 import { useComments } from "app/utils/CommentProvider";
 import { reset } from "features/Client/clientSlice";
 
+// Helper to validate and format dates
+const validateAndFormatDates = (data) => {
+  const isValidDate = (d) => {
+    if (!d || d === "" || d === null || d === undefined) return null;
+    if (
+      typeof d === "string" &&
+      d.length === 10 &&
+      /^\d{4}-\d{2}-\d{2}$/.test(d)
+    )
+      return d;
+    try {
+      const date = new Date(d);
+      if (isNaN(date.getTime())) return null;
+      return date.toISOString().split("T")[0];
+    } catch {
+      return null;
+    }
+  };
+  return {
+    ...data,
+    campaign_timeline_start_date: isValidDate(
+      data?.campaign_timeline_start_date
+    ),
+    campaign_timeline_end_date: isValidDate(data?.campaign_timeline_end_date),
+  };
+};
+
 interface BackConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -123,10 +150,6 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
           localStorage.removeItem(key);
         }
       });
-
-      console.log(
-        "Cleared all campaign data from localStorage and sessionStorage"
-      );
     } catch (error) {
       console.error("Error clearing campaign data:", error);
     }
@@ -149,6 +172,93 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
     agencyId,
   } = useCampaigns();
 
+  // Enhanced change detection - monitor form data changes and step changes
+  useEffect(() => {
+    if (campaignFormData && Object.keys(campaignFormData).length > 0) {
+      // Check if there are actual changes in the form data
+      const hasChanges = checkForFormChanges();
+
+      // Update the global change state if there are form changes
+      if (hasChanges !== change) {
+        setChange(hasChanges);
+      }
+    }
+  }, [campaignFormData, active, change, setChange]);
+
+  // Function to check for actual form changes
+  const checkForFormChanges = () => {
+    if (!campaignFormData || Object.keys(campaignFormData).length === 0) {
+      return false;
+    }
+
+    // Check for key form fields that indicate changes
+    const keyFields = [
+      "media_plan",
+      "budget_details_currency",
+      "funnel_stages",
+      "custom_funnels",
+      "channel_mix",
+      "goal_level",
+      "ad_sets_granularity",
+      "campaign_timeline_start_date",
+      "campaign_timeline_end_date",
+      "internal_approver",
+      "client_approver",
+    ];
+
+    // Check if any key fields have been modified
+    for (const field of keyFields) {
+      if (
+        campaignFormData[field] && Array.isArray(campaignFormData[field])
+          ? campaignFormData[field].length > 0
+          : campaignFormData[field]
+      ) {
+        return true;
+      }
+    }
+
+    // Check for specific step-based changes
+    if (active > 0) {
+      // If user is on any step beyond step 0, there are likely unsaved changes
+      return true;
+    }
+
+    // Check for any non-empty form data that indicates user interaction
+    const hasAnyFormData = Object.values(campaignFormData).some((value) => {
+      if (Array.isArray(value)) {
+        return value.length > 0;
+      }
+      if (typeof value === "object" && value !== null) {
+        return Object.keys(value).length > 0;
+      }
+      return value && value !== "";
+    });
+
+    if (hasAnyFormData) {
+      return true;
+    }
+
+    return false;
+  };
+
+  // Monitor step changes to detect when user moves between steps
+  // useEffect(() => {
+  //   if (active > 0) {
+  //     // If user is on any step beyond step 0, there are likely unsaved changes
+  //     setChange(true);
+  //   }
+  // }, [active, setChange]);
+
+  // // Monitor form data changes more comprehensively
+  // useEffect(() => {
+  //   if (campaignFormData && Object.keys(campaignFormData).length > 0) {
+  //     // If we have form data and we're not on step 0, there are likely changes
+  //     if (active > 0) {
+  //       setChange(true);
+  //     }
+  //   }
+  // }, [campaignFormData, active, setChange]);
+
   const handleSaveAllSteps = async () => {
     // Use the same validation logic as Bottom component handleContinue
     // Step 0 validation (Setup Screen)
@@ -169,94 +279,6 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
         client_approver: campaignFormData?.client_approver || [],
         approved_by: campaignFormData?.approved_by || [],
       };
-
-      // Validate and format dates
-      const validateAndFormatDates = (data) => {
-        const isValidDate = (d) => {
-          if (!d || d === "" || d === null || d === undefined) {
-            return null;
-          }
-          // Check if it's already in yyyy-MM-dd format
-          if (
-            typeof d === "string" &&
-            d.length === 10 &&
-            /^\d{4}-\d{2}-\d{2}$/.test(d)
-          ) {
-            return d;
-          }
-          // Try to parse and format the date
-          try {
-            const date = new Date(d);
-            if (isNaN(date.getTime())) {
-              return null;
-            }
-            return date.toISOString().split("T")[0]; // Convert to yyyy-MM-dd format
-          } catch (error) {
-            return null;
-          }
-        };
-
-        // Deep clone to avoid mutating original data
-        const validatedData = JSON.parse(JSON.stringify(data));
-
-        // Validate main campaign dates
-        validatedData.campaign_timeline_start_date = isValidDate(
-          data?.campaign_timeline_start_date
-        );
-        validatedData.campaign_timeline_end_date = isValidDate(
-          data?.campaign_timeline_end_date
-        );
-
-        // Validate nested dates in channel_mix
-        if (Array.isArray(validatedData.channel_mix)) {
-          validatedData.channel_mix = validatedData.channel_mix.map((stage) => {
-            const validatedStage = { ...stage };
-
-            // Validate stage timeline dates
-            validatedStage.funnel_stage_timeline_start_date = isValidDate(
-              stage?.funnel_stage_timeline_start_date
-            );
-            validatedStage.funnel_stage_timeline_end_date = isValidDate(
-              stage?.funnel_stage_timeline_end_date
-            );
-
-            // Validate dates in all media types
-            const mediaTypes = [
-              "social_media",
-              "display_networks",
-              "search_engines",
-              "streaming",
-              "ooh",
-              "broadcast",
-              "messaging",
-              "print",
-              "e_commerce",
-              "in_game",
-              "mobile",
-            ];
-
-            mediaTypes.forEach((mediaType) => {
-              if (Array.isArray(validatedStage[mediaType])) {
-                validatedStage[mediaType] = validatedStage[mediaType].map(
-                  (platform) => ({
-                    ...platform,
-                    campaign_start_date: isValidDate(
-                      platform?.campaign_start_date
-                    ),
-                    campaign_end_date: isValidDate(platform?.campaign_end_date),
-                  })
-                );
-              }
-            });
-
-            return validatedStage;
-          });
-        }
-
-        return validatedData;
-      };
-
-      // Apply date validation and formatting
       const validatedFormData = validateAndFormatDates(cleanedFormData);
 
       const objectives = await extractObjectives(validatedFormData);
@@ -320,9 +342,9 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
             cleanedFormData?.ad_sets_granularity ||
             cleanedFormData?.granularity,
           campaign_timeline_start_date:
-            cleanedFormData?.campaign_timeline_start_date,
+            validatedFormData?.campaign_timeline_start_date,
           campaign_timeline_end_date:
-            cleanedFormData?.campaign_timeline_end_date,
+            validatedFormData?.campaign_timeline_end_date,
           agency_profile: agencyId,
 
           progress_percent:
@@ -352,14 +374,13 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
         setOpportunities([]);
         setViewcommentsId("");
         setCampaignData(null);
-        clearAllCampaignData?.();
+        clearAllCampaignData();
         router.push("/");
-        // Use onNavigate if provided, otherwise navigate to home
-        // if (onNavigate) {
-        // 	onNavigate();
-        // } else {
-        // 	router.push("/");
-        // }
+        setTimeout(() => {
+          if (window.location.pathname !== "/") {
+            window.location.href = "/";
+          }
+        });
       } else {
         const response = await axios.post(
           `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`,
@@ -398,14 +419,13 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
         setOpportunities([]);
         setViewcommentsId("");
         setCampaignData(null);
-        clearAllCampaignData?.();
+        clearAllCampaignData();
         router.push("/");
-        // Use onNavigate if provided, otherwise navigate to home
-        // if (onNavigate) {
-        // 	router.push("/");
-        // } else {
-        // 	router.push("/");
-        // }
+        setTimeout(() => {
+          if (window.location.pathname !== "/") {
+            window.location.href = "/";
+          }
+        });
       }
     } catch (error: any) {
       if (error?.response?.status === 401) {
@@ -422,7 +442,7 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
     }
   };
 
-  // Modified beforeunload to prevent default refresh when change is true
+  // Enhanced beforeunload to prevent default refresh when there are changes
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       if (change) {
@@ -443,8 +463,6 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
 
   // Handle "No" button to allow navigation without saving
   const handleNoClick = () => {
-    console.log("handleNoClick: Starting navigation without saving");
-
     // Clear all campaign data comprehensively
     clearAllCampaignData();
 
@@ -463,20 +481,15 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
     setActive(0);
     setSubStep(0);
 
-    console.log("handleNoClick: All state cleared, navigating to dashboard");
-
     // Hardcode navigation to dashboard
     router.push("/");
 
     // Fallback navigation in case router.push fails
     setTimeout(() => {
       if (window.location.pathname !== "/") {
-        console.log(
-          "handleNoClick: Router navigation failed, using window.location"
-        );
         window.location.href = "/";
       }
-    }, 100);
+    });
   };
 
   // Handle staying on the current page
@@ -513,6 +526,7 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
         </p>
         <div className="flex flex-col gap-3">
           <button
+            disabled={loading}
             className="btn_model_active w-full"
             onClick={handleSaveAllSteps}>
             {loading ? (
@@ -521,10 +535,14 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
               "Save & Continue"
             )}
           </button>
-          <button className="btn_model_outline w-full" onClick={handleNoClick}>
+          <button
+            disabled={loading}
+            className="btn_model_outline w-full"
+            onClick={handleNoClick}>
             Leave Without Saving
           </button>
           <button
+            disabled={loading}
             className="btn_model_outline w-full"
             onClick={handleStayOnPage}>
             Stay on This Page

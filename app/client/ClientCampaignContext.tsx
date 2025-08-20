@@ -21,7 +21,7 @@ interface ClientCampaignContextProps {
 const ClientCampaignContext = createContext<ClientCampaignContextProps>({
   campaigns: [],
   loading: false,
-  fetchCampaignsByClientId: () => { },
+  fetchCampaignsByClientId: () => {},
 });
 
 export const useClientCampaign = () => useContext(ClientCampaignContext);
@@ -34,15 +34,14 @@ export const ClientCampaignProvider = ({
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(false);
   const { data: session } = useSession();
-  const jwt =
-    (session?.user as { data?: { jwt: string } })?.data?.jwt
+  const jwt = (session?.user as { data?: { jwt: string } })?.data?.jwt;
 
   const fetchCampaignsByClientId = async (clientId: string) => {
     setLoading(true);
     const filters = {
-      user: {
-        $in: clientId,
-      },
+      // user: {
+      //   $in: clientId,
+      // },
       // agency_id: {
       //   $eq: clientId,
       // },
@@ -65,7 +64,7 @@ export const ClientCampaignProvider = ({
     };
     try {
       const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`,
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns?filters[client][$eq]=${clientId}`,
         {
           params: {
             filters,
@@ -108,8 +107,7 @@ export const ClientCampaignProvider = ({
 
   return (
     <ClientCampaignContext.Provider
-      value={{ campaigns, loading, fetchCampaignsByClientId }}
-    >
+      value={{ campaigns, loading, fetchCampaignsByClientId }}>
       {children}
     </ClientCampaignContext.Provider>
   );

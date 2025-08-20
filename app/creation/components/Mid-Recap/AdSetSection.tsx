@@ -1,13 +1,13 @@
-import type React from "react"
-import Image from "next/image"
-import { SummarySection } from "./SummarySection"
-import { OutletType } from "types/types"
-import { useEditing } from "app/utils/EditingContext"
-import DefineAdSetPage from "../DefineAdSetPage"
-import { useState, useEffect } from "react"
+import type React from "react";
+import Image from "next/image";
+import { SummarySection } from "./SummarySection";
+import { OutletType } from "types/types";
+import { useEditing } from "app/utils/EditingContext";
+import DefineAdSetPage from "../DefineAdSetPage";
+import { useState, useEffect } from "react";
 
 interface AdSetsSectionProps {
-  platforms: Record<string, OutletType[]>
+  platforms: Record<string, OutletType[]>;
 }
 
 export const AdSetsSection: React.FC<AdSetsSectionProps> = ({ platforms }) => {
@@ -19,30 +19,26 @@ export const AdSetsSection: React.FC<AdSetsSectionProps> = ({ platforms }) => {
     if (typeof window !== "undefined") {
       try {
         // Look for any granularity data in localStorage
-        const granularityKeys = Object.keys(localStorage).filter(key => 
+        const granularityKeys = Object.keys(localStorage).filter((key) =>
           key.startsWith("granularity_")
         );
-        
+
         if (granularityKeys.length > 0) {
           // Get the most recent granularity selection
           const mostRecentKey = granularityKeys[granularityKeys.length - 1];
           const granularity = localStorage.getItem(mostRecentKey);
           if (granularity === "adset" || granularity === "channel") {
-            console.log("AdSetsSection: Initializing view from localStorage:", granularity);
             return granularity;
           }
         }
-      } catch (error) {
-        console.error("Error reading granularity from localStorage:", error);
-      }
+      } catch (error) {}
     }
-    
+
     // Default to channel if no stored selection
     return "channel";
   });
 
   const handleToggleChange = (newView: "channel" | "adset") => {
-    console.log("AdSetsSection: handleToggleChange called with:", newView);
     setView(newView);
   };
 
@@ -51,38 +47,38 @@ export const AdSetsSection: React.FC<AdSetsSectionProps> = ({ platforms }) => {
     if (typeof window !== "undefined") {
       const handleStorageChange = () => {
         try {
-          const granularityKeys = Object.keys(localStorage).filter(key => 
+          const granularityKeys = Object.keys(localStorage).filter((key) =>
             key.startsWith("granularity_")
           );
-          
+
           if (granularityKeys.length > 0) {
             const mostRecentKey = granularityKeys[granularityKeys.length - 1];
             const granularity = localStorage.getItem(mostRecentKey);
             if (granularity === "adset" || granularity === "channel") {
-              console.log("AdSetsSection: Storage change detected, updating view to:", granularity);
               setView(granularity);
             }
           }
-        } catch (error) {
-          console.error("Error handling storage change:", error);
-        }
+        } catch (error) {}
       };
 
       // Listen for storage changes
-      window.addEventListener('storage', handleStorageChange);
-      
+      window.addEventListener("storage", handleStorageChange);
+
       // Also check for changes when the component becomes visible
       const handleVisibilityChange = () => {
         if (!document.hidden) {
           handleStorageChange();
         }
       };
-      
-      document.addEventListener('visibilitychange', handleVisibilityChange);
-      
+
+      document.addEventListener("visibilitychange", handleVisibilityChange);
+
       return () => {
-        window.removeEventListener('storage', handleStorageChange);
-        document.removeEventListener('visibilitychange', handleVisibilityChange);
+        window.removeEventListener("storage", handleStorageChange);
+        document.removeEventListener(
+          "visibilitychange",
+          handleVisibilityChange
+        );
       };
     }
   }, []);
@@ -90,7 +86,8 @@ export const AdSetsSection: React.FC<AdSetsSectionProps> = ({ platforms }) => {
   return (
     <SummarySection title="Your Adset and Audiences" number={3}>
       <div>
-        {midcapEditing.isEditing && midcapEditing.step === "Your Adset and Audiences" ? (
+        {midcapEditing.isEditing &&
+        midcapEditing.step === "Your Adset and Audiences" ? (
           <DefineAdSetPage view={view} onToggleChange={handleToggleChange} />
         ) : (
           Object.keys(platforms).map((stage) => (
@@ -100,22 +97,37 @@ export const AdSetsSection: React.FC<AdSetsSectionProps> = ({ platforms }) => {
                 {platforms[stage]?.map(
                   (platform) =>
                     platform?.adSets?.length > 0 && (
-                      <div key={platform.id} className="p-4 bg-gray-100 rounded-lg shadow-sm w-full max-w-[300px]">
+                      <div
+                        key={platform.id}
+                        className="p-4 bg-gray-100 rounded-lg shadow-sm w-full max-w-[300px]">
                         <div className="flex items-center gap-2 mb-2">
-                          <Image src={platform.icon || "/placeholder.svg"} alt={platform.outlet} width={24} height={24} />
+                          <Image
+                            src={platform.icon || "/placeholder.svg"}
+                            alt={platform.outlet}
+                            width={24}
+                            height={24}
+                          />
                           <span className="font-medium">{platform.outlet}</span>
                         </div>
                         <div className="text-sm text-gray-600">
                           {platform.adSets.map((adSet, index) => (
                             <div key={index} className="mb-1 flex gap-3">
-                              <span className="font-semibold">{adSet.audience_type}</span>
-                              <span className="font-semibold">{adSet.name}</span>
-                              <span className="font-semibold">{adSet.size ? parseInt(adSet.size).toLocaleString() : ""}</span>
+                              <span className="font-semibold">
+                                {adSet.audience_type}
+                              </span>
+                              <span className="font-semibold">
+                                {adSet.name}
+                              </span>
+                              <span className="font-semibold">
+                                {adSet.size
+                                  ? parseInt(adSet.size).toLocaleString()
+                                  : ""}
+                              </span>
                             </div>
                           ))}
                         </div>
                       </div>
-                    ),
+                    )
                 )}
               </div>
             </div>
@@ -123,5 +135,5 @@ export const AdSetsSection: React.FC<AdSetsSectionProps> = ({ platforms }) => {
         )}
       </div>
     </SummarySection>
-  )
-}
+  );
+};

@@ -9,7 +9,7 @@ import { getContrastingColor, getRandomColor } from "components/Options";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "store/useStore";
 import { SVGLoader } from "components/SVGLoader";
-import AlertMain from "components/Alert/AlertMain";
+import { toast } from "sonner";
 import { useUserPrivileges } from "utils/userPrivileges";
 import { reset } from "features/Comment/commentSlice";
 import clsx from "clsx";
@@ -35,12 +35,9 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
   const dispatch = useAppDispatch();
   const { campaignData, campaignFormData } = useCampaigns();
 
-  const [alert, setAlert] = useState(null);
   const [commentColors, setCommentColors] = useState({});
 
   const commentRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
-
-  console.log("campaignFormData=====", data);
 
   const comment = useMemo(() => {
     if (!data) return [];
@@ -107,53 +104,53 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
   };
 
   useEffect(() => {
-    if (alert) {
-      const timer = setTimeout(() => setAlert(null), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [alert]);
-
-  useEffect(() => {
     if (createCommentsSuccess) {
-      setAlert({
-        variant: "success",
-        message: "Commment created!",
-        position: "bottom-right",
-      });
+      toast.success("Comment created!");
     }
     if (createCommentsError) {
-      setAlert({
-        variant: "error",
-        message:
-          createCommentsError.response.data || createCommentsError.message,
-        position: "bottom-right",
-      });
+      let errorMessage = "An error occurred while creating the comment";
+      if (createCommentsError.response?.data) {
+        // Handle different types of error data
+        if (typeof createCommentsError.response.data === "string") {
+          errorMessage = createCommentsError.response.data;
+        } else if (createCommentsError.response.data?.message) {
+          errorMessage = createCommentsError.response.data.message;
+        } else if (createCommentsError.response.data?.error?.message) {
+          errorMessage = createCommentsError.response.data.error.message;
+        }
+      } else if (createCommentsError.message) {
+        errorMessage = createCommentsError.message;
+      }
+
+      toast.error(errorMessage);
     }
     if (replyError) {
-      setAlert({
-        variant: "error",
-        message:
-          replyError.response.data?.error?.message || replyError?.message,
-        position: "bottom-right",
-      });
+      let errorMessage = "An error occurred while adding the reply";
+      if (replyError.response?.data?.error?.message) {
+        errorMessage = replyError.response.data.error.message;
+      } else if (replyError.message) {
+        errorMessage = replyError.message;
+      }
+
+      toast.error(errorMessage);
     }
     if (approvedError) {
-      setAlert({
-        variant: "error",
-        message:
-          replyError.response.data?.error?.message || replyError?.message,
-        position: "bottom-right",
-      });
+      let errorMessage = "An error occurred with approval";
+      if (approvedError.response?.data?.error?.message) {
+        errorMessage = approvedError.response.data.error.message;
+      } else if (approvedError.message) {
+        errorMessage = approvedError.message;
+      }
+
+      toast.error(errorMessage);
     }
-  }, [createCommentsError, replyError]);
+  }, [createCommentsSuccess, createCommentsError, replyError, approvedError]);
 
   return (
     <div
       className={`drawer-container ${
         isOpen ? "drawer-open" : ""
       } max-h-screen`}>
-      {alert && <AlertMain alert={alert} />}
-
       <div className="flex w-full justify-between p-3">
         <div>
           <h3 className="font-medium text-[22px] text-[#292929]">

@@ -81,7 +81,7 @@ const preserveFormatsWithPreviews = (platforms) => {
   });
 };
 
-const SaveProgressButton = ({ setIsOpen }) => {
+const SaveProgressButton = () => {
   const { active, setActive, subStep, setSubStep, setChange } = useActive();
   const { midcapEditing } = useEditing();
   const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
@@ -637,8 +637,8 @@ const SaveProgressButton = ({ setIsOpen }) => {
             payload,
             config
           );
-          setChange(false);
           toast.success("Campaign updated successfully!");
+          setChange(false);
         } else {
           const response = await axios.post(
             `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`,
@@ -667,8 +667,8 @@ const SaveProgressButton = ({ setIsOpen }) => {
             jwt
           );
           await getActiveCampaign(response?.data?.data.documentId);
-          setChange(false);
           toast.success("Campaign created successfully!");
+          setChange(false);
           // FIXED: Clear channel state when creating a new campaign
           clearChannelStateForNewCampaign();
         }
@@ -966,10 +966,16 @@ const SaveProgressButton = ({ setIsOpen }) => {
               Do you want to save this step progress?
             </p>
             <div className="flex flex-row gap-4">
-              <button className="btn_model_outline w-full" onClick={cancelSave}>
+              <button
+                disabled={loading}
+                className="btn_model_outline w-full"
+                onClick={cancelSave}>
                 No
               </button>
-              <button className=" btn_model_active w-full" onClick={handleSave}>
+              <button
+                disabled={loading}
+                className=" btn_model_active w-full"
+                onClick={handleSave}>
                 {loading ? (
                   <SVGLoader width="30px" height="30px" color="#fff" />
                 ) : (

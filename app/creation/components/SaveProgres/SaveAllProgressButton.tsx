@@ -10,7 +10,6 @@ import {
   extractObjectives,
   getFilteredMetrics,
 } from "../EstablishedGoals/table-view/data-processor";
-import { BiLoader } from "react-icons/bi";
 import { SVGLoader } from "components/SVGLoader";
 
 const SaveAllProgressButton = () => {
@@ -46,21 +45,7 @@ const SaveAllProgressButton = () => {
     }
   };
 
-  const {
-    createCampaign,
-    updateCampaign,
-    campaignData,
-    campaignFormData,
-    cId,
-    getActiveCampaign,
-    copy,
-    isEditingBuyingObjective,
-    selectedOption,
-    setCampaignFormData,
-    currencySign,
-    jwt,
-    agencyId,
-  } = useCampaigns();
+  const { campaignFormData, getActiveCampaign, jwt, agencyId } = useCampaigns();
 
   const cancelSave = () => {
     setShowSave(false);
@@ -203,7 +188,6 @@ const SaveAllProgressButton = () => {
 
       return cleanedData;
     } catch (error) {
-      console.error("Error sanitizing campaign data:", error);
       throw new Error("Failed to process campaign data");
     }
   };
@@ -429,11 +413,13 @@ const SaveAllProgressButton = () => {
 
             <div className="flex flex-row gap-4">
               <button
+                disabled={loading}
                 className="btn_model_outline  w-full"
                 onClick={cancelSave}>
                 No
               </button>
               <button
+                disabled={loading}
                 className="btn_model_active w-full"
                 onClick={handleSaveAllSteps}>
                 {loading ? (

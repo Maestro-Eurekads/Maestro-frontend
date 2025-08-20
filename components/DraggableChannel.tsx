@@ -506,9 +506,11 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       // For year view, show month ranges
       const startMonth = startDateValue?.toLocaleDateString("en-US", {
         month: "short",
+        year: "2-digit"
       });
       const endMonth = endDateValue?.toLocaleDateString("en-US", {
         month: "short",
+        year: "2-digit"
       });
       const startYear = startDateValue?.getFullYear();
       const endYear = endDateValue?.getFullYear();
@@ -1000,7 +1002,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         <div />
 
         {/* Main content */}
-        <div className="flex justify-center items-center gap-5 w-full">
+        <div className={`flex justify-center items-center w-full ${disableDrag && parentWidth <=350 ? "flex-col gap-1" : "flex-row gap-5"}`}>
           <button
             className="flex justify-center items-center gap-5 w-full"
             onClick={() => {
