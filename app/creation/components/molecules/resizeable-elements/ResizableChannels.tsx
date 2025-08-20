@@ -48,7 +48,7 @@ interface ResizableChannelsProps {
   disableDrag?: boolean;
   setSelectedStage?: any;
   openItems?: any;
-  setParentCampaignFormData: (campaignFormData: any) => void;
+  setParentCampaignFormData?: (campaignFormData: any) => void;
   setOpenItems?: any;
   endMonth?: any;
   endDay?: any;
