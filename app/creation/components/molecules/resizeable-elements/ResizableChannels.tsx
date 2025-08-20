@@ -366,29 +366,29 @@ const ResizableChannels = ({
       const numberOfGridColumns = dateList.length;
       const stepWidth = parentWidth / numberOfGridColumns;
 
-      const startGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, Math.floor(startPixel / stepWidth)));
-      const endGridIndexRaw = Math.floor((endPixel - 1) / stepWidth);
+      const startGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, Math.floor((startPixel + parentLeft) / dailyWidth)));
+      const endGridIndexRaw = Math.floor((endPixel - startPixel) / dailyWidth) + startGridIndex;
       const endGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, endGridIndexRaw));
 
-      // console.log("Date conversion tooltip Month:", {
-      //   startPixel,
-      //   endPixel,
-      //   parentWidth,
-      //   numberOfGridColumns,
-      //   stepWidth,
-      //   startGridIndex,
-      //   endGridIndex
-      // });
+      console.log("Date conversion tooltip Month:", {
+        startPixel,
+        endPixel,
+        parentWidth,
+        numberOfGridColumns,
+        stepWidth,
+        startGridIndex,
+        endGridIndex
+      });
 
       startDateValue = dateList[startGridIndex] || startDate;
-      endDateValue = dateList[endGridIndex] || endDate;
+      endDateValue = dateList[endGridIndex - 1] || endDate;
     } else {
       // Day, Week view - calculate based on days
       const numberOfGridColumns = dateList.length;
       const stepWidth = parentWidth / numberOfGridColumns;
 
-      const startGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, Math.floor(startPixel / stepWidth)));
-      const endGridIndexRaw = Math.floor((endPixel - 1) / stepWidth);
+      const startGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, Math.floor( ((startPixel + parentLeft) / (stepWidth < 50 ? 50 : stepWidth)) )));
+      const endGridIndexRaw = Math.floor((endPixel - startPixel) / (stepWidth < 50 ? 50 : stepWidth)) + startGridIndex;
       const endGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, endGridIndexRaw));
 
       console.log("Date conversion tooltip FIXED:", {
@@ -401,8 +401,10 @@ const ResizableChannels = ({
         endGridIndex
       });
 
+      console.log({dateList})
+
       startDateValue = dateList[startGridIndex] || startDate;
-      endDateValue = dateList[endGridIndex] || endDate;
+      endDateValue = dateList[endGridIndex - 1] || endDate;
     }
 
     console.log({ startDateValue, endDateValue, type });
