@@ -269,7 +269,7 @@ const MainSection = ({
 
   return (
     <div className="mt-[32px] w-full">
-      {!hideDate && <DateComponent useDate={true} />}
+      {!hideDate && <DateComponent useDate={true} hideRange={disableDrag ? true :false} />}
 
       {/* Zoom Controls */}
       <div className="flex items-center justify-between mb-4 pl-4">
