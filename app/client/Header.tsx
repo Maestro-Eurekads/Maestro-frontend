@@ -21,6 +21,7 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
     selected,
     setSelected,
     createCommentsSuccess,
+    isLoadingSaveProgress,
   } = useComments();
   const { dataApprove, isLoadingApprove } = useAppSelector(
     (state) => state.comment
@@ -129,7 +130,7 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
       <div className="flex items-center justify-between gap-8">
         {dataApprove && !campaignData ? null : (
           <div>
-            {isLoadingApprove || loading ? (
+            {isLoadingApprove || loading || isLoadingSaveProgress ? (
               <Skeleton height={20} width={200} />
             ) : (
               hasCampaigns && (

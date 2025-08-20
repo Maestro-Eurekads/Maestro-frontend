@@ -361,7 +361,7 @@ export const SetupScreen = () => {
     <div className="container mx-auto px-4">
       <div className="flex flex-row justify-between w-full align-center">
         <PageHeaderWrapper t1="Set up your new campaign" />
-        <SaveProgressButton setIsOpen={undefined} />
+        <SaveProgressButton />
       </div>
 
       {loading ? (
