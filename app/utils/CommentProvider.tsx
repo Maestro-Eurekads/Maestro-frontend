@@ -39,6 +39,7 @@ export const CommentProvider = ({ children }) => {
     useState(null);
   const [createApprovalSuccess, setCreateApprovalSuccess] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingSaveProgress, setIsLoadingSaveProgress] = useState(false);
   const [isLoadingApproval, setIsLoadingApproval] = useState(false);
   const [isLoadingGeneral, setIsLoadingGeneral] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -520,6 +521,8 @@ export const CommentProvider = ({ children }) => {
         setActiveComment,
         show,
         setShow,
+        setIsLoadingSaveProgress,
+        isLoadingSaveProgress,
       }}>
       {children}
     </CommentContext.Provider>

@@ -26,6 +26,7 @@ const ClientAddAsInternalcomment = ({ position, setShow, campaign }) => {
     updatePosition,
     deleteSignedApproval,
     selected,
+    setIsLoadingSaveProgress,
   } = useComments();
   const { campaignData, jwt, getActiveCampaign } = useCampaigns();
   const [alert, setAlert] = useState(null);
@@ -86,6 +87,7 @@ const ClientAddAsInternalcomment = ({ position, setShow, campaign }) => {
   const [charWarning, setCharWarning] = useState("");
 
   const handleAddComment = async () => {
+    setIsLoadingSaveProgress(true);
     if (comment.trim() === "") return;
     if (comment.length > MAX_COMMENT_LENGTH) {
       toast.error(`Comment cannot exceed ${MAX_COMMENT_LENGTH} characters.`);
@@ -131,6 +133,10 @@ const ClientAddAsInternalcomment = ({ position, setShow, campaign }) => {
       } else {
         toast.error(error.message || "Failed to add comment.");
       }
+    } finally {
+      setTimeout(() => {
+        setIsLoadingSaveProgress(false);
+      }, 5000);
     }
   };
 

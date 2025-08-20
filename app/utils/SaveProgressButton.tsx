@@ -81,7 +81,7 @@ const preserveFormatsWithPreviews = (platforms) => {
   });
 };
 
-const SaveProgressButton = ({ setIsOpen }) => {
+const SaveProgressButton = () => {
   const { active, setActive, subStep, setSubStep, setChange } = useActive();
   const { midcapEditing } = useEditing();
   const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
@@ -637,8 +637,8 @@ const SaveProgressButton = ({ setIsOpen }) => {
             payload,
             config
           );
-          setChange(false);
           toast.success("Campaign updated successfully!");
+          setChange(false);
         } else {
           const response = await axios.post(
             `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`,
@@ -667,8 +667,8 @@ const SaveProgressButton = ({ setIsOpen }) => {
             jwt
           );
           await getActiveCampaign(response?.data?.data.documentId);
-          setChange(false);
           toast.success("Campaign created successfully!");
+          setChange(false);
           // FIXED: Clear channel state when creating a new campaign
           clearChannelStateForNewCampaign();
         }
