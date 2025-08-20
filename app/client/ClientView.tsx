@@ -40,6 +40,7 @@ import Skeleton from "react-loading-skeleton";
 import MainSection from "app/creation/components/organisms/main-section/main-section";
 import { toast } from "sonner";
 import ComfirmModelClient from "components/Modals/ComfirmModelClient";
+import axios from "axios";
 
 interface Comment {
   documentId: string;
@@ -95,19 +96,18 @@ const ClientView = () => {
   const { campaigns, loading, fetchCampaignsByClientId } = useClientCampaign();
   const [finalCategoryOrder, setFinalCategoryOrder] = useState(categoryOrder); // default fallback
   const { data: session }: any = useSession();
-  // const clientId = session?.user?.clients?.id;
-  const clientId = session?.user?.id;
+  const Id = session?.user?.id;
   const client_commentId = session?.user?.id;
   const campaign = !campaignDetails ? [] : campaignDetails[0];
   const commentId = campaign?.documentId;
   const campaignId = campaign?.documentId;
   const { getKpis, isLoadingKpis, kpiCategory, setkpiCategory } = useKpis();
+  const [clientId, setClientId] = useState(null);
 
   useEffect(() => {
     if (selected) {
       getActiveCampaign(selected);
     }
-    
   }, [selected]);
 
   useEffect(() => {
@@ -116,11 +116,31 @@ const ClientView = () => {
     }
   }, [selected]);
 
+  // useEffect(() => {
+  //   if (clientId) {
+  //     fetchCampaignsByClientId(clientId);
+  //   }
+  // }, [clientId]);
+
   useEffect(() => {
-    if (clientId) {
-      fetchCampaignsByClientId(clientId);
-    }
-  }, [clientId]);
+    if (!Id) return;
+
+    axios
+      .get(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/users/${Id}?populate=clients`,
+        {
+          headers: {
+            Authorization: `Bearer ${jwt}`, // Required if the user route is protected
+          },
+        }
+      )
+      .then((res) => {
+        fetchCampaignsByClientId(res?.data?.clients[0]?.id);
+      })
+      .catch((err) => {
+        console.error("Error fetching user:", err);
+      });
+  }, [Id, jwt]);
 
   useEffect(() => {
     if (selected && jwt) {
@@ -170,8 +190,6 @@ const ClientView = () => {
       setFinalCategoryOrder(categoryOrder);
     }
   }, [kpiCategory]);
-
-  
 
   const extractedData = extractKPIByFunnelStage(campaignData, kpiCategories);
   const aggregatedStats = aggregateKPIStatsFromExtracted(
