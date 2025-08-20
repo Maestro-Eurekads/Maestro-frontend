@@ -12,6 +12,8 @@ import { useDateRange as useDRange } from "src/date-context";
 import { useDateRange } from "src/date-range-context";
 import { getCurrencySymbol } from "./data";
 import { addDays, subDays, format } from "date-fns";
+import axios from "axios";
+import { removeKeysRecursively } from "utils/removeID";
 
 // Helper to convert screen X (scaled) to layout X
 const getLayoutX = (clientX: number) => {
@@ -83,6 +85,11 @@ interface DraggableChannelProps {
   endMonth?: any;
   color?: any;
   endDay?: any;
+  campaignFormData?: any;
+  setCampaignFormData?: any;
+  cId?: any;
+  campaignData?: any;
+  jwt?: any;
   endWeek?: any;
   dailyWidth?: number;
   rangeType?: string; // Add range type prop
@@ -123,7 +130,13 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   dailyWidth,
   rangeType,
   yearMonthsLength,
+  campaignFormData, 
+  setCampaignFormData, 
+  cId, 
+  campaignData, 
+  jwt
 }) => {
+  const { campaignFormData: hookCampaignFormData, setCampaignFormData: hookSetCampaignFormData } = useCampaigns();
   const { funnelWidths, setFunnelWidth } = useFunnelContext();
   const [position, setPosition] = useState(parentLeft || 0);
 
@@ -141,7 +154,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     startDate: null,
     endDate: null,
   });
-  const { campaignFormData, setCampaignFormData } = useCampaigns();
+
   const { range } = useDRange();
   const { range: rrange, extendRange } = useDateRange();
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
@@ -152,6 +165,12 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     content: "",
     type: null,
   });
+
+  const campaignFormDataRef = useRef(hookCampaignFormData);
+
+  useEffect(() => {
+    campaignFormDataRef.current = hookCampaignFormData;
+  }, [hookCampaignFormData]);
 
   useEffect(() => {
     // Only update position automatically when user is NOT interacting
@@ -181,22 +200,22 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         monthIndex = numberOfMonths; // December (month 11)
       }
 
-      console.log("DraggableChannel pixelToDate Year debug:", {
-        pixel,
-        containerWidth,
-        numberOfMonths,
-        actualStepWidth,
-        monthIndex,
-        fieldName,
-      });
+      // console.log("DraggableChannel pixelToDate Year debug:", {
+      //   pixel,
+      //   containerWidth,
+      //   numberOfMonths,
+      //   actualStepWidth,
+      //   monthIndex,
+      //   fieldName,
+      // });
 
       const year = dateList[0]?.getFullYear() || new Date().getFullYear();
 
-      console.log(
-        "these are the new dates from tooltip dates",
-        new Date(year, monthIndex + 1, 0),
-        new Date(year, monthIndex, 1)
-      );
+      // console.log(
+      //   "these are the new dates from tooltip dates",
+      //   new Date(year, monthIndex + 1, 0),
+      //   new Date(year, monthIndex, 1)
+      // );
       if (fieldName === "endDate") {
         // For end date, return the last day of the target month
         return new Date(year, monthIndex, 0);
@@ -229,12 +248,12 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         )
       );
 
-      console.log(
-        "This is the dayIndex, fieldName",
-        dayIndex,
-        dateList[dayIndex],
-        fieldName
-      );
+      // console.log(
+      //   "This is the dayIndex, fieldName",
+      //   dayIndex,
+      //   dateList[dayIndex],
+      //   fieldName
+      // );
       return dateList[dayIndex] || dateList[0];
     } else {
       // Day, Week view - consistent grid-based calculation
@@ -265,15 +284,15 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         }
       }
 
-      console.log("DraggableChannel pixelToDate Day debug:", {
-        pixel,
-        containerWidth,
-        numberOfGridColumns,
-        stepWidth,
-        gridIndex,
-        fieldName,
-        isAtEnd,
-      });
+      // console.log("DraggableChannel pixelToDate Day debug:", {
+      //   pixel,
+      //   containerWidth,
+      //   numberOfGridColumns,
+      //   stepWidth,
+      //   gridIndex,
+      //   fieldName,
+      //   isAtEnd,
+      // });
 
       return dateList[gridIndex] || dateList[0];
     }
@@ -327,17 +346,17 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     }
 
     // Debug logging
-    console.log("DraggableChannel Snap Debug:", {
-      currentPosition,
-      containerWidth,
-      range,
-      numberOfGridColumns,
-      actualStepWidth,
-      dailyWidth, // Compare with actual step width
-      closestIndex,
-      closestPosition,
-      isFinalEdge: closestIndex === numberOfGridColumns,
-    });
+    // console.log("DraggableChannel Snap Debug:", {
+    //   currentPosition,
+    //   containerWidth,
+    //   range,
+    //   numberOfGridColumns,
+    //   actualStepWidth,
+    //   dailyWidth, // Compare with actual step width
+    //   closestIndex,
+    //   closestPosition,
+    //   isFinalEdge: closestIndex === numberOfGridColumns,
+    // });
 
     // Ensure the position is within bounds
     return Math.max(0, Math.min(closestPosition, containerWidth));
@@ -382,73 +401,73 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         monthEndIndex = numberOfMonths; // December (month 11)
       }
 
-      console.log("DraggableChannel Year view date conversion debug:", {
-        startPixel,
-        endPixel,
-        containerWidth,
-        numberOfMonths,
-        monthStartIndex,
-        monthEndIndex,
-        type,
-      });
+      // console.log("DraggableChannel Year view date conversion debug:", {
+      //   startPixel,
+      //   endPixel,
+      //   containerWidth,
+      //   numberOfMonths,
+      //   monthStartIndex,
+      //   monthEndIndex,
+      //   type,
+      // });
 
       const year = dateList[0]?.getFullYear() || new Date().getFullYear();
-      console.log("the month end index", monthEndIndex);
+      // console.log("the month end index", monthEndIndex);
       startDateValue = new Date(year, monthStartIndex, 1);
       endDateValue = new Date(year, monthEndIndex, 0); // Last day of the month
 
-      console.log("endDateValue", endDateValue);
-      console.log("startDateValue", startDateValue);
+      // console.log("endDateValue", endDateValue);
+      // console.log("startDateValue", startDateValue);
     } else if (rangeType === "Month") {
       // Month view - use day-level precision for smooth dragging
       const numberOfGridColumns = dateList.length;
       const stepWidth = containerWidth / numberOfGridColumns;
 
-      console.log(
-        "This is the stepWidth",
-        stepWidth,
-        numberOfGridColumns,
-        startPixel,
-        endPixel
-      );
+      // console.log(
+      //   "This is the stepWidth",
+      //   stepWidth,
+      //   numberOfGridColumns,
+      //   startPixel,
+      //   endPixel
+      // );
 
       const startGridIndex = Math.max(
         0,
         Math.min(numberOfGridColumns - 1, Math.round(startPixel / stepWidth))
       );
 
-      console.log(
-        "This is the startGridIndex",
-        startGridIndex,
-        dateList[startGridIndex]
-      );
+      // console.log(
+      //   "This is the startGridIndex",
+      //   startGridIndex,
+      //   dateList[startGridIndex]
+      // );
       const endGridIndexRaw = Math.floor((endPixel - 1) / stepWidth);
       const endGridIndex = Math.max(
         0,
         Math.min(numberOfGridColumns - 1, endGridIndexRaw)
       );
 
-      console.log("DraggableChannel Month view date conversion debug:", {
-        startPixel,
-        endPixel,
-        stepWidth,
-        containerWidth,
-        numberOfGridColumns,
-        startGridIndex,
-        endGridIndex,
-        type,
-      });
+      // console.log("DraggableChannel Month view date conversion debug:", {
+      //   startPixel,
+      //   endPixel,
+      //   stepWidth,
+      //   containerWidth,
+      //   numberOfGridColumns,
+      //   startGridIndex,
+      //   endGridIndex,
+      //   type,
+      // });
 
       startDateValue = dateList[startGridIndex] || dateList[0];
       endDateValue =
         dateList[endGridIndex] || dateList[numberOfGridColumns - 1];
 
-      console.log(
-        "This is the startDateValue and endDateValue",
-        startDateValue,
-        endDateValue,
-        dateList
-      );
+      // console.log(
+      //   "This is the startDateValue and endDateValue",
+      //   startDateValue,
+      //   endDateValue,
+      //   dateList
+      // );
     } else {
       // Day, Week view - use same logic as ResizableChannels
       const numberOfGridColumns = dateList.length;
@@ -669,11 +688,11 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     const startDate = pixelToDate(newPos, containerWidth, "startDate");
     const endDate = pixelToDate(newPos + newWidth, containerWidth, "endDate");
 
-    console.log(
-      "these are the new dates from handleMouseMoveResize",
-      startDate,
-      endDate
-    );
+    // console.log(
+    //   "these are the new dates from handleMouseMoveResize",
+    //   startDate,
+    //   endDate
+    // );
     newDatesRef.current = { startDate, endDate };
 
     setParentWidth?.(newWidth);
@@ -776,6 +795,8 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     );
   };
 
+  console.log("this is the draggable channel campaign form data", campaignFormData);
+
   const handleMouseUp = () => {
     setTooltip((prev) => ({ ...prev, visible: false }));
     dragStartRef.current = null;
@@ -786,77 +807,90 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     if (newDatesRef.current.startDate && newDatesRef.current.endDate) {
       const { startDate, endDate } = newDatesRef.current;
 
-      console.log("these are the new dates", startDate, endDate);
+      // Add this right before line 803:
+      console.log("hookCampaignFormData before clone:", JSON.stringify(hookCampaignFormData, null, 2));
 
-      const updatedChannelMix = campaignFormData?.channel_mix?.find(
-        (ch) => ch?.funnel_stage === description
+      // Build a deep-cloned updated object
+      const updated: any = JSON.parse(JSON.stringify(campaignFormDataRef.current || {}));
+
+      // Immediately after cloning, check if they're still equal
+      console.log("Immediately after clone - Are they equal?", JSON.stringify(hookCampaignFormData) === JSON.stringify(updated));
+
+      // Also log the specific field that's different
+      console.log("Updated Instagram campaign_start_date:", updated?.channel_mix?.[0]?.social_media?.[0]?.campaign_start_date);
+      console.log("Hook Instagram campaign_start_date:", hookCampaignFormData?.channel_mix?.[0]?.social_media?.[0]?.campaign_start_date);
+      console.log("Prop Instagram campaign_start_date:", campaignFormData?.channel_mix?.[0]?.social_media?.[0]?.campaign_start_date);
+
+      console.log("this is the updated on useffect", updated, campaignFormData, hookCampaignFormData);
+      console.log("updated after clone:", JSON.stringify(updated, null, 2));
+      console.log("Are they equal?", JSON.stringify(hookCampaignFormData) === JSON.stringify(updated));
+      const updatedStage = updated?.channel_mix?.find(
+        (ch: any) => ch?.funnel_stage === description
       );
-      if (updatedChannelMix) {
-        updatedChannelMix.funnel_stage_timeline_start_date =
-          moment(startDate).format("YYYY-MM-DD");
-        updatedChannelMix.funnel_stage_timeline_end_date =
-          moment(endDate).format("YYYY-MM-DD");
 
-        console.log(
-          "This is the updatedChannelMix",
-          updatedChannelMix.funnel_stage_timeline_start_date,
-          updatedChannelMix.funnel_stage_timeline_end_date
-        );
 
-        const mediaTypes = [
-          "social_media",
-          "display_networks",
-          "search_engines",
-          "streaming",
-          "ooh",
-          "broadcast",
-          "messaging",
-          "print",
-          "e_commerce",
-          "in_game",
-          "mobile",
-        ];
+      if (updatedStage) {
+        updatedStage.funnel_stage_timeline_start_date = moment(startDate).format("YYYY-MM-DD");
+        updatedStage.funnel_stage_timeline_end_date = moment(endDate).format("YYYY-MM-DD");
 
-        mediaTypes.forEach((type) => {
-          const platforms = updatedChannelMix[type];
-          if (platforms && Array.isArray(platforms)) {
-            platforms.forEach((platform) => {
-              platform.campaign_start_date =
-                moment(startDate).format("YYYY-MM-DD");
-              platform.campaign_end_date = moment(endDate).format("YYYY-MM-DD");
-            });
+        // const mediaTypes = [
+        //   "social_media",
+        //   "display_networks",
+        //   "search_engines",
+        //   "streaming",
+        //   "ooh",
+        //   "broadcast",
+        //   "messaging",
+        //   "print",
+        //   "e_commerce",
+        //   "in_game",
+        //   "mobile",
+        // ];
+
+        // mediaTypes.forEach((type) => {
+        //   const platforms = updatedStage[type];
+        //   if (platforms && Array.isArray(platforms)) {
+        //     platforms.forEach((platform: any) => {
+        //       platform.campaign_start_date = moment(startDate).format("YYYY-MM-DD");
+        //       platform.campaign_end_date = moment(endDate).format("YYYY-MM-DD");
+        //     });
+        //   }
+        // });
+
+        if (range === "Year") {
+          const allStartDates = updated?.channel_mix
+            ?.map(
+              (ch: any) =>
+                ch?.funnel_stage_timeline_start_date &&
+                moment(ch.funnel_stage_timeline_start_date)
+            )
+            .filter((date: any) => date);
+
+          const allEndDates = updated?.channel_mix
+            ?.map(
+              (ch: any) =>
+                ch?.funnel_stage_timeline_end_date &&
+                moment(ch.funnel_stage_timeline_end_date)
+            )
+            .filter((date: any) => date);
+
+          if (allStartDates?.length && allEndDates?.length) {
+            updated.campaign_timeline_start_date = moment.min(allStartDates).format("YYYY-MM-DD");
+            updated.campaign_timeline_end_date = moment.max(allEndDates).format("YYYY-MM-DD");
           }
-        });
+        }
 
-        const allStartDates = campaignFormData?.channel_mix
-          ?.map(
-            (ch) =>
-              ch?.funnel_stage_timeline_start_date &&
-              moment(ch.funnel_stage_timeline_start_date)
-          )
-          .filter((date) => date);
+        console.log("this is the updated after modifications", updated, campaignFormData);
 
-        const allEndDates = campaignFormData?.channel_mix
-          ?.map(
-            (ch) =>
-              ch?.funnel_stage_timeline_end_date &&
-              moment(ch.funnel_stage_timeline_end_date)
-          )
-          .filter((date) => date);
+        setCampaignFormData(updated);
 
-        const minStartDate = moment.min(allStartDates).format("YYYY-MM-DD");
-        const maxEndDate = moment.max(allEndDates).format("YYYY-MM-DD");
+        if (typeof window !== "undefined" && cId) {
+          localStorage.setItem(`campaignFormData_${cId}`, JSON.stringify(updated));
+          localStorage.setItem(`campaignFormData_${cId}_timestamp`, Date.now().toString());
+        }
 
-        setCampaignFormData({
-          ...campaignFormData,
-          channel_mix: campaignFormData.channel_mix.map((ch) =>
-            ch.funnel_stage === description ? updatedChannelMix : ch
-          ),
-          ...(range === "Year" && {
-            campaign_timeline_start_date: minStartDate,
-            campaign_timeline_end_date: maxEndDate,
-          }),
-        });
+        // Persist to API
+        sendUpdatedDataToAPI(updated);
       }
 
       newDatesRef.current = { startDate: null, endDate: null };
@@ -872,6 +906,42 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   const stageBudget = campaignFormData?.channel_mix?.find(
     (fs) => fs?.funnel_stage === description
   )?.stage_budget;
+
+  // Helper to persist updates to API
+  const sendUpdatedDataToAPI = async (updatedData: any) => {
+    try {
+      await axios.put(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`,
+        {
+          data: {
+            ...removeKeysRecursively(campaignData, [
+              "id",
+              "documentId",
+              "createdAt",
+              "publishedAt",
+              "updatedAt",
+              "_aggregated",
+            ]),
+            channel_mix: removeKeysRecursively(updatedData?.channel_mix, [
+              "id",
+              "isValidated",
+              "validatedStages",
+              "documentId",
+              "_aggregated",
+            ]),
+          },
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${jwt}`,
+          },
+        }
+      );
+    } catch (e) {
+      // Silently ignore; global 401 handler dispatches an event
+    }
+  };
 
   return (
     <div

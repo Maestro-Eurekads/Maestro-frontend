@@ -81,7 +81,15 @@ const ResizeableElements = ({
   const [openChannels, setOpenChannels] = useState<Record<string, boolean>>({});
   const { range } = useDateRange();
   const { range: rrange } = useRange();
-  const { campaignFormData, loadingCampaign } = useCampaigns();
+  const {
+    campaignFormData,
+    setCampaignFormData,
+    loadingCampaign,
+    setCopy,
+    cId,
+    campaignData,
+    jwt,
+  } = useCampaigns();
   const [channelWidths, setChannelWidths] = useState<Record<string, number>>(
     {}
   );
@@ -119,6 +127,7 @@ const ResizeableElements = ({
     setChannelPositions((prev) => ({ ...prev, [channelId]: left }));
   };
 
+  console.log("testing campaign form data", campaignFormData);
   // New function to calculate which months a phase spans across
   const calculatePhaseMonthSpans = useCallback(
     (startDate: Date, endDate: Date): MonthSpan[] => {
@@ -160,6 +169,8 @@ const ResizeableElements = ({
   const getPlatformsFromStage = useCallback(() => {
     const platformsByStage: Record<string, OutletType[]> = {};
     const channelMix = campaignFormData?.channel_mix || [];
+
+    console.log("the campaign form data", campaignFormData);
 
     if (channelMix.length > 0) {
       channelMix.forEach((stage: any) => {
@@ -227,6 +238,7 @@ const ResizeableElements = ({
   useEffect(() => {
     if (campaignFormData?.channel_mix) {
       const data = getPlatformsFromStage();
+      // console.log("this is the platform data", data);
       setPlatforms(data);
     }
   }, [campaignFormData, channelWidths]);
@@ -473,30 +485,30 @@ const ResizeableElements = ({
           const monthsSpanned = Math.max(1, endMonth - startMonth + 1);
           const width = monthsSpanned * monthWidth;
 
-          console.log(
-            "monthWidth",
-            stageStartDate,
-            stageEndDate,
-            endMonth,
-            startMonth,
-            monthsSpanned,
-            width
-          );
+          // console.log(
+          //   "monthWidth",
+          //   stageStartDate,
+          //   stageEndDate,
+          //   endMonth,
+          //   startMonth,
+          //   monthsSpanned,
+          //   width
+          // );
 
           initialPositions[stageName] = position;
           initialWidths[stageName] = width;
 
-          console.log("Year view position calculation:", {
-            stageName,
-            stageStartDate: stageStartDate.toISOString().split("T")[0],
-            stageEndDate: stageEndDate.toISOString().split("T")[0],
-            startMonth,
-            endMonth,
-            monthsSpanned,
-            monthWidth,
-            position,
-            width,
-          });
+          // console.log("Year view position calculation:", {
+          //   stageName,
+          //   stageStartDate: stageStartDate.toISOString().split("T")[0],
+          //   stageEndDate: stageEndDate.toISOString().split("T")[0],
+          //   startMonth,
+          //   endMonth,
+          //   monthsSpanned,
+          //   monthWidth,
+          //   position,
+          //   width,
+          // });
         } else if (rrange === "Month" && stageStartDate && stageEndDate) {
           // Month view calculations - calculate position based on actual dates
           const startDateIndex =
@@ -516,17 +528,17 @@ const ResizeableElements = ({
             dailyWidth
           );
 
-          console.log("Month view position calculation:", {
-            stageName,
-            stageStartDate: stageStartDate.toISOString().split("T")[0],
-            stageEndDate: stageEndDate.toISOString().split("T")[0],
-            startDateIndex,
-            endDateIndex,
-            dailyWidth,
-            position: initialPositions[stageName],
-            width: initialWidths[stageName],
-            daysBetween,
-          });
+          // console.log("Month view position calculation:", {
+          //   stageName,
+          //   stageStartDate: stageStartDate.toISOString().split("T")[0],
+          //   stageEndDate: stageEndDate.toISOString().split("T")[0],
+          //   startDateIndex,
+          //   endDateIndex,
+          //   dailyWidth,
+          //   position: initialPositions[stageName],
+          //   width: initialWidths[stageName],
+          //   daysBetween,
+          // });
         } else {
           // Existing logic for other views (Day, Week)
           const startDateIndex = stageStartDate
@@ -768,6 +780,11 @@ const ResizeableElements = ({
                   setSelectedStage={setSelectedStage}
                   disableDrag={disableDrag}
                   openItems={openItems}
+                  campaignFormData={campaignFormData}
+                  setCampaignFormData={setCampaignFormData}
+                  cId={cId}
+                  campaignData={campaignData}
+                  jwt={jwt}
                   setOpenItems={setOpenItems}
                   yearMonthsLength={generateYearMonths().length}
                   endMonth={funnelData?.endMonth}
@@ -783,9 +800,16 @@ const ResizeableElements = ({
                       channels={platforms[stage.name]}
                       parentId={stage?.name}
                       parentWidth={currentChannelWidth}
+                      setParentCampaignFormData={setCampaignFormData}
                       parentLeft={currentChannelPosition}
                       setIsOpen={setIsOpen}
                       dateList={range}
+                      campaignFormData={campaignFormData}
+                      setCampaignFormData={setCampaignFormData}
+                      cId={cId}
+                      campaignData={campaignData}
+                      jwt={jwt}
+                      setCopy={setCopy}
                       setSelectedStage={setSelectedStage}
                       disableDrag={disableDrag}
                       openItems={openItems}
