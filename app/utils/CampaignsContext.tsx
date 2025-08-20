@@ -123,11 +123,14 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const allClients = reduxClients?.length > 0 ? reduxClients : hookAllClients;
   const loadingClients = reduxLoadingClients || hookLoadingClients || false;
 
+
+  console.log("this is the campaign form data on channels page", campaignFormData);
   // Save form data to localStorage with debounce
   useEffect(() => {
     if (typeof window !== "undefined" && campaignFormData && cId) {
       const timeout = setTimeout(() => {
         try {
+          console.log("here 1, here is the campaign form data", campaignFormData);
           localStorage.setItem(
             `campaignFormData_${cId}`,
             JSON.stringify(campaignFormData)
@@ -145,6 +148,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   });
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [hasFetchedProfile, setHasFetchedProfile] = useState(false);
+  const [hasLoadedLocal, setHasLoadedLocal] = useState(false);
 
   // Set agencyId from session data when available
   useEffect(() => {
@@ -342,6 +346,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         // const sMetrics = await getFilteredMetrics(obj)
         setCampaignData(data);
         setHeaderData(data?.table_headers || {});
+        console.log("doing this now")
         setCampaignFormData((prev) => {
           // Check if we're loading a different campaign than what's currently loaded
           const isDifferentCampaign = prev?.cId !== cId;
@@ -950,7 +955,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         }
       }
     };
-    if (jwt) {
+    if (jwt && hasLoadedLocal) {
       fetchInitialData();
     }
   }, [
@@ -964,6 +969,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     jwt,
     agencyId,
     agency_user,
+    hasLoadedLocal,
   ]);
 
   const contextValue = useMemo(
@@ -1086,6 +1092,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       Object.keys(campaignFormData).length > 0 &&
       cId
     ) {
+
+      console.log("here 2, here is the campaign form data", campaignFormData);
       localStorage.setItem(
         `campaignFormData_${cId}`,
         JSON.stringify(campaignFormData)
@@ -1097,6 +1105,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [campaignFormData, cId]);
 
+  
+
   // Load campaign-specific data when campaign ID changes
   useEffect(() => {
     if (cId && typeof window !== "undefined") {
@@ -1105,6 +1115,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         try {
           const parsedData = JSON.parse(savedState);
           setCampaignFormData(parsedData);
+          setHasLoadedLocal(true);
         } catch (error) {
           console.error(
             "Error loading campaign data from localStorage:",
@@ -1112,10 +1123,12 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           );
           // If there's an error parsing, reset to initial state
           setCampaignFormData(getInitialState(cId));
+          setHasLoadedLocal(true);
         }
       } else {
         // No saved data for this campaign, use initial state
         setCampaignFormData(getInitialState(cId));
+        setHasLoadedLocal(true);
       }
     }
   }, [cId]);
