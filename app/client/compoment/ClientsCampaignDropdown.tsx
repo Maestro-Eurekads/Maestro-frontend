@@ -165,17 +165,6 @@ const ClientsCampaignDropdown = ({
 
   const selectedOption = options.find((opt) => opt.documentId === selected);
 
-  // Find the longest option to maintain consistent width
-  const longestOption = options.reduce((longest, current) => {
-    const currentLength = (
-      current.media_plan_details?.plan_name || "Unnamed Plan"
-    ).length;
-    const longestLength = (
-      longest.media_plan_details?.plan_name || "Unnamed Plan"
-    ).length;
-    return currentLength > longestLength ? current : longest;
-  }, options[0]);
-
   // Calculate width based on longest option
   const getLongestOptionWidth = () => {
     if (!options.length) return 180;
