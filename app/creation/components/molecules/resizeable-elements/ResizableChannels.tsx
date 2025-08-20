@@ -586,6 +586,10 @@ const ResizableChannels = ({
         const parentDuration =
           parentEndDate.getTime() - parentStartDate.getTime();
 
+        // Calculate the channel's start and end ratios relative to the parent
+        const channelRatioStart = startPixel / parentWidth;
+        const channelRatioEnd = endPixel / parentWidth;
+
         // Calculate the channel's start and end dates relative to the parent
         const channelStartOffset = channelRatioStart * parentDuration;
         const channelEndOffset = channelRatioEnd * parentDuration;
