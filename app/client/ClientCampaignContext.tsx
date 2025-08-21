@@ -39,9 +39,6 @@ export const ClientCampaignProvider = ({
   const fetchCampaignsByClientId = async (clientId: string) => {
     setLoading(true);
     const filters = {
-      // user: {
-      //   $in: clientId,
-      // },
       // agency_id: {
       //   $eq: clientId,
       // },
