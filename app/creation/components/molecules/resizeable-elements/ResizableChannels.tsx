@@ -359,14 +359,14 @@ const ResizableChannels = ({
   //       // Calculate the date range of the parent phase card
   //       const parentStartDate = startDate;
   //       const parentEndDate = endDate;
-        
+
   //       // Calculate the total duration of the parent phase card in milliseconds
   //       const parentDuration = parentEndDate.getTime() - parentStartDate.getTime();
-        
+
   //       // Calculate the channel's start and end dates relative to the parent
   //       const channelStartOffset = channelRatioStart * parentDuration;
   //       const channelEndOffset = channelRatioEnd * parentDuration;
-        
+
   //       startDateValue = new Date(parentStartDate.getTime() + channelStartOffset);
   //       endDateValue = new Date(parentStartDate.getTime() + channelEndOffset);
 
@@ -404,18 +404,18 @@ const ResizableChannels = ({
   //     // Month view - calculate relative to parent phase card's date range
   //     const channelRatioStart = startPixel / parentWidth;
   //     const channelRatioEnd = endPixel / parentWidth;
-      
+
   //     // Calculate the date range of the parent phase card
   //     const parentStartDate = startDate;
   //     const parentEndDate = endDate;
-      
+
   //     // Calculate the total duration of the parent phase card in milliseconds
   //     const parentDuration = parentEndDate.getTime() - parentStartDate.getTime();
-      
+
   //     // Calculate the channel's start and end dates relative to the parent
   //     const channelStartOffset = channelRatioStart * parentDuration;
   //     const channelEndOffset = channelRatioEnd * parentDuration;
-      
+
   //     startDateValue = new Date(parentStartDate.getTime() + channelStartOffset);
   //     endDateValue = new Date(parentStartDate.getTime() + channelEndOffset);
 
@@ -436,18 +436,18 @@ const ResizableChannels = ({
   //     // Day, Week view - calculate relative to parent phase card's date range
   //     const channelRatioStart = startPixel / parentWidth;
   //     const channelRatioEnd = endPixel / parentWidth;
-      
+
   //     // Calculate the date range of the parent phase card
   //     const parentStartDate = startDate;
   //     const parentEndDate = endDate;
-      
+
   //     // Calculate the total duration of the parent phase card in milliseconds
   //     const parentDuration = parentEndDate.getTime() - parentStartDate.getTime();
-      
+
   //     // Calculate the channel's start and end dates relative to the parent
   //     const channelStartOffset = channelRatioStart * parentDuration;
   //     const channelEndOffset = channelRatioEnd * parentDuration;
-      
+
   //     startDateValue = new Date(parentStartDate.getTime() + channelStartOffset);
   //     endDateValue = new Date(parentStartDate.getTime() + channelEndOffset);
 
@@ -533,7 +533,6 @@ const ResizableChannels = ({
   //   });
   // };
 
-
   const updateTooltipWithDates = (
     startPixel: number,
     endPixel: number,
@@ -611,7 +610,6 @@ const ResizableChannels = ({
         //   startDateValue,
         //   endDateValue
         // });
-
       } else {
         // Use backend dates for initial tooltip
         if (channelStartDate && channelEndDate) {
@@ -626,7 +624,10 @@ const ResizableChannels = ({
           );
           const monthEndIndex = Math.min(
             numberOfMonths - 1,
-            Math.max(0, Math.round((endPixel / parentWidth) * numberOfMonths) - 1)
+            Math.max(
+              0,
+              Math.round((endPixel / parentWidth) * numberOfMonths) - 1
+            )
           );
 
           const year = startDate?.getFullYear() || new Date().getFullYear();
@@ -635,7 +636,6 @@ const ResizableChannels = ({
         }
       }
     } else if (rrange === "Month") {
-
       // Month view - calculate relative to parent phase card's date range
       const channelRatioStart = startPixel / parentWidth;
       const channelRatioEnd = endPixel / parentWidth;
@@ -699,7 +699,6 @@ const ResizableChannels = ({
       //   startDateValue,
       //   endDateValue
       // });
-
     }
 
     // console.log({ startDateValue, endDateValue, type });
@@ -742,7 +741,7 @@ const ResizableChannels = ({
       formattedDateRange = `${formattedStartDate} - ${formattedEndDate}`;
     } else {
       // For other views, show specific dates
-      console.log({startDateValue, endDateValue})
+      console.log({ startDateValue, endDateValue });
       const formattedStartDate = format(startDateValue, "MMM dd");
       const formattedEndDate = format(endDateValue, "MMM dd");
       formattedDateRange = `${formattedStartDate} - ${formattedEndDate}`;
@@ -769,7 +768,6 @@ const ResizableChannels = ({
       index,
     });
   };
-
 
   const handleMouseDownResize = (
     e: React.MouseEvent<HTMLDivElement>,
@@ -1111,25 +1109,29 @@ const ResizableChannels = ({
           numberOfMonths - 1,
           Math.max(0, Math.floor(pixel / actualStepWidth))
         );
-
-
-        // console.log("pixelToDate Year debug (Parent-based):", {
-        //   pixel,
-        //   parentWidth,
-        //   numberOfMonths,
-        //   actualStepWidth,
-        //   monthIndex,
-        //   fieldName,
-        //   startDate,
-        //   endDate
-        // });
-
-
         const year = startDate.getFullYear();
+
+        console.log("pixelToDate Year debug (Parent-based):", {
+          pixel,
+          parentWidth,
+          numberOfMonths,
+          actualStepWidth,
+          monthIndex,
+          fieldName,
+          startDate,
+          endDate,
+          endDateCalculated: new Date(year, startMonth + monthIndex + 1, 0),
+          startDateCalculated: new Date(year, startMonth + monthIndex, 1),
+        });
 
         if (fieldName === "endDate") {
           // Last day of the target month
-          calculatedDate = new Date(year, startMonth + monthIndex + 1, 0);
+          if (pixel === parentWidth) {
+            calculatedDate = new Date(year, startMonth + monthIndex + 1, 0);
+          } else {
+            // Last day of the target month
+            calculatedDate = new Date(year, startMonth + monthIndex, 0);
+          }
         } else {
           // First day of the target month
           calculatedDate = new Date(year, startMonth + monthIndex, 1);
@@ -1225,7 +1227,6 @@ const ResizableChannels = ({
           }
         }
 
-
         const dateToUse =
           dRange?.[gridIndex] || dateList?.[gridIndex] || startDate;
 
@@ -1305,13 +1306,11 @@ const ResizableChannels = ({
           }
         }
 
-
         const dateToUse =
           dRange?.[gridIndex] || dateList?.[gridIndex] || startDate;
 
         calculatedDate = new Date(dateToUse);
       }
-
     }
 
     const updatedCampaignFormData = { ...campaignFormData };
@@ -1656,7 +1655,6 @@ const ResizableChannels = ({
       // });
 
       console.log("this is the initial channels", initialChannels);
-
 
       setChannels(initialChannels);
       setChannelState((prev) => {
@@ -2210,7 +2208,9 @@ const ResizableChannels = ({
                     ? "justify-between min-w-[50px]"
                     : "justify-center cursor-move"
                 }   text-white py-[10px] px-2 gap-2 border shadow-md overflow-x-hidden ${
-                  (parentWidth <= 350 ||  channelState[index]?.width <=350) ? "flex-col justify-center items-center" : "flex-row items-center"
+                  parentWidth <= 350 || channelState[index]?.width <= 350
+                    ? "flex-col justify-center items-center"
+                    : "flex-row items-center"
                 }`}
                 style={{
                   left: `${channelState[index]?.left || parentLeft}px`,
@@ -2234,7 +2234,11 @@ const ResizableChannels = ({
                     alt={channel.icon}
                     width={20}
                     height={20}
-                    className={`${(parentWidth <= 350 ||  channelState[index]?.width <=350) ? "hidden" : "block"}`}
+                    className={`${
+                      parentWidth <= 350 || channelState[index]?.width <= 350
+                        ? "hidden"
+                        : "block"
+                    }`}
                   />
                   <span className="font-medium whitespace-nowrap break-words text-wrap">
                     {channel.name}
