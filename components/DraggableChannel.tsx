@@ -130,13 +130,16 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   dailyWidth,
   rangeType,
   yearMonthsLength,
-  campaignFormData, 
-  setCampaignFormData, 
-  cId, 
-  campaignData, 
-  jwt
+  campaignFormData,
+  setCampaignFormData,
+  cId,
+  campaignData,
+  jwt,
 }) => {
-  const { campaignFormData: hookCampaignFormData, setCampaignFormData: hookSetCampaignFormData } = useCampaigns();
+  const {
+    campaignFormData: hookCampaignFormData,
+    setCampaignFormData: hookSetCampaignFormData,
+  } = useCampaigns();
   const { funnelWidths, setFunnelWidth } = useFunnelContext();
   const [position, setPosition] = useState(parentLeft || 0);
 
@@ -506,11 +509,11 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       // For year view, show month ranges
       const startMonth = startDateValue?.toLocaleDateString("en-US", {
         month: "short",
-        year: "2-digit"
+        year: "2-digit",
       });
       const endMonth = endDateValue?.toLocaleDateString("en-US", {
         month: "short",
-        year: "2-digit"
+        year: "2-digit",
       });
       const startYear = startDateValue?.getFullYear();
       const endYear = endDateValue?.getFullYear();
@@ -669,7 +672,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         if (rangeType === "Year") {
           const monthWidth = dailyWidth || containerWidth / yearMonthsLength;
           return Math.max(monthWidth, 100); // Increased minimum for Year view
-        } 
+        }
         return rangeType === "Month" ? 5 : 50; // Standard minimum for other views
       };
 
@@ -795,8 +798,6 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     );
   };
 
-  console.log("this is the draggable channel campaign form data", campaignFormData);
-
   const handleMouseUp = () => {
     setTooltip((prev) => ({ ...prev, visible: false }));
     dragStartRef.current = null;
@@ -804,58 +805,138 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     // Clear user interaction flag
     setUserIsInteracting(false);
 
+    // Only proceed if we have new dates
     if (newDatesRef.current.startDate && newDatesRef.current.endDate) {
       const { startDate, endDate } = newDatesRef.current;
 
-      // Add this right before line 803:
-      console.log("hookCampaignFormData before clone:", JSON.stringify(hookCampaignFormData, null, 2));
+      // Get the current dates from the channel
+      const currentStage = hookCampaignFormData?.channel_mix?.find(
+        (ch: any) => ch?.funnel_stage === description
+      );
 
-      // Build a deep-cloned updated object
-      const updated: any = JSON.parse(JSON.stringify(campaignFormDataRef.current || {}));
+      const currentStartDate = currentStage?.funnel_stage_timeline_start_date;
+      const currentEndDate = currentStage?.funnel_stage_timeline_end_date;
 
-      // Immediately after cloning, check if they're still equal
-      console.log("Immediately after clone - Are they equal?", JSON.stringify(hookCampaignFormData) === JSON.stringify(updated));
+      const newStartDateStr = moment(startDate).format("YYYY-MM-DD");
+      const newEndDateStr = moment(endDate).format("YYYY-MM-DD");
+
+      console.log(
+        "this is the new start date and end date",
+        newStartDateStr,
+        newEndDateStr,
+        currentStartDate,
+        currentEndDate
+      );
+
+      // Only proceed if the dates have actually changed
+      if (rangeType === "Year") {
+        // For Year view, compare by month and year only
+        const currentStartMonth = moment(currentStartDate).format("YYYY-MM");
+        const currentEndMonth = moment(currentEndDate).format("YYYY-MM");
+        const newStartMonth = moment(newStartDateStr).format("YYYY-MM");
+        const newEndMonth = moment(newEndDateStr).format("YYYY-MM");
+
+        if (
+          currentStartMonth === newStartMonth &&
+          currentEndMonth === newEndMonth
+        ) {
+          // No change in months, just clean up
+          newDatesRef.current = { startDate: null, endDate: null };
+          isResizing.current = null;
+          isDragging.current = null;
+          document.removeEventListener("mousemove", handleMouseMoveResize);
+          document.removeEventListener("mousemove", handleMouseMoveDrag);
+          document.removeEventListener("mouseup", handleMouseUp);
+          return;
+        }
+      } else {
+        // For other views, compare by exact date
+        if (
+          currentStartDate === newStartDateStr &&
+          currentEndDate === newEndDateStr
+        ) {
+          // No change in dates, just clean up
+          newDatesRef.current = { startDate: null, endDate: null };
+          isResizing.current = null;
+          isDragging.current = null;
+          document.removeEventListener("mousemove", handleMouseMoveResize);
+          document.removeEventListener("mousemove", handleMouseMoveDrag);
+          document.removeEventListener("mouseup", handleMouseUp);
+          return;
+        }
+      }
+
+      // Dates have changed, proceed with the update
+      console.log(
+        "hookCampaignFormData before clone:",
+        JSON.stringify(hookCampaignFormData, null, 2)
+      );
+
+      const updated: any = JSON.parse(
+        JSON.stringify(campaignFormDataRef.current || {})
+      );
 
       // Also log the specific field that's different
-      console.log("Updated Instagram campaign_start_date:", updated?.channel_mix?.[0]?.social_media?.[0]?.campaign_start_date);
-      console.log("Hook Instagram campaign_start_date:", hookCampaignFormData?.channel_mix?.[0]?.social_media?.[0]?.campaign_start_date);
-      console.log("Prop Instagram campaign_start_date:", campaignFormData?.channel_mix?.[0]?.social_media?.[0]?.campaign_start_date);
+      console.log(
+        "Updated Instagram campaign_start_date:",
+        updated?.channel_mix?.[0]?.social_media?.[0]?.campaign_start_date
+      );
+      console.log(
+        "Hook Instagram campaign_start_date:",
+        hookCampaignFormData?.channel_mix?.[0]?.social_media?.[0]
+          ?.campaign_start_date
+      );
+      console.log(
+        "Prop Instagram campaign_start_date:",
+        campaignFormData?.channel_mix?.[0]?.social_media?.[0]
+          ?.campaign_start_date
+      );
 
-      console.log("this is the updated on useffect", updated, campaignFormData, hookCampaignFormData);
+      console.log(
+        "this is the updated on useffect",
+        updated,
+        campaignFormData,
+        hookCampaignFormData
+      );
       console.log("updated after clone:", JSON.stringify(updated, null, 2));
-      console.log("Are they equal?", JSON.stringify(hookCampaignFormData) === JSON.stringify(updated));
+      console.log(
+        "Are they equal?",
+        JSON.stringify(hookCampaignFormData) === JSON.stringify(updated)
+      );
       const updatedStage = updated?.channel_mix?.find(
         (ch: any) => ch?.funnel_stage === description
       );
 
-
       if (updatedStage) {
-        updatedStage.funnel_stage_timeline_start_date = moment(startDate).format("YYYY-MM-DD");
-        updatedStage.funnel_stage_timeline_end_date = moment(endDate).format("YYYY-MM-DD");
+        updatedStage.funnel_stage_timeline_start_date =
+          moment(startDate).format("YYYY-MM-DD");
+        updatedStage.funnel_stage_timeline_end_date =
+          moment(endDate).format("YYYY-MM-DD");
 
-        // const mediaTypes = [
-        //   "social_media",
-        //   "display_networks",
-        //   "search_engines",
-        //   "streaming",
-        //   "ooh",
-        //   "broadcast",
-        //   "messaging",
-        //   "print",
-        //   "e_commerce",
-        //   "in_game",
-        //   "mobile",
-        // ];
+        const mediaTypes = [
+          "social_media",
+          "display_networks",
+          "search_engines",
+          "streaming",
+          "ooh",
+          "broadcast",
+          "messaging",
+          "print",
+          "e_commerce",
+          "in_game",
+          "mobile",
+        ];
 
-        // mediaTypes.forEach((type) => {
-        //   const platforms = updatedStage[type];
-        //   if (platforms && Array.isArray(platforms)) {
-        //     platforms.forEach((platform: any) => {
-        //       platform.campaign_start_date = moment(startDate).format("YYYY-MM-DD");
-        //       platform.campaign_end_date = moment(endDate).format("YYYY-MM-DD");
-        //     });
-        //   }
-        // });
+        mediaTypes.forEach((type) => {
+          const platforms = updatedStage[type];
+          if (platforms && Array.isArray(platforms)) {
+            platforms.forEach((platform: any) => {
+              platform.campaign_start_date =
+                moment(startDate).format("YYYY-MM-DD");
+              platform.campaign_end_date = moment(endDate).format("YYYY-MM-DD");
+            });
+          }
+        });
 
         if (range === "Year") {
           const allStartDates = updated?.channel_mix
@@ -875,18 +956,32 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
             .filter((date: any) => date);
 
           if (allStartDates?.length && allEndDates?.length) {
-            updated.campaign_timeline_start_date = moment.min(allStartDates).format("YYYY-MM-DD");
-            updated.campaign_timeline_end_date = moment.max(allEndDates).format("YYYY-MM-DD");
+            updated.campaign_timeline_start_date = moment
+              .min(allStartDates)
+              .format("YYYY-MM-DD");
+            updated.campaign_timeline_end_date = moment
+              .max(allEndDates)
+              .format("YYYY-MM-DD");
           }
         }
 
-        console.log("this is the updated after modifications", updated, campaignFormData);
+        console.log(
+          "this is the updated after modifications",
+          updated,
+          campaignFormData
+        );
 
         setCampaignFormData(updated);
 
         if (typeof window !== "undefined" && cId) {
-          localStorage.setItem(`campaignFormData_${cId}`, JSON.stringify(updated));
-          localStorage.setItem(`campaignFormData_${cId}_timestamp`, Date.now().toString());
+          localStorage.setItem(
+            `campaignFormData_${cId}`,
+            JSON.stringify(updated)
+          );
+          localStorage.setItem(
+            `campaignFormData_${cId}_timestamp`,
+            Date.now().toString()
+          );
         }
 
         // Persist to API
@@ -1002,7 +1097,13 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         <div />
 
         {/* Main content */}
-        <div className={`flex justify-center items-center w-full ${disableDrag && parentWidth <=350 ? "flex-col gap-1" : "flex-row gap-5"}`}>
+        <div
+          className={`flex justify-center items-center w-full ${
+            disableDrag && parentWidth <= 350
+              ? "flex-col gap-1"
+              : "flex-row gap-5"
+          }`}
+        >
           <button
             className="flex justify-center items-center gap-5 w-full"
             onClick={() => {
