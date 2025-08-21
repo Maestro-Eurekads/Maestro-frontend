@@ -1875,7 +1875,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       const allObjectives = allObjectivesRes?.data?.data || [];
 
       // Filter: show all default objectives (where agency is null/empty) + custom objectives from current agency
-      const filteredObjectives = allObjectives.filter((objective: any) => {
+      const filteredObjectives = allObjectives?.filter((objective: any) => {
         // Show default objectives (no agency specified)
         if (
           !objective.agency ||
