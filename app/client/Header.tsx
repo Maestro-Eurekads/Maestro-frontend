@@ -32,7 +32,6 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
   const id = session?.user?.id;
   const isdocumentId = campaignData?.documentId;
   const [show, setShow] = useState(false);
-  const [isClientChangesNeeded, setIsClientChangesNeeded] = useState(false);
   const [showClientChangesModal, setShowClientChangesModal] = useState(false);
   const [showDelayedButton, setShowDelayedButton] = useState(false);
 
@@ -63,17 +62,6 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
   };
 
   const isSignature = dataApprove?.[0]?.isSignature || false;
-
-  useEffect(() => {
-    if (
-      campaignData?.isStatus?.stage === "client_changes_needed" ||
-      campaignData?.isStatus?.stage === "in_internal_review"
-    ) {
-      setIsClientChangesNeeded(true);
-    } else {
-      setIsClientChangesNeeded(false);
-    }
-  }, [campaignData?.isStatus?.stage]);
 
   // Only trigger delay if all conditions for showing the button are met
   useEffect(() => {

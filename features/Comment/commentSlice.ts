@@ -35,10 +35,10 @@ const initialState = {
 // Create Comment
 export const getComment: any = createAsyncThunk(
   "comment/getComment",
-  async ({ commentId, jwt }: { commentId: string; jwt: string }, thunkAPI) => {
+  async ({ commentId, jwt, client_commentId }: { commentId: string; jwt: string; client_commentId?: string }, thunkAPI) => {
      
     try {
-      const response = await commentService.getComment(commentId, jwt);
+      const response = await commentService.getComment(commentId, jwt, client_commentId);
       return response;
     } catch (error: any) {
       if (error?.response?.status === 401) {
