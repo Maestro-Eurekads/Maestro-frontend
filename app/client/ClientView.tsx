@@ -99,7 +99,8 @@ const ClientView = () => {
   const Id = session?.user?.id;
   const client_commentId = session?.user?.id;
   const campaign = !campaignDetails ? [] : campaignDetails[0];
-  const commentId = campaign?.documentId;
+  const commentId = campaignData?.documentId;
+  // const commentId = campaign?.documentId;
   const campaignId = campaign?.documentId;
   const { getKpis, isLoadingKpis, kpiCategory, setkpiCategory } = useKpis();
   const [clientId, setClientId] = useState(null);
@@ -136,6 +137,7 @@ const ClientView = () => {
       )
       .then((res) => {
         fetchCampaignsByClientId(res?.data?.clients[0]?.id);
+        setClientId(res?.data?.clients[0]?.id);
       })
       .catch((err) => {
         console.error("Error fetching user:", err);
@@ -147,14 +149,18 @@ const ClientView = () => {
       dispatch(
         getCampaignById({ clientId: clientId, campaignId: selected, jwt })
       );
-      dispatch(getComment({ commentId, jwt, client_commentId }));
+      if (commentId) {
+        dispatch(getComment({ commentId, jwt, client_commentId }));
+      }
       dispatch(getGeneralComment({ commentId, jwt }));
     }
   }, [selected, commentId, client_commentId, clientId, jwt]);
 
   const handleDrawerOpen = () => {
     setIsDrawerOpen(true);
-    dispatch(getComment({ commentId, jwt, client_commentId }));
+    if (commentId) {
+      dispatch(getComment({ commentId, jwt, client_commentId }));
+    }
     setClose(true);
   };
 
@@ -210,7 +216,7 @@ const ClientView = () => {
         <ClientCommentsDrawer
           isOpen={isDrawerOpen}
           onClose={setIsDrawerOpen}
-          campaign={campaign}
+          campaign={campaignData}
         />
         <main className="!px-0 mt-[30px] bg-[#F9FAFB]">
           <div
@@ -240,7 +246,7 @@ const ClientView = () => {
               <ClientMessageContainer
                 isOpen={isDrawerOpen}
                 isCreateOpen={isCreateOpen}
-                campaign={campaign}
+                campaign={campaignData}
               />
               <div className="mt-[50px] flex flex-col justify-between gap-4 md:flex-row">
                 <div></div>

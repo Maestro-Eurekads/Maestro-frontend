@@ -176,11 +176,6 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
   console.log("change------", change);
   console.log("isOpen------", isOpen);
 
-  // Reset change to false when component mounts - no changes until user makes edits
-  useEffect(() => {
-    setChange(false);
-  }, []);
-
   // Set baseline form data when component mounts or when form data changes significantly
   // useEffect(() => {
   //   if (
@@ -504,6 +499,7 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
   // Handle staying on the current page
   const handleStayOnPage = () => {
     setShowModal(false); // Close modal
+    setChange(false); // setChange modal
     onClose(); // Call original onClose
   };
 
