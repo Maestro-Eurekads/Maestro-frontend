@@ -421,7 +421,7 @@ export const SetupScreen = () => {
                   label="Client Approver"
                   formId={"internal_approver"}
                   options={internalapproverOptions}
-                  loading={loading || !internalapproverOptions.length}
+                  loading={loading}
                 />
               </div>
 
@@ -434,7 +434,7 @@ export const SetupScreen = () => {
                   label="Client Approver"
                   formId={"client_approver"}
                   options={clientapprovalOptions}
-                  loading={loading || !clientapprovalOptions.length}
+                  loading={loading}
                 />
               </div>
             </div>
