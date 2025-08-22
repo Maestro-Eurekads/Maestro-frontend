@@ -11,6 +11,7 @@ import ClientsCampaignDropdown from "./compoment/ClientsCampaignDropdown";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { getFirstLetters } from "components/Options";
 import { toast } from "sonner";
+import { useUserPrivileges } from "utils/userPrivileges";
 
 const Header = ({ setIsOpen, campaigns, loading }) => {
   const {
@@ -28,6 +29,7 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
   );
   const { data: session }: any = useSession();
   const { jwt, campaignData } = useCampaigns();
+  const { isClient } = useUserPrivileges();
   const dispatch = useAppDispatch();
   const id = session?.user?.id;
   const isdocumentId = campaignData?.documentId;
@@ -144,6 +146,14 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
                         style={{ border: "1px solid #3175FF" }}
                         onClick={async () => {
                           if (campaignData) {
+                            // Check if user is a client (Client overview || Campaign viewer) - they cannot approve
+                            if (isClient) {
+                              toast.error(
+                                "Campaign viewer users cannot approve media plans."
+                              );
+                              return;
+                            }
+
                             if (
                               campaignData?.isStatus?.stage ===
                                 "client_changes_needed" ||

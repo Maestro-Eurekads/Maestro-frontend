@@ -8,15 +8,23 @@ import { useUserPrivileges } from "utils/userPrivileges";
 import { toast } from "sonner";
 
 const ClientApproved = ({ comment, commentId }) => {
-  const { isClientApprover } = useUserPrivileges();
+  const { isClientApprover, isClient } = useUserPrivileges();
   const { approval, approvedIsLoading } = useComments();
 
   // Toggle approval state
   const handleApproval = () => {
+    // Check if user is a client (Client overview || Campaign viewer) - they cannot approve
+    if (isClient) {
+      toast.error("Campaign viewer users cannot approve comments.");
+      return;
+    }
+
+    // Check if user is a client approver
     if (!isClientApprover) {
       toast.error("You are not authorized to approve this comment.");
       return;
     }
+
     if (comment?.approved === false) {
       approval(comment?.documentId, true, commentId);
     }

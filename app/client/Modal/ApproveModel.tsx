@@ -124,6 +124,14 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
   };
 
   const handleSubmit = async () => {
+    // Check if user is a client (Client overview || Campaign viewer) - they cannot approve
+    if (isClient) {
+      toast.error(
+        "Client overview and Campaign viewer users cannot approve media plans."
+      );
+      return;
+    }
+
     if (Object.values(inputs).some((value) => value.trim() === "")) return;
     try {
       await createAsignatureapproval(sign, inputs, id, isdocumentId);
@@ -254,8 +262,21 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
                   Cancel
                 </button>
                 <button
-                  className="btn_model_active whitespace-nowrap"
-                  onClick={handleSubmit}>
+                  className={`whitespace-nowrap ${
+                    isClient
+                      ? "bg-gray-400 cursor-not-allowed opacity-50"
+                      : "btn_model_active"
+                  }`}
+                  onClick={
+                    isClient
+                      ? () => {
+                          toast.error(
+                            "Client overview and Campaign viewer users cannot approve media plans."
+                          );
+                        }
+                      : handleSubmit
+                  }
+                  disabled={isClient}>
                   {isLoadingApproval ? (
                     <SVGLoader width={"30px"} height={"30px"} color={"#FFF"} />
                   ) : (
