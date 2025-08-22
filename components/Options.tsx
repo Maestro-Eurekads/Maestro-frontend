@@ -417,12 +417,13 @@ const getContrastingColor = (color: string) => {
 
 
 
-const parseApiDate = (dateString: string | null): { day: number; month: number } | null => {
+const parseApiDate = (dateString: string | null): { day: number; month: number; year: number } | null => {
   if (!dateString) return null;
   const parsedDate = new Date(dateString);
   return {
     day: parsedDate.getDate(),
     month: parsedDate.getMonth(),
+    year: parsedDate.getFullYear(),
   };
 };
 

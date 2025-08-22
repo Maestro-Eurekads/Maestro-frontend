@@ -159,6 +159,41 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
     }
   }, [campaignData, setSelectedDates]);
 
+  // Keep MultiDatePicker in sync with updates coming from DateRangeSelector (via campaignFormData)
+  useEffect(() => {
+    const startStr = campaignFormData?.campaign_timeline_start_date;
+    const endStr = campaignFormData?.campaign_timeline_end_date;
+    if (!startStr || !endStr) return;
+
+    const startParsed = parseApiDate(startStr);
+    const endParsed = parseApiDate(endStr);
+    if (!startParsed || !endParsed) return;
+
+    const startYear = new Date(startStr).getFullYear();
+    const endYear = new Date(endStr).getFullYear();
+
+    const needsUpdate =
+      !selectedDates.from ||
+      !selectedDates.to ||
+      selectedDates.from.day !== startParsed.day ||
+      selectedDates.from.month !== startParsed.month ||
+      // @ts-ignore year may exist on runtime shape
+      selectedDates.from.year !== startYear ||
+      selectedDates.to.day !== endParsed.day ||
+      selectedDates.to.month !== endParsed.month ||
+      // @ts-ignore year may exist on runtime shape
+      selectedDates.to.year !== endYear;
+
+    if (needsUpdate) {
+      setSelectedDates({
+        // @ts-ignore add year for internal calculations
+        from: { ...startParsed, year: startYear },
+        // @ts-ignore add year for internal calculations
+        to: { ...endParsed, year: endYear },
+      });
+    }
+  }, [campaignFormData?.campaign_timeline_start_date, campaignFormData?.campaign_timeline_end_date]);
+
   const isInRange = (day: number, monthIndex: number, year: number) => {
     if (!fromDate || !toDate) return false;
     const current = new Date(year, monthIndex, day);
