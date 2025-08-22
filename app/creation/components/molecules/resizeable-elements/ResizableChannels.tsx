@@ -1418,6 +1418,7 @@ const ResizableChannels = ({
 
       const deltaX = getLayoutXOptimized(event.clientX) - startX;
       let newLeft = startLeft + deltaX;
+      
       const channelWidth =
         channelState[index]?.width ||
         (rrange === "Year" ? dailyWidth || parentWidth / 12 : 50);
