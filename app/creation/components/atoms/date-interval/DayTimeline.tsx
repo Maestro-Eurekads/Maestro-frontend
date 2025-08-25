@@ -220,7 +220,13 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                             }}
                           >
                             <div className="flex items-center justify-center gap-3 flex-1">
-                              <span>{name}</span>
+                              <span
+                                style={{
+                                  overflowWrap: "anywhere",
+                                }}
+                              >
+                                {name}
+                              </span>
                               <span>
                                 <FiChevronDown size={15} />
                               </span>
@@ -297,20 +303,41 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                                           }}
                                         >
                                           <div />
-                                          <span className={`flex items-center gap-3 pl-0  ${endDateIndex - startDateIndex < 5 ? "flex-col" : "flex-row ml-4"}`}>
+                                          <span
+                                            className={`flex items-center gap-3 pl-0  ${
+                                              endDateIndex - startDateIndex < 5
+                                                ? "flex-col"
+                                                : "flex-row ml-4"
+                                            }`}
+                                          >
                                             <Image
                                               src={icon}
                                               alt={platform_name}
                                               width={20}
                                               className={`${
-                                            endDateIndex - startDateIndex < 5 ? "hidden" : "block"}`}
+                                                endDateIndex - startDateIndex <
+                                                5
+                                                  ? "hidden"
+                                                  : "block"
+                                              }`}
                                             />
-                                            <span className="text-wrap" style={{
-                                              overflowWrap: "anywhere"
-                                            }}>{platform_name}</span>
+                                            <span
+                                              className="text-wrap"
+                                              style={{
+                                                overflowWrap: "anywhere",
+                                              }}
+                                            >
+                                              {platform_name}
+                                            </span>
                                           </span>
-                                          <button className={`bg-[#0866FF33]/5  rounded-[5px] max-w-max ${endDateIndex - startDateIndex < 5 ? "" : "mr-3 py-2 px-[10px]"}`}>
-                                            {Number(amount).toLocaleString()} {" "}
+                                          <button
+                                            className={`bg-[#0866FF33]/5  rounded-[5px] max-w-max ${
+                                              endDateIndex - startDateIndex < 5
+                                                ? ""
+                                                : "mr-3 py-2 px-[10px]"
+                                            }`}
+                                          >
+                                            {Number(amount).toLocaleString()}{" "}
                                             {`${budget
                                               .replace(/[\d\s.,-]/g, "")
                                               .trim()}`}
