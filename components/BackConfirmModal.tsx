@@ -57,6 +57,7 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
 }) => {
   const { isClient, loggedInUser } = useUserPrivileges();
   const [loading, setLoading] = useState(false);
+  const [baselineFormData, setBaselineFormData] = useState(null);
   const {
     change,
     setChange,
@@ -172,74 +173,77 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
     agencyId,
   } = useCampaigns();
 
-  // Enhanced change detection - monitor form data changes and step changes
-  useEffect(() => {
-    if (campaignFormData && Object.keys(campaignFormData).length > 0) {
-      // Check if there are actual changes in the form data
-      const hasChanges = checkForFormChanges();
+  console.log("change------", change);
+  console.log("isOpen------", isOpen);
 
-      // Update the global change state if there are form changes
-      if (hasChanges !== change) {
-        setChange(hasChanges);
-      }
-    }
-  }, [campaignFormData, active, change, setChange]);
+  // Set baseline form data when component mounts or when form data changes significantly
+  // useEffect(() => {
+  //   if (
+  //     campaignFormData &&
+  //     Object.keys(campaignFormData).length > 0 &&
+  //     !baselineFormData
+  //   ) {
+  //     setBaselineFormData(JSON.parse(JSON.stringify(campaignFormData)));
+  //     // Reset change state when setting baseline - no changes yet
+  //     setChange(false);
+  //   }
+  // }, [campaignFormData, baselineFormData, setChange]);
+
+  // Enhanced change detection - monitor form data changes and step changes
+  // useEffect(() => {
+  //   if (
+  //     campaignFormData &&
+  //     Object.keys(campaignFormData).length > 0 &&
+  //     baselineFormData
+  //   ) {
+  //     // Check if there are actual changes in the form data compared to baseline
+  //     const hasChanges = checkForFormChanges();
+
+  //     // Update the global change state if there are form changes
+  //     if (hasChanges !== change) {
+  //       setChange(hasChanges);
+  //     }
+  //   }
+  // }, [campaignFormData, baselineFormData, change, setChange]);
 
   // Function to check for actual form changes
-  const checkForFormChanges = () => {
-    if (!campaignFormData || Object.keys(campaignFormData).length === 0) {
-      return false;
-    }
+  // const checkForFormChanges = () => {
+  //   if (
+  //     !campaignFormData ||
+  //     !baselineFormData ||
+  //     Object.keys(campaignFormData).length === 0
+  //   ) {
+  //     return false;
+  //   }
 
-    // Check for key form fields that indicate changes
-    const keyFields = [
-      "media_plan",
-      "budget_details_currency",
-      "funnel_stages",
-      "custom_funnels",
-      "channel_mix",
-      "goal_level",
-      "ad_sets_granularity",
-      "campaign_timeline_start_date",
-      "campaign_timeline_end_date",
-      "internal_approver",
-      "client_approver",
-    ];
+  //   // Check for key form fields that indicate changes
+  //   const keyFields = [
+  //     "media_plan",
+  //     "budget_details_currency",
+  //     "funnel_stages",
+  //     "custom_funnels",
+  //     "channel_mix",
+  //     "goal_level",
+  //     "ad_sets_granularity",
+  //     "campaign_timeline_start_date",
+  //     "campaign_timeline_end_date",
+  //     "internal_approver",
+  //     "client_approver",
+  //   ];
 
-    // Check if any key fields have been modified
-    for (const field of keyFields) {
-      if (
-        campaignFormData[field] && Array.isArray(campaignFormData[field])
-          ? campaignFormData[field].length > 0
-          : campaignFormData[field]
-      ) {
-        return true;
-      }
-    }
+  //   // Check if any key fields have been modified compared to baseline
+  //   for (const field of keyFields) {
+  //     const currentValue = campaignFormData[field];
+  //     const baselineValue = baselineFormData[field];
 
-    // Check for specific step-based changes
-    if (active > 0) {
-      // If user is on any step beyond step 0, there are likely unsaved changes
-      return true;
-    }
+  //     // Check if the value has actually changed from baseline
+  //     if (JSON.stringify(currentValue) !== JSON.stringify(baselineValue)) {
+  //       return true;
+  //     }
+  //   }
 
-    // Check for any non-empty form data that indicates user interaction
-    const hasAnyFormData = Object.values(campaignFormData).some((value) => {
-      if (Array.isArray(value)) {
-        return value.length > 0;
-      }
-      if (typeof value === "object" && value !== null) {
-        return Object.keys(value).length > 0;
-      }
-      return value && value !== "";
-    });
-
-    if (hasAnyFormData) {
-      return true;
-    }
-
-    return false;
-  };
+  //   return false;
+  // };
 
   // Monitor step changes to detect when user moves between steps
   // useEffect(() => {
@@ -495,6 +499,7 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
   // Handle staying on the current page
   const handleStayOnPage = () => {
     setShowModal(false); // Close modal
+    setChange(false); // setChange modal
     onClose(); // Call original onClose
   };
 

@@ -81,7 +81,15 @@ const OldResizableElement = ({
   const [openChannels, setOpenChannels] = useState<Record<string, boolean>>({});
   const { range } = useDateRange();
   const { range: rrange } = useRange();
-  const { campaignFormData, loadingCampaign } = useCampaigns();
+  const {
+    campaignFormData,
+    setCampaignFormData,
+    loadingCampaign,
+    setCopy,
+    cId,
+    campaignData,
+    jwt,
+  } = useCampaigns();
   const [channelWidths, setChannelWidths] = useState<Record<string, number>>(
     {}
   );
@@ -532,9 +540,7 @@ const OldResizableElement = ({
       className={`w-full relative pb-5 grid-container overflow-x-hidden`}
       ref={gridRef}
       style={{
-        ...(rrange === "Year"
-          ? generateYearBackground()
-          : {}),
+        ...(rrange === "Year" ? generateYearBackground() : {}),
         ...(rrange === "Year"
           ? {}
           : {
@@ -669,6 +675,11 @@ const OldResizableElement = ({
                   setSelectedStage={setSelectedStage}
                   disableDrag={disableDrag}
                   openItems={openItems}
+                  campaignFormData={campaignFormData}
+                  setCampaignFormData={setCampaignFormData}
+                  cId={cId}
+                  campaignData={campaignData}
+                  jwt={jwt}
                   setOpenItems={setOpenItems}
                   endMonth={funnelData?.endMonth}
                   endDay={funnelData?.endDay}
@@ -680,9 +691,16 @@ const OldResizableElement = ({
                 {isOpen && (
                   <div>
                     <ResizableChannels
+                      setParentCampaignFormData={setCampaignFormData}
                       channels={platforms[stage.name]}
                       parentId={stage?.name}
                       parentWidth={currentChannelWidth}
+                      campaignFormData={campaignFormData}
+                      setCampaignFormData={setCampaignFormData}
+                      cId={cId}
+                      campaignData={campaignData}
+                      jwt={jwt}
+                      setCopy={setCopy}
                       parentLeft={currentChannelPosition}
                       setIsOpen={setIsOpen}
                       dateList={range}

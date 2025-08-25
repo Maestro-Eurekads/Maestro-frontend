@@ -5,13 +5,16 @@ import axios from 'axios'
  //  Create Comment
 const getComment = async (commentId: any, jwt: any, client_commentId?: any) => {
 
+  console.log('client_commentId--',client_commentId)
+
   const filters: any = {
     "filters[commentId][$eq]": commentId,
   };
 
-  if (client_commentId) {
-    filters["filters[client_commentId][$eq]"] = client_commentId;
-  }
+  // Removed client_commentId filtering to show all comments from all users
+  // if (client_commentId) {
+  //   filters["filters[client_commentId][$eq]"] = client_commentId;
+  // }
 
   const response = await axios.get(
     `${process.env.NEXT_PUBLIC_STRAPI_URL}/comments`,

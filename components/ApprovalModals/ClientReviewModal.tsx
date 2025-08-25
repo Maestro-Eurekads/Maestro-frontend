@@ -13,9 +13,17 @@ const ClientReviewModal = ({ isOpen, setIsOpen }) => {
   const [loadingc, setLoadingc] = useState(false);
 
   const { cId, jwt, campaignData, getActiveCampaign } = useCampaigns();
-  const { loggedInUser } = useUserPrivileges();
+  const { loggedInUser, isClient } = useUserPrivileges();
 
   const handleApprove = async () => {
+    // Check if user is a client (Client overview || Campaign viewer) - they cannot approve
+    if (isClient) {
+      toast.error(
+        "Client overview and Campaign viewer users cannot approve media plans."
+      );
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -47,6 +55,14 @@ const ClientReviewModal = ({ isOpen, setIsOpen }) => {
   };
 
   const handleRequestChanges = async () => {
+    // Check if user is a client (Client overview || Campaign viewer) - they cannot request changes
+    if (isClient) {
+      toast.error(
+        "Client overview and Campaign viewer users cannot request changes to media plans."
+      );
+      return;
+    }
+
     setLoadingc(true);
 
     try {
