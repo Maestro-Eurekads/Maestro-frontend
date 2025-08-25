@@ -69,7 +69,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
               const style =
                 platformStyles.find((style) => style.name === platformName) ||
                 platformStyles[
-                Math.floor(Math.random() * platformStyles.length)
+                  Math.floor(Math.random() * platformStyles.length)
                 ];
               platforms.push({
                 platform_name: platformName,
@@ -129,10 +129,11 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
             >
               <div
                 onClick={() => toggleShow(index)}
-                className={`cursor-pointer ${expanded[index]
-                  ? 'border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] flex justify-between items-center p-4    h-[77px] bg-[#F9FAFB]  "'
-                  : "flex justify-between items-center p-4"
-                  } `}
+                className={`cursor-pointer ${
+                  expanded[index]
+                    ? 'border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] flex justify-between items-center p-4    h-[77px] bg-[#F9FAFB]  "'
+                    : "flex justify-between items-center p-4"
+                } `}
               >
                 <>
                   <h3 className="text-[#061237] font-semibold text-[16px] leading-[22px]  ">
@@ -141,13 +142,13 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                   <p className="text-[#061237] font-medium text-[14px]">
                     {/* 250,000 € */}
                     {budget?.startsWith("null") ||
-                      budget?.startsWith("undefined")
+                    budget?.startsWith("undefined")
                       ? 0
                       : `${Number(
-                        budget.replace(/[^\d.-]/g, "")
-                      ).toLocaleString()} ${budget
-                        .replace(/[\d\s.,-]/g, "")
-                        .trim()}`}
+                          budget.replace(/[^\d.-]/g, "")
+                        ).toLocaleString()} ${budget
+                          .replace(/[\d\s.,-]/g, "")
+                          .trim()}`}
                   </p>
                 </>
                 <button onClick={() => toggleShow(index)}>
@@ -183,7 +184,9 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                       zIndex
                     ) => {
                       // console.log({ start, end });
-                      const findInd = clientCampaignData.findIndex((item) => item.media_plan_details?.plan_name === label)
+                      const findInd = clientCampaignData.findIndex(
+                        (item) => item.media_plan_details?.plan_name === label
+                      );
                       const channels = extractPlatforms(
                         clientCampaignData[findInd]
                       );
@@ -198,16 +201,21 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                           onClick={() => toggleOpen(index, name)}
                         >
                           <div
-                            className={`mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${name === "Awareness"
-                              ? "bg-[#3175FF]"
-                              : name === "Consideration"
+                            className={`mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${
+                              name === "Awareness"
+                                ? "bg-[#3175FF]"
+                                : name === "Consideration"
                                 ? "bg-[#34A853]"
                                 : name === "Conversion"
-                                  ? "bg-[#ff9037]"
-                                  : "bg-[#F05406]"
-                              } text-white`}
+                                ? "bg-[#ff9037]"
+                                : "bg-[#F05406]"
+                            } text-white`}
                             style={{
-                              gridColumnStart: start ? start - startDay  === 0 ?1:start-startDay + 1: 1,
+                              gridColumnStart: start
+                                ? start - startDay === 0
+                                  ? 1
+                                  : start - startDay + 1
+                                : 1,
                               gridColumnEnd: end + 1 - startDay + 1,
                             }}
                           >
@@ -219,21 +227,25 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                             </div>
                             <button className="justify-self-end px-3 py-[10px] text-[16px] font-[500] bg-white/25 rounded-[5px]">
                               {budget?.startsWith("null") ||
-                                budget?.startsWith("undefined")
+                              budget?.startsWith("undefined")
                                 ? 0
                                 : `${Number(
-                                  budget.replace(/[^\d.-]/g, "")
-                                ).toLocaleString()} ${budget
-                                  .replace(/[\d\s.,-]/g, "")
-                                  .trim()}`}
+                                    budget.replace(/[^\d.-]/g, "")
+                                  ).toLocaleString()} ${budget
+                                    .replace(/[\d\s.,-]/g, "")
+                                    .trim()}`}
                             </button>
                           </div>
 
                           {openSections[`${index}-${name}`] && (
                             <div
                               style={{
-                                gridColumnStart: start ? start - startDay  === 0 ?1:start-startDay + 1: 1,
-                              gridColumnEnd: end + 1 - startDay + 1,
+                                gridColumnStart: start
+                                  ? start - startDay === 0
+                                    ? 1
+                                    : start - startDay + 1
+                                  : 1,
+                                gridColumnEnd: end + 1 - startDay + 1,
                               }}
                             >
                               {channels
@@ -249,7 +261,18 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                                   }) => {
                                     const { startDateIndex, endDateIndex } =
                                       calculateGridColumns(startDate, endDate);
-                                    console.log({ startDateIndex, endDateIndex, startDate, endDate, startDay, endDay }, "info", platform_name)
+                                    console.log(
+                                      {
+                                        startDateIndex,
+                                        endDateIndex,
+                                        startDate,
+                                        endDate,
+                                        startDay,
+                                        endDay,
+                                      },
+                                      "info",
+                                      platform_name
+                                    );
                                     return (
                                       <div
                                         key={platform_name}
@@ -259,16 +282,22 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                                         }}
                                       >
                                         <div
-                                          className={`py-1 text-[15px] font-[500] border my-5 w-full rounded-[10px] flex items-center justify-between`}
+                                          className={`py-1 text-[15px] font-[500] border my-5 w-full rounded-[10px] flex items-center justify-between ${
+                                            endDateIndex - startDateIndex < 5
+                                              ? "flex-col"
+                                              : "flex-row"
+                                          }`}
                                           style={{
                                             // display: "grid",
-                                            gridColumnStart: startDateIndex  - start + 1,
-                                            gridColumnEnd: endDateIndex  - start + 1 + 1 ,
+                                            gridColumnStart:
+                                              startDateIndex - start + 1,
+                                            gridColumnEnd:
+                                              endDateIndex - start + 1 + 1,
                                             backgroundColor: bg,
                                           }}
                                         >
                                           <div />
-                                          <span className="flex items-center gap-3 pl-0 ml-14">
+                                          <span className="flex items-center gap-3 pl-0 ml-4">
                                             <Image
                                               src={icon}
                                               alt={platform_name}
@@ -277,7 +306,10 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                                             <span>{platform_name}</span>
                                           </span>
                                           <button className="bg-[#0866FF33]/5 py-2 px-[10px] rounded-[5px] mr-3">
-                                            {amount}
+                                            {Number(amount).toLocaleString()} {" "}
+                                            {`${budget
+                                              .replace(/[\d\s.,-]/g, "")
+                                              .trim()}`}
                                           </button>
                                         </div>
                                       </div>
