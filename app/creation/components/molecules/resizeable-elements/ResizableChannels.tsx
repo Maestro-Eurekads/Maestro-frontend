@@ -317,222 +317,6 @@ const ResizableChannels = ({
     return Math.max(0, Math.min(closestPosition, parentWidth));
   };
 
-  // const updateTooltipWithDates = (
-  //   startPixel: number,
-  //   endPixel: number,
-  //   index: number,
-  //   mouseX: number,
-  //   mouseY: number,
-  //   type: "resize" | "drag",
-  //   resizeDirection?: "left" | "right"
-  // ) => {
-  //   if (!dateList || dateList.length === 0) return;
-
-  //   // Get the actual channel dates from backend
-  //   const findMix = campaignFormData?.channel_mix?.find(
-  //     (ch) => ch?.funnel_stage === parentId
-  //   );
-  //   const findChannel = findMix?.[channels[index]?.channelName]?.find(
-  //     (plt) => plt?.platform_name === channels[index]?.name
-  //   );
-
-  //   const channelStartDate = findChannel?.campaign_start_date
-  //     ? parseISO(findChannel?.campaign_start_date)
-  //     : null;
-  //   const channelEndDate = findChannel?.campaign_end_date
-  //     ? parseISO(findChannel?.campaign_end_date)
-  //     : null;
-
-  //   let startDateValue, endDateValue;
-
-  //   // Calculate dates relative to the parent phase card's date range
-  //   if (rrange === "Year") {
-  //     // For year view, calculate relative to parent phase card's date range
-  //     const isDraggingOrResizing = type === "drag" || type === "resize";
-
-  //     if (isDraggingOrResizing) {
-
-  //       // Calculate the ratio of the channel position within the parent phase card
-  //       const channelRatioStart = startPixel / parentWidth;
-  //       const channelRatioEnd = endPixel / parentWidth;
-
-  //       // Calculate the date range of the parent phase card
-  //       const parentStartDate = startDate;
-  //       const parentEndDate = endDate;
-
-  //       // Calculate the total duration of the parent phase card in milliseconds
-  //       const parentDuration = parentEndDate.getTime() - parentStartDate.getTime();
-
-  //       // Calculate the channel's start and end dates relative to the parent
-  //       const channelStartOffset = channelRatioStart * parentDuration;
-  //       const channelEndOffset = channelRatioEnd * parentDuration;
-
-  //       startDateValue = new Date(parentStartDate.getTime() + channelStartOffset);
-  //       endDateValue = new Date(parentStartDate.getTime() + channelEndOffset);
-
-  //       console.log("Year view relative date calculation:", {
-  //         startPixel,
-  //         endPixel,
-  //         parentWidth,
-  //         channelRatioStart,
-  //         channelRatioEnd,
-  //         parentStartDate,
-  //         parentEndDate,
-  //         parentDuration,
-  //         startDateValue,
-  //         endDateValue
-  //       });
-
-  //     } else {
-  //       // Use backend dates for initial tooltip
-  //       if (channelStartDate && channelEndDate) {
-  //         startDateValue = channelStartDate;
-  //         endDateValue = channelEndDate;
-  //       } else {
-  //         // Fallback to relative calculation
-  //         const channelRatioStart = startPixel / parentWidth;
-  //         const channelRatioEnd = endPixel / parentWidth;
-  //         const parentDuration = endDate.getTime() - startDate.getTime();
-  //         const channelStartOffset = channelRatioStart * parentDuration;
-  //         const channelEndOffset = channelRatioEnd * parentDuration;
-  //         startDateValue = new Date(startDate.getTime() + channelStartOffset);
-  //         endDateValue = new Date(startDate.getTime() + channelEndOffset);
-  //       }
-  //     }
-  //   } else if (rrange === "Month") {
-
-  //     // Month view - calculate relative to parent phase card's date range
-  //     const channelRatioStart = startPixel / parentWidth;
-  //     const channelRatioEnd = endPixel / parentWidth;
-
-  //     // Calculate the date range of the parent phase card
-  //     const parentStartDate = startDate;
-  //     const parentEndDate = endDate;
-
-  //     // Calculate the total duration of the parent phase card in milliseconds
-  //     const parentDuration = parentEndDate.getTime() - parentStartDate.getTime();
-
-  //     // Calculate the channel's start and end dates relative to the parent
-  //     const channelStartOffset = channelRatioStart * parentDuration;
-  //     const channelEndOffset = channelRatioEnd * parentDuration;
-
-  //     startDateValue = new Date(parentStartDate.getTime() + channelStartOffset);
-  //     endDateValue = new Date(parentStartDate.getTime() + channelEndOffset);
-
-  //     console.log("Month view relative date calculation:", {
-  //       startPixel,
-  //       endPixel,
-  //       parentWidth,
-  //       channelRatioStart,
-  //       channelRatioEnd,
-  //       parentStartDate,
-  //       parentEndDate,
-  //       parentDuration,
-  //       startDateValue,
-  //       endDateValue
-  //     });
-
-  //   } else {
-  //     // Day, Week view - calculate relative to parent phase card's date range
-  //     const channelRatioStart = startPixel / parentWidth;
-  //     const channelRatioEnd = endPixel / parentWidth;
-
-  //     // Calculate the date range of the parent phase card
-  //     const parentStartDate = startDate;
-  //     const parentEndDate = endDate;
-
-  //     // Calculate the total duration of the parent phase card in milliseconds
-  //     const parentDuration = parentEndDate.getTime() - parentStartDate.getTime();
-
-  //     // Calculate the channel's start and end dates relative to the parent
-  //     const channelStartOffset = channelRatioStart * parentDuration;
-  //     const channelEndOffset = channelRatioEnd * parentDuration;
-
-  //     startDateValue = new Date(parentStartDate.getTime() + channelStartOffset);
-  //     endDateValue = new Date(parentStartDate.getTime() + channelEndOffset);
-
-  //     console.log("Day/Week view relative date calculation:", {
-  //       startPixel,
-  //       endPixel,
-  //       parentWidth,
-  //       channelRatioStart,
-  //       channelRatioEnd,
-  //       parentStartDate,
-  //       parentEndDate,
-  //       parentDuration,
-  //       startDateValue,
-  //       endDateValue
-  //     });
-  //   }
-
-  //   console.log({ startDateValue, endDateValue, type });
-
-  //   // Debug the actual channel dates
-  //   // console.log("Channel dates from backend:", {
-  //   //   channelStartDate: findChannel?.campaign_start_date,
-  //   //   channelEndDate: findChannel?.campaign_end_date,
-  //   //   calculatedStartDate: startDateValue,
-  //   //   calculatedEndDate: endDateValue,
-  //   //   startPixel,
-  //   //   endPixel,
-  //   //   parentWidth,
-  //   //   type,
-  //   // });
-
-  //   let formattedDateRange;
-
-  //   if (rrange === "Year") {
-  //     // For year view, show month ranges
-  //     const startMonth = format(startDateValue, "MMM");
-  //     const endMonth = format(endDateValue, "MMM");
-  //     const startYear = startDateValue.getFullYear();
-  //     const endYear = endDateValue.getFullYear();
-
-  //     if (startMonth === endMonth && startYear === endYear) {
-  //       // Same month and year - show just the month
-  //       formattedDateRange = startMonth;
-  //     } else if (startYear === endYear) {
-  //       // Same year, different months - show "Feb - Mar" format
-  //       formattedDateRange = `${startMonth} - ${endMonth}`;
-  //     } else {
-  //       // Different years - show "Feb 25 - Mar 25" format
-  //       formattedDateRange = `${startMonth} ${startYear} - ${endMonth} ${endYear}`;
-  //     }
-  //   } else if (rrange === "Month") {
-  //     // For month view, show specific dates for smooth dragging
-  //     const formattedStartDate = format(startDateValue, "MMM dd");
-  //     const formattedEndDate = format(endDateValue, "MMM dd");
-  //     formattedDateRange = `${formattedStartDate} - ${formattedEndDate}`;
-  //   } else {
-  //     // For other views, show specific dates
-  //     console.log({startDateValue, endDateValue})
-  //     const formattedStartDate = format(startDateValue, "MMM dd");
-  //     const formattedEndDate = format(endDateValue, "MMM dd");
-  //     formattedDateRange = `${formattedStartDate} - ${formattedEndDate}`;
-  //   }
-
-  //   const channelName = channels[index]?.name || "Channel";
-  //   const containerRect = document
-  //     .querySelector(
-  //       `.cont-${replaceSpacesAndSpecialCharsWithUnderscore(
-  //         parentId
-  //       )}-${replaceSpacesAndSpecialCharsWithUnderscore(channelName)}`
-  //     )
-  //     ?.getBoundingClientRect();
-
-  //   const tooltipX = mouseX - containerRect.left;
-  //   const tooltipY = containerRect.top - 50;
-
-  //   setTooltip({
-  //     visible: true,
-  //     x: tooltipX,
-  //     y: tooltipY,
-  //     content: `${channelName}: ${formattedDateRange}`,
-  //     type,
-  //     index,
-  //   });
-  // };
-
   const updateTooltipWithDates = (
     startPixel: number,
     endPixel: number,
@@ -541,233 +325,192 @@ const ResizableChannels = ({
     mouseY: number,
     type: "resize" | "drag",
     resizeDirection?: "left" | "right"
-  ) => {
+    ) => {
     if (!dateList || dateList.length === 0) return;
-
+    
     // Get the actual channel dates from backend
     const findMix = campaignFormData?.channel_mix?.find(
-      (ch) => ch?.funnel_stage === parentId
+    (ch) => ch?.funnel_stage === parentId
     );
     const findChannel = findMix?.[channels[index]?.channelName]?.find(
-      (plt) => plt?.platform_name === channels[index]?.name
+    (plt) => plt?.platform_name === channels[index]?.name
     );
-
+    
     const channelStartDate = findChannel?.campaign_start_date
-      ? parseISO(findChannel?.campaign_start_date)
-      : null;
+    ? parseISO(findChannel?.campaign_start_date)
+    : null;
     const channelEndDate = findChannel?.campaign_end_date
-      ? parseISO(findChannel?.campaign_end_date)
-      : null;
-
+    ? parseISO(findChannel?.campaign_end_date)
+    : null;
+    
     let startDateValue, endDateValue;
-
+    
     if (rrange === "Year") {
-      // For year view, use calculated dates during drag/resize, backend dates for initial click
-      const isDraggingOrResizing = type === "drag" || type === "resize";
-
-      if (isDraggingOrResizing) {
-        // Use pixel-based calculation for real-time updates
-        const numberOfMonths = 12;
-        const monthStartIndex = Math.min(
-          numberOfMonths - 1,
-          Math.max(0, Math.floor((startPixel / parentWidth) * numberOfMonths))
-        );
-        const monthEndIndex = Math.min(
-          numberOfMonths - 1,
-          Math.max(0, Math.round((endPixel / parentWidth) * numberOfMonths) - 1)
-        );
-
-        // Calculate the date range of the parent phase card
-        const parentStartDate = startDate;
-        const parentEndDate = endDate;
-
-        // Calculate the total duration of the parent phase card in milliseconds
-        const parentDuration =
-          parentEndDate.getTime() - parentStartDate.getTime();
-
-        // Calculate the channel's start and end ratios relative to the parent
-        const channelRatioStart = startPixel / parentWidth;
-        const channelRatioEnd = endPixel / parentWidth;
-
-        // Calculate the channel's start and end dates relative to the parent
-        const channelStartOffset = channelRatioStart * parentDuration;
-        const channelEndOffset = channelRatioEnd * parentDuration;
-
-        startDateValue = new Date(
-          parentStartDate.getTime() + channelStartOffset
-        );
-        endDateValue = new Date(parentStartDate.getTime() + channelEndOffset);
-
-        // console.log("Year view relative date calculation:", {
-        //   startPixel,
-        //   endPixel,
-        //   parentWidth,
-        //   channelRatioStart,
-        //   channelRatioEnd,
-        //   parentStartDate,
-        //   parentEndDate,
-        //   parentDuration,
-        //   startDateValue,
-        //   endDateValue
-        // });
-      } else {
-        // Use backend dates for initial tooltip
-        if (channelStartDate && channelEndDate) {
-          startDateValue = channelStartDate;
-          endDateValue = channelEndDate;
-        } else {
-          // Fallback to pixel calculation
-          const numberOfMonths = 12;
-          const monthStartIndex = Math.min(
-            numberOfMonths - 1,
-            Math.max(0, Math.floor((startPixel / parentWidth) * numberOfMonths))
-          );
-          const monthEndIndex = Math.min(
-            numberOfMonths - 1,
-            Math.max(
-              0,
-              Math.round((endPixel / parentWidth) * numberOfMonths) - 1
-            )
-          );
-
-          const year = startDate?.getFullYear() || new Date().getFullYear();
-          startDateValue = new Date(year, monthStartIndex, 1);
-          endDateValue = new Date(year, monthEndIndex + 1, 0); // Last day of the month
-        }
-      }
-    } else if (rrange === "Month") {
-      // Month view - calculate relative to parent phase card's date range
-      const channelRatioStart = startPixel / parentWidth;
-      const channelRatioEnd = endPixel / parentWidth;
-
-      // Calculate the date range of the parent phase card
-      const parentStartDate = startDate;
-      const parentEndDate = endDate;
-
-      // Calculate the total duration of the parent phase card in milliseconds
-      const parentDuration =
-        parentEndDate.getTime() - parentStartDate.getTime();
-
-      // Calculate the channel's start and end dates relative to the parent
-      const channelStartOffset = channelRatioStart * parentDuration;
-      const channelEndOffset = channelRatioEnd * parentDuration;
-
-      startDateValue = new Date(parentStartDate.getTime() + channelStartOffset);
-      endDateValue = new Date(parentStartDate.getTime() + channelEndOffset);
-
-      // console.log("Month view relative date calculation:", {
-      //   startPixel,
-      //   endPixel,
-      //   parentWidth,
-      //   channelRatioStart,
-      //   channelRatioEnd,
-      //   parentStartDate,
-      //   parentEndDate,
-      //   parentDuration,
-      //   startDateValue,
-      //   endDateValue
-      // });
+    // For year view, use calculated dates during drag/resize, backend dates for initial click
+    const isDraggingOrResizing = type === "drag" || type === "resize";
+    
+    if (isDraggingOrResizing) {
+    // Use pixel-based calculation for real-time updates
+    const numberOfMonths = 12;
+    const monthStartIndex = Math.min(
+    numberOfMonths - 1,
+    Math.max(0, Math.floor((startPixel / parentWidth) * numberOfMonths))
+    );
+    const monthEndIndex = Math.min(
+    numberOfMonths - 1,
+    Math.max(0, Math.round((endPixel / parentWidth) * numberOfMonths) - 1)
+    );
+    
+    // console.log("Year view date conversion debug:", {
+    // startPixel,
+    // endPixel,
+    // parentWidth,
+    // numberOfMonths,
+    // monthStartIndex,
+    // monthEndIndex,
+    // startRatio: startPixel / parentWidth,
+    // endRatio: endPixel / parentWidth
+    // });
+    
+    const year = startDate?.getFullYear() || new Date().getFullYear();
+    startDateValue = new Date(year, monthStartIndex, 1);
+    endDateValue = new Date(year, monthEndIndex + 1, 0); // Last day of the month
     } else {
-      // Day, Week view - calculate relative to parent phase card's date range
-      const channelRatioStart = startPixel / parentWidth;
-      const channelRatioEnd = endPixel / parentWidth;
-
-      // Calculate the date range of the parent phase card
-      const parentStartDate = startDate;
-      const parentEndDate = endDate;
-
-      // Calculate the total duration of the parent phase card in milliseconds
-      const parentDuration =
-        parentEndDate.getTime() - parentStartDate.getTime();
-
-      // Calculate the channel's start and end dates relative to the parent
-      const channelStartOffset = channelRatioStart * parentDuration;
-      const channelEndOffset = channelRatioEnd * parentDuration;
-
-      startDateValue = new Date(parentStartDate.getTime() + channelStartOffset);
-      endDateValue = new Date(parentStartDate.getTime() + channelEndOffset);
-
-      // console.log("Day/Week view relative date calculation:", {
-      //   startPixel,
-      //   endPixel,
-      //   parentWidth,
-      //   channelRatioStart,
-      //   channelRatioEnd,
-      //   parentStartDate,
-      //   parentEndDate,
-      //   parentDuration,
-      //   startDateValue,
-      //   endDateValue
-      // });
+    // Use backend dates for initial tooltip
+    if (channelStartDate && channelEndDate) {
+    startDateValue = channelStartDate;
+    endDateValue = channelEndDate;
+    } else {
+    // Fallback to pixel calculation
+    const numberOfMonths = 12;
+    const monthStartIndex = Math.min(
+    numberOfMonths - 1,
+    Math.max(0, Math.floor((startPixel / parentWidth) * numberOfMonths))
+    );
+    const monthEndIndex = Math.min(
+    numberOfMonths - 1,
+    Math.max(0, Math.round((endPixel / parentWidth) * numberOfMonths) - 1)
+    );
+    
+    const year = startDate?.getFullYear() || new Date().getFullYear();
+    startDateValue = new Date(year, monthStartIndex, 1);
+    endDateValue = new Date(year, monthEndIndex + 1, 0); // Last day of the month
     }
-
-    // console.log({ startDateValue, endDateValue, type });
-
+    }
+    } else if (rrange === "Month") {
+    // Month view - use day-level precision for smooth dragging
+    const numberOfGridColumns = dateList.length;
+    const stepWidth = parentWidth / numberOfGridColumns;
+    
+    const startGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, Math.floor((startPixel + parentLeft) / dailyWidth)));
+    const endGridIndexRaw = Math.floor((endPixel - startPixel) / dailyWidth) + startGridIndex;
+    const endGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, endGridIndexRaw));
+    
+    console.log("Date conversion tooltip Month:", {
+    startPixel,
+    endPixel,
+    parentWidth,
+    numberOfGridColumns,
+    stepWidth,
+    startGridIndex,
+    endGridIndex
+    });
+    
+    startDateValue = dateList[startGridIndex] || startDate;
+    endDateValue = dateList[endGridIndex - 1] || endDate;
+    } else {
+    // Day, Week view - calculate based on days
+    const numberOfGridColumns = dateList.length;
+    const stepWidth = parentWidth / numberOfGridColumns;
+    
+    const startGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, Math.floor( ((startPixel + parentLeft) / (stepWidth < 50 ? 50 : stepWidth)) )));
+    const endGridIndexRaw = Math.floor((endPixel - startPixel) / (stepWidth < 50 ? 50 : stepWidth)) + startGridIndex;
+    const endGridIndex = Math.max(0, Math.min(numberOfGridColumns, endGridIndexRaw));
+    
+    console.log("Date conversion tooltip FIXED:", {
+    startPixel,
+    endPixel,
+    parentWidth,
+    numberOfGridColumns,
+    stepWidth,
+    startGridIndex,
+    endGridIndex
+    });
+    
+    console.log({dateList})
+    
+    startDateValue = dateList[startGridIndex] || startDate;
+    endDateValue = dateList[endGridIndex - 1] || endDate;
+    }
+    
+    console.log({ startDateValue, endDateValue, type });
+    
     // Debug the actual channel dates
     // console.log("Channel dates from backend:", {
-    //   channelStartDate: findChannel?.campaign_start_date,
-    //   channelEndDate: findChannel?.campaign_end_date,
-    //   calculatedStartDate: startDateValue,
-    //   calculatedEndDate: endDateValue,
-    //   startPixel,
-    //   endPixel,
-    //   parentWidth,
-    //   type,
+    // channelStartDate: findChannel?.campaign_start_date,
+    // channelEndDate: findChannel?.campaign_end_date,
+    // calculatedStartDate: startDateValue,
+    // calculatedEndDate: endDateValue,
+    // startPixel,
+    // endPixel,
+    // parentWidth,
+    // type,
     // });
-
+    
     let formattedDateRange;
-
+    
     if (rrange === "Year") {
-      // For year view, show month ranges
-      const startMonth = format(startDateValue, "MMM yy");
-      const endMonth = format(endDateValue, "MMM yy");
-      const startYear = startDateValue.getFullYear();
-      const endYear = endDateValue.getFullYear();
-
-      if (startMonth === endMonth && startYear === endYear) {
-        // Same month and year - show just the month
-        formattedDateRange = startMonth;
-      } else if (startYear === endYear) {
-        // Same year, different months - show "Feb - Mar" format
-        formattedDateRange = `${startMonth} - ${endMonth}`;
-      } else {
-        // Different years - show "Feb 25 - Mar 25" format
-        formattedDateRange = `${startMonth} ${startYear} - ${endMonth} ${endYear}`;
-      }
-    } else if (rrange === "Month") {
-      // For month view, show specific dates for smooth dragging
-      const formattedStartDate = format(startDateValue, "MMM dd, yyyy");
-      const formattedEndDate = format(endDateValue, "MMM dd, yyyy");
-      formattedDateRange = `${formattedStartDate} - ${formattedEndDate}`;
+    // For year view, show month ranges
+    const startMonth = format(startDateValue, "MMM");
+    const endMonth = format(endDateValue, "MMM");
+    const startYear = startDateValue.getFullYear();
+    const endYear = endDateValue.getFullYear();
+    
+    if (startMonth === endMonth && startYear === endYear) {
+    // Same month and year - show just the month
+    formattedDateRange = startMonth;
+    } else if (startYear === endYear) {
+    // Same year, different months - show "Feb - Mar" format
+    formattedDateRange = `${startMonth} - ${endMonth}`;
     } else {
-      // For other views, show specific dates
-      console.log({startDateValue, endDateValue})
-      const formattedStartDate = format(startDateValue, "MMM dd, yyyy");
-      const formattedEndDate = format(endDateValue, "MMM dd, yyyy");
-      formattedDateRange = `${formattedStartDate} - ${formattedEndDate}`;
+    // Different years - show "Feb 25 - Mar 25" format
+    formattedDateRange = `${startMonth} ${startYear} - ${endMonth} ${endYear}`;
     }
-
+    } else if (rrange === "Month") {
+    // For month view, show specific dates for smooth dragging
+    const formattedStartDate = format(startDateValue, "MMM dd");
+    const formattedEndDate = format(endDateValue, "MMM dd");
+    formattedDateRange = `${formattedStartDate} - ${formattedEndDate}`;
+    } else {
+    // For other views, show specific dates
+    console.log({startDateValue, endDateValue})
+    const formattedStartDate = format(startDateValue, "MMM dd");
+    const formattedEndDate = format(endDateValue, "MMM dd");
+    formattedDateRange = `${formattedStartDate} - ${formattedEndDate}`;
+    }
+    
     const channelName = channels[index]?.name || "Channel";
     const containerRect = document
-      .querySelector(
-        `.cont-${replaceSpacesAndSpecialCharsWithUnderscore(
-          parentId
-        )}-${replaceSpacesAndSpecialCharsWithUnderscore(channelName)}`
-      )
-      ?.getBoundingClientRect();
-
+    .querySelector(
+    `.cont-${replaceSpacesAndSpecialCharsWithUnderscore(
+    parentId
+    )}-${replaceSpacesAndSpecialCharsWithUnderscore(channelName)}`
+    )
+    ?.getBoundingClientRect();
+    
     const tooltipX = mouseX - containerRect.left;
     const tooltipY = containerRect.top - 50;
-
+    
     setTooltip({
-      visible: true,
-      x: tooltipX,
-      y: tooltipY,
-      content: `${channelName}: ${formattedDateRange}`,
-      type,
-      index,
+    visible: true,
+    x: tooltipX,
+    y: tooltipY,
+    content: `${channelName}: ${formattedDateRange}`,
+    type,
+    index,
     });
-  };
+    };
+    
 
   const handleMouseDownResize = (
     e: React.MouseEvent<HTMLDivElement>,
