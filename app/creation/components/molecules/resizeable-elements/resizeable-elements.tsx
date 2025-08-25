@@ -243,6 +243,11 @@ const ResizeableElements = ({
     }
   }, [campaignFormData, channelWidths]);
 
+  useEffect(() => {
+    // Close all phase cards when the view range changes
+    setOpenChannels({});
+  }, [rrange]);
+
   const calculateAndCacheDailyWidth = useCallback(
     (
       viewType: string,
