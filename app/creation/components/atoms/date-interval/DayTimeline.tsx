@@ -201,7 +201,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                           onClick={() => toggleOpen(index, name)}
                         >
                           <div
-                            className={`mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${
+                            className={`mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${end - start < 5 ? "flex-col" : "flex-row"} ${
                               name === "Awareness"
                                 ? "bg-[#3175FF]"
                                 : name === "Consideration"
