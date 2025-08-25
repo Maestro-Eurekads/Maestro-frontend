@@ -286,7 +286,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                                             endDateIndex - startDateIndex < 5
                                               ? "flex-col"
                                               : "flex-row"
-                                          }`}
+                                          } `}
                                           style={{
                                             // display: "grid",
                                             gridColumnStart:
@@ -297,15 +297,19 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                                           }}
                                         >
                                           <div />
-                                          <span className="flex items-center gap-3 pl-0 ml-4">
+                                          <span className={`flex items-center gap-3 pl-0  ${endDateIndex - startDateIndex < 5 ? "flex-col" : "flex-row ml-4"}`}>
                                             <Image
                                               src={icon}
                                               alt={platform_name}
                                               width={20}
+                                              className={`${
+                                            endDateIndex - startDateIndex < 5 ? "hidden" : "block"}`}
                                             />
-                                            <span>{platform_name}</span>
+                                            <span className="text-wrap" style={{
+                                              overflowWrap: "anywhere"
+                                            }}>{platform_name}</span>
                                           </span>
-                                          <button className="bg-[#0866FF33]/5 py-2 px-[10px] rounded-[5px] mr-3">
+                                          <button className={`bg-[#0866FF33]/5  rounded-[5px] max-w-max ${endDateIndex - startDateIndex < 5 ? "" : "mr-3 py-2 px-[10px]"}`}>
                                             {Number(amount).toLocaleString()} {" "}
                                             {`${budget
                                               .replace(/[\d\s.,-]/g, "")
