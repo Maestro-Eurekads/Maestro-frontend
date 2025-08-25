@@ -11,6 +11,7 @@ import ClientsCampaignDropdown from "./compoment/ClientsCampaignDropdown";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { getFirstLetters } from "components/Options";
 import { toast } from "sonner";
+import { useUserPrivileges } from "utils/userPrivileges";
 
 const Header = ({ setIsOpen, campaigns, loading }) => {
   const {
@@ -28,11 +29,11 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
   );
   const { data: session }: any = useSession();
   const { jwt, campaignData } = useCampaigns();
+  const { isClient } = useUserPrivileges();
   const dispatch = useAppDispatch();
   const id = session?.user?.id;
   const isdocumentId = campaignData?.documentId;
   const [show, setShow] = useState(false);
-  const [isClientChangesNeeded, setIsClientChangesNeeded] = useState(false);
   const [showClientChangesModal, setShowClientChangesModal] = useState(false);
   const [showDelayedButton, setShowDelayedButton] = useState(false);
 
@@ -63,17 +64,6 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
   };
 
   const isSignature = dataApprove?.[0]?.isSignature || false;
-
-  useEffect(() => {
-    if (
-      campaignData?.isStatus?.stage === "client_changes_needed" ||
-      campaignData?.isStatus?.stage === "in_internal_review"
-    ) {
-      setIsClientChangesNeeded(true);
-    } else {
-      setIsClientChangesNeeded(false);
-    }
-  }, [campaignData?.isStatus?.stage]);
 
   // Only trigger delay if all conditions for showing the button are met
   useEffect(() => {
@@ -156,6 +146,14 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
                         style={{ border: "1px solid #3175FF" }}
                         onClick={async () => {
                           if (campaignData) {
+                            // Check if user is a client (Client overview || Campaign viewer) - they cannot approve
+                            if (isClient) {
+                              toast.error(
+                                "Campaign viewer users cannot approve media plans."
+                              );
+                              return;
+                            }
+
                             if (
                               campaignData?.isStatus?.stage ===
                                 "client_changes_needed" ||
