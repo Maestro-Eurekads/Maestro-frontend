@@ -736,14 +736,14 @@ const ResizableChannels = ({
       }
     } else if (rrange === "Month") {
       // For month view, show specific dates for smooth dragging
-      const formattedStartDate = format(startDateValue, "MMM dd");
-      const formattedEndDate = format(endDateValue, "MMM dd");
+      const formattedStartDate = format(startDateValue, "MMM dd, yyyy");
+      const formattedEndDate = format(endDateValue, "MMM dd, yyyy");
       formattedDateRange = `${formattedStartDate} - ${formattedEndDate}`;
     } else {
       // For other views, show specific dates
-      console.log({ startDateValue, endDateValue });
-      const formattedStartDate = format(startDateValue, "MMM dd");
-      const formattedEndDate = format(endDateValue, "MMM dd");
+      console.log({startDateValue, endDateValue})
+      const formattedStartDate = format(startDateValue, "MMM dd, yyyy");
+      const formattedEndDate = format(endDateValue, "MMM dd, yyyy");
       formattedDateRange = `${formattedStartDate} - ${formattedEndDate}`;
     }
 
