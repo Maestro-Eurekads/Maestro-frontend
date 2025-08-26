@@ -7,11 +7,14 @@ import zoomWhite from "../../../../public/tabler_zoom-filledwhite.svg";
 import speakerWhite from "../../../../public/mdi_megaphonewhite.svg";
 import addPlusWhite from "../../../../public/addPlusWhite.svg";
 import Image from "next/image";
-import { useCampaigns } from "../../../utils/CampaignsContext";
+import { useCampaigns } from "app/utils/CampaignsContext";
+import { useEditing } from "app/utils/EditingContext";
 import { funnelStages } from "../../../../components/data";
 import { ChannelSelector } from "./ChannelSelector";
 import { useEffect, useState } from "react";
 import { removeKeysRecursively } from "utils/removeID";
+import { toast } from "sonner";
+import { mergeChannelAudienceIntoCampaign } from "./AdSetsFlow";
 
 // Default fallback data to ensure consistency during SSR
 const defaultCampaignData = {
@@ -41,13 +44,19 @@ const BuyingObjective = () => {
   useEffect(() => {
     setIsMounted(true);
     setUpdatedData(campaignFormData);
-    const filtered = getFilteredChannelMix(campaignFormData.channel_mix, campaignFormData.funnel_stages);
+    const filtered = getFilteredChannelMix(
+      campaignFormData.channel_mix,
+      campaignFormData.funnel_stages
+    );
     setFilteredChannelMix(filtered);
   }, [rawCampaignFormData]);
 
   useEffect(() => {
     if (updatedData && isMounted) {
-      const filtered = getFilteredChannelMix(updatedData.channel_mix, updatedData.funnel_stages);
+      const filtered = getFilteredChannelMix(
+        updatedData.channel_mix,
+        updatedData.funnel_stages
+      );
       setFilteredChannelMix(filtered);
     }
   }, [updatedData]);
@@ -113,39 +122,40 @@ const BuyingObjective = () => {
     setSelectedStage(stageName);
     const updatedFunnels = updatedData?.funnel_stages?.includes(stageName)
       ? {
-        ...updatedData,
-        funnel_stages: updatedData.funnel_stages.filter(
-          (name: string) => name !== stageName
-        ),
-      }
+          ...updatedData,
+          funnel_stages: updatedData.funnel_stages.filter(
+            (name: string) => name !== stageName
+          ),
+        }
       : {
-        ...updatedData,
-        funnel_stages: [...(updatedData?.funnel_stages || []), stageName],
-        channel_mix: [
-          ...(updatedData?.channel_mix || []),
-          {
-            funnel_stage: stageName,
-            social_media: [],
-            display_networks: [],
-            search_engines: [],
-          },
-        ],
-      };
+          ...updatedData,
+          funnel_stages: [...(updatedData?.funnel_stages || []), stageName],
+          channel_mix: [
+            ...(updatedData?.channel_mix || []),
+            {
+              funnel_stage: stageName,
+              social_media: [],
+              display_networks: [],
+              search_engines: [],
+            },
+          ],
+        };
     setUpdatedData(updatedFunnels);
   };
 
   const handlePlatformSelect = (stageName, category, platformName) => {
-    const updatedChannelMix = updatedData?.channel_mix?.map((stage) => {
-      if (stage.funnel_stage === stageName) {
-        const updatedStage = { ...stage };
-        updatedStage[category] = [
-          ...(stage[category] || []),
-          { platform_name: platformName },
-        ];
-        return updatedStage;
-      }
-      return stage;
-    }) || [];
+    const updatedChannelMix =
+      updatedData?.channel_mix?.map((stage) => {
+        if (stage.funnel_stage === stageName) {
+          const updatedStage = { ...stage };
+          updatedStage[category] = [
+            ...(stage[category] || []),
+            { platform_name: platformName },
+          ];
+          return updatedStage;
+        }
+        return stage;
+      }) || [];
 
     setUpdatedData((prevData) => ({
       ...prevData,
@@ -160,19 +170,20 @@ const BuyingObjective = () => {
     dropDownName,
     option
   ) => {
-    const updatedChannelMix = updatedData?.channel_mix?.map((stage) => {
-      if (stage.funnel_stage === stageName) {
-        const updatedStage = { ...stage };
-        updatedStage[category] = (stage[category] || []).map((platform) => {
-          if (platform.platform_name === platformName) {
-            return { ...platform, [dropDownName]: option };
-          }
-          return platform;
-        });
-        return updatedStage;
-      }
-      return stage;
-    }) || [];
+    const updatedChannelMix =
+      updatedData?.channel_mix?.map((stage) => {
+        if (stage.funnel_stage === stageName) {
+          const updatedStage = { ...stage };
+          updatedStage[category] = (stage[category] || []).map((platform) => {
+            if (platform.platform_name === platformName) {
+              return { ...platform, [dropDownName]: option };
+            }
+            return platform;
+          });
+          return updatedStage;
+        }
+        return stage;
+      }) || [];
 
     setUpdatedData((prevData) => ({
       ...prevData,
@@ -196,13 +207,13 @@ const BuyingObjective = () => {
 
   const cleanData = campaignData
     ? removeKeysRecursively(campaignData, [
-      "id",
-      "documentId",
-      "createdAt",
-      "publishedAt",
-      "updatedAt",
-      "_aggregated"
-    ])
+        "id",
+        "documentId",
+        "createdAt",
+        "publishedAt",
+        "updatedAt",
+        "_aggregated",
+      ])
     : {};
 
   const handleConfirmStep = async () => {
@@ -221,7 +232,7 @@ const BuyingObjective = () => {
             "formatValidated",
             "validatedStages",
             "documentId",
-            "_aggregated"
+            "_aggregated",
           ],
           ["preview"]
         ),
@@ -229,12 +240,13 @@ const BuyingObjective = () => {
         funnel_type: updatedData?.funnel_type,
       });
 
-      const timeoutPromise = new Promise(resolve => setTimeout(resolve, 1000));
+      const timeoutPromise = new Promise((resolve) =>
+        setTimeout(resolve, 1000)
+      );
 
       // Wait for both the update and the minimum timeout
       await Promise.all([updatePromise, timeoutPromise]);
       await getActiveCampaign();
-
     } catch (error) {
       if (error?.response?.status === 401) {
         const event = new Event("unauthorizedEvent");
@@ -263,7 +275,7 @@ const BuyingObjective = () => {
               text="Edit"
               variant="primary"
               className="!w-[85px] !h-[40px]"
-              onClick={() => { }}
+              onClick={() => {}}
               disabled
             />
           </div>
@@ -350,24 +362,23 @@ const BuyingObjective = () => {
             ?.map((stageName) => (
               <div
                 key={stageName?.name}
-                className="flex justify-between items-center mb-4"
-              >
+                className="flex justify-between items-center mb-4">
                 <div>
                   <div
-                    className={`${stageName?.name === "Conversion"
+                    className={`${
+                      stageName?.name === "Conversion"
                         ? "bg-[#FF9037] cursor-pointer"
                         : stageName?.name === "Loyalty"
-                          ? "bg-[#EF5407] cursor-pointer"
-                          : stageName?.name === "Awareness"
-                            ? "bg-[#0866FF]"
-                            : stageName?.name === "Consideration"
-                              ? "bg-[#00A36C]"
-                              : stageName?.name === "Targeting and Retargeting"
-                                ? "bg-[#6B7280]"
-                                : "bg-[#FFF] text-[#000]"
-                      } rounded-[10px] cursor-pointer`}
-                    onClick={() => handleLoyaltyButtonClick(stageName?.name)}
-                  >
+                        ? "bg-[#EF5407] cursor-pointer"
+                        : stageName?.name === "Awareness"
+                        ? "bg-[#0866FF]"
+                        : stageName?.name === "Consideration"
+                        ? "bg-[#00A36C]"
+                        : stageName?.name === "Targeting and Retargeting"
+                        ? "bg-[#6B7280]"
+                        : "bg-[#FFF] text-[#000]"
+                    } rounded-[10px] cursor-pointer`}
+                    onClick={() => handleLoyaltyButtonClick(stageName?.name)}>
                     <div className="w-full flex items-center justify-center gap-[16px] p-[24px]">
                       {stageName?.name === "Conversion" ? (
                         <Image src={creditWhite} alt={stageName?.name} />
@@ -382,7 +393,18 @@ const BuyingObjective = () => {
                       ) : (
                         ""
                       )}
-                      <p className={`text-[18px] font-medium ${["Awareness", "Consideration", "Conversion", "Loyalty", "Targeting and Retargeting"].includes(stageName?.name) ? "text-[#FFF]" : "text-[#000]"}`}>
+                      <p
+                        className={`text-[18px] font-medium ${
+                          [
+                            "Awareness",
+                            "Consideration",
+                            "Conversion",
+                            "Loyalty",
+                            "Targeting and Retargeting",
+                          ].includes(stageName?.name)
+                            ? "text-[#FFF]"
+                            : "text-[#000]"
+                        }`}>
                         {stageName?.name}
                       </p>
                     </div>
@@ -448,7 +470,10 @@ const BuyingObjective = () => {
           );
         })
       ) : (
-        <div>No platforms selected for the selected funnel stages. Please add platforms to continue.</div>
+        <div>
+          No platforms selected for the selected funnel stages. Please add
+          platforms to continue.
+        </div>
       )}
     </div>
   );
