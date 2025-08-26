@@ -19,6 +19,7 @@ import { useCampaigns } from "./CampaignsContext";
 import { useActive } from "app/utils/ActiveContext";
 import { SVGLoader } from "components/SVGLoader";
 import { toast } from "sonner";
+import { mergeChannelAudienceIntoCampaign } from "app/creation/components/common/AdSetsFlow";
 
 interface BottomProps {
   setIsOpen: (isOpen: boolean) => void;
@@ -515,14 +516,19 @@ const SaveProgressButton = () => {
     const updateCampaignData = async (data) => {
       const calcPercent = Math.ceil((active / 10) * 100);
       try {
+        // NEW: Merge channel audience data before updating
+        const campaignId =
+          cId || campaignFormData?.id || campaignFormData?.media_plan_id;
+        const mergedData = mergeChannelAudienceIntoCampaign(data, campaignId);
+
         await updateCampaign({
-          ...data,
+          ...mergedData,
           progress_percent:
             campaignFormData?.progress_percent > calcPercent
               ? campaignFormData?.progress_percent
               : calcPercent,
         });
-        await getActiveCampaign(data);
+        await getActiveCampaign(mergedData);
         toast.success("Campaign updated!");
         setChange(false);
       } catch (error) {
@@ -577,11 +583,19 @@ const SaveProgressButton = () => {
           approved_by: campaignFormData?.approved_by || [],
         };
 
-        setCampaignFormData(cleanedFormData);
+        // NEW: Merge channel audience data from local storage into the cleaned form data
+        const campaignId =
+          cId || campaignFormData?.id || campaignFormData?.media_plan_id;
+        const mergedFormData = mergeChannelAudienceIntoCampaign(
+          cleanedFormData,
+          campaignId
+        );
+
+        setCampaignFormData(mergedFormData);
         if (cId) {
           localStorage.setItem(
             `campaignFormData_${cId}`,
-            JSON.stringify(cleanedFormData)
+            JSON.stringify(mergedFormData)
           );
           localStorage.setItem(
             `campaignFormData_${cId}_timestamp`,
@@ -592,35 +606,37 @@ const SaveProgressButton = () => {
         const payload = {
           data: {
             campaign_builder: loggedInUser?.id,
-            client: campaignFormData?.client_selection?.id,
+            client: mergedFormData?.client_selection?.id,
             client_selection: {
-              client: campaignFormData?.client_selection?.value,
-              level_1: campaignFormData?.level_1,
+              client: mergedFormData?.client_selection?.value,
+              level_1: mergedFormData?.level_1,
             },
             media_plan_details: {
-              plan_name: campaignFormData?.media_plan,
-              internal_approver: (
-                campaignFormData?.internal_approver || []
-              ).map((item: any) => Number(item.id)),
-              client_approver: (campaignFormData?.client_approver || []).map(
+              plan_name: mergedFormData?.media_plan,
+              internal_approver: (mergedFormData?.internal_approver || []).map(
                 (item: any) => Number(item.id)
               ),
-              approved_by: cleanedFormData.approved_by.map((item: any) =>
+              client_approver: (mergedFormData?.client_approver || []).map(
+                (item: any) => Number(item.id)
+              ),
+              approved_by: mergedFormData.approved_by.map((item: any) =>
                 Number(item.id)
               ),
             },
             budget_details: {
-              currency: campaignFormData?.budget_details_currency?.id || "EUR",
-              value: campaignFormData?.country_details?.id,
+              currency: mergedFormData?.budget_details_currency?.id || "EUR",
+              value: mergedFormData?.country_details?.id,
             },
             campaign_budget: {
-              currency: campaignFormData?.budget_details_currency?.id || "EUR",
+              currency: mergedFormData?.budget_details_currency?.id || "EUR",
             },
             agency_profile: agencyId,
-            campaign_version: cleanedFormData?.campaign_version || "V1",
+            campaign_version: mergedFormData?.campaign_version || "V1",
             ad_sets_granularity:
-              campaignFormData?.ad_sets_granularity ||
-              campaignFormData?.granularity,
+              mergedFormData?.ad_sets_granularity ||
+              mergedFormData?.granularity,
+            // NEW: Include channel_mix with channel audience data
+            channel_mix: mergedFormData?.channel_mix || [],
           },
         };
 

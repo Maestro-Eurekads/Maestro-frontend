@@ -367,14 +367,16 @@ const MapFunnelStages = () => {
   }, [campaignFormData, cId, verifyStep, previousValidationState]);
 
   // Update campaignFormData when funnels change
+  const isFunnelsInitialMount = useRef(true);
 
   useEffect(() => {
-    if (persistentCustomFunnels.length > 0) {
-      setCampaignFormData((prev: any) => ({
-        ...prev,
-        custom_funnels: persistentCustomFunnels,
-      }));
+    // Skip the first run to avoid circular dependency during initialization
+    if (isFunnelsInitialMount.current) {
+      isFunnelsInitialMount.current = false;
+      return;
+    }
 
+    if (persistentCustomFunnels.length > 0) {
       // Update selection if current funnels match a config or preset
       // Only consider active (non-deleted) configurations
       const currentFunnelKey = normalizeFunnelStages(persistentCustomFunnels);
@@ -389,44 +391,45 @@ const MapFunnelStages = () => {
         (preset) => normalizeFunnelStages(preset.stages) === currentFunnelKey
       );
 
-      // Use functional updates to avoid dependency issues
+      // Prepare all state updates in a single batch
+      const updates = {
+        custom_funnels: persistentCustomFunnels,
+        selected_config_idx:
+          matchingConfigIdx !== -1 ? matchingConfigIdx : null,
+        selected_preset_idx:
+          matchingPresetIdx !== -1 ? matchingPresetIdx : null,
+      };
+
+      // Update campaignFormData once with all changes
+      setCampaignFormData((prev: any) => ({
+        ...prev,
+        ...updates,
+      }));
+
+      // Update individual state variables separately to avoid nested updates
       if (matchingConfigIdx !== -1) {
-        setSelectedConfigIdx((prevIdx) => {
-          if (prevIdx !== matchingConfigIdx) {
-            setSelectedPreset(null);
-            setCampaignFormData((prev: any) => ({
-              ...prev,
-              selected_config_idx: matchingConfigIdx,
-              selected_preset_idx: null,
-            }));
-            return matchingConfigIdx;
-          }
-          return prevIdx;
-        });
+        setSelectedConfigIdx(matchingConfigIdx);
+        setSelectedPreset(null);
       } else if (matchingPresetIdx !== -1) {
-        setSelectedPreset((prevIdx) => {
-          if (prevIdx !== matchingPresetIdx) {
-            setSelectedConfigIdx(null);
-            setCampaignFormData((prev: any) => ({
-              ...prev,
-              selected_config_idx: null,
-              selected_preset_idx: matchingPresetIdx,
-            }));
-            return matchingPresetIdx;
-          }
-          return prevIdx;
-        });
+        setSelectedPreset(matchingPresetIdx);
+        setSelectedConfigIdx(null);
       }
     }
-  }, [persistentCustomFunnels, funnelConfigs]); // Removed selectedConfigIdx and selectedPreset from dependencies
+  }, [persistentCustomFunnels, funnelConfigs, presetStructures]); // Added presetStructures to dependencies
 
   // Update campaignFormData when funnel configs change
+  const isInitialMount = useRef(true);
 
   useEffect(() => {
+    // Skip the first run to avoid circular dependency during initialization
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
     if (funnelConfigs.length > 0) {
       setCampaignFormData((prev: any) => ({
         ...prev,
-
         funnel_configs: funnelConfigs,
       }));
     }

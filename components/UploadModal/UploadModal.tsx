@@ -10,6 +10,7 @@ import { useCampaigns } from "app/utils/CampaignsContext";
 import { removeKeysRecursively } from "utils/removeID";
 import { renderUploadedFile } from "components/data";
 import { useActive } from "app/utils/ActiveContext";
+import axios from "axios";
 
 interface UploadModalProps {
   isOpen: boolean;
@@ -119,24 +120,78 @@ const UploadModal: React.FC<UploadModalProps> = ({
       }
 
       try {
-        const cleanData = removeKeysRecursively(
-          data,
-          [
-            "id",
-            "documentId",
-            "createdAt",
-            "publishedAt",
-            "updatedAt",
-            "_aggregated",
-          ],
-          ["previews"]
+        // Use the same robust data handling approach as SaveAllProgressButton
+        const cleanedData = JSON.parse(JSON.stringify(data));
+
+        // Clean channel mix data using the same approach as SaveAllProgressButton
+        let channelMixCleaned = cleanedData?.channel_mix
+          ? removeKeysRecursively(cleanedData.channel_mix, [
+              "id",
+              "isValidated",
+              "formatValidated",
+              "validatedStages",
+              "documentId",
+              "_aggregated",
+              "user",
+              "publishedAt",
+              "createdAt",
+              "updatedAt",
+            ])
+          : [];
+
+        // Build a structured payload similar to SaveAllProgressButton
+        const payload = {
+          data: {
+            channel_mix: channelMixCleaned,
+            // Include other essential fields if they exist
+            ...(cleanedData.funnel_stages && {
+              funnel_stages: cleanedData.funnel_stages,
+            }),
+            ...(cleanedData.funnel_type && {
+              funnel_type: cleanedData.funnel_type,
+            }),
+            ...(cleanedData.ad_sets_granularity && {
+              ad_sets_granularity: cleanedData.ad_sets_granularity,
+            }),
+            ...(cleanedData.granularity && {
+              granularity: cleanedData.granularity,
+            }),
+          },
+        };
+
+        // Use the same axios approach as SaveAllProgressButton
+        const config = {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        };
+
+        // Use the same campaign ID logic as SaveAllProgressButton
+        const campaignId = campaignFormData?.cId;
+
+        if (!campaignId) {
+          console.warn("No campaign ID found, cannot save file uploads");
+          toast.warning(
+            "Please save your campaign first (Step 0) to persist file uploads."
+          );
+          return;
+        }
+
+        console.log("Attempting to save with campaign ID:", campaignId);
+        console.log("Payload:", payload);
+
+        await axios.put(
+          `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${campaignId}`,
+          payload,
+          config
         );
-        await updateCampaign(cleanData);
+
         if (active !== 7) {
           await getActiveCampaign();
         }
         toast.success("File upload saved successfully!");
       } catch (error) {
+        console.error("Error in uploadUpdatedCampaignToStrapi:", error);
         if (error?.response?.status === 401) {
           const event = new Event("unauthorizedEvent");
           window.dispatchEvent(event);
@@ -150,11 +205,28 @@ const UploadModal: React.FC<UploadModalProps> = ({
         throw error;
       }
     },
-    [updateCampaign, getActiveCampaign, campaignData, campaignFormData]
+    [campaignFormData, jwt, active, getActiveCampaign]
   );
 
   const updateGlobalState = useCallback(
     async (uploadedFiles: Array<{ id: string; url: string }>) => {
+      // Check if campaign exists before attempting any operations
+      const hasCampaignId = campaignData?.id || campaignFormData?.cId;
+
+      if (!hasCampaignId) {
+        console.warn(
+          "No campaign exists yet. File upload will be saved locally only.",
+          {
+            campaignDataId: campaignData?.id,
+            campaignFormDataId: campaignFormData?.cId,
+          }
+        );
+        toast.warning(
+          "Please save your campaign first (Step 0) to persist file uploads."
+        );
+        return;
+      }
+
       if (!campaignFormData?.channel_mix) {
         throw new Error("campaignFormData or channel_mix is undefined");
       }
@@ -236,24 +308,89 @@ const UploadModal: React.FC<UploadModalProps> = ({
       // Optimistically update local state
       setCampaignData(updatedState);
 
-      // Update Strapi in the background
+      // Update Strapi in the background using the same robust approach
       try {
-        const cleanData = removeKeysRecursively(
-          updatedState,
-          ["id", "documentId", "createdAt", "publishedAt", "updatedAt"],
-          ["previews"]
+        // Use the same robust data handling approach as SaveAllProgressButton
+        const cleanedData = JSON.parse(JSON.stringify(updatedState));
+
+        // Clean channel mix data using the same approach as SaveAllProgressButton
+        let channelMixCleaned = cleanedData?.channel_mix
+          ? removeKeysRecursively(cleanedData.channel_mix, [
+              "id",
+              "isValidated",
+              "formatValidated",
+              "validatedStages",
+              "documentId",
+              "_aggregated",
+              "user",
+              "publishedAt",
+              "createdAt",
+              "updatedAt",
+            ])
+          : [];
+
+        // Build a structured payload similar to SaveAllProgressButton
+        const payload = {
+          data: {
+            channel_mix: channelMixCleaned,
+            // Include other essential fields if they exist
+            ...(cleanedData.funnel_stages && {
+              funnel_stages: cleanedData.funnel_stages,
+            }),
+            ...(cleanedData.funnel_type && {
+              funnel_type: cleanedData.funnel_type,
+            }),
+            ...(cleanedData.ad_sets_granularity && {
+              ad_sets_granularity: cleanedData.ad_sets_granularity,
+            }),
+            ...(cleanedData.granularity && {
+              granularity: cleanedData.granularity,
+            }),
+          },
+        };
+
+        // Use the same axios approach as SaveAllProgressButton
+        const config = {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        };
+
+        // Use the same campaign ID logic as SaveAllProgressButton
+        const campaignId = campaignFormData?.cId;
+
+        if (!campaignId) {
+          console.warn("No campaign ID found, cannot save file uploads");
+          toast.warning(
+            "Please save your campaign first (Step 0) to persist file uploads."
+          );
+          return;
+        }
+
+        console.log("Attempting to save upload with campaign ID:", campaignId);
+        console.log("Upload payload:", payload);
+
+        await axios.put(
+          `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${campaignId}`,
+          payload,
+          config
         );
-        const { media_plan_details, user, ...rest } = cleanData;
-        await updateCampaign(rest);
+
         if (active !== 7) {
           await getActiveCampaign();
         }
       } catch (error) {
+        console.error("Error in updateGlobalState:", error);
         if (error?.response?.status === 401) {
           const event = new Event("unauthorizedEvent");
           window.dispatchEvent(event);
+        } else if (error?.response?.status === 404) {
+          toast.error("Campaign not found. Please save your campaign first.");
+        } else if (error?.response?.status === 400) {
+          toast.error("Invalid data format. Please check your campaign data.");
+        } else {
+          toast.error("Failed to save campaign data. Changes may not persist.");
         }
-        toast.error("Failed to save campaign data. Changes may not persist.");
         // Revert optimistic update if needed
         await getActiveCampaign();
       }
@@ -268,8 +405,8 @@ const UploadModal: React.FC<UploadModalProps> = ({
       quantities,
       adSetIndex,
       setCampaignData,
-      updateCampaign,
       getActiveCampaign,
+      jwt,
     ]
   );
 
@@ -449,13 +586,22 @@ const UploadModal: React.FC<UploadModalProps> = ({
 
             // Update global state in background (don't wait for this)
             const updatedPreviews = localPreviews.filter((_, i) => i !== index);
-            updateGlobalState(updatedPreviews).catch((error) => {
-              console.error(
-                "Error updating global state after deletion:",
-                error
+
+            // Only call updateGlobalState if we have valid previews or if this was the last preview
+            if (updatedPreviews.length > 0 || localPreviews.length === 1) {
+              updateGlobalState(updatedPreviews).catch((error) => {
+                console.error(
+                  "Error updating global state after deletion:",
+                  error
+                );
+                // Don't show error to user since file was already deleted successfully
+              });
+            } else {
+              // If no previews left, just update local state without calling updateGlobalState
+              console.log(
+                "No previews left after deletion, skipping global state update"
               );
-              // Don't show error to user since file was already deleted successfully
-            });
+            }
           } catch (error) {
             if (error?.response?.status === 401) {
               const event = new Event("unauthorizedEvent");

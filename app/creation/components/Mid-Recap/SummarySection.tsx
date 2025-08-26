@@ -1,10 +1,15 @@
 import type React from "react";
 import Button from "../common/button";
 import { useCampaigns } from "app/utils/CampaignsContext";
+import { useEditing } from "app/utils/EditingContext";
+import { toast } from "sonner";
 import { removeKeysRecursively } from "utils/removeID";
 import { useState } from "react";
-import { useEditing } from "app/utils/EditingContext";
-import { extractObjectives, getFilteredMetrics } from "../EstablishedGoals/table-view/data-processor";
+import {
+  extractObjectives,
+  getFilteredMetrics,
+} from "../EstablishedGoals/table-view/data-processor";
+import { mergeChannelAudienceIntoCampaign } from "../common/AdSetsFlow";
 
 interface SummarySectionProps {
   title: string;
@@ -73,11 +78,11 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
       switch (title) {
         case "Your buying objectives":
           const obj = await extractObjectives(campaignFormData);
-          const sMetrics = await getFilteredMetrics(obj)
+          const sMetrics = await getFilteredMetrics(obj);
           updatedCampaignFormData = {
             ...updatedCampaignFormData,
             table_headers: obj || {},
-            selected_metrics: sMetrics || {}
+            selected_metrics: sMetrics || {},
           };
           break;
         case "Your funnel stages":
@@ -108,8 +113,18 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
         keysToRemove
       );
 
+      // NEW: Merge channel audience data from local storage before updating
+      const campaignId =
+        campaignFormData?.id ||
+        campaignFormData?.media_plan_id ||
+        campaignFormData?.cId;
+      const mergedFormData = mergeChannelAudienceIntoCampaign(
+        cleanedFormData,
+        campaignId
+      );
+
       // Update local state to reflect changes immediately
-      setCampaignFormData(cleanedFormData);
+      setCampaignFormData(mergedFormData);
 
       // Prepare the cleaned data for the updateCampaign call
       const { media_plan_details, user, ...rest } = cleanData;
@@ -117,11 +132,11 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
       // Update the campaign with the cleaned and updated data
       await updateCampaign({
         ...rest,
-        funnel_stages: cleanedFormData?.funnel_stages || [],
-        channel_mix: cleanedFormData?.channel_mix || [],
-        custom_funnels: cleanedFormData?.custom_funnels || [],
-        funnel_type: cleanedFormData?.funnel_type || "",
-        table_headers: cleanedFormData?.table_headers || {},
+        funnel_stages: mergedFormData?.funnel_stages || [],
+        channel_mix: mergedFormData?.channel_mix || [],
+        custom_funnels: mergedFormData?.custom_funnels || [],
+        funnel_type: mergedFormData?.funnel_type || "",
+        table_headers: mergedFormData?.table_headers || {},
       });
 
       // Fetch the updated campaign to ensure the UI reflects the latest data

@@ -11,6 +11,7 @@ import {
   getFilteredMetrics,
 } from "../EstablishedGoals/table-view/data-processor";
 import { SVGLoader } from "components/SVGLoader";
+import { mergeChannelAudienceIntoCampaign } from "../common/AdSetsFlow";
 
 const SaveAllProgressButton = () => {
   const { isClient, loggedInUser } = useUserPrivileges();
@@ -210,7 +211,7 @@ const SaveAllProgressButton = () => {
       const selectedMetrics = await getFilteredMetrics(objectives);
 
       // Clean channel mix data - only if it exists
-      const channelMixCleaned = dataWithValidatedDates?.channel_mix
+      let channelMixCleaned = dataWithValidatedDates?.channel_mix
         ? removeKeysRecursively(dataWithValidatedDates.channel_mix, [
             "id",
             "isValidated",
@@ -220,6 +221,19 @@ const SaveAllProgressButton = () => {
             "_aggregated",
           ])
         : [];
+
+      // NEW: Merge channel audience data from local storage into channel_mix before cleaning
+      const campaignId =
+        campaignFormData?.id ||
+        campaignFormData?.media_plan_id ||
+        campaignFormData?.cId;
+      if (channelMixCleaned.length > 0) {
+        const mergedChannelMix = mergeChannelAudienceIntoCampaign(
+          { ...dataWithValidatedDates, channel_mix: channelMixCleaned },
+          campaignId
+        );
+        channelMixCleaned = mergedChannelMix.channel_mix;
+      }
 
       // Clean campaign budget data - only if it exists
       const campaignBudgetCleaned = dataWithValidatedDates?.campaign_budget

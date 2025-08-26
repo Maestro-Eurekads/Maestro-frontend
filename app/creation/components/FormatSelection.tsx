@@ -21,6 +21,7 @@ import { useComments } from "app/utils/CommentProvider";
 import { useActive } from "app/utils/ActiveContext";
 import SaveAllProgressButton from "./SaveProgres/SaveAllProgressButton";
 import { CHANNEL_TYPES, DEFAULT_MEDIA_OPTIONS } from "components/Options";
+import axios from "axios";
 
 // Types
 type FormatType = {
@@ -1475,387 +1476,75 @@ export const Platforms = ({
 
       setIsUpdatingStrapi(true);
       try {
-        const cleanData = JSON.parse(JSON.stringify(data));
+        // Use the same robust data handling approach as SaveAllProgressButton
+        const cleanedData = JSON.parse(JSON.stringify(data));
 
-        // First, clean the data by removing unwanted keys
-        const sanitizedData = removeKeysRecursively(
-          cleanData,
-          [
-            "id",
-            "documentId",
-            "createdAt",
-            "publishedAt",
-            "updatedAt",
-            "_aggregated",
-          ],
-          ["previews"]
-        );
+        // Clean channel mix data using the same approach as SaveAllProgressButton
+        let channelMixCleaned = cleanedData?.channel_mix
+          ? removeKeysRecursively(cleanedData.channel_mix, [
+              "id",
+              "isValidated",
+              "formatValidated",
+              "validatedStages",
+              "documentId",
+              "_aggregated",
+              "user",
+              "publishedAt",
+              "createdAt",
+              "updatedAt",
+            ])
+          : [];
 
-        // Ensure channel_mix has the correct structure
-        if (sanitizedData.channel_mix) {
-          sanitizedData.channel_mix = sanitizedData.channel_mix.map(
-            (channel: any) => {
-              const cleanChannel = { ...channel };
+        // Build a structured payload similar to SaveAllProgressButton
+        const payload = {
+          data: {
+            channel_mix: channelMixCleaned,
+            // Include other essential fields if they exist
+            ...(cleanedData.funnel_stages && {
+              funnel_stages: cleanedData.funnel_stages,
+            }),
+            ...(cleanedData.funnel_type && {
+              funnel_type: cleanedData.funnel_type,
+            }),
+            ...(cleanedData.ad_sets_granularity && {
+              ad_sets_granularity: cleanedData.ad_sets_granularity,
+            }),
+            ...(cleanedData.granularity && {
+              granularity: cleanedData.granularity,
+            }),
+          },
+        };
 
-              // Remove any undefined or null values that could cause validation errors
-              Object.keys(cleanChannel).forEach((key) => {
-                if (
-                  cleanChannel[key] === undefined ||
-                  cleanChannel[key] === null
-                ) {
-                  delete cleanChannel[key];
-                }
-              });
+        // Use the same axios approach as SaveAllProgressButton
+        const config = {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        };
 
-              // Process each channel type (social_media, search_engines, etc.)
-              CHANNEL_TYPES.forEach(({ key }) => {
-                if (cleanChannel[key] && Array.isArray(cleanChannel[key])) {
-                  cleanChannel[key] = cleanChannel[key].map((platform: any) => {
-                    const cleanPlatform = { ...platform };
+        // Use the same campaign ID logic as SaveAllProgressButton
+        const campaignId = campaignFormData?.cId;
 
-                    // Remove undefined/null values
-                    Object.keys(cleanPlatform).forEach((platformKey) => {
-                      if (
-                        cleanPlatform[platformKey] === undefined ||
-                        cleanPlatform[platformKey] === null
-                      ) {
-                        delete cleanPlatform[platformKey];
-                      }
-                    });
-
-                    // Clean format arrays
-                    if (
-                      cleanPlatform.format &&
-                      Array.isArray(cleanPlatform.format)
-                    ) {
-                      cleanPlatform.format = cleanPlatform.format.map(
-                        (fmt: any) => ({
-                          format_type: fmt.format_type || "",
-                          num_of_visuals: fmt.num_of_visuals || "1",
-                          previews: Array.isArray(fmt.previews)
-                            ? fmt.previews
-                                .filter(
-                                  (preview: any) =>
-                                    preview && preview.id && preview.url
-                                )
-                                .map((preview: any) => ({
-                                  id: String(preview.id),
-                                  url: String(preview.url),
-                                }))
-                            : [],
-                        })
-                      );
-                    }
-
-                    // Clean ad_sets arrays
-                    if (
-                      cleanPlatform.ad_sets &&
-                      Array.isArray(cleanPlatform.ad_sets)
-                    ) {
-                      cleanPlatform.ad_sets = cleanPlatform.ad_sets.map(
-                        (adSet: any) => {
-                          const cleanAdSet = { ...adSet };
-
-                          // Remove undefined/null values
-                          Object.keys(cleanAdSet).forEach((adSetKey) => {
-                            if (
-                              cleanAdSet[adSetKey] === undefined ||
-                              cleanAdSet[adSetKey] === null
-                            ) {
-                              delete cleanAdSet[adSetKey];
-                            }
-                          });
-
-                          // Clean format arrays in ad_sets
-                          if (
-                            cleanAdSet.format &&
-                            Array.isArray(cleanAdSet.format)
-                          ) {
-                            cleanAdSet.format = cleanAdSet.format.map(
-                              (fmt: any) => ({
-                                format_type: fmt.format_type || "",
-                                num_of_visuals: fmt.num_of_visuals || "1",
-                                previews: Array.isArray(fmt.previews)
-                                  ? fmt.previews
-                                      .filter(
-                                        (preview: any) =>
-                                          preview && preview.id && preview.url
-                                      )
-                                      .map((preview: any) => ({
-                                        id: String(preview.id),
-                                        url: String(preview.url),
-                                      }))
-                                  : [],
-                              })
-                            );
-                          }
-
-                          return cleanAdSet;
-                        }
-                      );
-                    }
-
-                    return cleanPlatform;
-                  });
-                }
-              });
-
-              return cleanChannel;
-            }
+        if (!campaignId) {
+          console.warn("No campaign ID found, cannot save file uploads");
+          toast.warning(
+            "Please save your campaign first (Step 0) to persist file uploads."
           );
+          return;
         }
 
-        // Ensure other required fields are present and valid
-        if (sanitizedData.client && sanitizedData.client.level_1) {
-          // Ensure level_1 has required structure
-          if (!sanitizedData.client.level_1.parameters) {
-            sanitizedData.client.level_1.parameters = [];
-          }
-        }
+        console.log("Attempting to save with campaign ID:", campaignId);
+        console.log("Payload:", payload);
 
-        // Fix problematic relation fields that cause "Invalid relations" errors
-        if (sanitizedData.media_plan_details) {
-          // Remove problematic user relations that cause validation errors
-          if (sanitizedData.media_plan_details.internal_approver?.set) {
-            sanitizedData.media_plan_details.internal_approver.set =
-              sanitizedData.media_plan_details.internal_approver.set.map(
-                (approver: any) => {
-                  const { user, ...cleanApprover } = approver;
-                  return cleanApprover;
-                }
-              );
-          }
-
-          if (sanitizedData.media_plan_details.client_approver?.set) {
-            sanitizedData.media_plan_details.client_approver.set =
-              sanitizedData.media_plan_details.client_approver.set.map(
-                (approver: any) => {
-                  const { user, ...cleanApprover } = approver;
-                  return cleanApprover;
-                }
-              );
-          }
-
-          if (sanitizedData.media_plan_details.approved_by?.set) {
-            sanitizedData.media_plan_details.approved_by.set =
-              sanitizedData.media_plan_details.approved_by.set.map(
-                (approver: any) => {
-                  const { user, ...cleanApprover } = approver;
-                  return cleanApprover;
-                }
-              );
-          }
-        }
-
-        // Remove problematic user field that causes relation errors
-        if (sanitizedData.user) {
-          delete sanitizedData.user;
-        }
-
-        // Clean up any other problematic relation fields
-        if (sanitizedData.campaign_builder) {
-          // Remove any problematic fields from campaign_builder
-          const {
-            id,
-            documentId,
-            createdAt,
-            publishedAt,
-            updatedAt,
-            ...cleanBuilder
-          } = sanitizedData.campaign_builder;
-          sanitizedData.campaign_builder = cleanBuilder;
-        }
-
-        if (sanitizedData.agency_profile) {
-          // Remove any problematic fields from agency_profile
-          const {
-            id,
-            documentId,
-            createdAt,
-            publishedAt,
-            updatedAt,
-            ...cleanAgency
-          } = sanitizedData.agency_profile;
-          sanitizedData.agency_profile = cleanAgency;
-        }
-
-        // Clean up client_selection to ensure it has valid structure
-        if (sanitizedData.client_selection) {
-          // Ensure client_selection has the correct structure
-          if (
-            sanitizedData.client_selection.level_1?.value &&
-            Array.isArray(sanitizedData.client_selection.level_1.value)
-          ) {
-            // Filter out any invalid values
-            sanitizedData.client_selection.level_1.value =
-              sanitizedData.client_selection.level_1.value.filter(
-                (value: any) =>
-                  value && typeof value === "string" && value.trim() !== ""
-              );
-          }
-        }
-
-        // Clean up client level_1 parameters to ensure they're valid
-        if (
-          sanitizedData.client?.level_1?.parameters &&
-          Array.isArray(sanitizedData.client.level_1.parameters)
-        ) {
-          sanitizedData.client.level_1.parameters =
-            sanitizedData.client.level_1.parameters
-              .filter(
-                (param: any) =>
-                  param &&
-                  param.name &&
-                  param.subParameters &&
-                  Array.isArray(param.subParameters)
-              )
-              .map((param: any) => ({
-                name: param.name.trim(),
-                subParameters: param.subParameters.filter(
-                  (sub: any) =>
-                    sub && typeof sub === "string" && sub.trim() !== ""
-                ),
-              }));
-        }
-
-        // Remove any fields that might cause relation issues
-        const fieldsToRemove = [
-          "publishedAt",
-          "createdAt",
-          "updatedAt",
-          "id",
-          "documentId",
-          "_aggregated",
-        ];
-
-        fieldsToRemove.forEach((field) => {
-          if (sanitizedData[field] !== undefined) {
-            delete sanitizedData[field];
-          }
-        });
-
-        // Additional aggressive cleanup for problematic relation fields
-        const deepRemoveFields = (obj: any, fieldsToRemove: string[]) => {
-          if (Array.isArray(obj)) {
-            return obj.map((item) => deepRemoveFields(item, fieldsToRemove));
-          } else if (typeof obj === "object" && obj !== null) {
-            const cleaned: any = {};
-            Object.entries(obj).forEach(([key, value]) => {
-              if (!fieldsToRemove.includes(key)) {
-                cleaned[key] = deepRemoveFields(value, fieldsToRemove);
-              }
-            });
-            return cleaned;
-          }
-          return obj;
-        };
-
-        // Remove problematic fields from the entire data structure
-        const fieldsToDeepRemove = [
-          "user",
-          "publishedAt",
-          "createdAt",
-          "updatedAt",
-          "id",
-          "documentId",
-          "_aggregated",
-        ];
-
-        const deepCleanedData = deepRemoveFields(
-          sanitizedData,
-          fieldsToDeepRemove
+        await axios.put(
+          `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${campaignId}`,
+          payload,
+          config
         );
-
-        // Remove any empty arrays or objects that could cause validation issues
-        const cleanEmptyValues = (obj: any): any => {
-          if (Array.isArray(obj)) {
-            return obj.filter((item) => item !== null && item !== undefined);
-          } else if (typeof obj === "object" && obj !== null) {
-            const cleaned: any = {};
-            Object.entries(obj).forEach(([key, value]) => {
-              if (value !== null && value !== undefined) {
-                if (Array.isArray(value) && value.length === 0) {
-                  // Keep empty arrays as they might be required
-                  cleaned[key] = value;
-                } else if (
-                  typeof value === "object" &&
-                  Object.keys(value).length === 0
-                ) {
-                  // Remove empty objects
-                  delete cleaned[key];
-                } else {
-                  cleaned[key] = cleanEmptyValues(value);
-                }
-              }
-            });
-            return cleaned;
-          }
-          return obj;
-        };
-
-        const cleanedData = cleanEmptyValues(deepCleanedData);
-
-        // Final cleanup: remove any remaining problematic values
-        const finalCleanup = (obj: any): any => {
-          if (Array.isArray(obj)) {
-            return obj
-              .filter((item) => item !== null && item !== undefined)
-              .map((item) => finalCleanup(item));
-          } else if (typeof obj === "object" && obj !== null) {
-            const cleaned: any = {};
-            Object.entries(obj).forEach(([key, value]) => {
-              if (value !== null && value !== undefined) {
-                if (typeof value === "string" && value.trim() === "") {
-                  // Keep empty strings as they might be required
-                  cleaned[key] = value;
-                } else if (typeof value === "object") {
-                  const cleanedValue = finalCleanup(value);
-                  if (cleanedValue !== null && cleanedValue !== undefined) {
-                    cleaned[key] = cleanedValue;
-                  }
-                } else {
-                  cleaned[key] = value;
-                }
-              }
-            });
-            return cleaned;
-          }
-          return obj;
-        };
-
-        const finalSanitizedData = finalCleanup(cleanedData);
-
-        // Log the final data structure for debugging
-
-        // Log any remaining potentially problematic fields
-        const problematicFields = [
-          "user",
-          "publishedAt",
-          "createdAt",
-          "updatedAt",
-          "id",
-          "documentId",
-          "_aggregated",
-        ];
-
-        const remainingProblematicFields = problematicFields.filter(
-          (field) => finalSanitizedData[field] !== undefined
-        );
-
-        if (remainingProblematicFields.length > 0) {
-          
-        }
-
-        
-
-        await updateCampaign(finalSanitizedData);
         toast.success("File upload saved successfully!");
       } catch (error: any) {
-        
-
         // Log the specific validation errors if available
         if (error?.response?.data?.details?.errors) {
-           
         }
 
         // Provide more specific error messages based on the error type
@@ -1868,7 +1557,6 @@ export const Platforms = ({
             toast.error(
               "Data validation error: Invalid relations detected. Please check your campaign data."
             );
-            
           } else {
             toast.error(
               "Invalid data format. Please check your campaign data."
@@ -1882,7 +1570,7 @@ export const Platforms = ({
         setIsUpdatingStrapi(false);
       }
     },
-    [updateCampaign, isUpdatingStrapi, campaignData, campaignFormData]
+    [isUpdatingStrapi, campaignData, campaignFormData, jwt]
   );
 
   const updateGlobalState = useCallback(
@@ -1973,12 +1661,11 @@ export const Platforms = ({
       platforms[platformIndex] = updatedPlatform;
 
       // Validate the updated data structure before sending
-     
 
       // Ensure all required fields are present and valid
       const validateChannelMix = (channelMix: any[]) => {
         return channelMix.every((channel: any) => {
-          if (!channel.funnel_stage) { 
+          if (!channel.funnel_stage) {
             return false;
           }
 
@@ -1987,7 +1674,6 @@ export const Platforms = ({
             if (channel[key] && Array.isArray(channel[key])) {
               return channel[key].every((platform: any) => {
                 if (!platform.platform_name) {
-                
                   return false;
                 }
 
@@ -1995,7 +1681,6 @@ export const Platforms = ({
                 if (platform.format && Array.isArray(platform.format)) {
                   const validFormats = platform.format.every((fmt: any) => {
                     if (!fmt.format_type || !fmt.num_of_visuals) {
-                     
                       return false;
                     }
                     return true;
@@ -2009,7 +1694,6 @@ export const Platforms = ({
                     if (adSet.format && Array.isArray(adSet.format)) {
                       return adSet.format.every((fmt: any) => {
                         if (!fmt.format_type || !fmt.num_of_visuals) {
-                        
                           return false;
                         }
                         return true;
@@ -2044,9 +1728,7 @@ export const Platforms = ({
           channel_mix: updatedChannelMix,
         });
       } catch (uploadError: any) {
-     
         // Don't fail the deletion if the campaign update fails
-        
       }
     },
     [
@@ -2074,9 +1756,7 @@ export const Platforms = ({
           format,
           previews,
           adSetIndex
-        ).catch((error) => {
-         
-        });
+        ).catch((error) => {});
       },
       500,
       { leading: false, trailing: true }
@@ -2105,7 +1785,6 @@ export const Platforms = ({
       }
 
       const deleteUrl = `${STRAPI_URL}/upload/files/${previewId}`;
-       
 
       const deleteResponse = await fetch(deleteUrl, {
         method: "DELETE",
@@ -2153,6 +1832,8 @@ export const Platforms = ({
       const updatedPlatform = JSON.parse(JSON.stringify(targetPlatform));
 
       let updatedPreviews: Array<{ id: string; url: string }>;
+      let originalPreviewsCount = 0;
+
       if (adSetIndex !== undefined) {
         if (!updatedPlatform.ad_sets?.[adSetIndex]) {
           throw new Error(`Ad set not found at index ${adSetIndex}`);
@@ -2167,6 +1848,7 @@ export const Platforms = ({
           throw new Error(`Format "${format}" not found in ad set`);
         }
 
+        originalPreviewsCount = targetFormat.previews.length;
         updatedPreviews = targetFormat.previews.filter(
           (prv: any) => prv.id !== previewId
         );
@@ -2180,6 +1862,7 @@ export const Platforms = ({
           throw new Error(`Format "${format}" not found`);
         }
 
+        originalPreviewsCount = targetFormat.previews.length;
         updatedPreviews = targetFormat.previews.filter(
           (prv: any) => prv.id !== previewId
         );
@@ -2196,21 +1879,34 @@ export const Platforms = ({
         channel_mix: updatedChannelMix,
       }));
 
-      // Use campaignFormData instead of campaignData to ensure consistent structure
-      try {
-        await uploadUpdatedCampaignToStrapi({
-          ...campaignFormData,
-          channel_mix: updatedChannelMix,
-        });
-      } catch (uploadError: any) {
-        
-        // Don't fail the deletion if the campaign update fails
-        
+      // Only call uploadUpdatedCampaignToStrapi if we have valid previews or if this was the last preview
+      // This prevents "Invalid data format" errors when all previews are deleted
+      const hasValidPreviews = updatedPreviews && updatedPreviews.length > 0;
+      const wasLastPreview = originalPreviewsCount === 1;
+
+      if (hasValidPreviews || wasLastPreview) {
+        // Use campaignFormData instead of campaignData to ensure consistent structure
+        try {
+          await uploadUpdatedCampaignToStrapi({
+            ...campaignFormData,
+            channel_mix: updatedChannelMix,
+          });
+        } catch (uploadError: any) {
+          // Don't fail the deletion if the campaign update fails
+          console.warn(
+            "Campaign update failed after preview deletion:",
+            uploadError
+          );
+        }
+      } else {
+        console.log(
+          "No previews left after deletion, skipping campaign update"
+        );
       }
 
       setDeleteQueue((prev) => prev.slice(1));
       setCompletedDeletions((prev) => new Set(prev).add(previewId));
-    } catch (error: any) { 
+    } catch (error: any) {
       toast.error(`Failed to delete preview: ${error.message}`);
       setCompletedDeletions((prev) => new Set(prev).add(previewId));
       setDeleteQueue((prev) => prev.slice(1));
