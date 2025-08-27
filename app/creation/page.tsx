@@ -29,6 +29,70 @@ const Creation = () => {
   const { data: session } = useSession();
   const user = session?.user;
 
+  // Clear channel state only when starting a new plan, not when continuing existing ones
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        // Check if user is currently working on a saved campaign
+        const hasActiveCampaign =
+          sessionStorage.getItem("hasActiveCampaign") === "true";
+        const hasCampaignData = sessionStorage.getItem("campaignFormData");
+
+        // Only clear if there's no active campaign and no campaign data
+        if (!hasActiveCampaign && !hasCampaignData) {
+          // Clear all channel state keys from sessionStorage
+          const keysToRemove = [];
+          for (let i = 0; i < sessionStorage.length; i++) {
+            const key = sessionStorage.key(i);
+            if (key && key.startsWith("channelLevelAudienceState_")) {
+              keysToRemove.push(key);
+            }
+          }
+          keysToRemove.forEach((key) => sessionStorage.removeItem(key));
+
+          // Clear all channel state keys from localStorage
+          const localStorageKeysToRemove = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (
+              key &&
+              key.startsWith("persistent_channelLevelAudienceState_")
+            ) {
+              localStorageKeysToRemove.push(key);
+            }
+          }
+          localStorageKeysToRemove.forEach((key) =>
+            localStorage.removeItem(key)
+          );
+
+          // Clear global state
+          if ((window as any).channelLevelAudienceState) {
+            Object.keys((window as any).channelLevelAudienceState).forEach(
+              (stageName) => {
+                delete (window as any).channelLevelAudienceState[stageName];
+              }
+            );
+          }
+
+          // Clear the new plan session ID to ensure complete isolation
+          if ((window as any).__newPlanSessionId) {
+            delete (window as any).__newPlanSessionId;
+          }
+
+          console.log(
+            "Cleared channel state on creation page load - starting fresh plan"
+          );
+        } else {
+          console.log(
+            "Preserved channel state - user has active campaign or campaign data"
+          );
+        }
+      } catch (error) {
+        console.error("Error managing channel state on page load:", error);
+      }
+    }
+  }, []);
+
   // console.log("this is the user", user);
   // console.log("this is the campaignFormData", campaignFormData, agencyId);
 

@@ -233,7 +233,26 @@ const updateMultipleAdSets = (
 
 // --- Channel-level state isolation with persistence ---
 const getChannelStateKey = (campaignId?: string | number) => {
-  return `channelLevelAudienceState_${campaignId || "default"}`;
+  // If we have a campaign ID, use it
+  if (campaignId) {
+    return `channelLevelAudienceState_${campaignId}`;
+  }
+
+  // For new plans without campaign ID, create a unique session ID
+  // This prevents data from previous plans from being mixed into new plans
+  if (typeof window !== "undefined") {
+    // Check if we already have a session ID for this page load
+    if (!(window as any).__newPlanSessionId) {
+      (
+        window as any
+      ).__newPlanSessionId = `new_plan_${Date.now()}_${Math.random()
+        .toString(36)
+        .substr(2, 9)}`;
+    }
+    return `channelLevelAudienceState_${(window as any).__newPlanSessionId}`;
+  }
+
+  return `channelLevelAudienceState_default`;
 };
 
 // Load initial state from sessionStorage and localStorage for persistence
@@ -1247,9 +1266,17 @@ const AdsetSettings = memo(function AdsetSettings({
   useEffect(() => {
     if (!channelLevelAudienceState[stageName])
       channelLevelAudienceState[stageName] = {};
-    channelLevelAudienceState[stageName][outlet.outlet] = {
+
+    // Enhanced audience state that includes ad_sets data
+    const enhancedAudienceState = {
       ...channelAudienceState,
+      // Include ad_sets data if available
+      ad_sets: (channelAudienceState as any).ad_sets || {},
+      // Include extra audiences if available
+      extra_audiences: (channelAudienceState as any).extra_audiences || [],
     };
+
+    channelLevelAudienceState[stageName][outlet.outlet] = enhancedAudienceState;
 
     // Update global reference for recap access
     if (typeof window !== "undefined") {
@@ -1260,12 +1287,14 @@ const AdsetSettings = memo(function AdsetSettings({
     const campaignId = campaignFormData?.id || campaignFormData?.media_plan_id;
     saveChannelStateToStorage(channelLevelAudienceState, campaignId);
 
-    console.log("Channel audience state updated and saved:", {
+    console.log("Enhanced channel audience state updated and saved:", {
       stageName,
       outlet: outlet.outlet,
-      audienceState: channelAudienceState,
+      audienceState: enhancedAudienceState,
       campaignId,
       timestamp: new Date().toISOString(),
+      hasAdSets: !!(enhancedAudienceState as any).ad_sets,
+      hasExtraAudiences: !!(enhancedAudienceState as any).extra_audiences,
     });
   }, [
     channelAudienceState,

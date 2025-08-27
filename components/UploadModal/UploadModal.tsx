@@ -123,9 +123,20 @@ const UploadModal: React.FC<UploadModalProps> = ({
         // Use the same robust data handling approach as SaveAllProgressButton
         const cleanedData = JSON.parse(JSON.stringify(data));
 
+        // Clean the main data object to remove forbidden fields
+        const cleanedMainData = removeKeysRecursively(cleanedData, [
+          "id",
+          "documentId",
+          "_aggregated",
+          "user",
+          "publishedAt",
+          "createdAt",
+          "updatedAt",
+        ]);
+
         // Clean channel mix data using the same approach as SaveAllProgressButton
-        let channelMixCleaned = cleanedData?.channel_mix
-          ? removeKeysRecursively(cleanedData.channel_mix, [
+        let channelMixCleaned = cleanedMainData?.channel_mix
+          ? removeKeysRecursively(cleanedMainData.channel_mix, [
               "id",
               "isValidated",
               "formatValidated",
@@ -153,9 +164,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
             ...(cleanedData.ad_sets_granularity && {
               ad_sets_granularity: cleanedData.ad_sets_granularity,
             }),
-            ...(cleanedData.granularity && {
-              granularity: cleanedData.granularity,
-            }),
+            // Remove granularity field as it's not allowed in Strapi schema
           },
         };
 
@@ -179,6 +188,8 @@ const UploadModal: React.FC<UploadModalProps> = ({
 
         console.log("Attempting to save with campaign ID:", campaignId);
         console.log("Payload:", payload);
+        console.log("Original cleanedData:", cleanedData);
+        console.log("Channel mix cleaned:", channelMixCleaned);
 
         await axios.put(
           `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${campaignId}`,
@@ -191,6 +202,10 @@ const UploadModal: React.FC<UploadModalProps> = ({
         }
         toast.success("File upload saved successfully!");
       } catch (error) {
+        // Enhanced error logging for debugging
+        console.error("Full error object:", error);
+        console.error("Error response:", error?.response);
+        console.error("Error response data:", error?.response?.data);
         console.error("Error in uploadUpdatedCampaignToStrapi:", error);
         if (error?.response?.status === 401) {
           const event = new Event("unauthorizedEvent");
@@ -198,9 +213,32 @@ const UploadModal: React.FC<UploadModalProps> = ({
         } else if (error?.response?.status === 404) {
           toast.error("Campaign not found. Please save your campaign first.");
         } else if (error?.response?.status === 400) {
-          toast.error("Invalid data format. Please check your campaign data.");
+          // Handle specific validation errors
+          if (error?.response?.data?.message === "Invalid key documentId") {
+            toast.error(
+              "Data validation error: Invalid documentId field. Please contact support."
+            );
+          } else if (
+            error?.response?.data?.message === "Invalid key granularity"
+          ) {
+            toast.error(
+              "Data validation error: Invalid granularity field. Please contact support."
+            );
+          } else {
+            const errorMessage =
+              error?.response?.data?.error?.message ||
+              error?.response?.data?.message ||
+              "Invalid data provided. Please check your inputs.";
+            toast.error(errorMessage);
+          }
+        } else if (error?.response?.status === 422) {
+          toast.error("Validation failed. Please check your campaign data.");
+        } else if (error?.response?.status >= 500) {
+          toast.error("Server error. Please try again later.");
+        } else if (error?.message) {
+          toast.error(error.message);
         } else {
-          toast.error("Failed to save campaign data.");
+          toast.error("Something went wrong. Please try again.");
         }
         throw error;
       }
@@ -313,9 +351,20 @@ const UploadModal: React.FC<UploadModalProps> = ({
         // Use the same robust data handling approach as SaveAllProgressButton
         const cleanedData = JSON.parse(JSON.stringify(updatedState));
 
+        // Clean the main data object to remove forbidden fields
+        const cleanedMainData = removeKeysRecursively(cleanedData, [
+          "id",
+          "documentId",
+          "_aggregated",
+          "user",
+          "publishedAt",
+          "createdAt",
+          "updatedAt",
+        ]);
+
         // Clean channel mix data using the same approach as SaveAllProgressButton
-        let channelMixCleaned = cleanedData?.channel_mix
-          ? removeKeysRecursively(cleanedData.channel_mix, [
+        let channelMixCleaned = cleanedMainData?.channel_mix
+          ? removeKeysRecursively(cleanedMainData.channel_mix, [
               "id",
               "isValidated",
               "formatValidated",
@@ -334,18 +383,16 @@ const UploadModal: React.FC<UploadModalProps> = ({
           data: {
             channel_mix: channelMixCleaned,
             // Include other essential fields if they exist
-            ...(cleanedData.funnel_stages && {
-              funnel_stages: cleanedData.funnel_stages,
+            ...(cleanedMainData.funnel_stages && {
+              funnel_stages: cleanedMainData.funnel_stages,
             }),
-            ...(cleanedData.funnel_type && {
-              funnel_type: cleanedData.funnel_type,
+            ...(cleanedMainData.funnel_type && {
+              funnel_type: cleanedMainData.funnel_type,
             }),
-            ...(cleanedData.ad_sets_granularity && {
-              ad_sets_granularity: cleanedData.ad_sets_granularity,
+            ...(cleanedMainData.ad_sets_granularity && {
+              ad_sets_granularity: cleanedMainData.ad_sets_granularity,
             }),
-            ...(cleanedData.granularity && {
-              granularity: cleanedData.granularity,
-            }),
+            // Remove granularity field as it's not allowed in Strapi schema
           },
         };
 
@@ -380,6 +427,10 @@ const UploadModal: React.FC<UploadModalProps> = ({
           await getActiveCampaign();
         }
       } catch (error) {
+        // Enhanced error logging for debugging
+        console.error("Full error object:", error);
+        console.error("Error response:", error?.response);
+        console.error("Error response data:", error?.response?.data);
         console.error("Error in updateGlobalState:", error);
         if (error?.response?.status === 401) {
           const event = new Event("unauthorizedEvent");
@@ -387,9 +438,32 @@ const UploadModal: React.FC<UploadModalProps> = ({
         } else if (error?.response?.status === 404) {
           toast.error("Campaign not found. Please save your campaign first.");
         } else if (error?.response?.status === 400) {
-          toast.error("Invalid data format. Please check your campaign data.");
+          // Handle specific validation errors
+          if (error?.response?.data?.message === "Invalid key documentId") {
+            toast.error(
+              "Data validation error: Invalid documentId field. Please contact support."
+            );
+          } else if (
+            error?.response?.data?.message === "Invalid key granularity"
+          ) {
+            toast.error(
+              "Data validation error: Invalid granularity field. Please contact support."
+            );
+          } else {
+            const errorMessage =
+              error?.response?.data?.error?.message ||
+              error?.response?.data?.message ||
+              "Invalid data provided. Please check your inputs.";
+            toast.error(errorMessage);
+          }
+        } else if (error?.response?.status === 422) {
+          toast.error("Validation failed. Please check your campaign data.");
+        } else if (error?.response?.status >= 500) {
+          toast.error("Server error. Please try again later.");
+        } else if (error?.message) {
+          toast.error(error.message);
         } else {
-          toast.error("Failed to save campaign data. Changes may not persist.");
+          toast.error("Something went wrong. Please try again.");
         }
         // Revert optimistic update if needed
         await getActiveCampaign();
@@ -648,6 +722,23 @@ const UploadModal: React.FC<UploadModalProps> = ({
 
   const uploadSingleFile = useCallback(
     async (file: File, index: number, retryCount = 0): Promise<any> => {
+      console.log(
+        `Starting upload for file: ${file.name} (${file.size} bytes, type: ${file.type})`
+      );
+
+      // Validate file before upload
+      if (!file || file.size === 0) {
+        throw new Error("Invalid file: File is empty or undefined");
+      }
+
+      if (file.size > MAX_FILE_SIZE) {
+        throw new Error(
+          `File size (${formatFileSize(
+            file.size
+          )}) exceeds maximum limit of ${formatFileSize(MAX_FILE_SIZE)}`
+        );
+      }
+
       try {
         // Skip compression for videos and PDFs
         let fileToUpload = file;
@@ -718,16 +809,39 @@ const UploadModal: React.FC<UploadModalProps> = ({
         clearTimeout(timeoutId);
 
         if (!response.ok) {
-          // If method not allowed, show a clear error
-          if (response.status === 405) {
-            throw new Error(
-              "Upload failed: Method Not Allowed. Please contact support."
-            );
+          // Enhanced error handling for different HTTP status codes
+          let errorMessage = `HTTP error! status: ${response.status}`;
+
+          try {
+            const errorData = await response.json();
+            console.error("Upload error response:", errorData);
+
+            if (response.status === 405) {
+              errorMessage =
+                "Upload failed: Method Not Allowed. Please contact support.";
+            } else if (response.status === 400) {
+              errorMessage = `Upload validation error: ${
+                errorData.message || "Invalid file format or size"
+              }`;
+            } else if (response.status === 401) {
+              errorMessage =
+                "Upload failed: Unauthorized. Please check your session.";
+            } else if (response.status === 413) {
+              errorMessage = "Upload failed: File too large.";
+            } else if (response.status >= 500) {
+              errorMessage = `Upload failed: Server error (${response.status}). Please try again later.`;
+            } else if (errorData.message) {
+              errorMessage = `Upload failed: ${errorData.message}`;
+            }
+          } catch (parseError) {
+            console.error("Could not parse error response:", parseError);
           }
-          throw new Error(`HTTP error! status: ${response.status}`);
+
+          throw new Error(errorMessage);
         }
 
         const result = await response.json();
+        console.log(`Upload successful for ${file.name}:`, result);
         setUploadProgress((prev) => {
           const updated = [...prev];
           updated[index] = 100;
@@ -786,6 +900,16 @@ const UploadModal: React.FC<UploadModalProps> = ({
           (item): item is { file: File; index: number } => item.file !== null
         );
 
+      console.log(`Starting upload process for ${filesToUpload.length} files`);
+      console.log(
+        "Files to upload:",
+        filesToUpload.map((f) => ({
+          name: f.file.name,
+          size: f.file.size,
+          type: f.file.type,
+        }))
+      );
+
       const results: any[] = [];
 
       if (format === "Video") {
@@ -796,26 +920,39 @@ const UploadModal: React.FC<UploadModalProps> = ({
             const result = await uploadSingleFile(file, index);
             results.push(result);
           } catch (error: any) {
-            if (
-              error &&
-              error.message &&
-              error.message.includes("Method Not Allowed")
-            ) {
+            console.error(`Failed to upload file "${file.name}"`, error);
+
+            // Enhanced error handling with specific messages
+            if (error?.message?.includes("Method Not Allowed")) {
               toast.error(
                 "Upload failed: Method Not Allowed. Please contact support."
               );
-            } else if (
-              error &&
-              error.message &&
-              error.message.includes("timed out")
-            ) {
+            } else if (error?.message?.includes("timed out")) {
               toast.error(
                 `Upload timed out for ${file.name}. Try a smaller file or check your connection.`
               );
+            } else if (error?.message?.includes("validation error")) {
+              toast.error(
+                `Upload validation error for ${file.name}: ${error.message}`
+              );
+            } else if (error?.message?.includes("Server error")) {
+              toast.error(
+                `Upload server error for ${file.name}: ${error.message}`
+              );
+            } else if (error?.message?.includes("Unauthorized")) {
+              toast.error(
+                `Upload unauthorized for ${file.name}: ${error.message}`
+              );
+            } else if (error?.message?.includes("File too large")) {
+              toast.error(`Upload failed for ${file.name}: ${error.message}`);
             } else {
-              toast.error(`Failed to upload ${file.name}`);
+              toast.error(
+                `Failed to upload ${file.name}: ${
+                  error.message || "Unknown error"
+                }`
+              );
             }
-            console.error(`Failed to upload file "${file.name}"`, error);
+
             results.push(null);
           }
         }
@@ -829,26 +966,41 @@ const UploadModal: React.FC<UploadModalProps> = ({
                 const result = await uploadSingleFile(file, index);
                 return result;
               } catch (error: any) {
-                if (
-                  error &&
-                  error.message &&
-                  error.message.includes("Method Not Allowed")
-                ) {
+                console.error(`Failed to upload file "${file.name}"`, error);
+
+                // Enhanced error handling with specific messages
+                if (error?.message?.includes("Method Not Allowed")) {
                   toast.error(
                     "Upload failed: Method Not Allowed. Please contact support."
                   );
-                } else if (
-                  error &&
-                  error.message &&
-                  error.message.includes("timed out")
-                ) {
+                } else if (error?.message?.includes("timed out")) {
                   toast.error(
                     `Upload timed out for ${file.name}. Try a smaller file or check your connection.`
                   );
+                } else if (error?.message?.includes("validation error")) {
+                  toast.error(
+                    `Upload validation error for ${file.name}: ${error.message}`
+                  );
+                } else if (error?.message?.includes("Server error")) {
+                  toast.error(
+                    `Upload server error for ${file.name}: ${error.message}`
+                  );
+                } else if (error?.message?.includes("Unauthorized")) {
+                  toast.error(
+                    `Upload unauthorized for ${file.name}: ${error.message}`
+                  );
+                } else if (error?.message?.includes("File too large")) {
+                  toast.error(
+                    `Upload failed for ${file.name}: ${error.message}`
+                  );
                 } else {
-                  toast.error(`Failed to upload ${file.name}`);
+                  toast.error(
+                    `Failed to upload ${file.name}: ${
+                      error.message || "Unknown error"
+                    }`
+                  );
                 }
-                console.error(`Failed to upload file "${file.name}"`, error);
+
                 return null;
               }
             })
@@ -887,26 +1039,36 @@ const UploadModal: React.FC<UploadModalProps> = ({
       onUploadSuccess?.();
       onClose();
     } catch (error: any) {
-      if (
-        error &&
-        error.message &&
-        error.message.includes("Method Not Allowed")
-      ) {
+      console.error("Error in uploadFilesToStrapi:", error);
+
+      // Enhanced error handling with specific messages
+      if (error?.message?.includes("Method Not Allowed")) {
         toast.error(
           "Upload failed: Method Not Allowed. Please contact support."
         );
-      } else if (
-        error &&
-        error.message &&
-        error.message.includes("timed out")
-      ) {
+      } else if (error?.message?.includes("timed out")) {
         toast.error(
           "Upload timed out. Try a smaller file or check your connection."
         );
+      } else if (error?.message?.includes("validation error")) {
+        toast.error(`Upload validation error: ${error.message}`);
+      } else if (error?.message?.includes("Server error")) {
+        toast.error(`Upload server error: ${error.message}`);
+      } else if (error?.message?.includes("Unauthorized")) {
+        toast.error(`Upload unauthorized: ${error.message}`);
+      } else if (error?.message?.includes("File too large")) {
+        toast.error(`Upload failed: ${error.message}`);
+      } else if (error?.message?.includes("All file uploads failed")) {
+        toast.error(
+          "All file uploads failed. Please check the error messages above and try again."
+        );
       } else {
-        toast.error("Upload failed. Please try again.");
+        toast.error(
+          `Upload failed: ${
+            error.message || "Unknown error"
+          }. Please try again.`
+        );
       }
-      console.error("Error in uploadFilesToStrapi:", error);
     } finally {
       setLoading(false);
     }

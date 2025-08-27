@@ -32,6 +32,17 @@ const SaveAllProgressButton = () => {
         }
       }
       keysToRemove.forEach((key) => sessionStorage.removeItem(key));
+
+      // Clear all channel state keys from localStorage
+      const localStorageKeysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith("persistent_channelLevelAudienceState_")) {
+          localStorageKeysToRemove.push(key);
+        }
+      }
+      localStorageKeysToRemove.forEach((key) => localStorage.removeItem(key));
+
       // Clear global state
       if ((window as any).channelLevelAudienceState) {
         Object.keys((window as any).channelLevelAudienceState).forEach(
@@ -40,6 +51,12 @@ const SaveAllProgressButton = () => {
           }
         );
       }
+
+      // Clear the new plan session ID to ensure complete isolation
+      if ((window as any).__newPlanSessionId) {
+        delete (window as any).__newPlanSessionId;
+      }
+
       console.log("Cleared all channel state for new campaign");
     } catch (error) {
       console.error("Error clearing channel state:", error);

@@ -586,10 +586,10 @@ const MediaOption = ({
       {isSelected && localPreviews.length > 0 && (
         <div className="mt-8">
           <p className="font-semibold text-lg mb-4">
-            Uploaded Previews ({localPreviews.length}/{quantity})
+            Uploaded Previews ({localPreviews?.length}/{quantity})
           </p>
           <div className="grid grid-cols-2 gap-3 flex-wrap">
-            {localPreviews.map((prv, index) => (
+            {localPreviews?.map((prv, index) => (
               <div key={prv?.id || index} className="relative">
                 <a
                   href={prv?.url}
@@ -1479,9 +1479,20 @@ export const Platforms = ({
         // Use the same robust data handling approach as SaveAllProgressButton
         const cleanedData = JSON.parse(JSON.stringify(data));
 
+        // Clean the main data object to remove forbidden fields
+        const cleanedMainData = removeKeysRecursively(cleanedData, [
+          "id",
+          "documentId",
+          "_aggregated",
+          "user",
+          "publishedAt",
+          "createdAt",
+          "updatedAt",
+        ]);
+
         // Clean channel mix data using the same approach as SaveAllProgressButton
-        let channelMixCleaned = cleanedData?.channel_mix
-          ? removeKeysRecursively(cleanedData.channel_mix, [
+        let channelMixCleaned = cleanedMainData?.channel_mix
+          ? removeKeysRecursively(cleanedMainData.channel_mix, [
               "id",
               "isValidated",
               "formatValidated",
@@ -1500,18 +1511,23 @@ export const Platforms = ({
           data: {
             channel_mix: channelMixCleaned,
             // Include other essential fields if they exist
-            ...(cleanedData.funnel_stages && {
-              funnel_stages: cleanedData.funnel_stages,
+            ...(cleanedMainData.funnel_stages && {
+              funnel_stages: cleanedMainData.funnel_stages,
             }),
-            ...(cleanedData.funnel_type && {
-              funnel_type: cleanedData.funnel_type,
+            ...(cleanedMainData.funnel_type && {
+              funnel_type: cleanedMainData.funnel_type,
             }),
-            ...(cleanedData.ad_sets_granularity && {
-              ad_sets_granularity: cleanedData.ad_sets_granularity,
+            ...(cleanedMainData.ad_sets_granularity && {
+              ad_sets_granularity: cleanedMainData.ad_sets_granularity,
             }),
-            ...(cleanedData.granularity && {
-              granularity: cleanedData.granularity,
+            ...(cleanedMainData.goal_level && {
+              goal_level: cleanedMainData.goal_level,
             }),
+            // Include agency_profile if available
+            ...(cleanedMainData.agency_profile && {
+              agency_profile: cleanedMainData.agency_profile,
+            }),
+            // Remove granularity field as it's not allowed in Strapi schema
           },
         };
 
@@ -1535,6 +1551,8 @@ export const Platforms = ({
 
         console.log("Attempting to save with campaign ID:", campaignId);
         console.log("Payload:", payload);
+        console.log("Original cleanedData:", cleanedData);
+        console.log("Channel mix cleaned:", channelMixCleaned);
 
         await axios.put(
           `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${campaignId}`,
@@ -1543,8 +1561,17 @@ export const Platforms = ({
         );
         toast.success("File upload saved successfully!");
       } catch (error: any) {
+        // Enhanced error logging for debugging
+        console.error("Full error object:", error);
+        console.error("Error response:", error?.response);
+        console.error("Error response data:", error?.response?.data);
+
         // Log the specific validation errors if available
         if (error?.response?.data?.details?.errors) {
+          console.error(
+            "Validation errors:",
+            error.response.data.details.errors
+          );
         }
 
         // Provide more specific error messages based on the error type
@@ -1553,17 +1580,32 @@ export const Platforms = ({
         } else if (error?.response?.status === 404) {
           toast.error("Campaign not found. Please save your campaign first.");
         } else if (error?.response?.status === 400) {
-          if (error?.response?.data?.message === "Invalid relations") {
+          // Handle specific validation errors
+          if (error?.response?.data?.message === "Invalid key documentId") {
             toast.error(
-              "Data validation error: Invalid relations detected. Please check your campaign data."
+              "Data validation error: Invalid documentId field. Please contact support."
+            );
+          } else if (
+            error?.response?.data?.message === "Invalid key granularity"
+          ) {
+            toast.error(
+              "Data validation error: Invalid granularity field. Please contact support."
             );
           } else {
-            toast.error(
-              "Invalid data format. Please check your campaign data."
-            );
+            const errorMessage =
+              error?.response?.data?.error?.message ||
+              error?.response?.data?.message ||
+              "Invalid data provided. Please check your inputs.";
+            toast.error(errorMessage);
           }
+        } else if (error?.response?.status === 422) {
+          toast.error("Validation failed. Please check your campaign data.");
+        } else if (error?.response?.status >= 500) {
+          toast.error("Server error. Please try again later.");
+        } else if (error?.message) {
+          toast.error(error.message);
         } else {
-          toast.error(`Failed to save campaign data: ${error.message}`);
+          toast.error("Something went wrong. Please try again.");
         }
         throw error;
       } finally {
