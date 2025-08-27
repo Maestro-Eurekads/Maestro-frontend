@@ -586,10 +586,10 @@ const MediaOption = ({
       {isSelected && localPreviews.length > 0 && (
         <div className="mt-8">
           <p className="font-semibold text-lg mb-4">
-            Uploaded Previews ({localPreviews.length}/{quantity})
+            Uploaded Previews ({localPreviews?.length}/{quantity})
           </p>
           <div className="grid grid-cols-2 gap-3 flex-wrap">
-            {localPreviews.map((prv, index) => (
+            {localPreviews?.map((prv, index) => (
               <div key={prv?.id || index} className="relative">
                 <a
                   href={prv?.url}
