@@ -545,7 +545,6 @@ const ConfiguredSetPage = ({
           (ch) => ch?.funnel_stage === stageName
         )?.stage_budget?.fixed_value
       ) || 0;
-
     if (
       !isPercentage &&
       (value === "" ||
@@ -737,7 +736,7 @@ const ConfiguredSetPage = ({
             let updatedCh = {
               ...ch,
               stage_budget: {
-                fixed_value: value.replace(/,/g, ""), // Store the raw input value to preserve decimal input
+                fixed_value: isPercentage ? newBudget.toString() : value.replace(/,/g, ""), // Use calculated budget when percentage is entered
                 percentage_value: newPercentage.toFixed(1),
               },
             };
