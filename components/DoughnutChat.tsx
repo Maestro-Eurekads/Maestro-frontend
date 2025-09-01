@@ -284,7 +284,7 @@ const DoughnutChart = ({
             const stageData = campaignFormData?.channel_mix?.find((st: any) => st?.funnel_stage === label)
             const amount = Number(stageData?.stage_budget?.fixed_value) || 0
             const currency = campaignFormData?.campaign_budget?.currency || "EUR"
-            return `${label}: ${percentage.toFixed(1)}% (${getCurrencySymbol(currency)}${amount.toLocaleString()})`
+            return `${label}: ${Math.round(percentage)}% (${getCurrencySymbol(currency)}${amount.toLocaleString()})`
           },
         },
       },
