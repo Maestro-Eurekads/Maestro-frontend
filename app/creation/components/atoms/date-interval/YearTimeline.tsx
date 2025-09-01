@@ -63,8 +63,8 @@ function YearTimeline({ range, funnels }) {
             );
             const percentage = (platformBudget / stageBudget) * 100 || 0;
             const existingPlatform = platforms.find(
-              (p) => p.platform_name === platformName
-            );
+              (p) => p.platform_name === platformName && p.stageName === stageName
+            )
             if (!existingPlatform) {
               const style =
                 platformStyles.find((style) => style.name === platformName) ||
