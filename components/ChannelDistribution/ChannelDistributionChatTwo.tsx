@@ -12,7 +12,7 @@ const ChannelDistributionChatTwo = ({ channelData, currency, campaignData }: { c
   // Map funnel names to their colors from campaignFormData.custom_funnels
   const getFunnelColor = (stageName: string) => {
     
-    const funnel = campaignData?.custom_funnels?.find(
+    const funnel = (campaignData?.custom_funnels || campaignFormData?.custom_funnels)?.find(
       (f) => f.name === stageName
     );
     
