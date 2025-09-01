@@ -380,6 +380,7 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
         : [];
 
       const platformObjects = newCategorySelection.map((name) => {
+        const existingFunnel = channelMix?.find((item) => item.funnel_stage === stageName);
         const existingPlatform = channelMix
           ?.find((item) => item.funnel_stage === stageName)
           ?.[categoryKey]?.find((platform) => platform.platform_name === name);
@@ -388,13 +389,13 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
           existingPlatform || {
             platform_name: name,
             campaign_start_date:
-              campaignFormData?.campaign_timeline_start_date === ""
+            existingFunnel?.funnel_stage_timeline_start_date === ""
                 ? null
-                : campaignFormData?.campaign_timeline_start_date || null,
+                : existingFunnel?.funnel_stage_timeline_start_date || null,
             campaign_end_date:
-              campaignFormData?.campaign_timeline_end_date === ""
+            existingFunnel?.funnel_stage_timeline_end_date === ""
                 ? null
-                : campaignFormData?.campaign_timeline_end_date || null,
+                : existingFunnel?.funnel_stage_timeline_end_date || null,
           }
         );
       });
