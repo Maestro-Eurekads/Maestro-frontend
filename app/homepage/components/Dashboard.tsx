@@ -274,9 +274,11 @@ const Dashboard = () => {
       />
       {processedCampaigns?.map((campaign, index) => {
         const channelD = extractPlatforms(campaign);
-
+        const totalSpending = campaign?.channel_mix?.reduce((acc, stage) => {
+          return acc + (Number(stage?.stage_budget?.fixed_value) || 0);
+        }, 0) || 0;
         // Prepare insideText for DoughnutChat
-        const insideText = `${campaign?.campaign_budget?.amount || 0} ${
+        const insideText = `${totalSpending.toLocaleString()} ${
           campaign?.campaign_budget?.currency
             ? getCurrencySymbol(campaign?.campaign_budget?.currency)
             : ""

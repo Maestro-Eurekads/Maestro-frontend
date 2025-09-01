@@ -63,7 +63,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
             );
             const percentage = (platformBudget / stageBudget) * 100 || 0;
             const existingPlatform = platforms.find(
-              (p) => p.platform_name === platformName
+              (p) => p.platform_name === platformName && p.stageName === stageName
             );
             if (!existingPlatform) {
               const style =
