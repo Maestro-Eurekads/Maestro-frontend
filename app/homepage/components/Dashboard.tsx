@@ -379,6 +379,7 @@ const Dashboard = () => {
                 currency={getCurrencySymbol(
                   campaign?.campaign_budget?.currency
                 )}
+                campaignData={campaign}
               />
             </div>
           </div>
