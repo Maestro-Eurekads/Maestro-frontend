@@ -928,7 +928,7 @@ const ConfiguredSetPage = ({
                   ? {
                       ...p,
                       budget: {
-                        fixed_value: value.replace(/,/g, ""), // Store the raw input value to preserve decimal input
+                        fixed_value: isPercentage ? newBudget.toString() : value.replace(/,/g, ""),
                         percentage_value:
                           newBudget === 0
                             ? ""
