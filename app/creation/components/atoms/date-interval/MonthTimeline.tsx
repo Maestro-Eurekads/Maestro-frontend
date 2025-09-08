@@ -170,6 +170,7 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                           startMonth: start,
                           endMonth: end,
                           budget,
+                          color
                         },
                         zIndex
                       ) => {
@@ -188,13 +189,7 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                             <div
                               onClick={() => toggleOpen(index, name)}
                               className={`mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${
-                                name === "Awareness"
-                                  ? "bg-[#3175FF]"
-                                  : name === "Consideration"
-                                  ? "bg-[#34A853]"
-                                  : name === "Conversion"
-                                  ? "bg-[#ff9037]"
-                                  : "bg-[#F05406]"
+                               color
                               } text-white`}
                               style={{
                                 gridColumnStart: start,

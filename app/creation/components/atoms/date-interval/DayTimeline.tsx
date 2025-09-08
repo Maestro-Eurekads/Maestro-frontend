@@ -180,6 +180,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                         startMonth,
                         endMonth,
                         budget,
+                        color
                       },
                       zIndex
                     ) => {
@@ -201,15 +202,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                           onClick={() => toggleOpen(index, name)}
                         >
                           <div
-                            className={`mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${end - start < 5 ? "flex-col" : "flex-row"} ${
-                              name === "Awareness"
-                                ? "bg-[#3175FF]"
-                                : name === "Consideration"
-                                ? "bg-[#34A853]"
-                                : name === "Conversion"
-                                ? "bg-[#ff9037]"
-                                : "bg-[#F05406]"
-                            } text-white`}
+                            className={`${color} mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${end - start < 5 ? "flex-col" : "flex-row"}  text-white`}
                             style={{
                               gridColumnStart: start
                                 ? start - startDay === 0
@@ -217,6 +210,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                                   : start - startDay + 1
                                 : 1,
                               gridColumnEnd: end + 1 - startDay + 1,
+                              // backgroundColor: color,
                             }}
                           >
                             <div className="flex items-center justify-center gap-3 flex-1">

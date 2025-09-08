@@ -144,6 +144,7 @@ const Dashboard = () => {
             differenceInCalendarMonths(start, earliestStartDate) + 1;
           const endMonth =
             differenceInCalendarMonths(end, earliestStartDate) + 1;
+            const color = ch?.custom_funnels?.find(f => f?.name === d?.funnel_stage)?.color
           return {
             startDate: start,
             endDate: end,
@@ -157,6 +158,7 @@ const Dashboard = () => {
             endWeek,
             startMonth,
             endMonth,
+            color
           };
         }),
         budget: `${ch?.campaign_budget?.amount} ${getCurrencySymbol(

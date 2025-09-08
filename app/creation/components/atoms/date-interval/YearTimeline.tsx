@@ -233,13 +233,7 @@ function YearTimeline({ range, funnels }) {
                             <div
                               onClick={() => toggleOpen(index, section?.name)}
                               className={`w-full flex items-center justify-between rounded-[8px] text-[13px] font-[500] p-2 cursor-pointer hover:shadow-sm transition-shadow min-w-0 ${
-                                section?.name === "Awareness"
-                                  ? "bg-[#3175FF]"
-                                  : section?.name === "Consideration"
-                                  ? "bg-[#34A853]"
-                                  : section?.name === "Conversion"
-                                  ? "bg-[#ff9037]"
-                                  : "bg-[#F05406]"
+                               section.color
                               } text-white`}>
                               <div
                                 className="flex items-center gap-1 min-w-0 flex-1"
