@@ -238,13 +238,6 @@ const Dashboard = () => {
         Number(ch?.stage_budget?.percentage_value || 0)
       ) || [];
 
-    // If all percentages are 0 or empty, distribute equally
-    const totalPercentage = percentages.reduce((sum, val) => sum + val, 0);
-    if (totalPercentage === 0 && percentages.length > 0) {
-      const equalPercentage = 100 / percentages.length;
-      return percentages.map(() => equalPercentage);
-    }
-
     return percentages;
   }
   // const dataValues = funnelStages.length > 0
@@ -348,12 +341,7 @@ const Dashboard = () => {
                     );
                     return {
                       name: ch?.funnel_stage,
-                      percentage:
-                        percentage > 0
-                          ? percentage.toFixed(0)
-                          : (
-                              100 / (campaign?.channel_mix?.length || 1)
-                            ).toFixed(0),
+                      percentage,
                       color: getFunnelColor(ch?.funnel_stage),
                     };
                   })}
