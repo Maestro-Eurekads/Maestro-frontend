@@ -205,6 +205,7 @@ const DoughnutChart = ({
       return {
         name: stageName,
         amount: Number(stageData?.stage_budget?.fixed_value) || 0,
+        percentage: Number(stageData?.stage_budget?.percentage_value) || 0,
       }
     })
 
@@ -215,7 +216,8 @@ const DoughnutChart = ({
     if (totalBudget === 0) return stageBudgets.map(() => 0)
 
     return stageBudgets.map((stage) => {
-      const percentage = (stage.amount / totalBudget) * 100
+      console.log("stage", stage) 
+      const percentage = stage?.percentage
       return Math.max(0, percentage) // Ensure no negative percentages
     })
   })()
