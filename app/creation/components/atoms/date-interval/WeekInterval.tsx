@@ -93,7 +93,7 @@ const WeekInterval = ({
       const backgroundImages = weekEndPositions
         .map(
           () =>
-            `linear-gradient(to right, transparent calc(100% - 1px), rgba(0,0,255,0.1) calc(100% - 1px), rgba(0,0,255,0.1) 100%)`
+            `linear-gradient(to right, transparent calc(100% - 1px), rgba(0,0,255,0.2) calc(100% - 1px), rgba(0,0,255,0.2) 100%)`
         )
         .join(", ");
 
@@ -101,7 +101,7 @@ const WeekInterval = ({
         .map((position) => `${position}px 100%`)
         .join(", ");
       const backgroundPositions = weekEndPositions
-        .map((position) => `${position+1}px 0`)
+        .map((position) => `${position}px 0`)
         .join(", ");
 
       return (
@@ -120,7 +120,9 @@ const WeekInterval = ({
         {datesByWeek.map((week, i) => (
           <div
             key={i}
-            className="flex flex-col items-center justify-center relative py-2 bg-white"
+            className={`flex flex-col items-center justify-center relative py-2 bg-white ${
+              i < datesByWeek.length - 1 ? 'border-r border-blue-200' : ''
+            }`}
             style={{
               width: `${weekWidths[i]}px`,
             }}
