@@ -31,22 +31,18 @@ function YearTimeline({ range, funnels }) {
     }));
   };
 
-  const calculateGridColumns = (start: Date, end: Date) => {
-    const formattedStart = new Date(start);
-    const formattedEnd = new Date(end);
+  const calculateGridColumns = (start: Date, end: Date, headerMonths: string[]) => {
+    // Build month keys like yyyy-MM covering the full header range
+    const startKey = `${new Date(start).getFullYear()}-${String(new Date(start).getMonth() + 1).padStart(2, "0")}`;
+    const endKey = `${new Date(end).getFullYear()}-${String(new Date(end).getMonth() + 1).padStart(2, "0")}`;
 
-    const startOfTimeline = startOfYear(formattedStart);
-    const endOfTimeline = endOfYear(formattedEnd);
+    const startIndex = headerMonths.indexOf(startKey);
+    const endIndex = headerMonths.indexOf(endKey);
 
-    const totalMonths = differenceInMonths(endOfTimeline, startOfTimeline) + 1;
+    const gridStartColumn = (startIndex >= 0 ? startIndex : 0) + 1;
+    const gridEndColumn = (endIndex >= 0 ? endIndex : 0) + 2; // inclusive
 
-    const startMonthIndex = formattedStart.getMonth(); // 0-based index for the start month
-    const endMonthIndex = formattedEnd.getMonth(); // 0-based index for the end month
-
-    const gridStartColumn = startMonthIndex + 1; // Convert to 1-based index
-    const gridEndColumn = endMonthIndex + 2; // Convert to 1-based index (inclusive)
-
-    return { gridStartColumn, gridEndColumn, totalMonths };
+    return { gridStartColumn, gridEndColumn, totalMonths: headerMonths.length };
   };
 
   function extractPlatforms(data) {
@@ -96,20 +92,24 @@ function YearTimeline({ range, funnels }) {
     return Math.round(dailyWidth);
   };
 
-  const generateGridColumns = useCallback(() => {
-    const dailyWidth = calcDailyWidth();
+  const buildHeaderMonthKeys = useCallback(() => {
     const startDate = startOfYear(range[0]);
     const endDate = endOfYear(range[range.length - 1]);
     const months = eachMonthOfInterval({ start: startDate, end: endDate });
-    return `repeat(${months.length}, ${dailyWidth}px)`;
-  }, [funnels?.endDay]);
+    return months.map((month) => `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, "0")}`);
+  }, [range]);
+
+  const generateGridColumns = useCallback(() => {
+    const dailyWidth = calcDailyWidth();
+    const headerMonthKeys = buildHeaderMonthKeys();
+    return `repeat(${headerMonthKeys.length}, ${dailyWidth}px)`;
+  }, [buildHeaderMonthKeys]);
 
   const generateYearMonths = useCallback(() => {
     if (!range || range.length === 0) return [];
 
-    const startDate = startOfYear(range[0]); // Force start to Jan 1
-    const endDate = endOfYear(range[range.length - 1]); // Force end to Dec 31
-
+    const startDate = startOfYear(range[0]);
+    const endDate = endOfYear(range[range.length - 1]);
     const months = eachMonthOfInterval({ start: startDate, end: endDate });
     return months.map((month) => format(month, "MMMM yyyy"));
   }, [range]);
@@ -151,9 +151,11 @@ function YearTimeline({ range, funnels }) {
             index
           ) => {
             // Use the original working grid calculation
+            const headerMonthKeys = buildHeaderMonthKeys();
             const { gridStartColumn, gridEndColumn } = calculateGridColumns(
               startDate,
-              endDate
+              endDate,
+              headerMonthKeys
             );
 
             return (
@@ -161,9 +163,7 @@ function YearTimeline({ range, funnels }) {
                 key={index}
                 style={{
                   display: "grid",
-                  gridTemplateColumns: `repeat(${
-                    generateYearMonths()?.length
-                  }, ${calcDailyWidth()}px)`,
+                  gridTemplateColumns: generateGridColumns(),
                 }}>
                 <div
                   className="flex flex-col bg-white border border-[rgba(0,0,0,0.1)] mt-6 shadow-sm rounded-[10px] overflow-hidden min-w-0"
