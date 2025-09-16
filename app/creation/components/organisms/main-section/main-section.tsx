@@ -25,6 +25,7 @@ import { useActive } from "app/utils/ActiveContext";
 import { useComments } from "app/utils/CommentProvider";
 import OldMonthInterval from "../../atoms/date-interval/old-month-interval";
 import OldResizableElement from "../../molecules/resizeable-elements/old-resizable-elements";
+import UniqueMonthInterval from "../../atoms/date-interval/UniqueMonthInterval";
 
 const MainSection = ({
   hideDate,
@@ -222,7 +223,7 @@ const MainSection = ({
         return (
           <>
             {monthDifference < 3 ? (
-              <MonthInterval
+              <UniqueMonthInterval
                 monthsCount={monthDifference === 0 ? 1 : monthDifference + 1}
                 view={view}
                 getDaysInEachMonth={getDaysInEachMonth}
@@ -269,7 +270,9 @@ const MainSection = ({
 
   return (
     <div className="mt-[32px] w-full">
-      {!hideDate && <DateComponent useDate={true} hideRange={disableDrag ? true :false} />}
+      {!hideDate && (
+        <DateComponent useDate={true} hideRange={disableDrag ? true : false} />
+      )}
 
       {/* Zoom Controls */}
       <div className="flex items-center justify-between mb-4 pl-4">

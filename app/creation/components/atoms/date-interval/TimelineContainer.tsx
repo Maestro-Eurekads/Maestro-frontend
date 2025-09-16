@@ -104,11 +104,19 @@ console.log(daysInYear, "daysInYear");
         return (
           <>
             <MonthInterval
-              monthsCount={monthDifference}
+              monthsCount={(() => {
+                const count = Object.keys(getDaysInEachMonth() || {}).length;
+                if (count && count > 0) return count;
+                return monthDifference === 0 ? 1 : monthDifference + 1; // inclusive months
+              })()}
               getDaysInEachMonth={getDaysInEachMonth}
             />
             <MonthTimeline
-              monthsCount={monthDifference}
+              monthsCount={(() => {
+                const count = Object.keys(getDaysInEachMonth() || {}).length;
+                if (count && count > 0) return count;
+                return monthDifference === 0 ? 1 : monthDifference + 1; // inclusive months
+              })()}
               funnels={funnelsData}
               range={dateList}
             />

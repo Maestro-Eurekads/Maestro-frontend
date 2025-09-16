@@ -13,7 +13,7 @@ interface MonthIntervalProps {
   disableDrag?: any;
 }
 
-const MonthInterval: React.FC<MonthIntervalProps> = ({
+const UniqueMonthInterval: React.FC<MonthIntervalProps> = ({
   monthsCount,
   view,
   getDaysInEachMonth,
@@ -41,11 +41,26 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
   );
   const monthCount = Object.keys(daysInMonth || {}).length;
 
-  // Use fixed 250px columns to align with MonthTimeline
+  // Calculate grid template columns based on actual days in each month
   const gridTemplateColumns = useCallback(() => {
     if (monthCount === 0) return "1fr";
-    return `repeat(${monthCount}, 250px)`;
-  }, [monthCount]);
+
+    if (monthCount > 3) {
+      // When more than 3 months, each month takes at least 20% of container
+      return Object.values(daysInMonth)
+        .map((days) => {
+          const proportionalWidth = (days / totalDays) * 100;
+          const monthWidth = Math.max(proportionalWidth, 20); // Minimum 20%
+          return `${Math.round(monthWidth)}%`;
+        })
+        .join(" ");
+    } else {
+      // For 3 or fewer months, use proportional logic
+      return Object.values(daysInMonth)
+        .map((days) => `${Math.round((days / totalDays) * 100)}%`)
+        .join(" ");
+    }
+  }, [daysInMonth, monthCount, totalDays]);
 
   useEffect(() => {
     if (campaignFormData) {
@@ -115,10 +130,12 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
 
   const dailyWidth = calculateDailyWidth();
 
-  // Fixed background grid alignment with 250px columns
+  // Calculate background size based on actual month data
   const getBackgroundSize = useCallback(() => {
     if (monthCount === 0) return "100% 100%";
-    return `250px 100%`;
+
+    // No daily grid lines for month view - only month boundaries
+    return "100% 100%";
   }, [monthCount]);
 
   // Only render if we have data
@@ -161,4 +178,4 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
   );
 };
 
-export default MonthInterval;
+export default UniqueMonthInterval;
