@@ -4,12 +4,13 @@ import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
 import React, { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
-import { signIn } from "next-auth/react"
+import { signIn } from "next-auth/react";
+import { toast } from "sonner";
 
 
 function Login() {
   const [visible, setVisible] = useState(false);
-  
+
   const [email, setEmail] = useState("");
   const [pwd, setPwd] = useState("");
   const [loading, setLoading] = useState(false);
@@ -30,8 +31,35 @@ function Login() {
             password: pwd,
             callbackUrl: "/",
           });
+          toast.success("Login successful!", {
+            description: "",
+            duration: 3000,
+          });
         });
-    } catch (error) {
+    } catch (error: any) {
+      // Handle authentication errors
+      if (error.response?.data?.error) {
+        const errorData = error.response.data.error;
+
+        // Show specific error message from the API
+        if (errorData.message) {
+          toast.error(errorData.message, {
+            description: "Please check your credentials and try again.",
+            duration: 5000,
+          });
+        } else {
+          toast.error("Login failed", {
+            description: "An error occurred during login. Please try again.",
+            duration: 5000,
+          });
+        }
+      } else {
+        // Handle network or other errors
+        toast.error("Connection Error", {
+          description: "Unable to connect to the server. Please check your internet connection.",
+          duration: 5000,
+        });
+      }
     } finally {
       setLoading(false);
     }
