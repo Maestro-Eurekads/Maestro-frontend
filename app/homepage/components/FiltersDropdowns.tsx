@@ -4,7 +4,7 @@ import down from "../../../public/down.svg";
 import Image from "next/image";
 import { BiX } from "react-icons/bi";
 import { useCampaigns } from "app/utils/CampaignsContext";
-import { fetchFilteredCampaigns } from "app/utils/campaign-filter-utils";
+import { fetchFilteredCampaigns, extractDateFiltersForYear } from "app/utils/campaign-filter-utils";
 import { toast, Toaster } from "react-hot-toast";
 import { useAppDispatch } from "store/useStore";
 import { getCreateClient } from "features/Client/clientSlice";
@@ -101,9 +101,8 @@ const Dropdown = ({
       ref={dropdownRef}>
       <div
         ref={triggerRef}
-        className={`relative w-full flex items-center gap-3 px-4 py-2 h-[40px] border border-[#EFEFEF] rounded-[10px] cursor-pointer ${
-          isDisabled ? "opacity-60" : ""
-        }`}
+        className={`relative w-full flex items-center gap-3 px-4 py-2 h-[40px] border border-[#EFEFEF] rounded-[10px] cursor-pointer ${isDisabled ? "opacity-60" : ""
+          }`}
         onClick={toggleDropdown}>
         <span className="text-gray-600 capitalize truncate">
           {selectedFilters[label.toLowerCase()] || label.replace("_", " ")}
@@ -118,9 +117,8 @@ const Dropdown = ({
           className="absolute left-0 bg-white border border-[#EFEFEF] rounded-md shadow-lg mt-2 z-10"
           ref={dropdownContentRef}>
           <div
-            className={`max-h-[200px] overflow-y-auto ${
-              label === "Select Plans" ? "scrollbar-thin" : ""
-            }`}>
+            className={`max-h-[200px] overflow-y-auto ${label === "Select Plans" ? "scrollbar-thin" : ""
+              }`}>
             {options?.length > 0 ? (
               options?.map((option) => (
                 <div
@@ -171,6 +169,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
     jwt,
     agencyId,
     selectedId, // <-- Add selectedId from context
+    clientCampaignData, // Add this to get campaign data for filtering
   } = useCampaigns();
   const { data: session } = useSession();
   // @ts-ignore
@@ -209,20 +208,6 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
     }
   };
 
-  useEffect(() => {
-    if (filterOptions) {
-      const f = [];
-      Object.entries(filterOptions).forEach(([key, value]) => {
-        f.push({
-          label: key.charAt(0).toUpperCase() + key.slice(1),
-          options: value,
-          isLevel: ["level_1"].includes(key),
-        });
-      });
-      setFilters(f);
-    }
-  }, [filterOptions]);
-
   // FIX: Add selectedId as a dependency and use it for client selection
   useEffect(() => {
     const allEmpty = Object.values(selectedFilters).every((val) => !val);
@@ -252,6 +237,36 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
   }, [selectedFilters, allClients, userType, jwt, selectedId]); // <-- Add selectedId here
 
   const isYearSelected = !!selectedFilters["year"];
+
+  // Dynamically filter month and quarter options based on selected year
+  const dynamicFilterOptions = useMemo(() => {
+    if (!isYearSelected || !clientCampaignData) {
+      return filterOptions;
+    }
+
+    const yearFilteredData = extractDateFiltersForYear(clientCampaignData, selectedFilters["year"]);
+
+    return {
+      ...filterOptions,
+      month: yearFilteredData.month,
+      quarter: yearFilteredData.quarter,
+    };
+  }, [filterOptions, selectedFilters["year"], clientCampaignData, isYearSelected]);
+
+  // Update filters when dynamicFilterOptions changes
+  useEffect(() => {
+    if (dynamicFilterOptions) {
+      const f = [];
+      Object.entries(dynamicFilterOptions).forEach(([key, value]) => {
+        f.push({
+          label: key.charAt(0).toUpperCase() + key.slice(1),
+          options: value,
+          isLevel: ["level_1"].includes(key),
+        });
+      });
+      setFilters(f);
+    }
+  }, [dynamicFilterOptions]);
 
   return (
     <div>
