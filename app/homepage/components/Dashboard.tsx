@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import FiltersDropdowns from "./FiltersDropdowns";
 import DoughnutChat from "../../../components/DoughnutChat";
 import CampaignPhases from "../../creation/components/CampaignPhases";
@@ -27,6 +28,7 @@ import { getFunnelColorFromCampaign } from "utils/funnelColorUtils";
 import DashboardCampaignPhases from "app/creation/components/DashboardCampaignPhases";
 
 const Dashboard = () => {
+  const router = useRouter();
   const [channels, setChannels] = useState<IChannel[]>([]);
   const { campaignFormData, clientCampaignData, loading } = useCampaigns();
   const { range } = useDateRange();
@@ -144,7 +146,7 @@ const Dashboard = () => {
             differenceInCalendarMonths(start, earliestStartDate) + 1;
           const endMonth =
             differenceInCalendarMonths(end, earliestStartDate) + 1;
-            const color = ch?.custom_funnels?.find(f => f?.name === d?.funnel_stage)?.color
+          const color = ch?.custom_funnels?.find(f => f?.name === d?.funnel_stage)?.color
           return {
             startDate: start,
             endDate: end,
@@ -249,7 +251,7 @@ const Dashboard = () => {
   return (
     <div className="mt-[24px] ">
       <div className="flex items-center gap-3 px-[72px] flex-wrap ">
-        <FiltersDropdowns router={undefined} />
+        <FiltersDropdowns router={router} />
       </div>
       <div className="flex justify-end mb-4 mr-8">
         <Range />
@@ -273,11 +275,10 @@ const Dashboard = () => {
           return acc + (Number(stage?.stage_budget?.fixed_value) || 0);
         }, 0) || 0;
         // Prepare insideText for DoughnutChat
-        const insideText = `${totalSpending.toLocaleString()} ${
-          campaign?.campaign_budget?.currency
-            ? getCurrencySymbol(campaign?.campaign_budget?.currency)
-            : ""
-        }`;
+        const insideText = `${totalSpending.toLocaleString()} ${campaign?.campaign_budget?.currency
+          ? getCurrencySymbol(campaign?.campaign_budget?.currency)
+          : ""
+          }`;
         // Prepare activeFunnels for DoughnutChat
         const activeFunnels = getActiveFunnels(campaign);
 

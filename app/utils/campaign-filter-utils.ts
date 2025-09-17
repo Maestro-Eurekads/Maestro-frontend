@@ -187,11 +187,15 @@ export function extractDateFilters(campaigns: any[]) {
         quarter.add(endQuarter);
       }
 
-      const startMonth = monthNames[startDate.getMonth()];
-      const endMonth = monthNames[endDate.getMonth()];
-      month.add(startMonth);
-      if (startMonth !== endMonth || startYear !== endYear) {
-        month.add(endMonth);
+      // Generate all months between start and end dates
+      const currentDate = new Date(startDate);
+      while (currentDate <= endDate) {
+        const monthName = monthNames[currentDate.getMonth()];
+        month.add(monthName);
+        
+        // Move to next month
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        currentDate.setDate(1); // Ensure we start at the beginning of the next month
       }
     } else if (campaign.createdAt && !isNaN(new Date(campaign.createdAt).getTime())) {
       const createdDate = new Date(campaign.createdAt);
@@ -209,6 +213,84 @@ export function extractDateFilters(campaigns: any[]) {
 
   return {
     year: Array.from(year).sort(),
+    quarter: Array.from(quarter).sort(),
+    month: Array.from(month).sort((a, b) => {
+      const monthOrder = {
+        January: 0, February: 1, March: 2, April: 3, May: 4, June: 5,
+        July: 6, August: 7, September: 8, October: 9, November: 10, December: 11,
+      };
+      return monthOrder[a as keyof typeof monthOrder] - monthOrder[b as keyof typeof monthOrder];
+    }),
+  };
+}
+
+// New function to filter months based on selected year
+export function extractDateFiltersForYear(campaigns: any[], selectedYear?: string) {
+  const quarter = new Set<string>();
+  const month = new Set<string>();
+
+  const monthNames = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+  ];
+
+  if (!selectedYear) {
+    return { quarter: [], month: [] };
+  }
+
+  campaigns?.forEach((campaign) => {
+    const hasTimelineDates =
+      campaign.campaign_timeline_start_date &&
+      campaign.campaign_timeline_end_date &&
+      !isNaN(new Date(campaign.campaign_timeline_start_date).getTime()) &&
+      !isNaN(new Date(campaign.campaign_timeline_end_date).getTime());
+
+    if (hasTimelineDates) {
+      const startDate = new Date(campaign.campaign_timeline_start_date);
+      const endDate = new Date(campaign.campaign_timeline_end_date);
+
+      // Only process campaigns that overlap with the selected year
+      const yearStart = new Date(`${selectedYear}-01-01`);
+      const yearEnd = new Date(`${selectedYear}-12-31`);
+
+      if (startDate <= yearEnd && endDate >= yearStart) {
+        // Clamp dates to the selected year
+        const effectiveStart = new Date(Math.max(startDate.getTime(), yearStart.getTime()));
+        const effectiveEnd = new Date(Math.min(endDate.getTime(), yearEnd.getTime()));
+
+        // Generate quarters
+        const startQuarter = `Q${Math.floor(effectiveStart.getMonth() / 3) + 1}`;
+        const endQuarter = `Q${Math.floor(effectiveEnd.getMonth() / 3) + 1}`;
+        quarter.add(startQuarter);
+        if (startQuarter !== endQuarter) {
+          quarter.add(endQuarter);
+        }
+
+        // Generate all months between effective start and end dates
+        const currentDate = new Date(effectiveStart);
+        while (currentDate <= effectiveEnd) {
+          const monthName = monthNames[currentDate.getMonth()];
+          month.add(monthName);
+          
+          // Move to next month
+          currentDate.setMonth(currentDate.getMonth() + 1);
+          currentDate.setDate(1);
+        }
+      }
+    } else if (campaign.createdAt && !isNaN(new Date(campaign.createdAt).getTime())) {
+      const createdDate = new Date(campaign.createdAt);
+      
+      if (createdDate.getFullYear().toString() === selectedYear) {
+        const createdQuarter = `Q${Math.floor(createdDate.getMonth() / 3) + 1}`;
+        quarter.add(createdQuarter);
+
+        const createdMonth = monthNames[createdDate.getMonth()];
+        month.add(createdMonth);
+      }
+    }
+  });
+
+  return {
     quarter: Array.from(quarter).sort(),
     month: Array.from(month).sort((a, b) => {
       const monthOrder = {
