@@ -201,10 +201,20 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
         }));
       }
     } else {
-      setSelectedFilters((prev) => ({
-        ...prev,
-        [label]: value,
-      }));
+      // When year is selected, reset month and quarter filters
+      if (label === "year") {
+        setSelectedFilters((prev) => ({
+          ...prev,
+          [label]: value,
+          quarter: "",
+          month: "",
+        }));
+      } else {
+        setSelectedFilters((prev) => ({
+          ...prev,
+          [label]: value,
+        }));
+      }
     }
   };
 
