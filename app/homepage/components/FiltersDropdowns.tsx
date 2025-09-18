@@ -246,10 +246,15 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
 
     const yearFilteredData = extractDateFiltersForYear(clientCampaignData, selectedFilters["year"]);
 
+    // If no months found for the selected year, fall back to original months
+    // This ensures the filter doesn't become completely empty
+    const finalMonths = yearFilteredData.month.length > 0 ? yearFilteredData.month : filterOptions.month || [];
+    const finalQuarters = yearFilteredData.quarter.length > 0 ? yearFilteredData.quarter : filterOptions.quarter || [];
+
     return {
       ...filterOptions,
-      month: yearFilteredData.month,
-      quarter: yearFilteredData.quarter,
+      month: finalMonths,
+      quarter: finalQuarters,
     };
   }, [filterOptions, selectedFilters["year"], clientCampaignData, isYearSelected]);
 

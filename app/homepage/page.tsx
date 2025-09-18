@@ -8,6 +8,7 @@ import Dashboard from "./components/Dashboard";
 import FinanceView from "./components/FinanceView";
 import AddFinanceModal from "./components/AddFinanceModal";
 import ViewClientModal from "./components/ViewClientModal";
+import { useComments } from "app/utils/CommentProvider";
 
 const Homepage = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -16,6 +17,7 @@ const Homepage = () => {
   const [openModal, setOpenModal] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
   const [userRole, setUserRole] = useState("guest"); // Assuming a default role
+  const { clearCommentStates } = useComments();
 
   // Clear channel state only when starting a new plan, not when continuing existing ones
   React.useEffect(() => {
@@ -67,8 +69,11 @@ const Homepage = () => {
             delete (window as any).__newPlanSessionId;
           }
 
+          // Also clear comment states when starting a fresh plan
+          clearCommentStates();
+
           console.log(
-            "Cleared channel state on homepage load - starting fresh plan"
+            "Cleared channel state and comment states on homepage load - starting fresh plan"
           );
         } else {
           console.log(

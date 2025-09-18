@@ -64,7 +64,7 @@ export const SetupScreen = () => {
   const { client_selection } = campaignFormData || {};
   const [isInitialized, setIsInitialized] = useState(false);
   const [users, setUsers] = useState({ agencyAccess: [], clientAccess: [] });
-  const { setIsDrawerOpen, setClose } = useComments();
+  const { setIsDrawerOpen, setClose, clearCommentStates } = useComments();
   const { isAdmin, userID } = useUserPrivileges();
   const [internalapproverOptions, setInternalApproverOptions] = useState<
     DropdownOption[]
@@ -103,6 +103,10 @@ export const SetupScreen = () => {
   useEffect(() => {
     setIsDrawerOpen(false);
     setClose(false);
+
+    // Reset comment success states when starting a new plan (Step 0)
+    clearCommentStates();
+
     const cached = localStorage.getItem("filteredClient");
     const storedClientId = localStorage.getItem(userID);
     setClientId(storedClientId);
@@ -110,7 +114,7 @@ export const SetupScreen = () => {
       try {
         const parsed = JSON.parse(cached);
         setFC(parsed);
-      } catch (err) {}
+      } catch (err) { }
     }
   }, []);
 
@@ -243,14 +247,14 @@ export const SetupScreen = () => {
         const normalizeApprovers = (approvers: any[]) =>
           Array.isArray(approvers)
             ? approvers?.map((val: any) =>
-                typeof val === "string"
-                  ? { id: "", clientId: "", value: val }
-                  : {
-                      id: val?.id ?? "",
-                      clientId: val?.clientId ?? "",
-                      value: val?.value ?? "",
-                    }
-              )
+              typeof val === "string"
+                ? { id: "", clientId: "", value: val }
+                : {
+                  id: val?.id ?? "",
+                  clientId: val?.clientId ?? "",
+                  value: val?.value ?? "",
+                }
+            )
             : [];
 
         setCampaignFormData({
