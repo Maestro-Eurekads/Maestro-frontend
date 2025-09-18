@@ -174,6 +174,38 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
         backgroundSize: `calc(250px) 100%`,
       }}
     >
+      {/* Grid overlay: daily vertical lines per month column */}
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <div
+          className="absolute inset-0"
+          style={{
+            display: "grid",
+            gridTemplateColumns: `repeat(${monthsCount}, 250px)`,
+          }}
+        >
+          {(() => {
+            const monthKeys = buildMonthKeys();
+            return monthKeys.map((key, i) => {
+              const [yearStr, monthStr] = (key as string).split("-");
+              const year = parseInt(yearStr, 10);
+              const month = parseInt(monthStr, 10); // 1-12
+              const days = new Date(year, month, 0).getDate();
+              const perDayPx = 250 / (days || 30);
+              return (
+                <div
+                  key={`${key}-${i}`}
+                  style={{
+                    backgroundImage: `repeating-linear-gradient(to right, rgba(8,102,255,0.15) 0 1px, transparent 1px ${perDayPx}px)`,
+                    backgroundSize: `${perDayPx}px 100%`,
+                    backgroundPosition: `left top`,
+                  }}
+                />
+              );
+            });
+          })()}
+        </div>
+      </div>
+      <div className="relative z-[1]">
       {funnels?.map(
         (
           { startWeek, endWeek, label, budget, stages, endMonth, startMonth, startDate, endDate },
@@ -394,6 +426,7 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
           );
         }
       )}
+      </div>
     </div>
   );
 };

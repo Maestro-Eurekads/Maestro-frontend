@@ -115,7 +115,8 @@ const Dropdown = ({
 
       {isOpen && (
         <div
-          className="absolute left-0 bg-white border border-[#EFEFEF] rounded-md shadow-lg mt-2 z-10"
+          className="absolute left-0 bg-white border border-[#EFEFEF] rounded-md shadow-lg mt-2 z-[1000]"
+          style={{ minWidth: triggerWidth, maxWidth: 360 }}
           ref={dropdownContentRef}>
           <div
             className={`max-h-[200px] overflow-y-auto ${

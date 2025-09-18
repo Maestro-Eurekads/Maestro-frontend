@@ -248,7 +248,7 @@ const Dashboard = () => {
 
   return (
     <div className="mt-[24px] ">
-      <div className="flex items-center gap-3 px-[72px] flex-wrap ">
+      <div className="flex items-center gap-3 px-[72px] flex-wrap relative z-[1100]">
         <FiltersDropdowns router={undefined} />
       </div>
       <div className="flex justify-end mb-4 mr-8">

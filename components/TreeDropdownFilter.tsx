@@ -86,6 +86,8 @@ const TreeDropdownFilter: React.FC<Props> = ({
         allowClear
         disabled={isDisabled}
         style={{ width: "100%", height: "100%" }}
+        getPopupContainer={(trigger) => document.body}
+        dropdownStyle={{ zIndex: 2000 }}
         size="large"
         className="custom-tree-select"
       />
