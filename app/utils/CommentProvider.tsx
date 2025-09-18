@@ -231,7 +231,7 @@ export const CommentProvider = ({ children }) => {
         } else {
           console.log("No signed approvals found to delete");
         }
-      } catch (deleteError) {}
+      } catch (deleteError) { }
 
       setOpportunities([]);
       localStorage.setItem("opportunities", JSON.stringify(null));
@@ -426,6 +426,16 @@ export const CommentProvider = ({ children }) => {
   };
 
   // Function to clear all comments & opportunities
+  const clearCommentStates = () => {
+    setCreateCommentsSuccess(false);
+    setGeneralcommentsSuccess(false);
+    setGeneralcommentsUpdateSuccess(false);
+    setCreateApprovalSuccess(false);
+    setCreateCommentsError(null);
+    setReplyError(null);
+    setApprovedError(null);
+    setGeneralError(null);
+  };
 
   // Function to delete signed approval by ID
   const deleteSignedApproval = async (approvalId: string) => {
@@ -523,6 +533,7 @@ export const CommentProvider = ({ children }) => {
         setShow,
         setIsLoadingSaveProgress,
         isLoadingSaveProgress,
+        clearCommentStates,
       }}>
       {children}
     </CommentContext.Provider>

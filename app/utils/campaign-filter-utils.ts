@@ -250,31 +250,38 @@ export function extractDateFiltersForYear(campaigns: any[], selectedYear?: strin
       const endDate = new Date(campaign.campaign_timeline_end_date);
 
       // Only process campaigns that overlap with the selected year
-      const yearStart = new Date(`${selectedYear}-01-01`);
-      const yearEnd = new Date(`${selectedYear}-12-31`);
+      const yearStart = new Date(parseInt(selectedYear), 0, 1); // Use parseInt and month 0 for January
+      const yearEnd = new Date(parseInt(selectedYear), 11, 31); // Month 11 for December
 
       if (startDate <= yearEnd && endDate >= yearStart) {
-        // Clamp dates to the selected year
+        // Clamp dates to the selected year boundaries
         const effectiveStart = new Date(Math.max(startDate.getTime(), yearStart.getTime()));
         const effectiveEnd = new Date(Math.min(endDate.getTime(), yearEnd.getTime()));
 
-        // Generate quarters
-        const startQuarter = `Q${Math.floor(effectiveStart.getMonth() / 3) + 1}`;
-        const endQuarter = `Q${Math.floor(effectiveEnd.getMonth() / 3) + 1}`;
-        quarter.add(startQuarter);
-        if (startQuarter !== endQuarter) {
-          quarter.add(endQuarter);
+        // Generate all quarters between effective start and end dates
+        let currentQuarter = Math.floor(effectiveStart.getMonth() / 3) + 1;
+        const endQuarter = Math.floor(effectiveEnd.getMonth() / 3) + 1;
+        
+        while (currentQuarter <= endQuarter) {
+          quarter.add(`Q${currentQuarter}`);
+          currentQuarter++;
         }
 
         // Generate all months between effective start and end dates
-        const currentDate = new Date(effectiveStart);
-        while (currentDate <= effectiveEnd) {
+        // Create a new date object to avoid mutation issues
+        const currentDate = new Date(effectiveStart.getFullYear(), effectiveStart.getMonth(), 1);
+        const endMonth = effectiveEnd.getMonth();
+        const endYear = effectiveEnd.getFullYear();
+        
+        while (
+          currentDate.getFullYear() < endYear || 
+          (currentDate.getFullYear() === endYear && currentDate.getMonth() <= endMonth)
+        ) {
           const monthName = monthNames[currentDate.getMonth()];
           month.add(monthName);
           
-          // Move to next month
+          // Move to next month safely
           currentDate.setMonth(currentDate.getMonth() + 1);
-          currentDate.setDate(1);
         }
       }
     } else if (campaign.createdAt && !isNaN(new Date(campaign.createdAt).getTime())) {
