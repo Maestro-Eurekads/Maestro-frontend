@@ -55,7 +55,7 @@ interface ClientPO {
   PO_status: string;
 }
 
-const Table = () => {
+const Table = ({ forceLoading = false }: { forceLoading?: boolean }) => {
   const {
     clientCampaignData,
     loading,
@@ -217,7 +217,7 @@ const Table = () => {
             </tr>
           </thead>
           <tbody className="data-table-content">
-            {loading || fetchingPO ? (
+            {loading || fetchingPO || forceLoading ? (
               <SVGLoaderFetch colSpan={9} text={"Loading client campaigns"} />
             ) : campaignArray?.length === 0 ? (
               <NoRecordFound colSpan={9}>No Client campaigns!</NoRecordFound>
@@ -414,7 +414,7 @@ const Table = () => {
       </div>
 
       {/* Pagination Controls */}
-      {!loadingg && campaignArray?.length > 0 && (
+      {!loadingg && !loading && !fetchingPO && !forceLoading && campaignArray?.length > 0 && (
         <div className="flex items-center justify-between mt-4 px-4">
           <div className="text-sm text-gray-600">
             Showing {indexOfFirstItem + 1} to{" "}

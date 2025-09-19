@@ -83,6 +83,7 @@ const Header = ({ setIsOpen, setIsView }) => {
   const [selected, setSelected] = useState("");
 
   const latestFetchRef = useRef(null);
+  const previousClientRef = useRef<string>("");
 
   const clients: any = getCreateClientData;
 
@@ -395,6 +396,13 @@ const Header = ({ setIsOpen, setIsView }) => {
                     } catch (error) { }
                   };
 
+                  // Clear existing data IMMEDIATELY to prevent stale data display
+                  setClientCampaignData([]);
+                  setLoading(true);
+
+                  // Store previous client for comparison
+                  previousClientRef.current = selectedId || "";
+
                   // Clear campaign data and reset context
                   clearCampaignData();
                   setCampaignFormData({});
@@ -408,26 +416,59 @@ const Header = ({ setIsOpen, setIsView }) => {
                   setSelected(value?.value);
                   setSelectedId(value?.value);
                   setSelectedClient(value?.value);
-                  setClientCampaignData([]);
-                  setLoading(true);
+
+                  // Force immediate re-render to clear the UI
+                  setTimeout(() => {
+                    setClientCampaignData([]);
+                  }, 0);
 
                   // Set a unique token for this fetch
                   const fetchToken = Symbol();
                   latestFetchRef.current = fetchToken;
 
-                  fetchClientCampaign(value.value, agencyId)
-                    .then((res) => {
-                      // Only update if this is the latest fetch
-                      if (latestFetchRef.current === fetchToken) {
-                        setClientCampaignData(res?.data?.data || []);
-                        setLoading(false);
-                      }
-                    })
-                    .catch(() => {
-                      if (latestFetchRef.current === fetchToken) {
-                        setLoading(false);
-                      }
-                    });
+                  // Add a small delay to ensure state updates are processed
+                  setTimeout(() => {
+                    fetchClientCampaign(value.value, agencyId)
+                      .then((res) => {
+                        // Only update if this is the latest fetch
+                        if (latestFetchRef.current === fetchToken) {
+                          const campaigns = res?.data?.data || [];
+                          setClientCampaignData(campaigns);
+
+                          // Also update filter options based on new campaigns
+                          if (campaigns.length > 0) {
+                            const filteredClient = clients?.data?.find(
+                              (client) => client?.id === Number(value.value)
+                            );
+
+                            if (filteredClient) {
+                              const dateData = extractDateFilters(campaigns);
+                              const mediaData = extractAprroverFilters(campaigns);
+                              const channelData = extractChannelAndPhase(campaigns);
+                              const levelData = extractLevelFilters(campaigns);
+                              const levelNames = extractLevelNameFilters(filteredClient);
+
+                              setFilterOptions((prev) => ({
+                                ...prev,
+                                ...dateData,
+                                ...mediaData,
+                                ...channelData,
+                                ...levelData,
+                                ...levelNames,
+                              }));
+                            }
+                          }
+
+                          setLoading(false);
+                        }
+                      })
+                      .catch((err) => {
+                        console.error("Error fetching client campaigns:", err);
+                        if (latestFetchRef.current === fetchToken) {
+                          setLoading(false);
+                        }
+                      });
+                  }, 100);
                 }
               }}
               value={(isAdmin ? clients?.data : profile?.clients)
