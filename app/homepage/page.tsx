@@ -9,6 +9,8 @@ import FinanceView from "./components/FinanceView";
 import AddFinanceModal from "./components/AddFinanceModal";
 import ViewClientModal from "./components/ViewClientModal";
 import { useComments } from "app/utils/CommentProvider";
+import { useCampaigns } from "app/utils/CampaignsContext";
+import useCampaignHook from "app/utils/useCampaignHook";
 
 const Homepage = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -18,6 +20,8 @@ const Homepage = () => {
   const [selectedRow, setSelectedRow] = useState(null);
   const [userRole, setUserRole] = useState("guest"); // Assuming a default role
   const { clearCommentStates } = useComments();
+  const { setClientCampaignData, selectedId, agencyId } = useCampaigns();
+  const { fetchClientCampaign } = useCampaignHook();
 
   // Clear channel state only when starting a new plan, not when continuing existing ones
   React.useEffect(() => {
@@ -85,6 +89,24 @@ const Homepage = () => {
       }
     }
   }, []);
+
+  // Refresh client data when returning to homepage from a plan
+  React.useEffect(() => {
+    if (selectedId && agencyId && active === "Overview") {
+      // Small delay to ensure the component is mounted
+      const timeoutId = setTimeout(() => {
+        fetchClientCampaign(selectedId, agencyId)
+          .then((res) => {
+            setClientCampaignData(res?.data?.data || []);
+          })
+          .catch((err) => {
+            console.error("Error refreshing client data:", err);
+          });
+      }, 100);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [selectedId, agencyId, active, fetchClientCampaign, setClientCampaignData]);
 
   return (
     <>
