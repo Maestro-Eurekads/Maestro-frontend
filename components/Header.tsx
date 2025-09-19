@@ -6,8 +6,9 @@ import Link from "next/link";
 import { useCampaigns } from "../app/utils/CampaignsContext";
 import { FiLoader } from "react-icons/fi";
 import useCampaignHook from "../app/utils/useCampaignHook";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "store/useStore";
+import { createSelector } from "@reduxjs/toolkit";
 import AlertMain from "./Alert/AlertMain";
 import { getCreateClient } from "features/Client/clientSlice"; // Removed unused 'reset'
 import { reset } from "features/Comment/commentSlice";
@@ -36,9 +37,19 @@ const Header = ({ setIsOpen, setIsView }) => {
   const { isAdmin, isAgencyApprover, isFinancialApprover, isAgencyCreator } =
     useUserPrivileges();
 
-  const { getCreateClientData, getCreateClientIsLoading } = useAppSelector(
-    (state) => state.client
+  // Memoized selectors to prevent unnecessary re-renders
+  const selectClientData = createSelector(
+    [(state: any) => state.client?.getCreateClientData],
+    (data) => data
   );
+
+  const selectClientLoading = createSelector(
+    [(state: any) => state.client?.getCreateClientIsLoading],
+    (loading) => loading || false
+  );
+
+  const getCreateClientData = useAppSelector(selectClientData);
+  const getCreateClientIsLoading = useAppSelector(selectClientLoading);
 
   const {
     setClientCampaignData,
@@ -259,8 +270,8 @@ const Header = ({ setIsOpen, setIsView }) => {
         }
       });
 
-      
-    } catch (error) { 
+
+    } catch (error) {
     }
   };
 
@@ -287,9 +298,8 @@ const Header = ({ setIsOpen, setIsView }) => {
         ) : (
           <>
             <CustomSelect
-              key={`client-select-${isAdmin ? "admin" : "user"}-${
-                clients?.data?.length || 0
-              }-${profile?.clients?.length || 0}`}
+              key={`client-select-${isAdmin ? "admin" : "user"}-${clients?.data?.length || 0
+                }-${profile?.clients?.length || 0}`}
               options={clientOptions}
               className="min-w-[150px] z-[20]"
               placeholder="Search"
@@ -382,7 +392,7 @@ const Header = ({ setIsOpen, setIsView }) => {
                           localStorage.removeItem(key);
                         }
                       });
-                    } catch (error) {}
+                    } catch (error) { }
                   };
 
                   // Clear campaign data and reset context
@@ -432,11 +442,10 @@ const Header = ({ setIsOpen, setIsView }) => {
             />
 
             <button
-              className={`new_plan_btn ml-8 mr-4 ${
-                !profile?.clients || !clients?.data || !selectedId
-                  ? "!bg-gray-400 cursor-not-allowed"
-                  : ""
-              }`}
+              className={`new_plan_btn ml-8 mr-4 ${!profile?.clients || !clients?.data || !selectedId
+                ? "!bg-gray-400 cursor-not-allowed"
+                : ""
+                }`}
               disabled={!profile?.clients || !clients?.data || !selectedId}
               onClick={() => {
                 if (isAgencyCreator) {
@@ -472,45 +481,53 @@ const Header = ({ setIsOpen, setIsView }) => {
             isFinancialApprover ||
             isAgencyApprover ||
             isAgencyCreator) && (
-            <Link
-              href={`/creation`}
-              onClick={() => {
-                // Set flag to indicate this is a new plan navigation
-                if (typeof window !== "undefined") {
-                  sessionStorage.setItem("isNewPlanNavigation", "true");
-                }
+              <Link
+                href={`/creation`}
+                onClick={() => {
+                  // Set flag to indicate this is a new plan navigation
+                  if (typeof window !== "undefined") {
+                    sessionStorage.setItem("isNewPlanNavigation", "true");
+                  }
 
-                // Clear all campaign data comprehensively
-                clearCampaignData();
+                  // Clear all campaign data comprehensively
+                  clearCampaignData();
 
-                // Reset context state
-                setCampaignFormData({});
-                setCampaignData(null);
-                setActive(0);
-                setSubStep(0);
-                setSelectedDates({
-                  from: null,
-                  to: null,
-                });
+                  // Reset context state
+                  setCampaignFormData({});
+                  setCampaignData(null);
+                  setActive(0);
+                  setSubStep(0);
+                  setSelectedDates({
+                    from: null,
+                    to: null,
+                  });
 
-                // Clear any pending changes
-                setChange(false);
+                  // Clear any pending changes
+                  setChange(false);
 
-                // Reset Redux state
-                dispatch(reset());
-              }}>
-              <button
-                className={`new_plan_btn ${
-                  !profile?.clients || !clients?.data || !selectedId
+                  // Reset Redux state
+                  // dispatch(reset());
+
+                  // Clear the new plan session ID to ensure complete isolation for new plans
+                  // This prevents audience data from previous plans from appearing in new plans
+                  if (typeof window !== "undefined") {
+                    if ((window as any).__newPlanSessionId) {
+                      delete (window as any).__newPlanSessionId;
+                      console.log("Cleared new plan session ID for fresh plan creation from header");
+                    }
+                  }
+                }}>
+                <button
+                  className={`new_plan_btn ${!profile?.clients || !clients?.data || !selectedId
                     ? "!bg-gray-400"
                     : ""
-                }`}
-                disabled={!profile?.clients || !clients?.data || !selectedId}>
-                <Image src={white} alt="white" />
-                <p className="new_plan_btn_text">New media plan</p>
-              </button>
-            </Link>
-          )}
+                    }`}
+                  disabled={!profile?.clients || !clients?.data || !selectedId}>
+                  <Image src={white} alt="white" />
+                  <p className="new_plan_btn_text">New media plan</p>
+                </button>
+              </Link>
+            )}
 
           <div
             className="profile_container"

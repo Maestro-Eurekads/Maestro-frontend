@@ -15,6 +15,16 @@ const Overview = () => {
     setCampaignFormData({})
     setActive(0)
     setSubStep(0)
+
+    // Clear the new plan session ID to ensure complete isolation for new plans
+    // This prevents audience data from previous plans from appearing in new plans
+    if (typeof window !== "undefined") {
+      if ((window as any).__newPlanSessionId) {
+        delete (window as any).__newPlanSessionId;
+        console.log("Cleared new plan session ID for fresh plan creation");
+      }
+    }
+
     router.push('/creation')
   }
 

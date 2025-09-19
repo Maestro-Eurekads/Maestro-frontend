@@ -1,21 +1,8 @@
 "use client"
 import React, { useState } from 'react'
 import Image from "next/image";
-import speaker from '../../../public/mdi_megaphone.svg';
 import up from '../../../public/arrow-down.svg';
 import down2 from '../../../public/arrow-down-2.svg';
-import facebook from '../../../public/facebook.svg';
-import ig from '../../../public/ig.svg';
-import tictok from '../../../public/tictok.svg';
-import youtube from '../../../public/youtube.svg';
-import x from '../../../public/x.svg';
-import linkedin from '../../../public/linkedin.svg';
-import TheTradeDesk from '../../../public/TheTradeDesk.svg';
-import Quantcast from '../../../public/quantcast.svg';
-import Display from '../../../public/Display.svg';
-import Google from '../../../public/Google.svg';
-import yahoo from '../../../public/yahoo.svg';
-import bing from '../../../public/bing.svg';
 import orangecredit from '../../../public/orangecredit-card.svg';
 import tablerzoomfilled from '../../../public/tabler_zoom-filled.svg';
 import { Platforms } from './FormatSelection';
