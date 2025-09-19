@@ -40,7 +40,7 @@ const CustomAudienceTypesContext = createContext<{
   addCustomAudienceType: (type: string) => void;
 }>({
   customAudienceTypes: [],
-  addCustomAudienceType: () => {},
+  addCustomAudienceType: () => { },
 });
 
 // Helper for thousand separator
@@ -138,7 +138,7 @@ const DropdownContext = createContext<{
   setOpenDropdownId: (id: number | null | string) => void;
 }>({
   openDropdownId: null,
-  setOpenDropdownId: () => {},
+  setOpenDropdownId: () => { },
 });
 
 // Utility functions
@@ -241,14 +241,22 @@ const getChannelStateKey = (campaignId?: string | number) => {
   // For new plans without campaign ID, create a unique session ID
   // This prevents data from previous plans from being mixed into new plans
   if (typeof window !== "undefined") {
-    // Check if we already have a session ID for this page load
+    // Check if we need to generate a new session ID
+    // This should happen when starting a completely new plan
     if (!(window as any).__newPlanSessionId) {
-      (
-        window as any
-      ).__newPlanSessionId = `new_plan_${Date.now()}_${Math.random()
-        .toString(36)
-        .substr(2, 9)}`;
+      // Always generate a fresh session ID for new plans to ensure complete isolation
+      // This prevents audience data from previous plans from appearing in new plans
+      const timestamp = Date.now();
+      const randomSuffix = Math.random().toString(36).substr(2, 9);
+      const uniqueId = `new_plan_${timestamp}_${randomSuffix}`;
+      (window as any).__newPlanSessionId = uniqueId;
+
+      console.log("Generated new plan session ID:", {
+        sessionId: uniqueId,
+        timestamp: new Date(timestamp).toISOString(),
+      });
     }
+
     return `channelLevelAudienceState_${(window as any).__newPlanSessionId}`;
   }
 
@@ -265,8 +273,9 @@ const loadChannelStateFromStorage = (campaignId?: string | number) => {
     let stored = sessionStorage.getItem(key);
     let source = "sessionStorage";
 
-    // If no sessionStorage data, try localStorage for persistence
-    if (!stored) {
+    // ONLY load from localStorage if we have a valid campaign ID
+    // This prevents audience data from previous plans from leaking into new plans
+    if (!stored && campaignId) {
       const localStorageKey = `persistent_${key}`;
       stored = localStorage.getItem(localStorageKey);
       source = "localStorage";
@@ -287,6 +296,13 @@ const loadChannelStateFromStorage = (campaignId?: string | number) => {
           console.error("Error restoring to sessionStorage:", restoreError);
         }
       }
+    } else if (!stored && !campaignId) {
+      // For new plans without campaign ID, explicitly return empty state
+      // This ensures no previous plan data is loaded
+      console.log("New plan detected - starting with clean audience state:", {
+        key,
+        isNewPlan: true,
+      });
     }
 
     const result = stored ? JSON.parse(stored) : {};
@@ -294,6 +310,7 @@ const loadChannelStateFromStorage = (campaignId?: string | number) => {
       source,
       key,
       hasData: Object.keys(result).length > 0,
+      isNewPlan: !campaignId,
     });
 
     return result;
@@ -364,8 +381,13 @@ export const mergeChannelAudienceIntoCampaign = (
 
   try {
     const key = getChannelStateKey(campaignId);
-    const stored =
-      sessionStorage.getItem(key) || localStorage.getItem(`persistent_${key}`);
+    let stored = sessionStorage.getItem(key);
+
+    // ONLY load from localStorage if we have a valid campaign ID
+    // This prevents audience data from previous plans from leaking into new plans
+    if (!stored && campaignId) {
+      stored = localStorage.getItem(`persistent_${key}`);
+    }
 
     if (!stored) return campaignData;
 
@@ -675,9 +697,8 @@ const AdSet = memo(function AdSet({
           value={channelAudience.name}
           onChange={(e) => handleChannelAudienceChange("name", e.target.value)}
           disabled={!isEditing}
-          className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[160px] ${
-            !isEditing ? "cursor-not-allowed" : ""
-          }`}
+          className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[160px] ${!isEditing ? "cursor-not-allowed" : ""
+            }`}
         />
         <input
           type="text"
@@ -689,9 +710,8 @@ const AdSet = memo(function AdSet({
             handleChannelAudienceChange("size", inputValue);
           }}
           disabled={!isEditing}
-          className={`text-black text-sm font-semibold flex gap-4 items-center border border-[#D0D5DD] py-4 px-2 rounded-[10px] h-[52px] w-[100px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-            !isEditing ? "cursor-not-allowed" : ""
-          }`}
+          className={`text-black text-sm font-semibold flex gap-4 items-center border border-[#D0D5DD] py-4 px-2 rounded-[10px] h-[52px] w-[100px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${!isEditing ? "cursor-not-allowed" : ""
+            }`}
           inputMode="numeric"
           pattern="[0-9,]*"
         />
@@ -703,9 +723,8 @@ const AdSet = memo(function AdSet({
             handleChannelAudienceChange("description", e.target.value)
           }
           disabled={!isEditing}
-          className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[120px] ${
-            !isEditing ? "cursor-not-allowed" : ""
-          }`}
+          className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[120px] ${!isEditing ? "cursor-not-allowed" : ""
+            }`}
         />
       </div>
     );
@@ -773,9 +792,8 @@ const AdSet = memo(function AdSet({
                 <button
                   disabled={!isEditing}
                   onClick={() => handleDeleteExtraAudience(index)}
-                  className={`flex items-center justify-center rounded-full px-4 py-2 bg-[#FF5955] text-white ${
-                    !isEditing ? "cursor-not-allowed opacity-50" : ""
-                  }`}>
+                  className={`flex items-center justify-center rounded-full px-4 py-2 bg-[#FF5955] text-white ${!isEditing ? "cursor-not-allowed opacity-50" : ""
+                    }`}>
                   <MdDelete />{" "}
                   <span className="text-white font-bold">Delete</span>
                 </button>
@@ -783,11 +801,10 @@ const AdSet = memo(function AdSet({
             ))}
           </div>
           <button
-            className={`text-[14px] mt-2 font-semibold flex items-center gap-1 ${
-              canAddNewAudience && extraAudience?.length < 10
+            className={`text-[14px] mt-2 font-semibold flex items-center gap-1 ${canAddNewAudience && extraAudience?.length < 10
                 ? "text-[#3175FF] cursor-pointer"
                 : "text-gray-400 cursor-not-allowed"
-            }`}
+              }`}
             onClick={() => {
               if (canAddNewAudience) {
                 const updated = [
@@ -809,9 +826,8 @@ const AdSet = memo(function AdSet({
         value={name}
         onChange={handleNameChange}
         disabled={!isEditing}
-        className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[120px] ${
-          !isEditing ? "cursor-not-allowed" : ""
-        }`}
+        className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[120px] ${!isEditing ? "cursor-not-allowed" : ""
+          }`}
       />
       <input
         type="text"
@@ -819,9 +835,8 @@ const AdSet = memo(function AdSet({
         value={formatWithThousandSeparator(size)}
         onChange={handleSizeChange}
         disabled={!isEditing}
-        className={`text-black text-sm font-semibold flex gap-4 items-center border border-[#D0D5DD] py-4 px-2 rounded-[10px] h-[52px] w-[80px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-          !isEditing ? "cursor-not-allowed" : ""
-        }`}
+        className={`text-black text-sm font-semibold flex gap-4 items-center border border-[#D0D5DD] py-4 px-2 rounded-[10px] h-[52px] w-[80px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${!isEditing ? "cursor-not-allowed" : ""
+          }`}
         inputMode="numeric"
         pattern="[0-9,]*"
       />
@@ -831,17 +846,15 @@ const AdSet = memo(function AdSet({
         value={description}
         onChange={handleDescriptionChange}
         disabled={!isEditing}
-        className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[100px] ${
-          !isEditing ? "cursor-not-allowed" : ""
-        }`}
+        className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[100px] ${!isEditing ? "cursor-not-allowed" : ""
+          }`}
       />
       <div className="flex items-center gap-2">
         <button
           disabled={!isEditing}
           onClick={() => onDelete(adset?.id)}
-          className={`flex items-center gap-2 rounded-full px-3 py-2 bg-[#FF5955] text-white text-sm font-bold ${
-            !isEditing ? "cursor-not-allowed opacity-50" : ""
-          }`}>
+          className={`flex items-center gap-2 rounded-full px-3 py-2 bg-[#FF5955] text-white text-sm font-bold ${!isEditing ? "cursor-not-allowed opacity-50" : ""
+            }`}>
           <MdDelete /> <span>Delete</span>
         </button>
         {/* "New ad set" button on the same line as delete */}
@@ -849,9 +862,8 @@ const AdSet = memo(function AdSet({
           <button
             onClick={onAddNewAdSet}
             disabled={adsets?.length >= 10}
-            className={`flex gap-2 items-center text-white ${
-              adsets?.length >= 10 ? "bg-gray-400" : "bg-[#3175FF]"
-            } px-3 py-2 rounded-full text-sm font-bold`}
+            className={`flex gap-2 items-center text-white ${adsets?.length >= 10 ? "bg-gray-400" : "bg-[#3175FF]"
+              } px-3 py-2 rounded-full text-sm font-bold`}
             style={{ minWidth: 0 }}>
             <MdAdd />
             <span>{adsets?.length >= 10 ? "Max" : "New ad set"}</span>
@@ -880,7 +892,7 @@ const AudienceDropdownWithCallback = memo(
 
     // Provide fallbacks if contexts are not available
     const { openDropdownId, setOpenDropdownId } = dropdownContext || {};
-    const { customAudienceTypes = [], addCustomAudienceType = () => {} } =
+    const { customAudienceTypes = [], addCustomAudienceType = () => { } } =
       customAudienceContext || {};
     const { jwt, agencyData } = campaignsContext || {};
 
@@ -1066,9 +1078,8 @@ const AudienceDropdownWithCallback = memo(
               {selected || "Your audience type"}
             </span>
             <svg
-              className={`h-4 w-4 flex-shrink-0 transition-transform ${
-                isOpen ? "rotate-180" : ""
-              }`}
+              className={`h-4 w-4 flex-shrink-0 transition-transform ${isOpen ? "rotate-180" : ""
+                }`}
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -1966,9 +1977,8 @@ const AdsetSettings = memo(function AdsetSettings({
   // Reduce vertical space between channels for channel granularity
   return (
     <div
-      className={`flex flex-col w-full max-w-[1024px] ${
-        effectiveGranularity === "channel" ? "gap-1" : "gap-2"
-      }`}
+      className={`flex flex-col w-full max-w-[1024px] ${effectiveGranularity === "channel" ? "gap-1" : "gap-2"
+        }`}
       style={
         effectiveGranularity === "channel"
           ? { marginTop: 4, marginBottom: 4, paddingTop: 4, paddingBottom: 4 }
@@ -1987,9 +1997,8 @@ const AdsetSettings = memo(function AdsetSettings({
             />
             <span className="text-[#061237] font-medium">{outlet.outlet}</span>
             <FaAngleRight
-              className={`transition-transform duration-200 ${
-                isCollapsed ? "" : "rotate-90"
-              }`}
+              className={`transition-transform duration-200 ${isCollapsed ? "" : "rotate-90"
+                }`}
             />
           </button>
         </div>
@@ -2002,12 +2011,12 @@ const AdsetSettings = memo(function AdsetSettings({
             style={
               effectiveGranularity === "channel"
                 ? {
-                    minHeight: "0px",
-                    marginTop: 4,
-                    marginBottom: 4,
-                    paddingTop: 4,
-                    paddingBottom: 4,
-                  }
+                  minHeight: "0px",
+                  marginTop: 4,
+                  marginBottom: 4,
+                  paddingTop: 4,
+                  paddingBottom: 4,
+                }
                 : { minHeight: `${Math.max(194, (adsets?.length + 1) * 80)}px` }
             }>
             {adsets?.length > 0 && (
@@ -2019,15 +2028,15 @@ const AdsetSettings = memo(function AdsetSettings({
                     style={
                       effectiveGranularity === "channel"
                         ? {
-                            marginTop: 4,
-                            marginBottom: 4,
-                            paddingTop: 0,
-                            paddingBottom: 0,
-                          }
+                          marginTop: 4,
+                          marginBottom: 4,
+                          paddingTop: 0,
+                          paddingBottom: 0,
+                        }
                         : {
-                            marginTop: index === 0 ? "20px" : "0px",
-                            marginBottom: "20px",
-                          }
+                          marginTop: index === 0 ? "20px" : "0px",
+                          marginBottom: "20px",
+                        }
                     }>
                     <AdSet
                       key={adset.id}
@@ -2164,7 +2173,7 @@ const AdSetFlow = memo(function AdSetFlow({
           if (stored) {
             return JSON.parse(stored);
           }
-        } catch (e) {}
+        } catch (e) { }
       }
       return [];
     }
@@ -2401,12 +2410,12 @@ const AdSetFlow = memo(function AdSetFlow({
 
   const cleanData = campaignData
     ? removeKeysRecursively(campaignData, [
-        "id",
-        "documentId",
-        "createdAt",
-        "publishedAt",
-        "updatedAt",
-      ])
+      "id",
+      "documentId",
+      "createdAt",
+      "publishedAt",
+      "updatedAt",
+    ])
     : {};
 
   const handleStepThree = async () => {
@@ -2422,7 +2431,7 @@ const AdSetFlow = memo(function AdSetFlow({
         setIsEditing(false);
         onValidate();
       })
-      .catch((err) => {})
+      .catch((err) => { })
       .finally(() => {
         setLoading(false);
       });
@@ -2464,47 +2473,28 @@ const AdSetFlow = memo(function AdSetFlow({
         addCustomAudienceType,
       }}>
       <div
-        className={`w-full p-4 ${
-          effectiveGranularity === "channel" ? "space-y-4" : "space-y-4"
-        }`}
+        className={`w-full p-4 ${effectiveGranularity === "channel" ? "space-y-4" : "space-y-4"
+          }`}
         style={
           effectiveGranularity === "channel"
             ? {
-                marginTop: 12,
-                marginBottom: 4,
-                paddingTop: 4,
-                paddingBottom: 4,
-              }
+              marginTop: 12,
+              marginBottom: 4,
+              paddingTop: 4,
+              paddingBottom: 4,
+            }
             : {}
         }>
         {platformName
           ? platforms[stageName]
-              ?.filter((outlet) =>
-                Array.isArray(platformName)
-                  ? platformName.includes(outlet?.outlet)
-                  : outlet?.outlet === platformName
-              )
-              .map((outlet) => (
-                <AdsetSettings
-                  key={outlet?.id}
-                  outlet={outlet}
-                  stageName={stageName}
-                  onInteraction={handleInteraction}
-                  defaultOpen={autoOpen[stageName]?.includes(outlet.outlet)}
-                  isCollapsed={collapsedOutlets[outlet.outlet] ?? false}
-                  setCollapsed={(collapsed) =>
-                    setCollapsedOutlets((prev) => ({
-                      ...prev,
-                      [outlet.outlet]: collapsed,
-                    }))
-                  }
-                  granularity={effectiveGranularity}
-                  onPlatformStateChange={onPlatformStateChange}
-                />
-              ))
-          : platforms[stageName]?.map((outlet) => (
+            ?.filter((outlet) =>
+              Array.isArray(platformName)
+                ? platformName.includes(outlet?.outlet)
+                : outlet?.outlet === platformName
+            )
+            .map((outlet) => (
               <AdsetSettings
-                key={outlet.id}
+                key={outlet?.id}
                 outlet={outlet}
                 stageName={stageName}
                 onInteraction={handleInteraction}
@@ -2519,7 +2509,25 @@ const AdSetFlow = memo(function AdSetFlow({
                 granularity={effectiveGranularity}
                 onPlatformStateChange={onPlatformStateChange}
               />
-            ))}
+            ))
+          : platforms[stageName]?.map((outlet) => (
+            <AdsetSettings
+              key={outlet.id}
+              outlet={outlet}
+              stageName={stageName}
+              onInteraction={handleInteraction}
+              defaultOpen={autoOpen[stageName]?.includes(outlet.outlet)}
+              isCollapsed={collapsedOutlets[outlet.outlet] ?? false}
+              setCollapsed={(collapsed) =>
+                setCollapsedOutlets((prev) => ({
+                  ...prev,
+                  [outlet.outlet]: collapsed,
+                }))
+              }
+              granularity={effectiveGranularity}
+              onPlatformStateChange={onPlatformStateChange}
+            />
+          ))}
       </div>
     </CustomAudienceTypesContext.Provider>
   );

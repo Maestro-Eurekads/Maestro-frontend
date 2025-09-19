@@ -161,7 +161,7 @@ const CreativesModal = ({
     const handleVideoClick = useCallback(() => {
       if (videoRef.current) {
         if (videoRef.current.paused) {
-          videoRef.current.play().catch((error) => {});
+          videoRef.current.play().catch((error) => { });
         } else {
           videoRef.current.pause();
         }
@@ -370,10 +370,10 @@ const CreativesModal = ({
               : platform.ad_sets?.some((adset) => adset.format?.length > 0)
           )
         ) && (
-          <div className="text-center text-gray-500 text-base">
-            No creatives uploaded for this stage.
-          </div>
-        )}
+            <div className="text-center text-gray-500 text-base">
+              No creatives uploaded for this stage.
+            </div>
+          )}
       </div>
     </div>
   );
@@ -503,10 +503,9 @@ const MediaOption = ({
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             className={`relative text-center p-2 rounded-lg border transition 
-              ${
-                isSelected
-                  ? "border-blue-500 shadow-lg"
-                  : isHovered
+              ${isSelected
+                ? "border-blue-500 shadow-lg"
+                : isHovered
                   ? "border-blue-400 bg-blue-50"
                   : "border-gray-300"
               } 
@@ -544,9 +543,8 @@ const MediaOption = ({
           {isSelected && (
             <div className="flex items-center bg-[#F6F6F6] gap-2 mt-4 border rounded-[8px]">
               <button
-                className={`px-2 py-1 text-[#000000] text-lg font-semibold ${
-                  isDecreaseDisabled ? "opacity-50 cursor-not-allowed" : ""
-                }`}
+                className={`px-2 py-1 text-[#000000] text-lg font-semibold ${isDecreaseDisabled ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
                 onClick={() => !isDecreaseDisabled && onQuantityChange(-1)}
                 disabled={isDecreaseDisabled}>
                 -
@@ -603,11 +601,10 @@ const MediaOption = ({
                   )}
                 </a>
                 <button
-                  className={`absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center ${
-                    deletingPreviewId === prv.id
+                  className={`absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center ${deletingPreviewId === prv.id
                       ? "opacity-50 cursor-not-allowed"
                       : "cursor-pointer"
-                  }`}
+                    }`}
                   onClick={() => handleDelete(prv?.id)}
                   disabled={deletingPreviewId === prv?.id}>
                   {deletingPreviewId === prv?.id ? (
@@ -736,16 +733,16 @@ const MediaSelectionGrid = ({
           const previews =
             adSet && view === "adset"
               ? adSet.format?.find((f) => f?.format_type === option?.name)
-                  ?.previews || []
+                ?.previews || []
               : platform?.format?.find((f) => f?.format_type === option?.name)
-                  ?.previews || [];
+                ?.previews || [];
 
           const q =
             adSet && view === "adset"
               ? adSet.format?.find((f) => f?.format_type === option?.name)
-                  ?.num_of_visuals
+                ?.num_of_visuals
               : platform?.format?.find((f) => f?.format_type === option?.name)
-                  ?.num_of_visuals;
+                ?.num_of_visuals;
 
           return (
             <div key={index}>
@@ -780,9 +777,8 @@ const MediaSelectionGrid = ({
                 completedDeletions={completedDeletions}
                 isLoading={
                   isFormatLoading[
-                    `${platformName}-${option?.name}${
-                      adSetIndex !== undefined ? `-adset-${adSetIndex}` : ""
-                    }`
+                  `${platformName}-${option?.name}${adSetIndex !== undefined ? `-adset-${adSetIndex}` : ""
+                  }`
                   ]
                 }
               />
@@ -901,9 +897,8 @@ const PlatformItem = ({
       const platformCopy = channel[platformIndex];
 
       // Create a unique key for this format selection
-      const formatKey = `${platform.platform_name}-${formatName}${
-        adsetIndex !== undefined ? `-adset-${adsetIndex}` : ""
-      }`;
+      const formatKey = `${platform.platform_name}-${formatName}${adsetIndex !== undefined ? `-adset-${adsetIndex}` : ""
+        }`;
 
       // Set loading state for this specific format
       setIsFormatLoading((prev) => ({ ...prev, [formatKey]: true }));
@@ -944,7 +939,7 @@ const PlatformItem = ({
 
             try {
               await Promise.all(deletePromises);
-            } catch (error) {}
+            } catch (error) { }
           }
           adset.format.splice(adsetFormatIndex, 1);
         } else {
@@ -983,7 +978,7 @@ const PlatformItem = ({
 
             try {
               await Promise.all(deletePromises);
-            } catch (error) {}
+            } catch (error) { }
           }
           platformCopy.format.splice(formatIndex, 1);
         } else {
@@ -1135,7 +1130,7 @@ const PlatformItem = ({
                       stageName={stageName}
                       quantities={
                         quantities[
-                          `${platform.platform_name}_adset_${index}`
+                        `${platform.platform_name}_adset_${index}`
                         ] || {}
                       }
                       onFormatSelect={handleFormatSelection}
@@ -1493,17 +1488,17 @@ export const Platforms = ({
         // Clean channel mix data using the same approach as SaveAllProgressButton
         let channelMixCleaned = cleanedMainData?.channel_mix
           ? removeKeysRecursively(cleanedMainData.channel_mix, [
-              "id",
-              "isValidated",
-              "formatValidated",
-              "validatedStages",
-              "documentId",
-              "_aggregated",
-              "user",
-              "publishedAt",
-              "createdAt",
-              "updatedAt",
-            ])
+            "id",
+            "isValidated",
+            "formatValidated",
+            "validatedStages",
+            "documentId",
+            "_aggregated",
+            "user",
+            "publishedAt",
+            "createdAt",
+            "updatedAt",
+          ])
           : [];
 
         // Build a structured payload similar to SaveAllProgressButton
@@ -1798,7 +1793,7 @@ export const Platforms = ({
           format,
           previews,
           adSetIndex
-        ).catch((error) => {});
+        ).catch((error) => { });
       },
       500,
       { leading: false, trailing: true }
@@ -2123,8 +2118,8 @@ export const Platforms = ({
           platforms={
             platformName
               ? channel?.platforms?.filter(
-                  (fdj) => fdj?.platform_name === platformName
-                )
+                (fdj) => fdj?.platform_name === platformName
+              )
               : channel?.platforms
           }
           stageName={stageName}
@@ -2371,9 +2366,8 @@ export const FormatSelection = ({
             return (
               <div key={index}>
                 <div
-                  className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] ${
-                    isOpen ? "rounded-t-[10px]" : "rounded-[10px]"
-                  }`}
+                  className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] ${isOpen ? "rounded-t-[10px]" : "rounded-[10px]"
+                    }`}
                   onClick={() => toggleTab(stage?.name)}>
                   <div className="flex items-center gap-2">
                     {stage?.icon && (

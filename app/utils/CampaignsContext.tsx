@@ -13,6 +13,7 @@ import useCampaignHook from "./useCampaignHook";
 import axios from "axios";
 import { useSearchParams } from "next/navigation";
 import { useSelector } from "react-redux";
+import { createSelector } from "@reduxjs/toolkit";
 import { channelMixPopulate } from "utils/fetcher";
 import { signOut, useSession } from "next-auth/react";
 import { updateUsersWithCampaign } from "app/homepage/functions/clients";
@@ -113,12 +114,19 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [agencyData, setAgencyData] = useState(null);
   const [selectedId, setSelectedId] = useState<string>("");
 
-  const reduxClients = useSelector(
-    (state: any) => state.client?.getCreateClientData?.data || []
+  // Memoized selectors to prevent unnecessary re-renders
+  const selectReduxClients = createSelector(
+    [(state: any) => state.client?.getCreateClientData?.data],
+    (data) => data || []
   );
-  const reduxLoadingClients = useSelector(
-    (state: any) => state.client?.getCreateClientIsLoading || false
+
+  const selectReduxLoadingClients = createSelector(
+    [(state: any) => state.client?.getCreateClientIsLoading],
+    (loading) => loading || false
   );
+
+  const reduxClients = useSelector(selectReduxClients);
+  const reduxLoadingClients = useSelector(selectReduxLoadingClients);
 
   const allClients = reduxClients?.length > 0 ? reduxClients : hookAllClients;
   const loadingClients = reduxLoadingClients || hookLoadingClients || false;
@@ -402,16 +410,16 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             agency_profile: data?.agency_profile ?? prev.agency_profile,
             level_1:
               data?.client_selection?.level_1 &&
-              ((Array.isArray(data?.client_selection?.level_1.value) &&
-                data?.client_selection?.level_1.value.length > 0) ||
-                (typeof data?.client_selection?.level_1.value === "string" &&
-                  data?.client_selection?.level_1.value))
+                ((Array.isArray(data?.client_selection?.level_1.value) &&
+                  data?.client_selection?.level_1.value.length > 0) ||
+                  (typeof data?.client_selection?.level_1.value === "string" &&
+                    data?.client_selection?.level_1.value))
                 ? {
-                    id: data?.client_selection?.level_1.id ?? prev.level_1?.id,
-                    value:
-                      data?.client_selection?.level_1.value ??
-                      prev.level_1?.value,
-                  }
+                  id: data?.client_selection?.level_1.id ?? prev.level_1?.id,
+                  value:
+                    data?.client_selection?.level_1.value ??
+                    prev.level_1?.value,
+                }
                 : prev.level_1,
             media_plan:
               shouldPreserveLocalData && prev.media_plan
@@ -443,8 +451,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             //     : data?.funnel_stages ?? prev.funnel_stages,
             channel_mix:
               shouldPreserveLocalData &&
-              prev.channel_mix &&
-              Object.keys(prev.channel_mix).length > 0
+                prev.channel_mix &&
+                Object.keys(prev.channel_mix).length > 0
                 ? prev.channel_mix
                 : data?.channel_mix ?? prev.channel_mix,
             campaign_timeline_start_date:
@@ -591,8 +599,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         response?.data?.user_type === "admin"
           ? response?.data?.admin?.agency?.id
           : response?.data?.user_type?.includes("cleint")
-          ? response?.data?.cleint_user?.agency?.id
-          : response?.data?.agency_user?.agency?.id;
+            ? response?.data?.cleint_user?.agency?.id
+            : response?.data?.agency_user?.agency?.id;
       //console.log("agencyId", aId);
       setAgencyId(aId);
       return response;

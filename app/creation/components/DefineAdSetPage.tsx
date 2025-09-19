@@ -90,9 +90,8 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
       campaignFormData?.client_selection?.id ||
       campaignFormData?.level_1?.id
     ) {
-      const fallbackKey = `campaign_${
-        campaignFormData?.client_selection?.id || "no_client"
-      }_${campaignFormData?.level_1?.id || "no_level"}`;
+      const fallbackKey = `campaign_${campaignFormData?.client_selection?.id || "no_client"
+        }_${campaignFormData?.level_1?.id || "no_level"}`;
 
       return fallbackKey;
     }
@@ -125,7 +124,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
           localStorage.setItem(modalKey, "true");
           // Also set a timestamp to track when it was dismissed
           localStorage.setItem(`${modalKey}_timestamp`, Date.now().toString());
-        } catch (error) {}
+        } catch (error) { }
       }
     }
   };
@@ -204,7 +203,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
             // Note: We don't clear the persistent localStorage data here
             // as it's needed to restore audience data when returning to the page
           }
-        } catch (error) {}
+        } catch (error) { }
       }
     };
   }, [campaignFormData?.id, campaignFormData?.media_plan_id]);
@@ -228,7 +227,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
             }
           }
         });
-      } catch (error) {}
+      } catch (error) { }
     }
   }, [campaignFormData?.id, campaignFormData?.media_plan_id]);
 
@@ -729,18 +728,18 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     const platforms =
       view === "adset" && stage
         ? [
-            ...(stage.search_engines || []),
-            ...(stage.display_networks || []),
-            ...(stage.social_media || []),
-            ...(stage.streaming || []),
-            ...(stage.ooh || []),
-            ...(stage.broadcast || []),
-            ...(stage.messaging || []),
-            ...(stage.print || []),
-            ...(stage.e_commerce || []),
-            ...(stage.in_game || []),
-            ...(stage.mobile || []),
-          ]
+          ...(stage.search_engines || []),
+          ...(stage.display_networks || []),
+          ...(stage.social_media || []),
+          ...(stage.streaming || []),
+          ...(stage.ooh || []),
+          ...(stage.broadcast || []),
+          ...(stage.messaging || []),
+          ...(stage.print || []),
+          ...(stage.e_commerce || []),
+          ...(stage.in_game || []),
+          ...(stage.mobile || []),
+        ]
         : [];
 
     if (view === "channel") {
@@ -757,15 +756,16 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
       const campaignId =
         campaignFormData?.id || campaignFormData?.media_plan_id;
 
-      // First check sessionStorage, then fallback to persistent localStorage
+      // First check sessionStorage, then fallback to persistent localStorage ONLY for existing campaigns
       if (typeof window !== "undefined") {
         try {
           const key = `channelLevelAudienceState_${campaignId || "default"}`;
           let stored = sessionStorage.getItem(key);
           let dataSource = "sessionStorage";
 
-          // If no sessionStorage data, try persistent localStorage
-          if (!stored) {
+          // ONLY load from localStorage if we have a valid campaign ID
+          // This prevents audience data from previous plans from leaking into new plans
+          if (!stored && campaignId) {
             const persistentKey = `persistent_${key}`;
             stored = localStorage.getItem(persistentKey);
             dataSource = "localStorage";
@@ -937,7 +937,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
           const granularityKey = `granularity_${planKey}`;
           localStorage.setItem(granularityKey, newView);
         }
-      } catch (error) {}
+      } catch (error) { }
     }
 
     // Save granularity to backend if campaign exists
@@ -949,7 +949,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
             goal_level: checked ? "Adset level" : "Channel level",
           });
         }
-      } catch (error) {}
+      } catch (error) { }
     };
 
     // Call the backend save function
@@ -1050,9 +1050,8 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
             <div key={stageName} className="w-full">
               <div
                 className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
-                ${
-                  openItems[stageName] ? "rounded-t-[10px]" : "rounded-[10px]"
-                }`}
+                ${openItems[stageName] ? "rounded-t-[10px]" : "rounded-[10px]"
+                  }`}
                 onClick={() => toggleItem(stageName)}
                 style={{ cursor: "pointer" }}>
                 <div className="flex items-center gap-4">
@@ -1072,8 +1071,8 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                 <div className="flex items-center gap-2">
                   {(!openPlatforms[stageName] ||
                     openPlatforms[stageName].length === 0) && (
-                    <p className="text-black text-base">Not started</p>
-                  )}
+                      <p className="text-black text-base">Not started</p>
+                    )}
                 </div>
 
                 <div>
@@ -1448,9 +1447,8 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                                   let planKey = getPlanKey();
                                   if (!planKey) {
                                     // Create a temporary key for new plans
-                                    const tempKey = `temp_${Date.now()}_${
-                                      item.label
-                                    }`;
+                                    const tempKey = `temp_${Date.now()}_${item.label
+                                      }`;
                                     planKey = tempKey;
                                   }
 
@@ -1470,7 +1468,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                                     `configured_${planKey}`,
                                     "true"
                                   );
-                                } catch (error) {}
+                                } catch (error) { }
                               }
 
                               // Save granularity to backend if campaign exists (async)
@@ -1482,7 +1480,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                                       goal_level: item.label,
                                     });
                                   }
-                                } catch (error) {}
+                                } catch (error) { }
                               };
 
                               // Call the backend save function
