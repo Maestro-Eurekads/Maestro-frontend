@@ -31,10 +31,12 @@ const MainSection = ({
   hideDate,
   disableDrag,
   view,
+  client,
 }: {
   hideDate?: boolean;
   disableDrag?: boolean;
   view?: boolean;
+  client?: boolean;
 }) => {
   const { clientCampaignData, campaignFormData } = useCampaigns();
   const { range: dateRange } = useRange();
@@ -65,9 +67,9 @@ const MainSection = ({
   const weekDifference =
     startDates && endDates
       ? eachWeekOfInterval(
-          { start: new Date(startDates), end: new Date(endDates) },
-          { weekStartsOn: 1 }
-        ).length
+        { start: new Date(startDates), end: new Date(endDates) },
+        { weekStartsOn: 1 }
+      ).length
       : 0;
   const monthDifference = differenceInCalendarMonths(endDates, startDates);
   const yearDifference = differenceInCalendarYears(endDates, startDates);
@@ -92,9 +94,9 @@ const MainSection = ({
   const allWeeks =
     startDates && endDates
       ? eachWeekOfInterval(
-          { start: new Date(startDates), end: new Date(endDates) },
-          { weekStartsOn: 1 }
-        )
+        { start: new Date(startDates), end: new Date(endDates) },
+        { weekStartsOn: 1 }
+      )
       : [];
 
   // Helper to get week index in the range
@@ -209,7 +211,7 @@ const MainSection = ({
     return daysInYear;
   }
 
-  console.log("this is the month difference", monthDifference);
+
 
   const renderTimeline = () => {
     switch (range) {
@@ -269,10 +271,9 @@ const MainSection = ({
   };
 
   return (
-    <div className="mt-[32px] w-full">
-      {!hideDate && (
-        <DateComponent useDate={true} hideRange={disableDrag ? true : false} />
-      )}
+    <div className="mt-[32px] w-full"> 
+      {!hideDate && <DateComponent useDate={true} hideRange={disableDrag ? true : false} />}
+ 
 
       {/* Zoom Controls */}
       <div className="flex items-center justify-between mb-4 pl-4">
@@ -328,14 +329,19 @@ const MainSection = ({
             </div>
 
             {/* Side indicators */}
-            <div
-              className="absolute right-[4px] top-18 w-1 bg-orange-500 z-20"
-              style={{ height: "94%" }}
-            />
-            <div
-              className="absolute left-[8px] top-18 w-1 bg-orange-500 z-20"
-              style={{ height: "94%" }}
-            />
+            {client === true ? "" : (
+
+              <div>
+
+                <div
+                  className="absolute right-[4px] top-18 w-1 bg-orange-500 z-20"
+                  style={{ height: "94%" }}
+                />
+                <div
+                  className="absolute left-[8px] top-18 w-1 bg-orange-500 z-20"
+                  style={{ height: "94%" }}
+                />
+              </div>)}
 
             {/* when rrange is on month and monthdifference is less than 3, then render old resizable element instead */}
 
