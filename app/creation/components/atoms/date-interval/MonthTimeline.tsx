@@ -19,6 +19,9 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
   funnels,
   range,
 }) => {
+
+  console.log("this is the funnels", funnels)
+  console.log("this is the range", range)
   const [expanded, setExpanded] = useState({});
   const [openSections, setOpenSections] = useState({});
   const { campaignFormData, clientCampaignData } = useCampaigns();
@@ -75,18 +78,92 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
   }
 
   const calculateGridColumns = (start: Date, end: Date) => {
-    const allMonths = range.map((date) => new Date(date).getMonth() + 1);
-    const uniqueMonths = Array.from(new Set(allMonths));
-    const startMonth = new Date(start).getMonth() + 1; // Extract start month (1-based index)
-    const endMonth = new Date(end).getMonth() + 1; // Extract end month (1-based index)
+    const monthKeys = Array.from(
+      new Set(range.map((date) => {
+        const d = new Date(date);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      }))
+    );
 
-    // console.log("🚀 ~ calculateGridColumns ~ uniqueMonths:", uniqueMonths);
-    // console.log({ startMonth, endMonth });
+    const startKey = (() => {
+      const d = new Date(start);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    })();
+    const endKey = (() => {
+      const d = new Date(end);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    })();
 
-    const startIndex = uniqueMonths.indexOf(startMonth); // Find the index of the start month
-    const endIndex = uniqueMonths.indexOf(endMonth); // Find the index of the end month
-    // console.log({allMonths, startMonth, endMonth, startIndex, endIndex})
-    return { allMonths, startMonth, endMonth, startIndex, endIndex };
+    const startIndex = monthKeys.indexOf(startKey);
+    const endIndex = monthKeys.indexOf(endKey);
+
+    return { startIndex, endIndex, totalMonths: monthKeys.length };
+  };
+
+  // Helpers for day offsets within month columns (each month = 250px)
+  const getMonthKey = (date: Date | string) => {
+    const d = new Date(date);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  };
+
+  const buildMonthKeys = () =>
+    Array.from(
+      new Set(
+        range.map((date) => {
+          const d = new Date(date);
+          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        })
+      )
+    );
+
+  const daysInMonth = (date: Date | string) => {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = d.getMonth();
+    return new Date(year, month + 1, 0).getDate();
+  };
+
+  const computeMonthSpanWidthPx = (
+    start: Date | string,
+    end: Date | string
+  ) => {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const monthKeys = buildMonthKeys();
+
+    const startKey = getMonthKey(startDate);
+    const endKey = getMonthKey(endDate);
+    const startIndex = monthKeys.indexOf(startKey);
+    const endIndex = monthKeys.indexOf(endKey);
+
+    if (startIndex < 0 || endIndex < 0) return { leftPx: 0, widthPx: 0 };
+
+    const monthWidthPx = 250;
+
+    const startMonthDays = daysInMonth(startDate);
+    const endMonthDays = daysInMonth(endDate);
+    const perDayStart = monthWidthPx / startMonthDays;
+    const perDayEnd = monthWidthPx / endMonthDays;
+
+    const startDayOfMonth = startDate.getDate();
+    const endDayOfMonth = endDate.getDate();
+
+    const leftPx = (startDayOfMonth - 1) * perDayStart;
+
+    if (startKey === endKey) {
+      const widthPx = Math.max(0, endDayOfMonth - startDayOfMonth + 1) * perDayStart;
+      return { leftPx, widthPx };
+    }
+
+    const daysRemainingStartMonth = startMonthDays - startDayOfMonth + 1;
+    const startPartPx = daysRemainingStartMonth * perDayStart;
+
+    const fullMonthsBetween = Math.max(0, endIndex - startIndex - 1);
+    const middlePx = fullMonthsBetween * monthWidthPx;
+
+    const endPartPx = endDayOfMonth * perDayEnd;
+
+    return { leftPx, widthPx: startPartPx + middlePx + endPartPx };
   };
 
   return (
@@ -99,9 +176,13 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
     >
       {funnels?.map(
         (
-          { startWeek, endWeek, label, budget, stages, endMonth, startMonth },
+          { startWeek, endWeek, label, budget, stages, endMonth, startMonth, startDate, endDate },
           index
         ) => {
+          const { leftPx: campaignLeftPx, widthPx: campaignWidthPx } =
+            startDate && endDate
+              ? computeMonthSpanWidthPx(startDate, endDate)
+              : { leftPx: 0, widthPx: 0 };
           return (
             <div
               key={index}
@@ -115,6 +196,8 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                 style={{
                   gridColumnStart: startMonth,
                   gridColumnEnd: endMonth + 1,
+                  marginLeft: `${campaignLeftPx}px`,
+                  width: campaignWidthPx ? `${campaignWidthPx}px` : undefined,
                 }}
               >
                 <div
@@ -170,13 +253,22 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                           startMonth: start,
                           endMonth: end,
                           budget,
-                          color
+                          color,
+                          startDate: stageStartDate,
+                          endDate: stageEndDate,
                         },
                         zIndex
                       ) => {
                         const channels = extractPlatforms(
                           clientCampaignData[index]
                         );
+                        const { leftPx, widthPx } =
+                          stageStartDate && stageEndDate
+                            ? computeMonthSpanWidthPx(
+                                stageStartDate,
+                                stageEndDate
+                              )
+                            : { leftPx: 0, widthPx: 0 };
 
                         return (
                           <div
@@ -194,6 +286,8 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                               style={{
                                 gridColumnStart: start,
                                 gridColumnEnd: end + 1,
+                                marginLeft: `${leftPx}px`,
+                                width: widthPx ? `${widthPx}px` : undefined,
                               }}
                             >
                               <div className="flex items-center justify-center gap-3 flex-1">
@@ -227,7 +321,7 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                               <div
                                 style={{
                                   gridColumnStart: startMonth,
-                                  gridColumnEnd: endMonth + 1 - startMonth + 1,
+                                  gridColumnEnd: endMonth + 1,
                                 }}
                               >
                                 {channels
@@ -241,11 +335,7 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                                       startDate,
                                       endDate,
                                     }) => {
-                                      const {
-                                        startIndex,
-                                        endIndex,
-                                        endMonth: endOfMonth,
-                                      } = calculateGridColumns(
+                                      const { startIndex, endIndex, totalMonths } = calculateGridColumns(
                                         startDate,
                                         endDate
                                       );
@@ -263,16 +353,14 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                                           key={platform_name}
                                           style={{
                                             display: "grid",
-                                            gridTemplateColumns: `repeat(${endOfMonth}, 250px)`,
+                                            gridTemplateColumns: `repeat(${monthsCount || totalMonths}, 250px)`,
                                           }}
                                         >
                                           <div
                                             className={`py-1 text-[15px] font-[500] border my-5 w-full rounded-[10px] flex items-center justify-between`}
                                             style={{
-                                              gridColumnStart: startIndex
-                                                ? startIndex + 1
-                                                : 1,
-                                              gridColumnEnd: endIndex + 2,
+                                              gridColumnStart: (startIndex ?? -1) >= 0 ? startIndex + 1 : 1,
+                                              gridColumnEnd: (endIndex ?? -1) >= 0 ? endIndex + 2 : 2,
                                               backgroundColor: bg,
                                             }}
                                           >
