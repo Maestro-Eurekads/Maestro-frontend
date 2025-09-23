@@ -48,6 +48,7 @@ const getInitialState = (campaignId?: string | null) => {
     budget_details_value: "",
     country_details: { id: "", value: "" },
     campaign_objectives: "",
+    campaign_objective: "", // Add campaign_objective to initial state
     funnel_stages: [],
     channel_mix: [],
     campaign_timeline_start_date: "",
@@ -58,6 +59,8 @@ const getInitialState = (campaignId?: string | null) => {
     campaign_id: {},
     cId: "",
     campaign_version: "V1",
+    table_headers: {}, // Add table_headers to initial state
+    selected_metrics: {}, // Add selected_metrics to initial state
   };
 };
 
@@ -442,6 +445,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
               data?.media_plan_details?.approved_by ?? prev.approved_by,
             campaign_objectives:
               data?.campaign_objective ?? prev.campaign_objectives,
+            campaign_objective: data?.campaign_objective ?? prev.campaign_objective,
             funnel_stages: data?.funnel_stages ?? prev.funnel_stages,
             // funnel_stages:
             //   shouldPreserveLocalData &&
