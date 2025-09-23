@@ -920,6 +920,10 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
       goal_level: checked ? "Adset level" : "Channel level",
       granularity: newView, // Add explicit granularity field
       ad_sets_granularity: newView, // Add backend field for granularity
+      campaign_budget: {
+        ...prev.campaign_budget,
+        level: checked ? "Adset level" : "Channel level", // Update campaign_budget.level
+      },
     }));
 
     // Save granularity setting to localStorage for persistence
@@ -947,6 +951,10 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
           await updateCampaign({
             ad_sets_granularity: newView,
             goal_level: checked ? "Adset level" : "Channel level",
+            campaign_budget: {
+              ...campaignFormData.campaign_budget,
+              level: checked ? "Adset level" : "Channel level",
+            },
           });
         }
       } catch (error) { }
@@ -1432,6 +1440,10 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                                   goal_level: item.label,
                                   granularity: newView, // Add explicit granularity field
                                   ad_sets_granularity: newView, // Add backend field for granularity
+                                  campaign_budget: {
+                                    ...prev.campaign_budget,
+                                    level: item.label, // Update campaign_budget.level
+                                  },
                                 };
 
                                 return updatedData;
@@ -1478,6 +1490,10 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                                     await updateCampaign({
                                       ad_sets_granularity: newView,
                                       goal_level: item.label,
+                                      campaign_budget: {
+                                        ...campaignFormData.campaign_budget,
+                                        level: item.label,
+                                      },
                                     });
                                   }
                                 } catch (error) { }

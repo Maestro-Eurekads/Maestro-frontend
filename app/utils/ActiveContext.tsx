@@ -42,17 +42,24 @@ export const ActiveProvider: React.FC<{ children: ReactNode }> = ({
     return defaultValue;
   };
 
-  // States with persisted values
-  const [active, setActive] = useState<number>(() =>
-    getStoredValue("active", 0)
-  );
-  const [subStep, setSubStep] = useState<number>(() =>
-    getStoredValue("subStep", 0)
-  );
-  const [change, setChange] = useState<boolean>(() =>
-    getStoredValue("change", false)
-  );
+  // States with persisted values - initialize with defaults to prevent hydration mismatch
+  const [active, setActive] = useState<number>(0);
+  const [subStep, setSubStep] = useState<number>(0);
+  const [change, setChange] = useState<boolean>(false);
   const [showModal, setShowModal] = useState(false);
+
+  // Load values from localStorage after component mounts (client-side only)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedActive = getStoredValue("active", 0);
+      const storedSubStep = getStoredValue("subStep", 0);
+      const storedChange = getStoredValue("change", false);
+
+      setActive(storedActive);
+      setSubStep(storedSubStep);
+      setChange(storedChange);
+    }
+  }, []);
 
   // Save values to localStorage when they change
   useEffect(() => {

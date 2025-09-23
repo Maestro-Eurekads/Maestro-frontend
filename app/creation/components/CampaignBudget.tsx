@@ -24,6 +24,20 @@ import SaveAllProgressButton from "./SaveProgres/SaveAllProgressButton"
 const CampaignBudget = () => {
   const { setChange } = useActive()
   const searchParams = useSearchParams()
+
+  // Helper function to get the current granularity level from any source
+  const getCurrentGranularityLevel = () => {
+    if (campaignFormData?.campaign_budget?.level) {
+      return campaignFormData.campaign_budget.level
+    }
+    if (campaignFormData?.goal_level) {
+      return campaignFormData.goal_level
+    }
+    if (campaignFormData?.ad_sets_granularity) {
+      return campaignFormData.ad_sets_granularity === "adset" ? "Adset level" : "Channel level"
+    }
+    return null
+  }
   const campaignId = searchParams.get("campaignId")
   const [budgetStyle, setBudgetStyle] = useState("")
   const [step, setStep] = useState(0)
@@ -41,11 +55,26 @@ const CampaignBudget = () => {
     setIsEditing(true)
   }, [])
 
-
   const [feeType, setFeeType] = useState(null)
   const [feeAmount, setFeeAmount] = useState("")
 
   const { campaignFormData, setCampaignFormData, campaignData, getActiveCampaign, cId } = useCampaigns()
+
+  // Sync granularity levels when component mounts or granularity data changes
+  useEffect(() => {
+    if (campaignFormData && !campaignFormData?.campaign_budget?.level) {
+      const currentLevel = getCurrentGranularityLevel()
+      if (currentLevel) {
+        setCampaignFormData((prev) => ({
+          ...prev,
+          campaign_budget: {
+            ...prev.campaign_budget,
+            level: currentLevel,
+          },
+        }))
+      }
+    }
+  }, [campaignFormData?.goal_level, campaignFormData?.ad_sets_granularity, campaignFormData?.campaign_budget?.level])
 
 
   console.log('campaignFormData---', campaignFormData)
@@ -230,6 +259,8 @@ const CampaignBudget = () => {
     }
   }
 
+  console.log('campaignData---', campaignData)
+
   useEffect(() => {
     if (campaignData?.campaign_budget) {
       setBudgetStyle(campaignData?.campaign_budget?.budget_type)
@@ -252,7 +283,7 @@ const CampaignBudget = () => {
         setShowBottomUpBudgetOverview(true)
       }
     }
-  }, [campaignData])
+  }, [campaignData, campaignData?.campaign_budget?.level])
 
   // Auto-calculate main budget for bottom-up approach
   useEffect(() => {
@@ -550,7 +581,7 @@ const CampaignBudget = () => {
           ) : (
             <div className="flex flex-col gap-3 w-[672px] bg-white p-6 rounded-[20px] mt-[20px]">
               <div className="flex justify-between items-center">
-                <p className="text-[16px] font-semibold">Selected Level: {campaignFormData?.campaign_budget?.level}</p>
+                <p className="text-[16px] font-semibold">Selected Level: {getCurrentGranularityLevel() || "Not selected"}</p>
                 <button className="btn btn-primary text-sm bg-[#3175FF]" onClick={() => setShowLevelCards(true)}>
                   Edit
                 </button>
@@ -560,10 +591,14 @@ const CampaignBudget = () => {
         </>
       )}
 
-      {/* Top-down: ConfigureAdSetsAndBudget followed by BudgetOverviewSection */}
+      {/* Top-down: ConfigureAdSetsAndBudget followed by BudgetOverviewSection - Show when Adset level is selected */}
       {budgetStyle !== "" && budgetStyle === "top_down" && step > 2 && (
         <>
-          <ConfigureAdSetsAndBudget num={4} netAmount={netAmount} />
+          {(campaignFormData?.campaign_budget?.level === "Adset level" ||
+            campaignFormData?.goal_level === "Adset level" ||
+            campaignFormData?.ad_sets_granularity === "adset") && (
+              <ConfigureAdSetsAndBudget num={4} netAmount={netAmount} />
+            )}
           <BudgetOverviewSection />
         </>
       )}
@@ -708,7 +743,7 @@ const CampaignBudget = () => {
           ) : (
             <div className="flex flex-col gap-3 w-[672px] bg-white p-6 rounded-[20px] mt-[20px]">
               <div className="flex justify-between items-center">
-                <p className="text-[16px] font-semibold">Selected Level: {campaignFormData?.campaign_budget?.level}</p>
+                <p className="text-[16px] font-semibold">Selected Level: {getCurrentGranularityLevel() || "Not selected"}</p>
                 <button className="btn btn-primary text-sm bg-[#3175FF]" onClick={() => setShowLevelCards(true)}>
                   Edit
                 </button>
@@ -718,10 +753,14 @@ const CampaignBudget = () => {
         </>
       )}
 
-      {/* Step 2: Allocate sub-budgets (ad set/channel) */}
-      {budgetStyle !== "" && budgetStyle === "bottom_up" && step > 1 && (
+      {/* Step 2: Allocate sub-budgets (ad set/channel) - Show ConfigureAdSetsAndBudget when Adset level is selected */}
+      {(budgetStyle !== "" && budgetStyle === "bottom_up" && step > 1) || (budgetStyle !== "" && budgetStyle === "bottom_up") && (
         <>
-          <ConfigureAdSetsAndBudget num={3} netAmount={netAmount} />
+          {(campaignFormData?.campaign_budget?.level === "Adset level" ||
+            campaignFormData?.goal_level === "Adset level" ||
+            campaignFormData?.ad_sets_granularity === "adset") && (
+              <ConfigureAdSetsAndBudget num={3} netAmount={netAmount} />
+            )}
 
           <FeeSelectionStep
             num1={4}

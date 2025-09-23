@@ -35,6 +35,7 @@ const DefineCampaignObjective = () => {
   const campaignId = searchParams.get("campaignId");
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [savingObjective, setSavingObjective] = useState(false);
   const [alert, setAlert] = useState(null);
   const { setIsDrawerOpen, setClose } = useComments();
   useEffect(() => {
@@ -144,7 +145,7 @@ const DefineCampaignObjective = () => {
     try {
       await updateCampaign({
         ...cleanData,
-        campaign_objective: campaignFormData?.campaign_objectives,
+        campaign_objective: campaignFormData?.campaign_objective,
       });
       await getActiveCampaign(cleanData);
 
@@ -183,20 +184,116 @@ const DefineCampaignObjective = () => {
     setLoading(false);
   };
 
-  const handleSelect = (id: number, title: string) => {
-    setTempSelectedObjective((prev) => {
-      const alreadySelected = prev.some((obj) => obj.id === id);
+  const handleSelect = async (id: number, title: string) => {
+    const alreadySelected = tempSelectedObjective.some((obj) => obj.id === id);
 
+    setTempSelectedObjective((prev) => {
       if (alreadySelected) {
         return []; // Deselect if already selected
       }
       return [{ id, title }]; // Store both ID & Title
     });
     setChange(true); // Mark that changes have been made
-    setCampaignFormData((prev) => ({
-      ...prev,
-      campaign_objectives: title,
-    }));
+
+    if (alreadySelected) {
+      // Deselecting - clear the objective
+      setCampaignFormData((prev) => ({
+        ...prev,
+        campaign_objectives: "",
+        campaign_objective: "", // Clear campaign_objective
+      }));
+      setSelectedObjectives([]);
+
+      // Immediately save to backend and localStorage
+      setSavingObjective(true);
+      try {
+        const cleanData = removeKeysRecursively(campaignData, [
+          "id",
+          "documentId",
+          "createdAt",
+          "publishedAt",
+          "updatedAt",
+          "_aggregated",
+        ]);
+        await updateCampaign({
+          ...cleanData,
+          campaign_objective: "",
+        });
+        await getActiveCampaign(cleanData);
+
+        // Save to localStorage for immediate availability
+        if (campaignId) {
+          localStorage.setItem(
+            `step1_validated_${campaignId}`,
+            JSON.stringify(false)
+          );
+        }
+
+        setAlert({
+          variant: "success",
+          message: "Campaign objective cleared successfully!",
+          position: "bottom-right",
+        });
+      } catch (error) {
+        console.error("Error clearing campaign objective:", error);
+        setAlert({
+          variant: "error",
+          message: "Failed to clear campaign objective. Please try again.",
+          position: "bottom-right",
+        });
+      } finally {
+        setSavingObjective(false);
+      }
+    } else {
+      // Selecting - set the objective
+      setCampaignFormData((prev) => ({
+        ...prev,
+        campaign_objectives: title,
+        campaign_objective: title, // Also update campaign_objective for immediate reflection
+      }));
+      setSelectedObjectives([{ id, title }]);
+
+      // Immediately save to backend and localStorage
+      setSavingObjective(true);
+      try {
+        const cleanData = removeKeysRecursively(campaignData, [
+          "id",
+          "documentId",
+          "createdAt",
+          "publishedAt",
+          "updatedAt",
+          "_aggregated",
+        ]);
+        await updateCampaign({
+          ...cleanData,
+          campaign_objective: title,
+        });
+        await getActiveCampaign(cleanData);
+
+        // Save to localStorage for immediate availability
+        if (campaignId) {
+          localStorage.setItem(
+            `step1_validated_${campaignId}`,
+            JSON.stringify(true)
+          );
+        }
+
+        setAlert({
+          variant: "success",
+          message: "Campaign objective saved successfully!",
+          position: "bottom-right",
+        });
+      } catch (error) {
+        console.error("Error saving campaign objective:", error);
+        setAlert({
+          variant: "error",
+          message: "Failed to save campaign objective. Please try again.",
+          position: "bottom-right",
+        });
+      } finally {
+        setSavingObjective(false);
+      }
+    }
   };
 
   const handleEditClick = () => {
@@ -238,21 +335,25 @@ const DefineCampaignObjective = () => {
           return (
             <div
               key={item.id}
-              className={`relative p-4 rounded-lg transition-all duration-300 ${
-                isSelected ? "creation_card_active shadow-lg" : "creation_card"
-              } ${isEditing ? "cursor-pointer" : "cursor-not-allowed"}`}
+              className={`relative p-4 rounded-lg transition-all duration-300 ${isSelected ? "creation_card_active shadow-lg" : "creation_card"
+                } ${isEditing ? "cursor-pointer" : "cursor-not-allowed"} ${savingObjective ? "opacity-50 pointer-events-none" : ""
+                }`}
               onClick={() =>
                 isEditing
                   ? handleSelect(item.id, item.title)
                   : setAlert({
-                      variant: "info",
-                      message: "Please click on Edit!",
-                      position: "bottom-right",
-                    })
+                    variant: "info",
+                    message: "Please click on Edit!",
+                    position: "bottom-right",
+                  })
               }>
               {isSelected && (
                 <div className="absolute right-4 top-4">
-                  <Image src={Mark} alt="Selected" />
+                  {savingObjective ? (
+                    <FaSpinner className="animate-spin" color="#3175FF" size={20} />
+                  ) : (
+                    <Image src={Mark} alt="Selected" />
+                  )}
                 </div>
               )}
               <div className="flex items-center gap-2">

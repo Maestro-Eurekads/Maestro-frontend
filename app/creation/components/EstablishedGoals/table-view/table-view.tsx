@@ -28,6 +28,32 @@ const TableView = () => {
   const [expandedKPI, setExpandedKPI] = useState({});
   const [expandedAdsetKPI, setExpandedAdsetKPI] = useState({});
 
+  // Function to immediately update context state with selected metrics
+  const updateContextWithMetrics = (newSelectedMetrics) => {
+    if (!currentEditingStage) return;
+
+    setCampaignFormData((prev) => ({
+      ...prev,
+      selected_metrics: {
+        ...prev.selected_metrics,
+        [currentEditingStage]: newSelectedMetrics,
+      },
+    }));
+  };
+
+  // Function to immediately update context state with table headers
+  const updateContextWithTableHeaders = (newTableHeaders) => {
+    if (!currentEditingStage) return;
+
+    setCampaignFormData((prev) => ({
+      ...prev,
+      table_headers: {
+        ...prev.table_headers,
+        [currentEditingStage]: newTableHeaders,
+      },
+    }));
+  };
+
   const [nrCells, setNrCells] = useState({});
   const [nrAdCells, setNrAdCells] = useState({});
 
@@ -183,7 +209,7 @@ const TableView = () => {
           ...prev.table_headers,
           [currentEditingStage]: Array.from(
             new Set([
-              ...(prev.table_headers[currentEditingStage] || []),
+              ...(prev.table_headers?.[currentEditingStage] || []),
               ...selectedMetrics.map((m) => m.obj),
             ])
           ),
@@ -276,43 +302,60 @@ const TableView = () => {
   useEffect(() => {
     if (currentEditingStage && isOpen && !initializedRef.current) {
       initializedRef.current = true;
-      const defaultHeaders = tableHeaders["Brand Awareness"];
 
       // Load selectedMetrics from backend for this stage
       const backendSelectedMetrics =
         campaignFormData?.selected_metrics?.[currentEditingStage] || [];
-      // const selectedHeaders = campaignFormData?.table_headers?.[currentEditingStage] || []
-      // const r=  selectedHeaders.map((objective, index) => {
-      //   const defaultHeaders = [
-      //     "Channel",
-      //     "AdSets",
-      //     "Audience",
-      //     "Start Date",
-      //     "End Date",
-      //     "Audience Size",
-      //     "Budget Size",
-      //     "CPM",
-      //     "Impressions",
-      //     "Frequency",
-      //     "Reach",
-      //     "GRP"
-      //   ]
-      //   const availableMetrics = tableHeaders[objective] || []
 
-      //   // Show all metrics, but filter out default headers
-      //   const filterAvailableMetrics = availableMetrics
-      //     ?.filter((mm) => !defaultHeaders.includes(mm?.name))
-      //     .map((metric) => ({
-      //       ...metric,
-      //       obj: objective, // Add the new property 'obj' with the current objective
-      //     }))
-      //     return filterAvailableMetrics
-      //   })
-      //console.log("Loading selected metrics from backend:", )
-      setSelectedMetrics([...backendSelectedMetrics]);
-      // setSelectedMetricsLoaded(true)
+      // If we have a campaign objective in context, also include its metrics
+      const currentObjective = campaignFormData?.campaign_objective;
+      let contextBasedMetrics = [];
+
+      if (currentObjective && tableHeaders[currentObjective]) {
+        const defaultHeaders = [
+          "Channel", "AdSets", "Audience", "Start Date", "End Date",
+          "Audience Size", "Budget Size", "CPM", "Impressions",
+          "Frequency", "Reach", "GRP"
+        ];
+
+        const availableMetrics = tableHeaders[currentObjective] || [];
+        contextBasedMetrics = availableMetrics
+          ?.filter((mm) => !defaultHeaders.includes(mm?.name))
+          .map((metric) => ({
+            ...metric,
+            obj: currentObjective,
+          }));
+      }
+
+      // Combine backend metrics with context-based metrics, avoiding duplicates
+      const combinedMetrics = [...backendSelectedMetrics];
+      contextBasedMetrics.forEach((contextMetric) => {
+        const exists = combinedMetrics.some(
+          (existing) => existing.name === contextMetric.name && existing.obj === contextMetric.obj
+        );
+        if (!exists) {
+          combinedMetrics.push(contextMetric);
+        }
+      });
+
+      // If we have a current objective and no backend metrics for this stage,
+      // automatically select the context-based metrics
+      if (currentObjective && backendSelectedMetrics.length === 0 && contextBasedMetrics.length > 0) {
+        setSelectedMetrics(contextBasedMetrics);
+        // Immediately update context state
+        updateContextWithMetrics(contextBasedMetrics);
+        // Also update table headers
+        updateContextWithTableHeaders([currentObjective]);
+      } else {
+        setSelectedMetrics(combinedMetrics);
+        // Immediately update context state
+        updateContextWithMetrics(combinedMetrics);
+        // Also update table headers
+        const objectives = [...new Set(combinedMetrics.map(m => m.obj))];
+        updateContextWithTableHeaders(objectives);
+      }
     }
-  }, [currentEditingStage, isOpen, campaignFormData]);
+  }, [currentEditingStage, isOpen, campaignFormData?.campaign_objective]);
 
   // Reset initialization flag when modal closes or stage changes
   useEffect(() => {
@@ -323,6 +366,11 @@ const TableView = () => {
       }, 100);
     }
   }, [isOpen, currentEditingStage]);
+
+  // Reset initialization when campaign objective changes
+  useEffect(() => {
+    initializedRef.current = false;
+  }, [campaignFormData?.campaign_objective]);
 
   // Use a ref to track if we've already aggregated the data
   const hasAggregatedRef = useRef(false);
@@ -388,14 +436,14 @@ const TableView = () => {
 
               platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex] =
                 platform.ad_sets[adSetIndex]["extra_audiences"][
-                  extraAdSetindex
+                extraAdSetindex
                 ] || {};
 
               platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex][
                 "budget"
               ] =
                 platform.ad_sets[adSetIndex]["extra_audiences"][
-                  extraAdSetindex
+                extraAdSetindex
                 ]["budget"] || {};
 
               platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex][
@@ -426,14 +474,14 @@ const TableView = () => {
 
               platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex] =
                 platform.ad_sets[adSetIndex]["extra_audiences"][
-                  extraAdSetindex
+                extraAdSetindex
                 ] || {};
 
               platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex][
                 "kpi"
               ] =
                 platform.ad_sets[adSetIndex]["extra_audiences"][
-                  extraAdSetindex
+                extraAdSetindex
                 ]["kpi"] || {};
 
               platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex][
@@ -463,7 +511,7 @@ const TableView = () => {
 
   const objectivesForStage = useMemo(() => {
     return currentEditingStage
-      ? campaignFormData?.table_headers[currentEditingStage] || []
+      ? campaignFormData?.table_headers?.[currentEditingStage] || []
       : [];
   }, [campaignFormData, currentEditingStage]);
 
@@ -527,14 +575,25 @@ const TableView = () => {
           <div className="mt-4 max-h-[400px] overflow-y-auto">
             {(() => {
               const allObjectives = Object.keys(tableHeaders);
+              const currentObjective = campaignFormData?.campaign_objective;
 
-              const filteredObjectives = allObjectives.filter((objective) => {
+              // Prioritize the current campaign objective first, then show others
+              const sortedObjectives = allObjectives.sort((a, b) => {
+                if (a === currentObjective) return -1;
+                if (b === currentObjective) return 1;
+                return 0;
+              });
+
+              const filteredObjectives = sortedObjectives.filter((objective) => {
+                // Always show the current campaign objective
+                if (objective === currentObjective) return true;
+
                 // Always show categories that have selected metrics
                 const hasSelectedMetrics = selectedMetrics.some(
                   (m) => m.obj === objective
                 );
 
-                // Show if not in stage objectives, not Brand Awareness, or has selected metrics
+                // Show if not Brand Awareness, or has selected metrics
                 return objective !== "Brand Awareness" || hasSelectedMetrics;
               });
 
@@ -575,7 +634,17 @@ const TableView = () => {
 
                 return (
                   <div key={index} className="mb-4">
-                    <p className="font-medium text-[16px] mb-2">{objective}</p>
+                    <p className={`font-medium text-[16px] mb-2 ${objective === currentObjective
+                      ? "text-[#3175FF] font-semibold"
+                      : ""
+                      }`}>
+                      {objective}
+                      {objective === currentObjective && (
+                        <span className="ml-2 text-xs bg-[#3175FF] text-white px-2 py-1 rounded">
+                          Current Objective
+                        </span>
+                      )}
+                    </p>
 
                     <div className="flex items-center mb-2 pl-4">
                       <input
@@ -595,13 +664,24 @@ const TableView = () => {
                                 (m) => m.obj !== objective
                               );
                               // Add all metrics for this objective
-                              return [...filtered, ...filterAvailableMetrics];
+                              const newMetrics = [...filtered, ...filterAvailableMetrics];
+                              // Immediately update context state
+                              updateContextWithMetrics(newMetrics);
+                              // Also update table headers
+                              updateContextWithTableHeaders([objective]);
+                              return newMetrics;
                             });
                           } else {
                             // Remove all metrics for this objective
-                            setSelectedMetrics((prev) =>
-                              prev.filter((m) => m.obj !== objective)
-                            );
+                            setSelectedMetrics((prev) => {
+                              const newMetrics = prev.filter((m) => m.obj !== objective);
+                              // Immediately update context state
+                              updateContextWithMetrics(newMetrics);
+                              // Also update table headers (remove objective if no metrics left)
+                              const remainingObjectives = [...new Set(newMetrics.map(m => m.obj))];
+                              updateContextWithTableHeaders(remainingObjectives);
+                              return newMetrics;
+                            });
                           }
                         }}
                       />
@@ -636,33 +716,45 @@ const TableView = () => {
                                     (m) => m.name === metric.name
                                   );
 
+                                  let newMetrics;
                                   // If it exists with a different objective, replace it
                                   if (existingMetricIndex >= 0) {
-                                    const newMetrics = [...prev];
+                                    newMetrics = [...prev];
                                     newMetrics[existingMetricIndex] = {
                                       ...metric,
                                       obj: objective,
                                     };
-                                    return newMetrics;
+                                  } else {
+                                    // Otherwise, just add the new metric
+                                    newMetrics = [
+                                      ...prev,
+                                      { ...metric, obj: objective },
+                                    ];
                                   }
-
-                                  // Otherwise, just add the new metric
-                                  return [
-                                    ...prev,
-                                    { ...metric, obj: objective },
-                                  ];
+                                  // Immediately update context state
+                                  updateContextWithMetrics(newMetrics);
+                                  // Also update table headers
+                                  const objectives = [...new Set(newMetrics.map(m => m.obj))];
+                                  updateContextWithTableHeaders(objectives);
+                                  return newMetrics;
                                 });
                               } else {
                                 // Remove only this specific metric
-                                setSelectedMetrics((prev) =>
-                                  prev.filter(
+                                setSelectedMetrics((prev) => {
+                                  const newMetrics = prev.filter(
                                     (m) =>
                                       !(
                                         m.name === metric.name &&
                                         m.obj === objective
                                       )
-                                  )
-                                );
+                                  );
+                                  // Immediately update context state
+                                  updateContextWithMetrics(newMetrics);
+                                  // Also update table headers
+                                  const objectives = [...new Set(newMetrics.map(m => m.obj))];
+                                  updateContextWithTableHeaders(objectives);
+                                  return newMetrics;
+                                });
                               }
                             }}
                           />

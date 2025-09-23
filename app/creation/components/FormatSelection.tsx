@@ -602,8 +602,8 @@ const MediaOption = ({
                 </a>
                 <button
                   className={`absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center ${deletingPreviewId === prv.id
-                      ? "opacity-50 cursor-not-allowed"
-                      : "cursor-pointer"
+                    ? "opacity-50 cursor-not-allowed"
+                    : "cursor-pointer"
                     }`}
                   onClick={() => handleDelete(prv?.id)}
                   disabled={deletingPreviewId === prv?.id}>
@@ -2302,6 +2302,10 @@ export const FormatSelection = ({
         ...prev,
         goal_level: checked ? "Adset level" : "Channel level",
         ad_sets_granularity: newView, // Update the granularity field when user makes a choice
+        campaign_budget: {
+          ...prev.campaign_budget,
+          level: checked ? "Adset level" : "Channel level", // Update campaign_budget.level
+        },
       }));
     },
     [setCampaignFormData]
