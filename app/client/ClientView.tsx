@@ -220,9 +220,8 @@ const ClientView = () => {
         />
         <main className="!px-0 mt-[30px] bg-[#F9FAFB]">
           <div
-            className={`px-[20px]  ${
-              isDrawerOpen ? "md:px-[50px]" : "xl:px-[100px]"
-            }`}>
+            className={`px-[20px]  ${isDrawerOpen ? "md:px-[50px]" : "xl:px-[100px]"
+              }`}>
             <div className="flex	flex-col gap-[24px]">
               <ApproverContainer
                 campaign={campaignFormData}
@@ -329,7 +328,7 @@ const ClientView = () => {
             ) : !campaignData ? (
               ""
             ) : (
-              <MainSection hideDate={false} disableDrag={true} view={true} />
+              <MainSection hideDate={false} disableDrag={true} view={true} client={true} />
             )}
           </div>
         </main>
