@@ -77,7 +77,7 @@ const CampaignBudget = () => {
   }, [campaignFormData?.goal_level, campaignFormData?.ad_sets_granularity, campaignFormData?.campaign_budget?.level])
 
 
-  console.log('campaignFormData---', campaignFormData)
+
 
 
   useEffect(() => {
