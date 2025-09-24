@@ -14,7 +14,11 @@ const ConfigureBudgetComponet = ({ show, t1, t2, funnelData }) => {
 	const [open, setOpen] = useState(false);
 	const [opens, setOpens] = useState(false);
 	const [channelData, setChannelData] = useState(null);
-	const { campaignFormData } = useCampaigns();
+	const { campaignFormData, campaignData } = useCampaigns();
+
+	// Use campaignData if available (from API), otherwise fall back to campaignFormData (from context/localStorage)
+	// This ensures the component works even when campaignData is not yet loaded
+	const dataSource = campaignData || campaignFormData;
 
 	function extractPlatforms(data) {
 		const platforms = [];
@@ -64,12 +68,12 @@ const ConfigureBudgetComponet = ({ show, t1, t2, funnelData }) => {
 
 
 
-	function mapCampaignPhases(phases, campaignFormData) {
+	function mapCampaignPhases(phases, dataSource) {
 		return phases?.map(phase => {
 			const phaseName = phase?.name?.toLowerCase().trim();
 
 			// Find matching stage from channel_mix
-			const matchingChannel = campaignFormData?.channel_mix?.find(
+			const matchingChannel = dataSource?.channel_mix?.find(
 				(ch) => ch?.funnel_stage?.toLowerCase().trim() === phaseName
 			);
 
@@ -87,7 +91,7 @@ const ConfigureBudgetComponet = ({ show, t1, t2, funnelData }) => {
 
 
 
-	const filteredPhases = mapCampaignPhases(campaignFormData?.custom_funnels, campaignFormData);
+	const filteredPhases = mapCampaignPhases(dataSource?.custom_funnels, dataSource);
 	const colors = filteredPhases?.map((phase) => phase.color);
 	const campaignPhases = filteredPhases?.filter(phase => funnelData.hasOwnProperty(phase.name));
 
@@ -144,7 +148,7 @@ const ConfigureBudgetComponet = ({ show, t1, t2, funnelData }) => {
 									</p>
 
 									<h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
-										{parseInt(campaignFormData?.campaign_budget?.amount && campaignFormData?.campaign_budget?.amount).toLocaleString() ?? 0}{" "}{getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+										{parseInt(dataSource?.campaign_budget?.amount && dataSource?.campaign_budget?.amount).toLocaleString() ?? 0}{" "}{getCurrencySymbol(dataSource?.campaign_budget?.currency)}
 									</h3>
 								</div>
 								<div className='mt-[16px]'>
@@ -173,7 +177,7 @@ const ConfigureBudgetComponet = ({ show, t1, t2, funnelData }) => {
 										// }
 										// color={hexColors}
 
-										insideText={`${parseInt(campaignFormData?.campaign_budget?.amount && campaignFormData?.campaign_budget?.amount).toLocaleString() ?? 0} ${getCurrencySymbol(campaignFormData?.campaign_budget?.currency ?? '')}`}
+										insideText={`${parseInt(dataSource?.campaign_budget?.amount && dataSource?.campaign_budget?.amount).toLocaleString() ?? 0} ${getCurrencySymbol(dataSource?.campaign_budget?.currency ?? '')}`}
 									/>
 								</div>
 								{/* Campaign Phases */}
@@ -201,7 +205,7 @@ const ConfigureBudgetComponet = ({ show, t1, t2, funnelData }) => {
 								{open &&
 									<PhasedistributionProgress
 
-										insideText={`${parseInt(campaignFormData?.campaign_budget?.amount && campaignFormData?.campaign_budget?.amount).toLocaleString() ?? 0} ${getCurrencySymbol(campaignFormData?.campaign_budget?.currency ?? '')}`} />}
+										insideText={`${parseInt(dataSource?.campaign_budget?.amount && dataSource?.campaign_budget?.amount).toLocaleString() ?? 0} ${getCurrencySymbol(dataSource?.campaign_budget?.currency ?? '')}`} />}
 
 							</div>
 						</div>
@@ -210,7 +214,7 @@ const ConfigureBudgetComponet = ({ show, t1, t2, funnelData }) => {
 
 						<div className='allocate_budget_phase_two'>
 							<button
-								onClick={() => (setOpens(!opens), extractPlatforms(campaignFormData))}
+								onClick={() => (setOpens(!opens), extractPlatforms(dataSource))}
 								className="flex flex-row items-center p-0 gap-2 h-[24px] font-[600] text-[22px] leading-[24px] text-[#061237]"
 							>
 								<Image
@@ -243,13 +247,13 @@ const ConfigureBudgetComponet = ({ show, t1, t2, funnelData }) => {
 
 							{/* <PlatformSpending /> */}
 							{/* {opens && <ChannelDistributionChatOne channelData={channelData} currency={getCurrencySymbol(
-								campaignFormData?.campaign_budget?.currency
+								dataSource?.campaign_budget?.currency
 							)} />} */}
 							{opens &&
 								<ChannelDistributionChatTwo
 									channelData={channelData}
 									currency={getCurrencySymbol(
-										campaignFormData?.campaign_budget?.currency
+										dataSource?.campaign_budget?.currency
 									)}
 								/>}
 						</div>

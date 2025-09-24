@@ -404,6 +404,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           const shouldPreserveLocalData =
             !isDifferentCampaign && prev && Object.keys(prev).length > 0;
 
+          console.log('Context: shouldPreserveLocalData', shouldPreserveLocalData);
+          console.log('Context: prev.campaign_budget', prev?.campaign_budget);
+          console.log('Context: data.campaign_budget', data?.campaign_budget);
+
           return {
             ...prev,
             client_selection: {
@@ -468,9 +472,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
                 ? prev.campaign_timeline_end_date
                 : data?.campaign_timeline_end_date ?? "",
             campaign_budget:
-              shouldPreserveLocalData && prev.campaign_budget
+              shouldPreserveLocalData && prev.campaign_budget && Object.keys(prev.campaign_budget).length > 0
                 ? prev.campaign_budget
-                : data?.campaign_budget,
+                : data?.campaign_budget ?? prev.campaign_budget,
             goal_level: data?.goal_level ?? prev.goal_level,
             ad_sets_granularity:
               data?.ad_sets_granularity ?? prev.ad_sets_granularity,
@@ -482,10 +486,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             cId: cId,
             campaign_version: data?.campaign_version ?? prev.campaign_version,
             isApprove: data?.isApprove,
-            table_headers:
-              ((data?.table_headers || {}) ?? prev?.table_headers) || {},
-            selected_metrics:
-              ((data?.selected_metrics || {}) ?? prev?.selected_metrics) || {},
+            table_headers: data?.table_headers ?? prev?.table_headers,
+            selected_metrics: data?.selected_metrics ?? prev?.selected_metrics,
           };
         });
         setLoadingCampaign(false);

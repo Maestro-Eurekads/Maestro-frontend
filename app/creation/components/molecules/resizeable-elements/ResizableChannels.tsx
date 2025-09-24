@@ -325,126 +325,126 @@ const ResizableChannels = ({
     mouseY: number,
     type: "resize" | "drag",
     resizeDirection?: "left" | "right"
-    ) => {
+  ) => {
     if (!dateList || dateList.length === 0) return;
-    
+
     // Get the actual channel dates from backend
     const findMix = campaignFormData?.channel_mix?.find(
-    (ch) => ch?.funnel_stage === parentId
+      (ch) => ch?.funnel_stage === parentId
     );
     const findChannel = findMix?.[channels[index]?.channelName]?.find(
-    (plt) => plt?.platform_name === channels[index]?.name
+      (plt) => plt?.platform_name === channels[index]?.name
     );
-    
+
     const channelStartDate = findChannel?.campaign_start_date
-    ? parseISO(findChannel?.campaign_start_date)
-    : null;
+      ? parseISO(findChannel?.campaign_start_date)
+      : null;
     const channelEndDate = findChannel?.campaign_end_date
-    ? parseISO(findChannel?.campaign_end_date)
-    : null;
-    
+      ? parseISO(findChannel?.campaign_end_date)
+      : null;
+
     let startDateValue, endDateValue;
-    
+
     if (rrange === "Year") {
-    // For year view, use calculated dates during drag/resize, backend dates for initial click
-    const isDraggingOrResizing = type === "drag" || type === "resize";
-    
-    if (isDraggingOrResizing) {
-    // Use pixel-based calculation for real-time updates
-    const numberOfMonths = 12;
-    const monthStartIndex = Math.min(
-    numberOfMonths - 1,
-    Math.max(0, Math.floor((startPixel / parentWidth) * numberOfMonths))
-    );
-    const monthEndIndex = Math.min(
-    numberOfMonths - 1,
-    Math.max(0, Math.round((endPixel / parentWidth) * numberOfMonths) - 1)
-    );
-    
-    // console.log("Year view date conversion debug:", {
-    // startPixel,
-    // endPixel,
-    // parentWidth,
-    // numberOfMonths,
-    // monthStartIndex,
-    // monthEndIndex,
-    // startRatio: startPixel / parentWidth,
-    // endRatio: endPixel / parentWidth
-    // });
-    
-    const year = startDate?.getFullYear() || new Date().getFullYear();
-    startDateValue = new Date(year, monthStartIndex, 1);
-    endDateValue = new Date(year, monthEndIndex + 1, 0); // Last day of the month
-    } else {
-    // Use backend dates for initial tooltip
-    if (channelStartDate && channelEndDate) {
-    startDateValue = channelStartDate;
-    endDateValue = channelEndDate;
-    } else {
-    // Fallback to pixel calculation
-    const numberOfMonths = 12;
-    const monthStartIndex = Math.min(
-    numberOfMonths - 1,
-    Math.max(0, Math.floor((startPixel / parentWidth) * numberOfMonths))
-    );
-    const monthEndIndex = Math.min(
-    numberOfMonths - 1,
-    Math.max(0, Math.round((endPixel / parentWidth) * numberOfMonths) - 1)
-    );
-    
-    const year = startDate?.getFullYear() || new Date().getFullYear();
-    startDateValue = new Date(year, monthStartIndex, 1);
-    endDateValue = new Date(year, monthEndIndex + 1, 0); // Last day of the month
-    }
-    }
+      // For year view, use calculated dates during drag/resize, backend dates for initial click
+      const isDraggingOrResizing = type === "drag" || type === "resize";
+
+      if (isDraggingOrResizing) {
+        // Use pixel-based calculation for real-time updates
+        const numberOfMonths = 12;
+        const monthStartIndex = Math.min(
+          numberOfMonths - 1,
+          Math.max(0, Math.floor((startPixel / parentWidth) * numberOfMonths))
+        );
+        const monthEndIndex = Math.min(
+          numberOfMonths - 1,
+          Math.max(0, Math.round((endPixel / parentWidth) * numberOfMonths) - 1)
+        );
+
+        // console.log("Year view date conversion debug:", {
+        // startPixel,
+        // endPixel,
+        // parentWidth,
+        // numberOfMonths,
+        // monthStartIndex,
+        // monthEndIndex,
+        // startRatio: startPixel / parentWidth,
+        // endRatio: endPixel / parentWidth
+        // });
+
+        const year = startDate?.getFullYear() || new Date().getFullYear();
+        startDateValue = new Date(year, monthStartIndex, 1);
+        endDateValue = new Date(year, monthEndIndex + 1, 0); // Last day of the month
+      } else {
+        // Use backend dates for initial tooltip
+        if (channelStartDate && channelEndDate) {
+          startDateValue = channelStartDate;
+          endDateValue = channelEndDate;
+        } else {
+          // Fallback to pixel calculation
+          const numberOfMonths = 12;
+          const monthStartIndex = Math.min(
+            numberOfMonths - 1,
+            Math.max(0, Math.floor((startPixel / parentWidth) * numberOfMonths))
+          );
+          const monthEndIndex = Math.min(
+            numberOfMonths - 1,
+            Math.max(0, Math.round((endPixel / parentWidth) * numberOfMonths) - 1)
+          );
+
+          const year = startDate?.getFullYear() || new Date().getFullYear();
+          startDateValue = new Date(year, monthStartIndex, 1);
+          endDateValue = new Date(year, monthEndIndex + 1, 0); // Last day of the month
+        }
+      }
     } else if (rrange === "Month") {
-    // Month view - use day-level precision for smooth dragging
-    const numberOfGridColumns = dateList.length;
-    const stepWidth = parentWidth / numberOfGridColumns;
-    
-    const startGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, Math.floor((startPixel + parentLeft) / dailyWidth)));
-    const endGridIndexRaw = Math.floor((endPixel - startPixel) / dailyWidth) + startGridIndex;
-    const endGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, endGridIndexRaw));
-    
-    console.log("Date conversion tooltip Month:", {
-    startPixel,
-    endPixel,
-    parentWidth,
-    numberOfGridColumns,
-    stepWidth,
-    startGridIndex,
-    endGridIndex
-    });
-    
-    startDateValue = dateList[startGridIndex] || startDate;
-    endDateValue = dateList[endGridIndex - 1] || endDate;
+      // Month view - use day-level precision for smooth dragging
+      const numberOfGridColumns = dateList.length;
+      const stepWidth = parentWidth / numberOfGridColumns;
+
+      const startGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, Math.floor((startPixel + parentLeft) / dailyWidth)));
+      const endGridIndexRaw = Math.floor((endPixel - startPixel) / dailyWidth) + startGridIndex;
+      const endGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, endGridIndexRaw));
+
+      console.log("Date conversion tooltip Month:", {
+        startPixel,
+        endPixel,
+        parentWidth,
+        numberOfGridColumns,
+        stepWidth,
+        startGridIndex,
+        endGridIndex
+      });
+
+      startDateValue = dateList[startGridIndex] || startDate;
+      endDateValue = dateList[endGridIndex - 1] || endDate;
     } else {
-    // Day, Week view - calculate based on days
-    const numberOfGridColumns = dateList.length;
-    const stepWidth = parentWidth / numberOfGridColumns;
-    
-    const startGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, Math.floor( ((startPixel + parentLeft) / (stepWidth < 50 ? 50 : stepWidth)) )));
-    const endGridIndexRaw = Math.floor((endPixel - startPixel) / (stepWidth < 50 ? 50 : stepWidth)) + startGridIndex;
-    const endGridIndex = Math.max(0, Math.min(numberOfGridColumns, endGridIndexRaw));
-    
-    console.log("Date conversion tooltip FIXED:", {
-    startPixel,
-    endPixel,
-    parentWidth,
-    numberOfGridColumns,
-    stepWidth,
-    startGridIndex,
-    endGridIndex
-    });
-    
-    console.log({dateList})
-    
-    startDateValue = dateList[startGridIndex] || startDate;
-    endDateValue = dateList[endGridIndex - 1] || endDate;
+      // Day, Week view - calculate based on days
+      const numberOfGridColumns = dateList.length;
+      const stepWidth = parentWidth / numberOfGridColumns;
+
+      const startGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, Math.floor(((startPixel + parentLeft) / (stepWidth < 50 ? 50 : stepWidth)))));
+      const endGridIndexRaw = Math.floor((endPixel - startPixel) / (stepWidth < 50 ? 50 : stepWidth)) + startGridIndex;
+      const endGridIndex = Math.max(0, Math.min(numberOfGridColumns, endGridIndexRaw));
+
+      console.log("Date conversion tooltip FIXED:", {
+        startPixel,
+        endPixel,
+        parentWidth,
+        numberOfGridColumns,
+        stepWidth,
+        startGridIndex,
+        endGridIndex
+      });
+
+      console.log({ dateList })
+
+      startDateValue = dateList[startGridIndex] || startDate;
+      endDateValue = dateList[endGridIndex - 1] || endDate;
     }
-    
+
     console.log({ startDateValue, endDateValue, type });
-    
+
     // Debug the actual channel dates
     // console.log("Channel dates from backend:", {
     // channelStartDate: findChannel?.campaign_start_date,
@@ -456,61 +456,61 @@ const ResizableChannels = ({
     // parentWidth,
     // type,
     // });
-    
+
     let formattedDateRange;
-    
+
     if (rrange === "Year") {
-    // For year view, show month ranges
-    const startMonth = format(startDateValue, "MMM");
-    const endMonth = format(endDateValue, "MMM");
-    const startYear = startDateValue.getFullYear();
-    const endYear = endDateValue.getFullYear();
-    
-    if (startMonth === endMonth && startYear === endYear) {
-    // Same month and year - show just the month
-    formattedDateRange = startMonth;
-    } else if (startYear === endYear) {
-    // Same year, different months - show "Feb - Mar" format
-    formattedDateRange = `${startMonth} - ${endMonth}`;
-    } else {
-    // Different years - show "Feb 25 - Mar 25" format
-    formattedDateRange = `${startMonth} ${startYear} - ${endMonth} ${endYear}`;
-    }
+      // For year view, show month ranges
+      const startMonth = format(startDateValue, "MMM");
+      const endMonth = format(endDateValue, "MMM");
+      const startYear = startDateValue.getFullYear();
+      const endYear = endDateValue.getFullYear();
+
+      if (startMonth === endMonth && startYear === endYear) {
+        // Same month and year - show just the month
+        formattedDateRange = startMonth;
+      } else if (startYear === endYear) {
+        // Same year, different months - show "Feb - Mar" format
+        formattedDateRange = `${startMonth} - ${endMonth}`;
+      } else {
+        // Different years - show "Feb 25 - Mar 25" format
+        formattedDateRange = `${startMonth} ${startYear} - ${endMonth} ${endYear}`;
+      }
     } else if (rrange === "Month") {
-    // For month view, show specific dates for smooth dragging
-    const formattedStartDate = format(startDateValue, "MMM dd");
-    const formattedEndDate = format(endDateValue, "MMM dd");
-    formattedDateRange = `${formattedStartDate} - ${formattedEndDate}`;
+      // For month view, show specific dates for smooth dragging
+      const formattedStartDate = format(startDateValue, "MMM dd");
+      const formattedEndDate = format(endDateValue, "MMM dd");
+      formattedDateRange = `${formattedStartDate} - ${formattedEndDate}`;
     } else {
-    // For other views, show specific dates
-    console.log({startDateValue, endDateValue})
-    const formattedStartDate = format(startDateValue, "MMM dd");
-    const formattedEndDate = format(endDateValue, "MMM dd");
-    formattedDateRange = `${formattedStartDate} - ${formattedEndDate}`;
+      // For other views, show specific dates
+      console.log({ startDateValue, endDateValue })
+      const formattedStartDate = format(startDateValue, "MMM dd");
+      const formattedEndDate = format(endDateValue, "MMM dd");
+      formattedDateRange = `${formattedStartDate} - ${formattedEndDate}`;
     }
-    
+
     const channelName = channels[index]?.name || "Channel";
     const containerRect = document
-    .querySelector(
-    `.cont-${replaceSpacesAndSpecialCharsWithUnderscore(
-    parentId
-    )}-${replaceSpacesAndSpecialCharsWithUnderscore(channelName)}`
-    )
-    ?.getBoundingClientRect();
-    
+      .querySelector(
+        `.cont-${replaceSpacesAndSpecialCharsWithUnderscore(
+          parentId
+        )}-${replaceSpacesAndSpecialCharsWithUnderscore(channelName)}`
+      )
+      ?.getBoundingClientRect();
+
     const tooltipX = mouseX - containerRect.left;
     const tooltipY = containerRect.top - 50;
-    
+
     setTooltip({
-    visible: true,
-    x: tooltipX,
-    y: tooltipY,
-    content: `${channelName}: ${formattedDateRange}`,
-    type,
-    index,
+      visible: true,
+      x: tooltipX,
+      y: tooltipY,
+      content: `${channelName}: ${formattedDateRange}`,
+      type,
+      index,
     });
-    };
-    
+  };
+
 
   const handleMouseDownResize = (
     e: React.MouseEvent<HTMLDivElement>,
@@ -666,12 +666,12 @@ const ResizableChannels = ({
         prev.map((state, i) =>
           i === index
             ? {
-                ...state,
-                left: newLeft,
-                width: newWidth,
-                startDate: newStartDate,
-                endDate: newEndDate,
-              }
+              ...state,
+              left: newLeft,
+              width: newWidth,
+              startDate: newStartDate,
+              endDate: newEndDate,
+            }
             : state
         )
       );
@@ -690,10 +690,10 @@ const ResizableChannels = ({
         prev.map((ch, i) =>
           i === index
             ? {
-                ...ch,
-                start_date: newStartDate,
-                end_date: newEndDate,
-              }
+              ...ch,
+              start_date: newStartDate,
+              end_date: newEndDate,
+            }
             : ch
         )
       );
@@ -779,10 +779,10 @@ const ResizableChannels = ({
         (ch) => ch?.funnel_stage === parentId
       )?.funnel_stage_timeline_start_date
         ? new Date(
-            campaignFormData?.channel_mix?.find(
-              (ch) => ch?.funnel_stage === parentId
-            )?.funnel_stage_timeline_start_date
-          )
+          campaignFormData?.channel_mix?.find(
+            (ch) => ch?.funnel_stage === parentId
+          )?.funnel_stage_timeline_start_date
+        )
         : new Date(campaignFormData?.campaign_timeline_start_date);
 
       if (!initialStartDateRef.current) {
@@ -795,10 +795,10 @@ const ResizableChannels = ({
         (ch) => ch?.funnel_stage === parentId
       )?.funnel_stage_timeline_end_date
         ? new Date(
-            campaignFormData?.channel_mix?.find(
-              (ch) => ch?.funnel_stage === parentId
-            )?.funnel_stage_timeline_end_date
-          )
+          campaignFormData?.channel_mix?.find(
+            (ch) => ch?.funnel_stage === parentId
+          )?.funnel_stage_timeline_end_date
+        )
         : new Date(campaignFormData?.campaign_timeline_end_date);
 
       if (!initialEndDateRef.current) {
@@ -1161,7 +1161,7 @@ const ResizableChannels = ({
 
       const deltaX = getLayoutXOptimized(event.clientX) - startX;
       let newLeft = startLeft + deltaX;
-      
+
       const channelWidth =
         channelState[index]?.width ||
         (rrange === "Year" ? dailyWidth || parentWidth / 12 : 50);
@@ -1222,10 +1222,10 @@ const ResizableChannels = ({
           prevChannels.map((ch, i) =>
             i === index
               ? {
-                  ...ch,
-                  start_date: startDate,
-                  end_date: endDate,
-                }
+                ...ch,
+                start_date: startDate,
+                end_date: endDate,
+              }
               : ch
           )
         );
@@ -1327,8 +1327,7 @@ const ResizableChannels = ({
     setParentCampaignFormData(updatedCampaignFormData);
   };
 
-  console.log("this is the campaign form data", campaignFormData);
-  console.log("this is the parent campaign form data", initialChannels);
+
 
   const sendUpdatedDataToAPI = async (updatedData) => {
     try {
@@ -1478,11 +1477,11 @@ const ResizableChannels = ({
               const startMonthIdx =
                 (adjustedStageStartDate.getFullYear() -
                   startDate.getFullYear()) *
-                  12 +
+                12 +
                 (adjustedStageStartDate.getMonth() - startDate.getMonth());
               const endMonthIdx =
                 (adjustedStageEndDate.getFullYear() - startDate.getFullYear()) *
-                  12 +
+                12 +
                 (adjustedStageEndDate.getMonth() - startDate.getMonth());
 
               const monthsBetween = endMonthIdx - startMonthIdx + 1; // inclusive
@@ -1490,12 +1489,12 @@ const ResizableChannels = ({
               const monthWidth =
                 dailyWidth ||
                 parentWidth /
-                  Math.max(
-                    1,
-                    (endDate.getFullYear() - startDate.getFullYear()) * 12 +
-                      (endDate.getMonth() - startDate.getMonth()) +
-                      1
-                  );
+                Math.max(
+                  1,
+                  (endDate.getFullYear() - startDate.getFullYear()) * 12 +
+                  (endDate.getMonth() - startDate.getMonth()) +
+                  1
+                );
 
               left = parentLeft + Math.max(0, startMonthIdx) * monthWidth;
               width = Math.max(monthWidth, monthsBetween * monthWidth);
@@ -1523,39 +1522,39 @@ const ResizableChannels = ({
             if (startDate) {
               const offsetDays = adjustedStageStartDate
                 ? Math.max(
-                    0,
-                    differenceInCalendarDays(adjustedStageStartDate, startDate)
-                  )
+                  0,
+                  differenceInCalendarDays(adjustedStageStartDate, startDate)
+                )
                 : 0;
 
               const daysBetween =
                 adjustedStageStartDate && adjustedStageEndDate
                   ? Math.max(
-                      1,
-                      differenceInCalendarDays(
-                        adjustedStageEndDate,
-                        adjustedStageStartDate
-                      ) + 1
-                    )
+                    1,
+                    differenceInCalendarDays(
+                      adjustedStageEndDate,
+                      adjustedStageStartDate
+                    ) + 1
+                  )
                   : stageStartDate && stageEndDate
-                  ? Math.max(
+                    ? Math.max(
                       1,
                       differenceInCalendarDays(
                         isEndDateExceeded ? endDate : stageEndDate,
                         stageStartDate
                       ) + 1
                     )
-                  : 0;
+                    : 0;
 
               const step =
                 dailyWidth ||
                 parentWidth /
-                  Math.max(
-                    1,
-                    endDate && startDate
-                      ? differenceInCalendarDays(endDate, startDate) + 1
-                      : dateList?.length || 1
-                  );
+                Math.max(
+                  1,
+                  endDate && startDate
+                    ? differenceInCalendarDays(endDate, startDate) + 1
+                    : dateList?.length || 1
+                );
 
               left = parentLeft + offsetDays * step;
               width = daysBetween > 0 ? step * daysBetween : parentWidth;
@@ -1568,39 +1567,39 @@ const ResizableChannels = ({
             if (startDate) {
               const offsetDays = adjustedStageStartDate
                 ? Math.max(
-                    0,
-                    differenceInCalendarDays(adjustedStageStartDate, startDate)
-                  )
+                  0,
+                  differenceInCalendarDays(adjustedStageStartDate, startDate)
+                )
                 : 0;
 
               const daysBetween =
                 adjustedStageStartDate && adjustedStageEndDate
                   ? Math.max(
-                      1,
-                      differenceInCalendarDays(
-                        adjustedStageEndDate,
-                        adjustedStageStartDate
-                      ) + 1
-                    )
+                    1,
+                    differenceInCalendarDays(
+                      adjustedStageEndDate,
+                      adjustedStageStartDate
+                    ) + 1
+                  )
                   : stageStartDate && stageEndDate
-                  ? Math.max(
+                    ? Math.max(
                       1,
                       differenceInCalendarDays(
                         isEndDateExceeded ? endDate : stageEndDate,
                         stageStartDate
                       ) + 1
                     )
-                  : 0;
+                    : 0;
 
               const step =
                 dailyWidth ||
                 parentWidth /
-                  Math.max(
-                    1,
-                    endDate && startDate
-                      ? differenceInCalendarDays(endDate, startDate) + 1
-                      : dateList?.length || 1
-                  );
+                Math.max(
+                  1,
+                  endDate && startDate
+                    ? differenceInCalendarDays(endDate, startDate) + 1
+                    : dateList?.length || 1
+                );
 
               left = parentLeft + offsetDays * step;
               width = daysBetween > 0 ? step * daysBetween : parentWidth;
@@ -1655,14 +1654,14 @@ const ResizableChannels = ({
 
           return existingState
             ? {
-                ...existingState,
-                left: left,
-                width: width,
-              }
+              ...existingState,
+              left: left,
+              width: width,
+            }
             : {
-                left: parentLeft,
-                width: Math.min(width, minChannelWidth),
-              };
+              left: parentLeft,
+              width: Math.min(width, minChannelWidth),
+            };
         });
 
         console.log("this is the new state", newState);
@@ -1914,9 +1913,8 @@ const ResizableChannels = ({
         return (
           <div
             key={channel.name}
-            className={`relative w-full ${
-              !disableDrag ? "min-h-[46px]" : ""
-            } min-h-[46px]`}
+            className={`relative w-full ${!disableDrag ? "min-h-[46px]" : ""
+              } min-h-[46px]`}
             style={{
               gridColumnStart: startColumn < 1 ? 1 : startColumn,
               gridColumnEnd: endColumn < 1 ? 1 : endColumn,
@@ -1933,11 +1931,10 @@ const ResizableChannels = ({
                   style={{
                     left: `${tooltip.x}px`,
                     top: `0px`,
-                    transform: `translate(-${
-                      tooltip.x + 100 >= (channelState[index]?.width || 0)
+                    transform: `translate(-${tooltip.x + 100 >= (channelState[index]?.width || 0)
                         ? 100
                         : 0
-                    }%, -100%)`,
+                      }%, -100%)`,
                     border: `1px solid ${channels[tooltip.index]?.color}`,
                     backgroundColor: `${channels[tooltip.index]?.bg}`,
                     color: `${channels[tooltip.index]?.color}`,
@@ -1947,21 +1944,18 @@ const ResizableChannels = ({
                 </div>
               )}
               <div
-                className={`relative h-full flex ${
-                  disableDrag
+                className={`relative h-full flex ${disableDrag
                     ? "justify-between min-w-[50px]"
                     : "justify-center cursor-move"
-                }   text-white py-[10px] px-2 gap-2 border shadow-md overflow-x-hidden ${
-                  parentWidth <= 350 || channelState[index]?.width <= 350
+                  }   text-white py-[10px] px-2 gap-2 border shadow-md overflow-x-hidden ${parentWidth <= 350 || channelState[index]?.width <= 350
                     ? "flex-col justify-center items-center"
                     : "flex-row items-center"
-                }`}
+                  }`}
                 style={{
                   left: `${channelState[index]?.left || parentLeft}px`,
-                  width: `${
-                    channelState[index]?.width +
+                  width: `${channelState[index]?.width +
                     (disableDrag ? 0 : rrange === "Month" ? 0 : 0)
-                  }px`,
+                    }px`,
                   backgroundColor: channel.bg,
                   color: channel.color,
                   borderColor: channel.color,
@@ -1978,11 +1972,10 @@ const ResizableChannels = ({
                     alt={channel.icon}
                     width={20}
                     height={20}
-                    className={`${
-                      parentWidth <= 350 || channelState[index]?.width <= 350
+                    className={`${parentWidth <= 350 || channelState[index]?.width <= 350
                         ? "hidden"
                         : "block"
-                    }`}
+                      }`}
                   />
                   <span className="font-medium whitespace-nowrap break-words text-wrap">
                     {channel.name}
@@ -2024,19 +2017,18 @@ const ResizableChannels = ({
                     {isNaN(Number(budget)) || Number(budget) <= 0
                       ? ""
                       : `${Number(
-                          budget
-                        )?.toLocaleString()} ${getCurrencySymbol(
-                          campaignFormData?.campaign_budget?.currency
-                        )}`}
+                        budget
+                      )?.toLocaleString()} ${getCurrencySymbol(
+                        campaignFormData?.campaign_budget?.currency
+                      )}`}
                   </div>
                 )}
                 {
                   <>
                     {rrange === "Month" ? (
                       <div
-                        className={`absolute top-0 h-full cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${
-                          disableDrag && "hidden"
-                        }`}
+                        className={`absolute top-0 h-full cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${disableDrag && "hidden"
+                          }`}
                         style={{
                           left: `0px`,
                         }}
@@ -2053,9 +2045,8 @@ const ResizableChannels = ({
                       </div>
                     ) : (
                       <div
-                        className={`absolute top-0 w-4 h-full cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${
-                          disableDrag && "hidden"
-                        }`}
+                        className={`absolute top-0 w-4 h-full cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${disableDrag && "hidden"
+                          }`}
                         style={{
                           left: `0px`,
                           backgroundColor: channel.color,
@@ -2071,9 +2062,8 @@ const ResizableChannels = ({
                     )}
                     {rrange === "Month" ? (
                       <div
-                        className={`absolute top-0 w-4 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
-                          disableDrag && "hidden"
-                        }`}
+                        className={`absolute top-0 w-4 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${disableDrag && "hidden"
+                          }`}
                         style={{
                           right: "0px",
                         }}
@@ -2090,9 +2080,8 @@ const ResizableChannels = ({
                       </div>
                     ) : (
                       <div
-                        className={`absolute top-0 w-4 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
-                          disableDrag && "hidden"
-                        }`}
+                        className={`absolute top-0 w-4 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${disableDrag && "hidden"
+                          }`}
                         style={{
                           right: "0px",
                           backgroundColor: channel.color,
@@ -2118,138 +2107,137 @@ const ResizableChannels = ({
                 Boolean(set?.size?.toString().trim()) ||
                 Boolean(set?.description?.toString().trim())
             ).length > 0 && (
-              <div
-                className="relative"
-                style={{
-                  left: `${channelState[index]?.left || parentLeft}px`,
-                }}
-              >
                 <div
-                  className="relative bg-[#EBFEF4] py-[8px] px-[12px] w-fit mt-[5px] border border-[#00A36C1A] rounded-[8px] flex items-center cursor-pointer"
-                  onClick={(e) => {
-                    toggleChannel(`${channel?.name}${index}`);
-                    setSelectedCreative(channel?.format);
-
-                    // Measure and adjust popover so it doesn't overflow viewport right edge
-                    // no-op
+                  className="relative"
+                  style={{
+                    left: `${channelState[index]?.left || parentLeft}px`,
                   }}
                 >
-                  <p className="text-[14px] font-medium text-[#00A36C]">
-                    {
-                      (channel?.ad_sets || []).filter(
-                        (set) =>
-                          Boolean(set?.audience_type?.toString().trim()) ||
-                          Boolean(set?.name?.toString().trim()) ||
-                          Boolean(set?.size?.toString().trim()) ||
-                          Boolean(set?.description?.toString().trim())
-                      ).length
-                    }{" "}
-                    ad sets
-                  </p>
-                  <Image
-                    src={
-                      openItems && openItems === `${channel?.name}${index}`
-                        ? arrowUp
-                        : arrowDown
-                    }
-                    alt=""
-                    width={24}
-                    height={24}
-                  />
-                </div>
-                {openItems && openItems === `${channel?.name}${index}` && (
                   <div
-                    ref={popoverRef}
-                    className="absolute top-full left-0 mt-2 bg-white z-50 rounded-md border shadow-md w-[600px] max-w-[90vw]"
-                    style={{ transform: `translateX(${popoverShift}px)` }}
+                    className="relative bg-[#EBFEF4] py-[8px] px-[12px] w-fit mt-[5px] border border-[#00A36C1A] rounded-[8px] flex items-center cursor-pointer"
+                    onClick={(e) => {
+                      toggleChannel(`${channel?.name}${index}`);
+                      setSelectedCreative(channel?.format);
+
+                      // Measure and adjust popover so it doesn't overflow viewport right edge
+                      // no-op
+                    }}
                   >
-                    <table className="table-auto w-full text-left text-[12px] text-[#061237B2] font-medium border-none hover:cursor-default">
-                      <thead className="bg-transparent">
-                        <tr>
-                          <th className="px-4 py-2">#</th>
-                          <th className="px-4 py-2">Audience Type</th>
-                          <th className="px-4 py-2">Name</th>
-                          <th className="px-4 py-2 whitespace-nowrap">
-                            Audience size
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {channel?.ad_sets?.map((set, idx) => (
-                          <React.Fragment key={idx}>
-                            <tr className="border-none">
-                              <td className="px-4 py-2 text-[#3175FF] font-bold whitespace-nowrap border-none">
-                                Ad Set No.{idx + 1}.
-                              </td>
-                              <td className="px-4 py-2 whitespace-nowrap border-none">
-                                {set?.audience_type}
-                              </td>
-                              <td className="px-4 py-2 whitespace-nowrap border-none">
-                                {set?.name}
-                              </td>
-                              <td className="px-4 py-2 whitespace-nowrap border-none hover:no-underline">
-                                {Number(set?.size).toLocaleString()}
-                              </td>
-                            </tr>
-                            {set?.extra_audiences?.map((extra, extraIndex) => (
-                              <tr
-                                key={`${idx}-${extraIndex}`}
-                                className="border-none"
-                              >
+                    <p className="text-[14px] font-medium text-[#00A36C]">
+                      {
+                        (channel?.ad_sets || []).filter(
+                          (set) =>
+                            Boolean(set?.audience_type?.toString().trim()) ||
+                            Boolean(set?.name?.toString().trim()) ||
+                            Boolean(set?.size?.toString().trim()) ||
+                            Boolean(set?.description?.toString().trim())
+                        ).length
+                      }{" "}
+                      ad sets
+                    </p>
+                    <Image
+                      src={
+                        openItems && openItems === `${channel?.name}${index}`
+                          ? arrowUp
+                          : arrowDown
+                      }
+                      alt=""
+                      width={24}
+                      height={24}
+                    />
+                  </div>
+                  {openItems && openItems === `${channel?.name}${index}` && (
+                    <div
+                      ref={popoverRef}
+                      className="absolute top-full left-0 mt-2 bg-white z-50 rounded-md border shadow-md w-[600px] max-w-[90vw]"
+                      style={{ transform: `translateX(${popoverShift}px)` }}
+                    >
+                      <table className="table-auto w-full text-left text-[12px] text-[#061237B2] font-medium border-none hover:cursor-default">
+                        <thead className="bg-transparent">
+                          <tr>
+                            <th className="px-4 py-2">#</th>
+                            <th className="px-4 py-2">Audience Type</th>
+                            <th className="px-4 py-2">Name</th>
+                            <th className="px-4 py-2 whitespace-nowrap">
+                              Audience size
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {channel?.ad_sets?.map((set, idx) => (
+                            <React.Fragment key={idx}>
+                              <tr className="border-none">
                                 <td className="px-4 py-2 text-[#3175FF] font-bold whitespace-nowrap border-none">
-                                  <div className="l-shape-container-ad">
-                                    <div
-                                      className={`absolute w-[1px] ${
-                                        extraIndex > 0
-                                          ? "h-[35px] top-[-35px]"
-                                          : "h-[20px] top-[-20px]"
-                                      } bg-blue-500 left-[60px]`}
-                                    ></div>
-                                    <div className="absolute w-[60px] h-[1px] bg-blue-500 bottom-[-1px] left-[60px]"></div>
-                                  </div>
+                                  Ad Set No.{idx + 1}.
                                 </td>
                                 <td className="px-4 py-2 whitespace-nowrap border-none">
-                                  {extra?.audience_type}
+                                  {set?.audience_type}
                                 </td>
                                 <td className="px-4 py-2 whitespace-nowrap border-none">
-                                  {extra?.name}
+                                  {set?.name}
                                 </td>
-                                <td className="px-4 py-2 whitespace-nowrap border-none">
-                                  {Number(extra?.size).toLocaleString()}
+                                <td className="px-4 py-2 whitespace-nowrap border-none hover:no-underline">
+                                  {Number(set?.size).toLocaleString()}
                                 </td>
                               </tr>
-                            ))}
-                          </React.Fragment>
-                        ))}
-                      </tbody>
-                    </table>
-                    <div className="p-2 mt-2 flex justify-between items-center">
-                      <button
-                        className="bg-blue-500 text-white p-2 rounded-md"
-                        onClick={() => {
-                          setOpenCreatives(true);
-                          setSelectedChannel(channel?.name);
-                          setOpenView("adset");
-                        }}
-                      >
-                        View Creatives
-                      </button>
-                      {!disableDrag && (
+                              {set?.extra_audiences?.map((extra, extraIndex) => (
+                                <tr
+                                  key={`${idx}-${extraIndex}`}
+                                  className="border-none"
+                                >
+                                  <td className="px-4 py-2 text-[#3175FF] font-bold whitespace-nowrap border-none">
+                                    <div className="l-shape-container-ad">
+                                      <div
+                                        className={`absolute w-[1px] ${extraIndex > 0
+                                            ? "h-[35px] top-[-35px]"
+                                            : "h-[20px] top-[-20px]"
+                                          } bg-blue-500 left-[60px]`}
+                                      ></div>
+                                      <div className="absolute w-[60px] h-[1px] bg-blue-500 bottom-[-1px] left-[60px]"></div>
+                                    </div>
+                                  </td>
+                                  <td className="px-4 py-2 whitespace-nowrap border-none">
+                                    {extra?.audience_type}
+                                  </td>
+                                  <td className="px-4 py-2 whitespace-nowrap border-none">
+                                    {extra?.name}
+                                  </td>
+                                  <td className="px-4 py-2 whitespace-nowrap border-none">
+                                    {Number(extra?.size).toLocaleString()}
+                                  </td>
+                                </tr>
+                              ))}
+                            </React.Fragment>
+                          ))}
+                        </tbody>
+                      </table>
+                      <div className="p-2 mt-2 flex justify-between items-center">
                         <button
                           className="bg-blue-500 text-white p-2 rounded-md"
                           onClick={() => {
-                            setOpenAdset(true);
+                            setOpenCreatives(true);
                             setSelectedChannel(channel?.name);
+                            setOpenView("adset");
                           }}
                         >
-                          Add Adsets
+                          View Creatives
                         </button>
-                      )}
+                        {!disableDrag && (
+                          <button
+                            className="bg-blue-500 text-white p-2 rounded-md"
+                            onClick={() => {
+                              setOpenAdset(true);
+                              setSelectedChannel(channel?.name);
+                            }}
+                          >
+                            Add Adsets
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            )}
+                  )}
+                </div>
+              )}
             {(channel?.ad_sets === undefined || channel?.ad_sets?.length < 1) &&
               channel?.format?.some((f) => f?.previews?.length > 0) && (
                 <button
@@ -2347,67 +2335,67 @@ const ResizableChannels = ({
                       {channel?.ad_sets?.some(
                         (adSet) => adSet?.format?.length > 0
                       ) && (
-                        <div>
-                          <h3 className="font-semibold text-sm mb-2">
-                            Ad Set Formats
-                          </h3>
-                          {channel.ad_sets
-                            ?.filter((adSet) => adSet?.format?.length > 0)
-                            .map((adSet, adSetIndex) => (
-                              <div
-                                key={adSetIndex}
-                                className="mt-3 p-2 bg-white rounded border border-gray-200"
-                              >
-                                <div className="font-medium text-sm">
-                                  {adSet.name || "Unnamed Ad Set"}
-                                </div>
-                                <div className="text-xs text-gray-500 mb-2">
-                                  {adSet.audience_type} • Size:{" "}
-                                  {Number(adSet.size).toLocaleString()}
-                                </div>
-                                {adSet.format?.length > 0 ? (
-                                  <div className="text-sm text-gray-600">
-                                    {adSet.format.map((format, formatIndex) => (
-                                      <div
-                                        key={formatIndex}
-                                        className="p-4 bg-gray-100 rounded-lg shadow-sm"
-                                      >
-                                        <p className="font-medium">
-                                          Format Type: {format?.format_type}
-                                        </p>
-                                        <p className="text-sm text-gray-500">
-                                          Previews:
-                                        </p>
-                                        <div className="grid grid-cols-2 gap-2 mt-2">
-                                          {format?.previews?.map(
-                                            (preview, id) => (
-                                              <div
-                                                key={id}
-                                                className="block w-[140px] h-[140px]"
-                                              >
-                                                {renderUploadedFile(
-                                                  format?.previews?.map(
-                                                    (pp) => pp?.url
-                                                  ),
-                                                  format?.format_type,
-                                                  id
-                                                )}
-                                              </div>
-                                            )
-                                          )}
+                          <div>
+                            <h3 className="font-semibold text-sm mb-2">
+                              Ad Set Formats
+                            </h3>
+                            {channel.ad_sets
+                              ?.filter((adSet) => adSet?.format?.length > 0)
+                              .map((adSet, adSetIndex) => (
+                                <div
+                                  key={adSetIndex}
+                                  className="mt-3 p-2 bg-white rounded border border-gray-200"
+                                >
+                                  <div className="font-medium text-sm">
+                                    {adSet.name || "Unnamed Ad Set"}
+                                  </div>
+                                  <div className="text-xs text-gray-500 mb-2">
+                                    {adSet.audience_type} • Size:{" "}
+                                    {Number(adSet.size).toLocaleString()}
+                                  </div>
+                                  {adSet.format?.length > 0 ? (
+                                    <div className="text-sm text-gray-600">
+                                      {adSet.format.map((format, formatIndex) => (
+                                        <div
+                                          key={formatIndex}
+                                          className="p-4 bg-gray-100 rounded-lg shadow-sm"
+                                        >
+                                          <p className="font-medium">
+                                            Format Type: {format?.format_type}
+                                          </p>
+                                          <p className="text-sm text-gray-500">
+                                            Previews:
+                                          </p>
+                                          <div className="grid grid-cols-2 gap-2 mt-2">
+                                            {format?.previews?.map(
+                                              (preview, id) => (
+                                                <div
+                                                  key={id}
+                                                  className="block w-[140px] h-[140px]"
+                                                >
+                                                  {renderUploadedFile(
+                                                    format?.previews?.map(
+                                                      (pp) => pp?.url
+                                                    ),
+                                                    format?.format_type,
+                                                    id
+                                                  )}
+                                                </div>
+                                              )
+                                            )}
+                                          </div>
                                         </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <div className="text-xs text-gray-500">
-                                    No formats configured
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                        </div>
-                      )}
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <div className="text-xs text-gray-500">
+                                      No formats configured
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                          </div>
+                        )}
                     </div>
                   </div>
                 ))}

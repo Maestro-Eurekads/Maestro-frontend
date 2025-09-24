@@ -17,6 +17,8 @@ const BusinessBrandAwareness = ({ statsData = [], aggregatedStats = {}, loading,
 	const [animationState, setAnimationState] = useState("");
 	const currency = getCurrencySymbol(campaign?.campaign_budget?.currency) ?? "";
 
+	console.log('statsData-----', statsData)
+
 	const handlePrev = () => {
 		setAnimationState("in");
 		setCurrentIndex((prev) => (prev === 0 ? statsData.length - 1 : prev - 1));
