@@ -62,7 +62,7 @@ function FeeSelectionStep({
             `campaignFormData_${cId}`,
             JSON.stringify(updatedData)
           );
-        } catch (error) {}
+        } catch (error) { }
       }
 
       return updatedData;
@@ -224,7 +224,7 @@ function FeeSelectionStep({
             `campaignFormData_${cId}`,
             JSON.stringify(updatedData)
           );
-        } catch (error) {}
+        } catch (error) { }
       }
 
       return updatedData;
@@ -247,7 +247,7 @@ function FeeSelectionStep({
             "percent",
           percentValue:
             feeOptions?.find((opt) => opt.value === bud?.fee_type)?.type ===
-            "percent"
+              "percent"
               ? bud?.percentValue
               : null,
         })
@@ -310,7 +310,7 @@ function FeeSelectionStep({
               `campaignFormData_${cId}`,
               JSON.stringify(updatedData)
             );
-          } catch (error) {}
+          } catch (error) { }
         }
 
         return updatedData;
@@ -394,14 +394,31 @@ function FeeSelectionStep({
                     className="relative bg-white rounded-lg border p-4 w-[350px] cursor-pointer"
                     onClick={() => {
                       setActive(1);
-                      setCampaignFormData((prev) => ({
-                        ...prev,
-                        campaign_budget: {
-                          ...prev?.campaign_budget,
-                          sub_budget_type: "gross",
-                          level: "channel",
-                        },
-                      }));
+                      setCampaignFormData((prev) => {
+                        const updatedData = {
+                          ...prev,
+                          campaign_budget: {
+                            ...prev?.campaign_budget,
+                            sub_budget_type: "gross",
+                            level: "channel",
+                          },
+                        };
+
+                        // Immediately save to localStorage for critical budget updates
+                        if (typeof window !== "undefined" && cId) {
+                          try {
+                            localStorage.setItem(
+                              `campaignFormData_${cId}`,
+                              JSON.stringify(updatedData)
+                            );
+                          } catch (error) {
+                            console.error("Error saving budget to localStorage:", error);
+                          }
+                        }
+
+                        console.log('FeeSelectionStep: Selected Gross Media Budget, saving to context:', updatedData.campaign_budget);
+                        return updatedData;
+                      });
                       setShowSelection(false);
                     }}
                     role="button"
@@ -415,28 +432,45 @@ function FeeSelectionStep({
                     </div>
                     {(active === 1 ||
                       campaignFormData?.campaign_budget?.sub_budget_type ===
-                        "gross") && (
-                      <div className="absolute right-2 top-2">
-                        <Image
-                          src={Selectstatus || "/placeholder.svg"}
-                          alt="Select status icon"
-                        />
-                      </div>
-                    )}
+                      "gross") && (
+                        <div className="absolute right-2 top-2">
+                          <Image
+                            src={Selectstatus || "/placeholder.svg"}
+                            alt="Select status icon"
+                          />
+                        </div>
+                      )}
                   </div>
 
                   <div
                     className="relative bg-white rounded-lg border p-4 w-[350px] cursor-pointer"
                     onClick={() => {
                       setActive(2);
-                      setCampaignFormData((prev) => ({
-                        ...prev,
-                        campaign_budget: {
-                          ...prev?.campaign_budget,
-                          sub_budget_type: "net",
-                          level: "adset",
-                        },
-                      }));
+                      setCampaignFormData((prev) => {
+                        const updatedData = {
+                          ...prev,
+                          campaign_budget: {
+                            ...prev?.campaign_budget,
+                            sub_budget_type: "net",
+                            level: "adset",
+                          },
+                        };
+
+                        // Immediately save to localStorage for critical budget updates
+                        if (typeof window !== "undefined" && cId) {
+                          try {
+                            localStorage.setItem(
+                              `campaignFormData_${cId}`,
+                              JSON.stringify(updatedData)
+                            );
+                          } catch (error) {
+                            console.error("Error saving budget to localStorage:", error);
+                          }
+                        }
+
+                        console.log('FeeSelectionStep: Selected Net Media Budget, saving to context:', updatedData.campaign_budget);
+                        return updatedData;
+                      });
                       setShowSelection(false);
                     }}
                     role="button"
@@ -450,14 +484,14 @@ function FeeSelectionStep({
                     </div>
                     {(active === 2 ||
                       campaignFormData?.campaign_budget?.sub_budget_type ===
-                        "net") && (
-                      <div className="absolute right-2 top-2">
-                        <Image
-                          src={Selectstatus || "/placeholder.svg"}
-                          alt="Select status icon"
-                        />
-                      </div>
-                    )}
+                      "net") && (
+                        <div className="absolute right-2 top-2">
+                          <Image
+                            src={Selectstatus || "/placeholder.svg"}
+                            alt="Select status icon"
+                          />
+                        </div>
+                      )}
                   </div>
                 </div>
               ) : (
@@ -542,8 +576,8 @@ function FeeSelectionStep({
                             {feeType?.type === "percent"
                               ? ""
                               : getCurrencySymbol(
-                                  campaignFormData?.campaign_budget?.currency
-                                )}
+                                campaignFormData?.campaign_budget?.currency
+                              )}
                           </p>
                           <input
                             className="text-center outline-none max-w-[205px]"
@@ -639,7 +673,7 @@ function FeeSelectionStep({
                                           `campaignFormData_${cId}`,
                                           JSON.stringify(updatedData)
                                         );
-                                      } catch (error) {}
+                                      } catch (error) { }
                                     }
 
                                     return updatedData;
@@ -745,8 +779,8 @@ function FeeSelectionStep({
                               {feeType?.type === "percent"
                                 ? ""
                                 : getCurrencySymbol(
-                                    campaignFormData?.campaign_budget?.currency
-                                  )}
+                                  campaignFormData?.campaign_budget?.currency
+                                )}
                             </p>
                             <input
                               className="text-center outline-none w-[145px]"
@@ -849,7 +883,7 @@ function FeeSelectionStep({
                                             `campaignFormData_${cId}`,
                                             JSON.stringify(updatedData)
                                           );
-                                        } catch (error) {}
+                                        } catch (error) { }
                                       }
 
                                       return updatedData;
@@ -881,11 +915,11 @@ function FeeSelectionStep({
                               placeholder="Gross amount"
                               value={
                                 isNaN(Number(calculateGrossAmount())) ||
-                                Number(calculateGrossAmount()) <= 0
+                                  Number(calculateGrossAmount()) <= 0
                                   ? ""
                                   : formatNumberWithCommas(
-                                      calculateGrossAmount()
-                                    )
+                                    calculateGrossAmount()
+                                  )
                               }
                               readOnly
                               aria-label="Gross amount (read-only)"

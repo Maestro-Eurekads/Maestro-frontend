@@ -48,6 +48,7 @@ const CampaignBudget = () => {
   const [feeStepValidated, setFeeStepValidated] = useState(false)
   const [showLevelCards, setShowLevelCards] = useState(true)
   const [showBottomUpBudgetOverview, setShowBottomUpBudgetOverview] = useState(false)
+  const [hasUserMadeChanges, setHasUserMadeChanges] = useState(false)
 
   useEffect(() => {
     setIsDrawerOpen(false)
@@ -139,6 +140,8 @@ const CampaignBudget = () => {
 
   const handleBudgetEdit = (param, type) => {
     setChange(true)
+    setHasUserMadeChanges(true)
+    console.log('User made budget change:', param, type)
     if (!isEditing) return
 
     setCampaignFormData((prev) => {
@@ -175,6 +178,10 @@ const CampaignBudget = () => {
 
   const handleValidate = () => {
     setChange(true)
+    setHasUserMadeChanges(true)
+    console.log('handleValidate called - budgetStyle:', budgetStyle)
+    console.log('handleValidate - campaignFormData.campaign_budget:', campaignFormData?.campaign_budget)
+
     if (budgetStyle === "top_down") {
       if (!campaignFormData?.campaign_budget?.amount) {
         toast("Please set the overall campaign budget first", {
@@ -207,10 +214,12 @@ const CampaignBudget = () => {
       setStep(2)
       return true
     } else if (budgetStyle === "bottom_up") {
+      console.log('Bottom up validation - sub_budget_type:', campaignFormData?.campaign_budget?.sub_budget_type)
       if (
         !campaignFormData?.campaign_budget?.sub_budget_type ||
         campaignFormData?.campaign_budget?.sub_budget_type?.length === 0
       ) {
+        console.log('Bottom up validation failed - no sub_budget_type selected')
         toast("Please select gross or net media budget first", {
           style: { background: "red", color: "white" },
         })
@@ -260,30 +269,42 @@ const CampaignBudget = () => {
   }
 
   console.log('campaignData---', campaignData)
+  console.log('campaignFormData---', campaignFormData)
+  console.log('campaignFormData.campaign_budget---', campaignFormData?.campaign_budget)
+
+  // Use campaignData if available (from API), otherwise fall back to campaignFormData (from context/localStorage)
+  // This ensures the component works even when campaignData is not yet loaded
+  const dataSource = campaignData || campaignFormData;
 
   useEffect(() => {
-    if (campaignData?.campaign_budget) {
-      setBudgetStyle(campaignData?.campaign_budget?.budget_type)
+    // Only sync from API data if we don't have local form data, or if this is the initial load
+    // and the user hasn't made changes
+    const shouldSyncFromAPI = (!campaignFormData?.campaign_budget?.budget_type ||
+      (!budgetStyle && dataSource?.campaign_budget?.budget_type)) &&
+      !hasUserMadeChanges;
+
+    if (dataSource?.campaign_budget && shouldSyncFromAPI) {
+      setBudgetStyle(dataSource?.campaign_budget?.budget_type)
       setStep(0)
-      if (campaignData?.campaign_budget?.sub_budget_type?.length > 0) {
+      if (dataSource?.campaign_budget?.sub_budget_type?.length > 0) {
         setStep(1)
       }
-      if (campaignData?.campaign_budget?.budget_fees?.length > 0) {
+      if (dataSource?.campaign_budget?.budget_fees?.length > 0) {
         setFeeStepValidated(true)
         setStep(2)
       }
-      if (campaignData?.campaign_budget?.level) {
+      if (dataSource?.campaign_budget?.level) {
         setStep(3)
         setShowLevelCards(false)
       }
       if (
-        campaignData?.campaign_budget?.budget_type === "bottom_up" &&
-        campaignData?.campaign_budget?.budget_fees?.length > 0
+        dataSource?.campaign_budget?.budget_type === "bottom_up" &&
+        dataSource?.campaign_budget?.budget_fees?.length > 0
       ) {
         setShowBottomUpBudgetOverview(true)
       }
     }
-  }, [campaignData, campaignData?.campaign_budget?.level])
+  }, [dataSource, dataSource?.campaign_budget?.level, budgetStyle, campaignFormData?.campaign_budget?.budget_type, hasUserMadeChanges])
 
   // Auto-calculate main budget for bottom-up approach
   useEffect(() => {
@@ -548,6 +569,7 @@ const CampaignBudget = () => {
                           onClick={() => {
                             setStep(3)
                             setShowLevelCards(false)
+                            setHasUserMadeChanges(true)
                             setCampaignFormData((prev) => {
                               const updatedData = {
                                 ...prev,
@@ -711,6 +733,7 @@ const CampaignBudget = () => {
                           onClick={() => {
                             setStep(3)
                             setShowLevelCards(false)
+                            setHasUserMadeChanges(true)
                             setCampaignFormData((prev) => {
                               const updatedData = {
                                 ...prev,
@@ -752,9 +775,9 @@ const CampaignBudget = () => {
           )}
         </>
       )}
-
+      {/* || (budgetStyle !== "" && budgetStyle === "bottom_up")  */}
       {/* Step 2: Allocate sub-budgets (ad set/channel) - Show ConfigureAdSetsAndBudget when Adset level is selected */}
-      {(budgetStyle !== "" && budgetStyle === "bottom_up" && step > 1) || (budgetStyle !== "" && budgetStyle === "bottom_up") && (
+      {(budgetStyle !== "" && budgetStyle === "bottom_up" && step > 1) && (
         <>
           {(campaignFormData?.campaign_budget?.level === "Adset level" ||
             campaignFormData?.goal_level === "Adset level" ||

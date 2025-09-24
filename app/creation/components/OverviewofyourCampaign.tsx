@@ -97,7 +97,9 @@ const OverviewofyourCampaign = () => {
     setRefresh,
   } = useKpis();
 
-
+  console.log('campaignData-----', campaignData)
+  console.log('campaignFormData-----', campaignFormData)
+  console.log('stage-----', stage)
 
   useEffect(() => {
     if (campaignId) {
@@ -242,7 +244,10 @@ const OverviewofyourCampaign = () => {
     return aggregatedStats;
   }
 
-  const extractedData = extractKPIByFunnelStage(campaignData, kpiCategories);
+  // Use campaignData if available (from API), otherwise fall back to campaignFormData (from context/localStorage)
+  // This ensures the component works even when campaignData is not yet loaded
+  const dataSource = campaignData || campaignFormData;
+  const extractedData = extractKPIByFunnelStage(dataSource, kpiCategories);
   const aggregatedStats = aggregateKPIStatsFromExtracted(
     extractedData,
     kpiCategories
@@ -313,13 +318,13 @@ const OverviewofyourCampaign = () => {
 
 
           <BusinessApproverContainer
-            campaign={campaignFormData}
+            campaign={dataSource}
             loading={undefined}
             isLoadingCampaign={loadingCampaign}
             campaignFormData={campaignFormData}
           />
           <BusinessGeneral
-            campaign={campaignFormData}
+            campaign={dataSource}
             loading={undefined}
             isLoadingCampaign={loadingCampaign}
             campaign_id={commentId}
@@ -329,7 +334,7 @@ const OverviewofyourCampaign = () => {
             aggregatedStats={aggregatedStats}
             loading={isLoadingKpis}
             isLoadingCampaign={loadingCampaign}
-            campaign={campaignFormData}
+            campaign={dataSource}
           />
           <MessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} />
           <div className="mt-[50px] flex flex-col justify-between gap-4 md:flex-row">
@@ -411,7 +416,7 @@ const OverviewofyourCampaign = () => {
             <Skeleton height={20} width={"100%"} />
             <Skeleton height={20} width={"100%"} />
             <Skeleton height={20} width={"100%"} />
-          </div> : !campaignData ? [] :
+          </div> : !dataSource ? [] :
             <MainSection hideDate={true} disableDrag={true} />}
       </div>
     </div>
