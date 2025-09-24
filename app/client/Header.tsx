@@ -13,7 +13,7 @@ import { getFirstLetters } from "components/Options";
 import { toast } from "sonner";
 import { useUserPrivileges } from "utils/userPrivileges";
 
-const Header = ({ setIsOpen, campaigns, loading }) => {
+const Header = ({ setIsOpen, campaigns, loading, setGeneralComment }) => {
   const {
     isDrawerOpen,
     setModalOpen,
@@ -99,9 +99,8 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
   return (
     <div
       id="client_header"
-      className={`py-[2.8rem] px-[30px] ${
-        isDrawerOpen ? "md:px-[50px]" : "xl:px-[100px]"
-      } relative`}>
+      className={`py-[2.8rem] px-[30px] ${isDrawerOpen ? "md:px-[50px]" : "xl:px-[100px]"
+        } relative`}>
       <div className="flex items-end">
         {loading ? (
           <Skeleton height={20} width={200} />
@@ -111,6 +110,7 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
             campaigns={campaigns}
             setSelected={setSelected}
             selected={selected}
+            setGeneralComment={setGeneralComment}
           />
         ) : (
           <p className="text-gray-500">No campaigns assigned</p>
@@ -156,9 +156,9 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
 
                             if (
                               campaignData?.isStatus?.stage ===
-                                "client_changes_needed" ||
+                              "client_changes_needed" ||
                               campaignData?.isStatus?.stage ===
-                                "in_internal_review"
+                              "in_internal_review"
                             ) {
                               setShowClientChangesModal(true);
                             } else {
@@ -170,7 +170,7 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
                         }}>
                         {campaignData?.isStatus?.stage ===
                           "client_changes_needed" ||
-                        campaignData?.isStatus?.stage === "in_internal_review"
+                          campaignData?.isStatus?.stage === "in_internal_review"
                           ? "Client changes have been requested"
                           : "Approve & Sign Media plan"}
                       </button>

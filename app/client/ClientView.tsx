@@ -67,7 +67,7 @@ const ClientView = () => {
     setModalOpen,
     selected,
     isOpen,
-    setIsOpen,
+    setIsOpen
   } = useComments();
   const [generalComment, setGeneralComment] = useState(false);
   const [active, setActive] = useState("Timeline view");
@@ -151,10 +151,12 @@ const ClientView = () => {
       );
       if (commentId) {
         dispatch(getComment({ commentId, jwt, client_commentId }));
+        dispatch(getGeneralComment({ commentId, jwt }));
       }
-      dispatch(getGeneralComment({ commentId, jwt }));
     }
   }, [selected, commentId, client_commentId, clientId, jwt]);
+
+
 
   const handleDrawerOpen = () => {
     setIsDrawerOpen(true);
@@ -212,7 +214,8 @@ const ClientView = () => {
   return (
     <>
       <div id="page-wrapper-client">
-        <Header setIsOpen={setIsOpen} campaigns={campaigns} loading={loading} />
+        <Header setIsOpen={setIsOpen} campaigns={campaigns} loading={loading}
+          setGeneralComment={setGeneralComment} />
         <ClientCommentsDrawer
           isOpen={isDrawerOpen}
           onClose={setIsDrawerOpen}
