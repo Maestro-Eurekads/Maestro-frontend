@@ -125,7 +125,7 @@ const ClientsCampaignDropdown = ({
       setCampaignData(null);
       setActive(0);
       setSubStep(0);
-    } catch (error) {}
+    } catch (error) { }
   };
 
   const toggleDropdown = () => {
@@ -226,9 +226,8 @@ const ClientsCampaignDropdown = ({
           {options.map((option) => (
             <div
               key={option.documentId}
-              className={`px-4 py-2 cursor-pointer hover:bg-gray-100 ${
-                selected === option.id ? "bg-gray-300 font-bold" : ""
-              }`}
+              className={`px-4 py-2 cursor-pointer hover:bg-gray-100 ${selected === option.id ? "bg-gray-300 font-bold" : ""
+                }`}
               onClick={() => handleSelect(option)}>
               <div className="flex items-center justify-between w-full">
                 <span>
@@ -275,11 +274,13 @@ export default function YourComponent({
   campaigns,
   setSelected,
   selected,
+  setGeneralComment,
 }: {
   loadingClients: boolean;
   campaigns: CampaignOption[];
   setSelected: (value: string) => void;
   selected: string;
+  setGeneralComment: (value: boolean) => void;
 }) {
   const { data: session } = useSession();
   // @ts-ignore
@@ -293,9 +294,11 @@ export default function YourComponent({
 
     if (storedClientId && isValidClient) {
       setSelected(storedClientId);
+      setGeneralComment(false);
     } else if (!selected && campaigns?.length > 0) {
       setSelected(campaigns[0].documentId);
       localStorage.setItem(userType.toString(), campaigns[0].documentId);
+
     }
   }, [campaigns, selected, setSelected]);
 
