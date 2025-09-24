@@ -79,16 +79,12 @@ const Creation = () => {
             delete (window as any).__newPlanSessionId;
           }
 
-          console.log(
-            "Cleared channel state on creation page load - starting fresh plan"
-          );
+
         } else {
-          console.log(
-            "Preserved channel state - user has active campaign or campaign data"
-          );
+
         }
       } catch (error) {
-        console.error("Error managing channel state on page load:", error);
+
       }
     }
   }, []);

@@ -17,7 +17,11 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
   const [channelData, setChannelData] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [showBudgetOverview, setShowBudgetOverview] = useState(false)
-  const { campaignFormData, setCampaignFormData } = useCampaigns()
+  const { campaignFormData, setCampaignFormData, campaignData } = useCampaigns()
+
+  // Use campaignData if available (from API), otherwise fall back to campaignFormData (from context/localStorage)
+  // This ensures the component works even when campaignData is not yet loaded
+  const dataSource = campaignData || campaignFormData;
 
   // Add selectedOption state for currency
   const [selectedOption, setSelectedOption] = useState({
@@ -31,22 +35,22 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
   }, [setIsDrawerOpen, setClose])
 
   useEffect(() => {
-    if (campaignFormData) {
-      if (campaignFormData?.goal_level) {
+    if (dataSource) {
+      if (dataSource?.goal_level) {
         setIsModalOpen(false)
       } else {
         setIsModalOpen(true)
       }
 
       // Set currency from campaign data
-      if (campaignFormData?.campaign_budget?.currency) {
+      if (dataSource?.campaign_budget?.currency) {
         setSelectedOption({
-          value: campaignFormData.campaign_budget.currency,
-          label: campaignFormData.campaign_budget.currency,
+          value: dataSource.campaign_budget.currency,
+          label: dataSource.campaign_budget.currency,
         })
       }
     }
-  }, [campaignFormData])
+  }, [dataSource])
 
   const tailwindToHex = (tailwindClass: string): string => {
     const colorMap = {
@@ -106,36 +110,36 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
   }
 
   const getFunnelColor = (funnelStage: string): string => {
-    const funnel = campaignFormData?.custom_funnels?.find((f: any) => f.name === funnelStage)
+    const funnel = dataSource?.custom_funnels?.find((f: any) => f.name === funnelStage)
     return funnel ? tailwindToHex(funnel.color) : "#6B7280"
   }
 
   useEffect(() => {
-    if (campaignFormData && campaignFormData.channel_mix) {
-      extractPlatforms(campaignFormData)
+    if (dataSource && dataSource.channel_mix) {
+      extractPlatforms(dataSource)
     }
-  }, [campaignFormData])
+  }, [dataSource])
 
   const totalFeesAmount = useMemo(() => {
-    const feesArr = campaignFormData?.campaign_budget?.budget_fees
+    const feesArr = dataSource?.campaign_budget?.budget_fees
     if (!Array.isArray(feesArr) || feesArr.length === 0) {
       return 0
     }
     const sum = feesArr.reduce((total, fee) => total + Number(fee.value || 0), 0)
     return isNaN(sum) ? 0 : sum
-  }, [campaignFormData])
+  }, [dataSource])
 
   const allocatedBudget = useMemo(() => {
-    return Array.isArray(campaignFormData?.channel_mix)
+    return Array.isArray(dataSource?.channel_mix)
       ? campaignFormData.channel_mix.reduce((acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0), 0)
       : 0
-  }, [campaignFormData?.channel_mix])
+  }, [dataSource?.channel_mix])
 
   // Calculate gross amount (same logic as FeeSelectionStep)
   const calculateGrossAmount = () => {
-    if (!campaignFormData?.campaign_budget?.amount) return "0.00"
-    const budgetAmount = Number.parseFloat(campaignFormData?.campaign_budget?.amount || "0")
-    const subBudgetType = campaignFormData?.campaign_budget?.sub_budget_type
+    if (!dataSource?.campaign_budget?.amount) return "0.00"
+    const budgetAmount = Number.parseFloat(dataSource?.campaign_budget?.amount || "0")
+    const subBudgetType = dataSource?.campaign_budget?.sub_budget_type
 
     if (subBudgetType === "gross") {
       // Gross budget: Gross is the input amount
@@ -149,8 +153,8 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
 
   // Calculate remaining budget (same logic as FeeSelectionStep)
   const calculateRemainingBudget = () => {
-    const budgetAmount = Number.parseFloat(campaignFormData?.campaign_budget?.amount || "0")
-    const subBudgetType = campaignFormData?.campaign_budget?.sub_budget_type
+    const budgetAmount = Number.parseFloat(dataSource?.campaign_budget?.amount || "0")
+    const subBudgetType = dataSource?.campaign_budget?.sub_budget_type
     let mediaBudget
 
     if (subBudgetType === "gross") {
@@ -163,7 +167,7 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
       mediaBudget = 0
     }
 
-    const subBudgets = Array.isArray(campaignFormData?.channel_mix)
+    const subBudgets = Array.isArray(dataSource?.channel_mix)
       ? campaignFormData.channel_mix.reduce((acc, stage) => {
         return acc + (Number(stage?.stage_budget?.fixed_value) || 0)
       }, 0)
@@ -175,9 +179,9 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
 
   // FIXED: Calculate total campaign budget correctly - this should be the media budget amount only
   const calculateTotalCampaignBudget = () => {
-    if (!campaignFormData?.campaign_budget) return 0
-    const budgetAmount = Number(campaignFormData?.campaign_budget?.amount) || 0
-    const budgetType = campaignFormData?.campaign_budget?.budget_type // "top_down" or "bottom_up"
+    if (!dataSource?.campaign_budget) return 0
+    const budgetAmount = Number(dataSource?.campaign_budget?.amount) || 0
+    const budgetType = dataSource?.campaign_budget?.budget_type // "top_down" or "bottom_up"
     if (budgetType === "bottom_up") {
       // For bottom-up: Total campaign budget is the sum of all stage budgets (allocated media spend)
       return allocatedBudget
@@ -188,10 +192,10 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
   }
 
   const calculateNetAvailableBudget = () => {
-    if (!campaignFormData?.campaign_budget) return 0
-    const budgetAmount = Number(campaignFormData?.campaign_budget?.amount) || 0
-    const budgetType = campaignFormData?.campaign_budget?.budget_type
-    const subBudgetType = campaignFormData?.campaign_budget?.sub_budget_type
+    if (!dataSource?.campaign_budget) return 0
+    const budgetAmount = Number(dataSource?.campaign_budget?.amount) || 0
+    const budgetType = dataSource?.campaign_budget?.budget_type
+    const subBudgetType = dataSource?.campaign_budget?.sub_budget_type
     if (budgetType === "bottom_up") {
       // Net available is just the sum of stage budgets (the media spend)
       return allocatedBudget
@@ -208,27 +212,27 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
   }
 
   const remainingBudget = useMemo(() => {
-    if (campaignFormData?.campaign_budget?.budget_type === "bottom_up") {
+    if (dataSource?.campaign_budget?.budget_type === "bottom_up") {
       return 0
     }
     const netAvailable = calculateNetAvailableBudget()
     return Math.max(0, netAvailable - allocatedBudget)
   }, [
     allocatedBudget,
-    campaignFormData?.campaign_budget?.budget_type,
+    dataSource?.campaign_budget?.budget_type,
     totalFeesAmount,
-    campaignFormData?.campaign_budget,
+    dataSource?.campaign_budget,
   ])
 
   const totalCampaignBudget = calculateTotalCampaignBudget()
 
   const insideText = useMemo(() => {
-    const currency = getCurrencySymbol(campaignFormData?.campaign_budget?.currency)
+    const currency = getCurrencySymbol(dataSource?.campaign_budget?.currency)
     return `${totalCampaignBudget.toLocaleString()} ${currency}`
-  }, [totalCampaignBudget, campaignFormData?.campaign_budget?.currency])
+  }, [totalCampaignBudget, dataSource?.campaign_budget?.currency])
 
   const campaignPhases = useMemo(() => {
-    if (!Array.isArray(campaignFormData?.channel_mix)) return []
+    if (!Array.isArray(dataSource?.channel_mix)) return []
     const netAvailable = calculateNetAvailableBudget()
     if (netAvailable === 0) return []
     return campaignFormData.channel_mix
@@ -243,7 +247,7 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
           color: getFunnelColor(ch?.funnel_stage),
         }
       })
-  }, [campaignFormData?.channel_mix, totalFeesAmount, campaignFormData?.campaign_budget])
+  }, [dataSource?.channel_mix, totalFeesAmount, dataSource?.campaign_budget])
 
   return (
     <div>
@@ -257,7 +261,7 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
       </div>
 
       {/* Budget Display - positioned after header, before ConfiguredSetPage */}
-      {campaignFormData?.campaign_budget?.sub_budget_type && (
+      {dataSource?.campaign_budget?.sub_budget_type && (
         <div className="text-lg min-h-[56px] bg-white shadow-md mt-8 rounded-md px-6 py-4 mb-2 border border-gray-100">
           <div className="flex flex-row items-center justify-between space-x-6 mx-auto max-w-[1200px]">
             <div className="flex-1 flex items-center">
@@ -288,7 +292,11 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
 export const BudgetOverviewSection = () => {
   const [showBudgetOverview, setShowBudgetOverview] = useState(false)
   const [channelData, setChannelData] = useState(null)
-  const { campaignFormData } = useCampaigns()
+  const { campaignFormData, campaignData } = useCampaigns()
+
+  // Use campaignData if available (from API), otherwise fall back to campaignFormData (from context/localStorage)
+  // This ensures the component works even when campaignData is not yet loaded
+  const dataSource = campaignData || campaignFormData;
 
   const tailwindToHex = (tailwindClass: string): string => {
     const colorMap = {
@@ -351,36 +359,36 @@ export const BudgetOverviewSection = () => {
   }
 
   const getFunnelColor = (funnelStage: string): string => {
-    const funnel = campaignFormData?.custom_funnels?.find((f: any) => f.name === funnelStage)
+    const funnel = dataSource?.custom_funnels?.find((f: any) => f.name === funnelStage)
     return funnel ? tailwindToHex(funnel.color) : "#6B7280"
   }
 
   useEffect(() => {
-    if (campaignFormData && campaignFormData.channel_mix) {
-      extractPlatforms(campaignFormData)
+    if (dataSource && dataSource.channel_mix) {
+      extractPlatforms(dataSource)
     }
-  }, [campaignFormData])
+  }, [dataSource])
 
   const totalFeesAmount = useMemo(() => {
-    const feesArr = campaignFormData?.campaign_budget?.budget_fees
+    const feesArr = dataSource?.campaign_budget?.budget_fees
     if (!Array.isArray(feesArr) || feesArr.length === 0) {
       return 0
     }
     const sum = feesArr.reduce((total, fee) => total + Number(fee.value || 0), 0)
     return isNaN(sum) ? 0 : sum
-  }, [campaignFormData])
+  }, [dataSource])
 
   const allocatedBudget = useMemo(() => {
-    return Array.isArray(campaignFormData?.channel_mix)
+    return Array.isArray(dataSource?.channel_mix)
       ? campaignFormData.channel_mix.reduce((acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0), 0)
       : 0
-  }, [campaignFormData?.channel_mix])
+  }, [dataSource?.channel_mix])
 
   // FIXED: Calculate total campaign budget correctly - this should be the media budget amount only
   const calculateTotalCampaignBudget = () => {
-    if (!campaignFormData?.campaign_budget) return 0
-    const budgetAmount = Number(campaignFormData?.campaign_budget?.amount) || 0
-    const budgetType = campaignFormData?.campaign_budget?.budget_type // "top_down" or "bottom_up"
+    if (!dataSource?.campaign_budget) return 0
+    const budgetAmount = Number(dataSource?.campaign_budget?.amount) || 0
+    const budgetType = dataSource?.campaign_budget?.budget_type // "top_down" or "bottom_up"
     if (budgetType === "bottom_up") {
       // For bottom-up: Total campaign budget is the sum of all stage budgets (allocated media spend)
       return allocatedBudget
@@ -391,10 +399,10 @@ export const BudgetOverviewSection = () => {
   }
 
   const calculateNetAvailableBudget = () => {
-    if (!campaignFormData?.campaign_budget) return 0
-    const budgetAmount = Number(campaignFormData?.campaign_budget?.amount) || 0
-    const budgetType = campaignFormData?.campaign_budget?.budget_type
-    const subBudgetType = campaignFormData?.campaign_budget?.sub_budget_type
+    if (!dataSource?.campaign_budget) return 0
+    const budgetAmount = Number(dataSource?.campaign_budget?.amount) || 0
+    const budgetType = dataSource?.campaign_budget?.budget_type
+    const subBudgetType = dataSource?.campaign_budget?.sub_budget_type
     if (budgetType === "bottom_up") {
       // Net available is just the sum of stage budgets (the media spend)
       return allocatedBudget
@@ -411,27 +419,27 @@ export const BudgetOverviewSection = () => {
   }
 
   const remainingBudget = useMemo(() => {
-    if (campaignFormData?.campaign_budget?.budget_type === "bottom_up") {
+    if (dataSource?.campaign_budget?.budget_type === "bottom_up") {
       return 0
     }
     const netAvailable = calculateNetAvailableBudget()
     return Math.max(0, netAvailable - allocatedBudget)
   }, [
     allocatedBudget,
-    campaignFormData?.campaign_budget?.budget_type,
+    dataSource?.campaign_budget?.budget_type,
     totalFeesAmount,
-    campaignFormData?.campaign_budget,
+    dataSource?.campaign_budget,
   ])
 
   const totalCampaignBudget = calculateTotalCampaignBudget()
 
   const insideText = useMemo(() => {
-    const currency = getCurrencySymbol(campaignFormData?.campaign_budget?.currency)
+    const currency = getCurrencySymbol(dataSource?.campaign_budget?.currency)
     return `${totalCampaignBudget.toLocaleString()} ${currency}`
-  }, [totalCampaignBudget, campaignFormData?.campaign_budget?.currency])
+  }, [totalCampaignBudget, dataSource?.campaign_budget?.currency])
 
   const campaignPhases = useMemo(() => {
-    if (!Array.isArray(campaignFormData?.channel_mix)) return []
+    if (!Array.isArray(dataSource?.channel_mix)) return []
     const netAvailable = calculateNetAvailableBudget()
     if (netAvailable === 0) return []
     return campaignFormData.channel_mix
@@ -446,7 +454,7 @@ export const BudgetOverviewSection = () => {
           color: getFunnelColor(ch?.funnel_stage),
         }
       })
-  }, [campaignFormData?.channel_mix, totalFeesAmount, campaignFormData?.campaign_budget])
+  }, [dataSource?.channel_mix, totalFeesAmount, dataSource?.campaign_budget])
 
   return (
     <div>
@@ -463,28 +471,28 @@ export const BudgetOverviewSection = () => {
           <div className="flex items-center gap-[30px] mb-4">
             <p>
               Total Campaign Budget: {totalCampaignBudget.toLocaleString()}
-              {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+              {getCurrencySymbol(dataSource?.campaign_budget?.currency)}
             </p>
             {totalFeesAmount > 0 && (
               <p className="text-red-600">
                 Total Fees: {totalFeesAmount.toLocaleString()}
-                {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+                {getCurrencySymbol(dataSource?.campaign_budget?.currency)}
               </p>
             )}
-            {totalFeesAmount > 0 && campaignFormData?.campaign_budget?.sub_budget_type === "gross" && (
+            {totalFeesAmount > 0 && dataSource?.campaign_budget?.sub_budget_type === "gross" && (
               <p>
                 Net Available Budget: {calculateNetAvailableBudget().toLocaleString()}
-                {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+                {getCurrencySymbol(dataSource?.campaign_budget?.currency)}
               </p>
             )}
             <p>
               Allocated Budget: {allocatedBudget.toLocaleString()}
-              {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+              {getCurrencySymbol(dataSource?.campaign_budget?.currency)}
             </p>
-            {campaignFormData?.campaign_budget?.budget_type !== "bottom_up" && (
+            {dataSource?.campaign_budget?.budget_type !== "bottom_up" && (
               <p className={`${remainingBudget > 0 ? "text-orange-600" : "text-green-600"}`}>
                 Remaining Budget: {remainingBudget.toLocaleString()}
-                {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+                {getCurrencySymbol(dataSource?.campaign_budget?.currency)}
               </p>
             )}
           </div>
@@ -499,12 +507,12 @@ export const BudgetOverviewSection = () => {
               <div className="flex items-center gap-5 mt-[16px]">
                 <div>
                   <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
-                    {campaignFormData?.campaign_budget?.budget_type === "bottom_up"
+                    {dataSource?.campaign_budget?.budget_type === "bottom_up"
                       ? "Total budget"
                       : "Allocated budget"}
                   </p>
                   <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
-                    {allocatedBudget?.toLocaleString()} {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+                    {allocatedBudget?.toLocaleString()} {getCurrencySymbol(dataSource?.campaign_budget?.currency)}
                   </h3>
                 </div>
                 <div>
@@ -515,14 +523,14 @@ export const BudgetOverviewSection = () => {
                     {campaignPhases.length} phases
                   </h3>
                 </div>
-                {campaignFormData?.campaign_budget?.budget_type !== "bottom_up" && remainingBudget > 0 && (
+                {dataSource?.campaign_budget?.budget_type !== "bottom_up" && remainingBudget > 0 && (
                   <div>
                     <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
                       Unallocated
                     </p>
                     <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-orange-600">
                       {remainingBudget?.toLocaleString()}{" "}
-                      {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+                      {getCurrencySymbol(dataSource?.campaign_budget?.currency)}
                     </h3>
                   </div>
                 )}
@@ -533,14 +541,14 @@ export const BudgetOverviewSection = () => {
                     <DoughnutChat insideText={insideText} />
                   </div>
                   <CampaignPhases
-                    campaignPhases={campaignFormData?.channel_mix
+                    campaignPhases={dataSource?.channel_mix
                       ?.filter((c) => Number(c?.stage_budget?.percentage_value) > 0)
                       ?.map((ch) => ({
                         name: ch?.funnel_stage,
                         percentage: Number(
                           ch?.stage_budget?.percentage_value
                         )?.toFixed(0),
-                        color: getFunnelColorFromCampaign(ch?.funnel_stage, { custom_funnels: campaignFormData?.custom_funnels }),
+                        color: getFunnelColorFromCampaign(ch?.funnel_stage, { custom_funnels: dataSource?.custom_funnels }),
                       }))}
                   />
                 </div>
@@ -564,7 +572,7 @@ export const BudgetOverviewSection = () => {
               </div>
               <ChannelDistributionChatTwo
                 channelData={channelData}
-                currency={getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+                currency={getCurrencySymbol(dataSource?.campaign_budget?.currency)}
               />
             </div>
           </div>
