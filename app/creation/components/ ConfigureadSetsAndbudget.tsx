@@ -575,4 +575,3 @@ export const BudgetOverviewSection = () => {
 }
 
 export default ConfigureAdSetsAndBudget
-
