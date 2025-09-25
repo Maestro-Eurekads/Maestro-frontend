@@ -305,34 +305,54 @@ function extractKPIByFunnelStage(data, kpiCategories) {
     const funnelStage = stage?.funnel_stage;
     result[funnelStage] = [];
 
-    const socialMedia = stage?.social_media || [];
-    socialMedia.forEach((platform) => {
-      const platformName = platform?.platform_name;
-      const kpi = platform?.kpi || {};
-      const groupedKPIs = {};
+    // Check all channel types, not just social_media
+    const channelTypes = [
+      "social_media",
+      "display_networks",
+      "search_engines",
+      "streaming",
+      "ooh",
+      "broadcast",
+      "messaging",
+      "print",
+      "e_commerce",
+      "in_game",
+      "mobile",
+    ];
 
-      Object.keys(kpiCategories).forEach((category) => {
-        groupedKPIs[category] = {};
-        const kpiList = kpiCategories[category];
+    channelTypes.forEach((channelType) => {
+      const platforms = stage?.[channelType] || [];
+      platforms.forEach((platform) => {
+        const platformName = platform?.platform_name;
+        const kpi = platform?.kpi || {};
+        const groupedKPIs = {};
 
-        kpiList?.forEach((kpiName) => {
-          const kpiKey = kpiName
-            .toLowerCase()
-            .replace(/ /g, "_")
-            .replace("/", "__");
-          if (kpi[kpiKey] !== undefined && kpi[kpiKey] !== null) {
-            groupedKPIs[category][kpiName] = kpi[kpiKey];
+        Object.keys(kpiCategories).forEach((category) => {
+          groupedKPIs[category] = {};
+          const kpiList = kpiCategories[category];
+
+          kpiList?.forEach((kpiName) => {
+            const kpiKey = kpiName
+              .toLowerCase()
+              .replace(/ /g, "_")
+              .replace("/", "__");
+            if (kpi[kpiKey] !== undefined && kpi[kpiKey] !== null) {
+              groupedKPIs[category][kpiName] = kpi[kpiKey];
+            }
+          });
+
+          if (Object.keys(groupedKPIs[category])?.length === 0) {
+            delete groupedKPIs[category];
           }
         });
 
-        if (Object.keys(groupedKPIs[category])?.length === 0) {
-          delete groupedKPIs[category];
+        // Only add platforms that have KPI data
+        if (Object.keys(groupedKPIs).length > 0) {
+          result[funnelStage].push({
+            platform_name: platformName,
+            kpi: groupedKPIs,
+          });
         }
-      });
-
-      result[funnelStage].push({
-        platform_name: platformName,
-        kpi: groupedKPIs,
       });
     });
   });
