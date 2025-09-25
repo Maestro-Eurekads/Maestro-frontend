@@ -1,7 +1,7 @@
 "use client";
 
 const DashboardCampaignPhases = ({ campaignPhases }) => {
-  // console.log('DashboardCampaignPhases campaignPhases---->', campaignPhases)
+  
 
 
 

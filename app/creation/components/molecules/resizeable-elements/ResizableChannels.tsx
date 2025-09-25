@@ -361,16 +361,7 @@ const ResizableChannels = ({
           Math.max(0, Math.round((endPixel / parentWidth) * numberOfMonths) - 1)
         );
 
-        // console.log("Year view date conversion debug:", {
-        // startPixel,
-        // endPixel,
-        // parentWidth,
-        // numberOfMonths,
-        // monthStartIndex,
-        // monthEndIndex,
-        // startRatio: startPixel / parentWidth,
-        // endRatio: endPixel / parentWidth
-        // });
+
 
         const year = startDate?.getFullYear() || new Date().getFullYear();
         startDateValue = new Date(year, monthStartIndex, 1);
@@ -406,15 +397,7 @@ const ResizableChannels = ({
       const endGridIndexRaw = Math.floor((endPixel - startPixel) / dailyWidth) + startGridIndex;
       const endGridIndex = Math.max(0, Math.min(numberOfGridColumns - 1, endGridIndexRaw));
 
-      console.log("Date conversion tooltip Month:", {
-        startPixel,
-        endPixel,
-        parentWidth,
-        numberOfGridColumns,
-        stepWidth,
-        startGridIndex,
-        endGridIndex
-      });
+
 
       startDateValue = dateList[startGridIndex] || startDate;
       endDateValue = dateList[endGridIndex - 1] || endDate;
@@ -427,35 +410,17 @@ const ResizableChannels = ({
       const endGridIndexRaw = Math.floor((endPixel - startPixel) / (stepWidth < 50 ? 50 : stepWidth)) + startGridIndex;
       const endGridIndex = Math.max(0, Math.min(numberOfGridColumns, endGridIndexRaw));
 
-      console.log("Date conversion tooltip FIXED:", {
-        startPixel,
-        endPixel,
-        parentWidth,
-        numberOfGridColumns,
-        stepWidth,
-        startGridIndex,
-        endGridIndex
-      });
 
-      console.log({ dateList })
+
+
 
       startDateValue = dateList[startGridIndex] || startDate;
       endDateValue = dateList[endGridIndex - 1] || endDate;
     }
 
-    console.log({ startDateValue, endDateValue, type });
 
-    // Debug the actual channel dates
-    // console.log("Channel dates from backend:", {
-    // channelStartDate: findChannel?.campaign_start_date,
-    // channelEndDate: findChannel?.campaign_end_date,
-    // calculatedStartDate: startDateValue,
-    // calculatedEndDate: endDateValue,
-    // startPixel,
-    // endPixel,
-    // parentWidth,
-    // type,
-    // });
+
+
 
     let formattedDateRange;
 
@@ -483,7 +448,7 @@ const ResizableChannels = ({
       formattedDateRange = `${formattedStartDate} - ${formattedEndDate}`;
     } else {
       // For other views, show specific dates
-      console.log({ startDateValue, endDateValue })
+
       const formattedStartDate = format(startDateValue, "MMM dd");
       const formattedEndDate = format(endDateValue, "MMM dd");
       formattedDateRange = `${formattedStartDate} - ${formattedEndDate}`;
@@ -643,7 +608,7 @@ const ResizableChannels = ({
     // Convert pixels to dates
     const startPixel = newLeft - parentLeft;
     const endPixel = startPixel + newWidth;
-    // console.log({ startPixel, endPixel });
+
     const currentGridWidth = containerWidth;
     const newStartDate = pixelToDate(
       startPixel,
@@ -657,7 +622,7 @@ const ResizableChannels = ({
       index,
       "endDate"
     );
-    // console.log({ newStartDate, newEndDate });
+
 
     // Use requestAnimationFrame for smoother updates
     requestAnimationFrame(() => {
@@ -714,8 +679,7 @@ const ResizableChannels = ({
   };
 
   const handleMouseUpResize = async () => {
-    // console.log("Resize ended");
-    // console.log(isResizing.current, "isResizing state on mouse up");
+
     setTooltip((prev) => ({ ...prev, visible: false }));
 
     // Clear interaction flag
@@ -728,7 +692,7 @@ const ResizableChannels = ({
     if (draggingDataRef.current) {
       const { index, newStartDate, newEndDate } =
         draggingDataRef.current as any;
-      // console.log({ index, newStartDate, newEndDate });
+
 
       // Store the final manual position in the ref for persistence
       const currentState = channelState[index];
@@ -752,7 +716,7 @@ const ResizableChannels = ({
 
         // Force immediate localStorage save
         if (typeof window !== "undefined" && cId) {
-          console.log("setting the local storage 1");
+
           localStorage.setItem(
             `campaignFormData_${cId}`,
             JSON.stringify(updated)
@@ -854,18 +818,7 @@ const ResizableChannels = ({
         );
         const year = startDate.getFullYear();
 
-        console.log("pixelToDate Year debug (Parent-based):", {
-          pixel,
-          parentWidth,
-          numberOfMonths,
-          actualStepWidth,
-          monthIndex,
-          fieldName,
-          startDate,
-          endDate,
-          endDateCalculated: new Date(year, startMonth + monthIndex + 1, 0),
-          startDateCalculated: new Date(year, startMonth + monthIndex, 1),
-        });
+
 
         if (fieldName === "endDate") {
           // Last day of the target month
@@ -929,17 +882,7 @@ const ResizableChannels = ({
           }
         }
 
-        // console.log("pixelToDate Month debug (Parent-based):", {
-        //   pixel,
-        //   parentWidth,
-        //   daysBetween,
-        //   stepWidth,
-        //   gridIndex,
-        //   fieldName,
-        //   isAtEnd,
-        //   startDate,
-        //   endDate
-        // });
+
 
         // Calculate the date by adding gridIndex days to the start date
         calculatedDate = new Date(
@@ -1008,17 +951,7 @@ const ResizableChannels = ({
           }
         }
 
-        // console.log("pixelToDate Day debug (Parent-based):", {
-        //   pixel,
-        //   parentWidth,
-        //   daysBetween,
-        //   stepWidth,
-        //   gridIndex,
-        //   fieldName,
-        //   isAtEnd,
-        //   startDate,
-        //   endDate
-        // });
+
 
         // Calculate the date by adding gridIndex days to the start date
         calculatedDate = new Date(
@@ -1251,7 +1184,6 @@ const ResizableChannels = ({
 
           // Force immediate localStorage save
           if (typeof window !== "undefined" && cId) {
-            console.log("setting the local storage 1");
             localStorage.setItem(
               `campaignFormData_${cId}`,
               JSON.stringify(updated)
@@ -1383,21 +1315,14 @@ const ResizableChannels = ({
       parentLeft !== undefined &&
       parentWidth !== undefined
     ) {
-      // console.log("Recalculating channel positions:", {
-      //   parentLeft,
-      //   parentWidth,
-      //   rrange,
-      //   dailyWidth,
-      //   startDate,
-      //   endDate,
-      //   userIsInteracting,
+
 
       //   manuallyPositionedSize: manuallyPositioned.size,
       //   storedPositionsCount: lastManualPositionsRef.current.size,
       //   storedPositions: Array.from(lastManualPositionsRef.current.entries()),
       // });
 
-      console.log("this is the initial channels", initialChannels);
+
 
       setChannels(initialChannels);
       setChannelState((prev) => {
@@ -1411,19 +1336,14 @@ const ResizableChannels = ({
             manuallyPositioned.has(index) ||
             manuallyPositionedRef.current.has(index);
           if (isManuallyPositioned && prev[index]) {
-            // console.log(`Preserving manual position for channel ${index}:`, {
-            //   left: prev[index].left,
-            //   width: prev[index].width,
-            //   fromState: manuallyPositioned.has(index),
-            //   fromRef: manuallyPositionedRef.current.has(index),
-            // });
+
             return prev[index];
           }
 
           // Check if we have a stored manual position for this channel
           const storedPosition = lastManualPositionsRef.current.get(index);
           if (storedPosition && prev[index]) {
-            // console.log(`Using stored manual position for channel ${index}:`, storedPosition);
+
             return {
               ...prev[index],
               left: storedPosition.left,
@@ -1644,13 +1564,7 @@ const ResizableChannels = ({
 
           const existingState = prev[index];
 
-          // console.log(`Channel ${ch.name} calculated position:`, {
-          //   left,
-          //   width,
-          //   parentLeft,
-          //   parentWidth,
-          //   rrange,
-          // });
+
 
           return existingState
             ? {
@@ -1664,7 +1578,7 @@ const ResizableChannels = ({
             };
         });
 
-        console.log("this is the new state", newState);
+
         return newState;
       });
     }
@@ -1862,7 +1776,7 @@ const ResizableChannels = ({
     return cachedContainerWidth;
   };
 
-  // console.log(isResizing, "isResizing state")
+
 
   return (
     <div
@@ -1887,7 +1801,7 @@ const ResizableChannels = ({
         </button>
       )}
       {channels?.map((channel, index) => {
-        // console.log(channel, "channel");
+
         const getColumnIndex = (date) =>
           dateList?.findIndex((d) => d.toISOString().split("T")[0] === date);
 
@@ -1932,8 +1846,8 @@ const ResizableChannels = ({
                     left: `${tooltip.x}px`,
                     top: `0px`,
                     transform: `translate(-${tooltip.x + 100 >= (channelState[index]?.width || 0)
-                        ? 100
-                        : 0
+                      ? 100
+                      : 0
                       }%, -100%)`,
                     border: `1px solid ${channels[tooltip.index]?.color}`,
                     backgroundColor: `${channels[tooltip.index]?.bg}`,
@@ -1945,8 +1859,8 @@ const ResizableChannels = ({
               )}
               <div
                 className={`relative h-full flex ${disableDrag
-                    ? "justify-between min-w-[50px]"
-                    : "justify-center cursor-move"
+                  ? "justify-between min-w-[50px]"
+                  : "justify-center cursor-move"
                   }   text-white py-[10px] px-2 gap-2 border shadow-md overflow-x-hidden ${parentWidth <= 350 || channelState[index]?.width <= 350
                     ? "flex-col justify-center items-center"
                     : "flex-row items-center"
@@ -1973,8 +1887,8 @@ const ResizableChannels = ({
                     width={20}
                     height={20}
                     className={`${parentWidth <= 350 || channelState[index]?.width <= 350
-                        ? "hidden"
-                        : "block"
+                      ? "hidden"
+                      : "block"
                       }`}
                   />
                   <span className="font-medium whitespace-nowrap break-words text-wrap">
@@ -2189,8 +2103,8 @@ const ResizableChannels = ({
                                     <div className="l-shape-container-ad">
                                       <div
                                         className={`absolute w-[1px] ${extraIndex > 0
-                                            ? "h-[35px] top-[-35px]"
-                                            : "h-[20px] top-[-20px]"
+                                          ? "h-[35px] top-[-35px]"
+                                          : "h-[20px] top-[-20px]"
                                           } bg-blue-500 left-[60px]`}
                                       ></div>
                                       <div className="absolute w-[60px] h-[1px] bg-blue-500 bottom-[-1px] left-[60px]"></div>

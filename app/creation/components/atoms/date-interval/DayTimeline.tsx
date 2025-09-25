@@ -69,7 +69,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
               const style =
                 platformStyles.find((style) => style.name === platformName) ||
                 platformStyles[
-                  Math.floor(Math.random() * platformStyles.length)
+                Math.floor(Math.random() * platformStyles.length)
                 ];
               platforms.push({
                 platform_name: platformName,
@@ -90,7 +90,6 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
   const calculateGridColumns = (start: any, end: any) => {
     const formattedStart = parseISO(start);
     const formattedEnd = parseISO(end);
-    // console.log({ start, end });
 
     const startDateIndex = formattedStart
       ? range?.findIndex((date) => isEqual(date, formattedStart)) + 1
@@ -98,7 +97,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
     const endDateIndex = formattedEnd
       ? range?.findIndex((date) => isEqual(date, formattedEnd)) + 1
       : 0;
-    // console.log({ startDateIndex, endDateIndex });
+
     return { startDateIndex, endDateIndex };
   };
 
@@ -111,7 +110,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
       }}
     >
       {funnels?.map(({ startDay, endDay, label, budget, stages }, index) => {
-        console.log({ endDay, startDay, label });
+
         return (
           <div
             key={index}
@@ -129,11 +128,10 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
             >
               <div
                 onClick={() => toggleShow(index)}
-                className={`cursor-pointer ${
-                  expanded[index]
-                    ? 'border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] flex justify-between items-center p-4    h-[77px] bg-[#F9FAFB]  "'
-                    : "flex justify-between items-center p-4"
-                } `}
+                className={`cursor-pointer ${expanded[index]
+                  ? 'border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] flex justify-between items-center p-4    h-[77px] bg-[#F9FAFB]  "'
+                  : "flex justify-between items-center p-4"
+                  } `}
               >
                 <>
                   <h3 className="text-[#061237] font-semibold text-[16px] leading-[22px]  ">
@@ -142,13 +140,13 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                   <p className="text-[#061237] font-medium text-[14px]">
                     {/* 250,000 € */}
                     {budget?.startsWith("null") ||
-                    budget?.startsWith("undefined")
+                      budget?.startsWith("undefined")
                       ? 0
                       : `${Number(
-                          budget.replace(/[^\d.-]/g, "")
-                        ).toLocaleString()} ${budget
-                          .replace(/[\d\s.,-]/g, "")
-                          .trim()}`}
+                        budget.replace(/[^\d.-]/g, "")
+                      ).toLocaleString()} ${budget
+                        .replace(/[\d\s.,-]/g, "")
+                        .trim()}`}
                   </p>
                 </>
                 <button onClick={() => toggleShow(index)}>
@@ -184,7 +182,6 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                       },
                       zIndex
                     ) => {
-                      // console.log({ start, end });
                       const findInd = clientCampaignData.findIndex(
                         (item) => item.media_plan_details?.plan_name === label
                       );
@@ -227,13 +224,13 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                             </div>
                             <button className="justify-self-end px-3 py-[10px] text-[16px] font-[500] bg-white/25 rounded-[5px]">
                               {budget?.startsWith("null") ||
-                              budget?.startsWith("undefined")
+                                budget?.startsWith("undefined")
                                 ? 0
                                 : `${Number(
-                                    budget.replace(/[^\d.-]/g, "")
-                                  ).toLocaleString()} ${budget
-                                    .replace(/[\d\s.,-]/g, "")
-                                    .trim()}`}
+                                  budget.replace(/[^\d.-]/g, "")
+                                ).toLocaleString()} ${budget
+                                  .replace(/[\d\s.,-]/g, "")
+                                  .trim()}`}
                             </button>
                           </div>
 
@@ -261,18 +258,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                                   }) => {
                                     const { startDateIndex, endDateIndex } =
                                       calculateGridColumns(startDate, endDate);
-                                    console.log(
-                                      {
-                                        startDateIndex,
-                                        endDateIndex,
-                                        startDate,
-                                        endDate,
-                                        startDay,
-                                        endDay,
-                                      },
-                                      "info",
-                                      platform_name
-                                    );
+                                    
                                     return (
                                       <div
                                         key={platform_name}
@@ -282,11 +268,10 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                                         }}
                                       >
                                         <div
-                                          className={`py-1 text-[15px] font-[500] border my-5 w-full rounded-[10px] flex items-center justify-between ${
-                                            endDateIndex - startDateIndex < 5
-                                              ? "flex-col"
-                                              : "flex-row"
-                                          } `}
+                                          className={`py-1 text-[15px] font-[500] border my-5 w-full rounded-[10px] flex items-center justify-between ${endDateIndex - startDateIndex < 5
+                                            ? "flex-col"
+                                            : "flex-row"
+                                            } `}
                                           style={{
                                             // display: "grid",
                                             gridColumnStart:
@@ -298,22 +283,20 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                                         >
                                           <div />
                                           <span
-                                            className={`flex items-center gap-3 pl-0  ${
-                                              endDateIndex - startDateIndex < 5
-                                                ? "flex-col"
-                                                : "flex-row ml-4"
-                                            }`}
+                                            className={`flex items-center gap-3 pl-0  ${endDateIndex - startDateIndex < 5
+                                              ? "flex-col"
+                                              : "flex-row ml-4"
+                                              }`}
                                           >
                                             <Image
                                               src={icon}
                                               alt={platform_name}
                                               width={20}
-                                              className={`${
-                                                endDateIndex - startDateIndex <
+                                              className={`${endDateIndex - startDateIndex <
                                                 5
-                                                  ? "hidden"
-                                                  : "block"
-                                              }`}
+                                                ? "hidden"
+                                                : "block"
+                                                }`}
                                             />
                                             <span
                                               className="text-wrap"
@@ -325,11 +308,10 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                                             </span>
                                           </span>
                                           <button
-                                            className={`bg-[#0866FF33]/5  rounded-[5px] max-w-max ${
-                                              endDateIndex - startDateIndex < 5
-                                                ? ""
-                                                : "mr-3 py-2 px-[10px]"
-                                            }`}
+                                            className={`bg-[#0866FF33]/5  rounded-[5px] max-w-max ${endDateIndex - startDateIndex < 5
+                                              ? ""
+                                              : "mr-3 py-2 px-[10px]"
+                                              }`}
                                           >
                                             {Number(amount).toLocaleString()}{" "}
                                             {`${budget

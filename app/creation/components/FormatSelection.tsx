@@ -1544,10 +1544,7 @@ export const Platforms = ({
           return;
         }
 
-        console.log("Attempting to save with campaign ID:", campaignId);
-        console.log("Payload:", payload);
-        console.log("Original cleanedData:", cleanedData);
-        console.log("Channel mix cleaned:", channelMixCleaned);
+
 
         await axios.put(
           `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${campaignId}`,
@@ -1936,9 +1933,7 @@ export const Platforms = ({
           );
         }
       } else {
-        console.log(
-          "No previews left after deletion, skipping campaign update"
-        );
+
       }
 
       setDeleteQueue((prev) => prev.slice(1));

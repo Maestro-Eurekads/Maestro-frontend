@@ -62,20 +62,19 @@ const Dashboard = () => {
         parseISO(ch?.campaign_timeline_end_date)
     );
 
-  console.log("startDates", startDates);
-  console.log("endDates", endDates);
+
 
   // Find the earliest startDate and latest endDate
   const earliestStartDate = min(startDates);
   const latestEndDate = max(endDates);
 
-  console.log({ earliestStartDate, latestEndDate });
+
   // Calculate the week difference
   const dayDifference = differenceInCalendarDays(
     latestEndDate,
     earliestStartDate
   );
-  console.log("🚀 ~ Dashboard ~ dayDifference:", dayDifference);
+
   const weekDifference = differenceInCalendarWeeks(
     latestEndDate,
     earliestStartDate
@@ -103,7 +102,7 @@ const Dashboard = () => {
         ? parseISO(ch.campaign_timeline_end_date)
         : null;
 
-      console.log({ start, end }, "here is the log");
+     
 
       // Calculate positions for different time ranges
       const startDay = differenceInCalendarDays(start, earliestStartDate) + 1;
@@ -284,19 +283,7 @@ const Dashboard = () => {
 
         // Prepare data values for DoughnutChat
         const dataValues = getStagePercentages(campaign);
-        console.log("Dashboard dataValues---->", dataValues);
-        console.log(
-          "Dashboard campaign channel_mix---->",
-          campaign?.channel_mix
-        );
-        console.log(
-          "Dashboard campaign stage_budget details---->",
-          campaign?.channel_mix?.map((ch) => ({
-            funnel_stage: ch?.funnel_stage,
-            stage_budget: ch?.stage_budget,
-            percentage_value: ch?.stage_budget?.percentage_value,
-          }))
-        );
+
 
         return (
           <div

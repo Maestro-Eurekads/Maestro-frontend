@@ -121,7 +121,6 @@ const YearInterval: React.FC<YearIntervalProps> = ({
         }}
       >
         {yearNames.map((yearName, i) => {
-          // console.log("Ye", yearName)
           return (
             <div
               key={i}

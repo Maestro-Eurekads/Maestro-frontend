@@ -24,7 +24,7 @@ const TableView = () => {
   const [nrColumnsByStage, setNrColumnsByStage] = useState({});
 
   const [selectedMetrics, setSelectedMetrics] = useState([]);
-  // //console.log("🚀 ~ TableView:", campaignFormData?.table_headers)
+
   const [expandedKPI, setExpandedKPI] = useState({});
   const [expandedAdsetKPI, setExpandedAdsetKPI] = useState({});
 
@@ -158,7 +158,7 @@ const TableView = () => {
         }
       });
 
-      // //console.log("filteredHeaders", filteredHeaders)
+
 
       return {
         ...prev,
@@ -459,7 +459,7 @@ const TableView = () => {
               platform["budget"]["fixed_value"] = value.toString();
             }
           } else if (fieldName === "audience_size") {
-            // //console.log("here", { adSetIndex })
+
             if (adSetIndex !== "") {
               platform.ad_sets[adSetIndex]["size"] =
                 platform.ad_sets[adSetIndex]["size"] || "";

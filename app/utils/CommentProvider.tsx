@@ -229,7 +229,6 @@ export const CommentProvider = ({ children }) => {
             );
           }
         } else {
-          console.log("No signed approvals found to delete");
         }
       } catch (deleteError) { }
 

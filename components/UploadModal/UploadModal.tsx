@@ -137,17 +137,17 @@ const UploadModal: React.FC<UploadModalProps> = ({
         // Clean channel mix data using the same approach as SaveAllProgressButton
         let channelMixCleaned = cleanedMainData?.channel_mix
           ? removeKeysRecursively(cleanedMainData.channel_mix, [
-              "id",
-              "isValidated",
-              "formatValidated",
-              "validatedStages",
-              "documentId",
-              "_aggregated",
-              "user",
-              "publishedAt",
-              "createdAt",
-              "updatedAt",
-            ])
+            "id",
+            "isValidated",
+            "formatValidated",
+            "validatedStages",
+            "documentId",
+            "_aggregated",
+            "user",
+            "publishedAt",
+            "createdAt",
+            "updatedAt",
+          ])
           : [];
 
         // Build a structured payload similar to SaveAllProgressButton
@@ -186,10 +186,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
           return;
         }
 
-        console.log("Attempting to save with campaign ID:", campaignId);
-        console.log("Payload:", payload);
-        console.log("Original cleanedData:", cleanedData);
-        console.log("Channel mix cleaned:", channelMixCleaned);
+
 
         await axios.put(
           `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${campaignId}`,
@@ -365,17 +362,17 @@ const UploadModal: React.FC<UploadModalProps> = ({
         // Clean channel mix data using the same approach as SaveAllProgressButton
         let channelMixCleaned = cleanedMainData?.channel_mix
           ? removeKeysRecursively(cleanedMainData.channel_mix, [
-              "id",
-              "isValidated",
-              "formatValidated",
-              "validatedStages",
-              "documentId",
-              "_aggregated",
-              "user",
-              "publishedAt",
-              "createdAt",
-              "updatedAt",
-            ])
+            "id",
+            "isValidated",
+            "formatValidated",
+            "validatedStages",
+            "documentId",
+            "_aggregated",
+            "user",
+            "publishedAt",
+            "createdAt",
+            "updatedAt",
+          ])
           : [];
 
         // Build a structured payload similar to SaveAllProgressButton
@@ -414,8 +411,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
           return;
         }
 
-        console.log("Attempting to save upload with campaign ID:", campaignId);
-        console.log("Upload payload:", payload);
+
 
         await axios.put(
           `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${campaignId}`,
@@ -512,16 +508,16 @@ const UploadModal: React.FC<UploadModalProps> = ({
         format === "Video"
           ? ["video/mp4", "video/mov", "video/quicktime"]
           : format === "Slideshow"
-          ? ["application/pdf"]
-          : ["image/jpeg", "image/png", "image/jpg"];
+            ? ["application/pdf"]
+            : ["image/jpeg", "image/png", "image/jpg"];
 
       if (!allowedTypes.includes(file.type)) {
         toast.error(
           format === "Video"
             ? "Invalid file type. Please upload an MP4 or MOV file."
             : format === "Slideshow"
-            ? "Invalid file type. Please upload a PDF file."
-            : "Invalid file type. Please upload a JPEG, PNG, or JPG file."
+              ? "Invalid file type. Please upload a PDF file."
+              : "Invalid file type. Please upload a JPEG, PNG, or JPG file."
         );
         return;
       }
@@ -672,9 +668,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
               });
             } else {
               // If no previews left, just update local state without calling updateGlobalState
-              console.log(
-                "No previews left after deletion, skipping global state update"
-              );
+
             }
           } catch (error) {
             if (error?.response?.status === 401) {
@@ -722,9 +716,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
 
   const uploadSingleFile = useCallback(
     async (file: File, index: number, retryCount = 0): Promise<any> => {
-      console.log(
-        `Starting upload for file: ${file.name} (${file.size} bytes, type: ${file.type})`
-      );
+
 
       // Validate file before upload
       if (!file || file.size === 0) {
@@ -820,9 +812,8 @@ const UploadModal: React.FC<UploadModalProps> = ({
               errorMessage =
                 "Upload failed: Method Not Allowed. Please contact support.";
             } else if (response.status === 400) {
-              errorMessage = `Upload validation error: ${
-                errorData.message || "Invalid file format or size"
-              }`;
+              errorMessage = `Upload validation error: ${errorData.message || "Invalid file format or size"
+                }`;
             } else if (response.status === 401) {
               errorMessage =
                 "Upload failed: Unauthorized. Please check your session.";
@@ -841,7 +832,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
         }
 
         const result = await response.json();
-        console.log(`Upload successful for ${file.name}:`, result);
+
         setUploadProgress((prev) => {
           const updated = [...prev];
           updated[index] = 100;
@@ -900,15 +891,6 @@ const UploadModal: React.FC<UploadModalProps> = ({
           (item): item is { file: File; index: number } => item.file !== null
         );
 
-      console.log(`Starting upload process for ${filesToUpload.length} files`);
-      console.log(
-        "Files to upload:",
-        filesToUpload.map((f) => ({
-          name: f.file.name,
-          size: f.file.size,
-          type: f.file.type,
-        }))
-      );
 
       const results: any[] = [];
 
@@ -947,8 +929,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
               toast.error(`Upload failed for ${file.name}: ${error.message}`);
             } else {
               toast.error(
-                `Failed to upload ${file.name}: ${
-                  error.message || "Unknown error"
+                `Failed to upload ${file.name}: ${error.message || "Unknown error"
                 }`
               );
             }
@@ -995,8 +976,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
                   );
                 } else {
                   toast.error(
-                    `Failed to upload ${file.name}: ${
-                      error.message || "Unknown error"
+                    `Failed to upload ${file.name}: ${error.message || "Unknown error"
                     }`
                   );
                 }
@@ -1064,8 +1044,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
         );
       } else {
         toast.error(
-          `Upload failed: ${
-            error.message || "Unknown error"
+          `Upload failed: ${error.message || "Unknown error"
           }. Please try again.`
         );
       }
@@ -1151,17 +1130,16 @@ const UploadModal: React.FC<UploadModalProps> = ({
               {Array.from({ length: quantities }).map((_, index) => (
                 <div key={index} className="flex flex-col gap-2">
                   <div
-                    className={`w-[225px] h-[105px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-blue-500 transition-colors relative ${
-                      loading ? "cursor-not-allowed" : "cursor-pointer"
-                    }`}
+                    className={`w-[225px] h-[105px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-blue-500 transition-colors relative ${loading ? "cursor-not-allowed" : "cursor-pointer"
+                      }`}
                     onClick={() =>
                       !loading &&
                       document.getElementById(`upload${index}`)?.click()
                     }>
                     {uploadingIndex === index ||
-                    (loading &&
-                      uploadProgress[index] > 0 &&
-                      uploadProgress[index] < 100) ? (
+                      (loading &&
+                        uploadProgress[index] > 0 &&
+                        uploadProgress[index] < 100) ? (
                       <div className="flex flex-col items-center justify-center">
                         <FaSpinner className="animate-spin text-blue-500 text-2xl" />
                         <span className="text-sm">
@@ -1178,11 +1156,10 @@ const UploadModal: React.FC<UploadModalProps> = ({
                           {renderUploadedFile(uploadBlobs, format, index)}
                         </Link>
                         <button
-                          className={`absolute right-2 top-2 w-[20px] h-[20px] rounded-full flex justify-center items-center ${
-                            deletingIndex === index
-                              ? "bg-gray-400 cursor-not-allowed"
-                              : "bg-red-500 cursor-pointer"
-                          } ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+                          className={`absolute right-2 top-2 w-[20px] h-[20px] rounded-full flex justify-center items-center ${deletingIndex === index
+                            ? "bg-gray-400 cursor-not-allowed"
+                            : "bg-red-500 cursor-pointer"
+                            } ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
                           onClick={(e) => {
                             e.stopPropagation();
                             if (!loading && deletingIndex !== index)
@@ -1221,8 +1198,8 @@ const UploadModal: React.FC<UploadModalProps> = ({
                             format === "Video"
                               ? "video/mp4,video/mov,video/quicktime"
                               : format === "Slideshow"
-                              ? "application/pdf"
-                              : "image/jpeg,image/png,image/jpg"
+                                ? "application/pdf"
+                                : "image/jpeg,image/png,image/jpg"
                           }
                           id={`upload${index}`}
                           className="hidden"

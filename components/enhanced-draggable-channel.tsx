@@ -180,17 +180,17 @@ const EnhancedDraggableChannel: React.FC<DraggableChannelProps> = ({
       range === "Year"
         ? startDateValue.toLocaleDateString("en-US", { month: "short" })
         : startDateValue.toLocaleDateString("en-US", {
-            month: "short",
-            day: "2-digit",
-          })
+          month: "short",
+          day: "2-digit",
+        })
 
     const formattedEndDate =
       range === "Year"
         ? endDateValue.toLocaleDateString("en-US", { month: "short" })
         : endDateValue.toLocaleDateString("en-US", {
-            month: "short",
-            day: "2-digit",
-          })
+          month: "short",
+          day: "2-digit",
+        })
 
     const container = document.querySelector(`.cont-${id?.replaceAll(" ", "_")}`) as HTMLElement
     if (!container) return
@@ -269,7 +269,7 @@ const EnhancedDraggableChannel: React.FC<DraggableChannelProps> = ({
 
     if (expansionResult.expanded) {
       // Timeline was expanded, we'll get updated date list from context
-      console.log("Timeline expanded:", expansionResult)
+ 
     }
 
     // Update channel mix with new dates
@@ -376,7 +376,6 @@ const EnhancedDraggableChannel: React.FC<DraggableChannelProps> = ({
     const expansionResult = checkAndExpandTimeline(startDate, endDate)
 
     if (expansionResult.expanded) {
-      console.log("Timeline expanded during drag:", expansionResult)
     }
 
     const updatedChannelMix = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === description)
@@ -425,9 +424,8 @@ const EnhancedDraggableChannel: React.FC<DraggableChannelProps> = ({
 
   return (
     <div
-      className={`relative px-[1p w-full h-14 flex select-none rounded-[10px] cont-${id?.replaceAll(" ", "_")} ${
-        isExpanded ? "ring-2 ring-blue-400 ring-opacity-50" : ""
-      }`}
+      className={`relative px-[1p w-full h-14 flex select-none rounded-[10px] cont-${id?.replaceAll(" ", "_")} ${isExpanded ? "ring-2 ring-blue-400 ring-opacity-50" : ""
+        }`}
       style={{
         transform: `translateX(${position + (range === "Month" ? 4 : 0)}px)`,
       }}
@@ -455,9 +453,8 @@ const EnhancedDraggableChannel: React.FC<DraggableChannelProps> = ({
 
       {/* Draggable Content */}
       <div
-        className={`relative ${color} h-full flex justify-between items-center text-white px-4 py-[10px] gap-2 border shadow-md min-w-[50px] ${
-          disableDrag ? "cursor-default relative" : "cursor-pointer"
-        } rounded-[10px] cont-${id?.replaceAll(" ", "_")}`}
+        className={`relative ${color} h-full flex justify-between items-center text-white px-4 py-[10px] gap-2 border shadow-md min-w-[50px] ${disableDrag ? "cursor-default relative" : "cursor-pointer"
+          } rounded-[10px] cont-${id?.replaceAll(" ", "_")}`}
         style={{
           width: disableDrag ? `${parentWidth + (range === "Month" ? 0 : 0)}px` : parentWidth,
           backgroundColor: color,
@@ -469,18 +466,16 @@ const EnhancedDraggableChannel: React.FC<DraggableChannelProps> = ({
         {/* Left Resize Handle */}
         {range === "Month" ? (
           <div
-            className={`absolute left-0 w-5 h-1/2 bg-opacity-80  ${
-              disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
-            } rounded-l-lg text-white flex items-center justify-center`}
+            className={`absolute left-0 w-5 h-1/2 bg-opacity-80  ${disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
+              } rounded-l-lg text-white flex items-center justify-center`}
             onMouseDown={(e) => (disableDrag || openItems ? undefined : handleMouseDownResize(e, "left"))}
           >
             <MdDragHandle className="rotate-90" />
           </div>
         ) : (
           <div
-            className={`absolute left-0 w-5 h-full bg-opacity-80 bg-black ${
-              disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
-            } rounded-l-lg text-white flex items-center justify-center`}
+            className={`absolute left-0 w-5 h-full bg-opacity-80 bg-black ${disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
+              } rounded-l-lg text-white flex items-center justify-center`}
             onMouseDown={(e) => (disableDrag || openItems ? undefined : handleMouseDownResize(e, "left"))}
           >
             <MdDragHandle className="rotate-90" />
@@ -520,18 +515,16 @@ const EnhancedDraggableChannel: React.FC<DraggableChannelProps> = ({
         {/* Right Resize Handle */}
         {range === "Month" ? (
           <div
-            className={`absolute right-0 w-5 h-1/2 bg-opacity-80  ${
-              disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
-            } rounded-r-lg text-white flex items-center justify-center`}
+            className={`absolute right-0 w-5 h-1/2 bg-opacity-80  ${disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
+              } rounded-r-lg text-white flex items-center justify-center`}
             onMouseDown={(e) => (disableDrag || openItems ? undefined : handleMouseDownResize(e, "right"))}
           >
             <MdDragHandle className="rotate-90" />
           </div>
         ) : (
           <div
-            className={`absolute right-0 w-5 h-full bg-opacity-80 bg-black ${
-              disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
-            } rounded-r-lg text-white flex items-center justify-center`}
+            className={`absolute right-0 w-5 h-full bg-opacity-80 bg-black ${disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
+              } rounded-r-lg text-white flex items-center justify-center`}
             onMouseDown={(e) => (disableDrag || openItems ? undefined : handleMouseDownResize(e, "right"))}
           >
             <MdDragHandle className="rotate-90" />

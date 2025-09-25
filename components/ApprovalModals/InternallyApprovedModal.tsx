@@ -61,8 +61,7 @@ const InternallyApprovedModal = ({ isOpen, setIsOpen, setChange }) => {
             delete (window as any).channelLevelAudienceState[stageName];
           }
         );
-      }
-      console.log("Cleared all channel state for new campaign");
+      } 
     } catch (error) {
       console.error("Error clearing channel state:", error);
     }

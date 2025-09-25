@@ -22,7 +22,7 @@ const Overview = () => {
     if (typeof window !== "undefined") {
       if ((window as any).__newPlanSessionId) {
         delete (window as any).__newPlanSessionId;
-        console.log("Cleared new plan session ID for fresh plan creation");
+
       }
     }
 

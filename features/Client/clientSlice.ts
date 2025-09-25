@@ -39,7 +39,7 @@ export const createClient = createAsyncThunk('client/createClient', async (input
 
 // Get clients list
 export const getCreateClient = createAsyncThunk('client/getCreateClient', async (inputs: { userId: string; jwt: string, agencyId:string}, thunkAPI) => {
-  //console.log(inputs, "innt")
+ 
   try {
     const response = await clientService.getCreateClient(inputs.userId, inputs.jwt, inputs.agencyId);
     return response;

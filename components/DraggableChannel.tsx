@@ -203,22 +203,11 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         monthIndex = numberOfMonths; // December (month 11)
       }
 
-      // console.log("DraggableChannel pixelToDate Year debug:", {
-      //   pixel,
-      //   containerWidth,
-      //   numberOfMonths,
-      //   actualStepWidth,
-      //   monthIndex,
-      //   fieldName,
-      // });
+
 
       const year = dateList[0]?.getFullYear() || new Date().getFullYear();
 
-      // console.log(
-      //   "these are the new dates from tooltip dates",
-      //   new Date(year, monthIndex + 1, 0),
-      //   new Date(year, monthIndex, 1)
-      // );
+
       if (fieldName === "endDate") {
         // For end date, return the last day of the target month
         return new Date(year, monthIndex, 0);
@@ -251,12 +240,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         )
       );
 
-      // console.log(
-      //   "This is the dayIndex, fieldName",
-      //   dayIndex,
-      //   dateList[dayIndex],
-      //   fieldName
-      // );
+
       return dateList[dayIndex] || dateList[0];
     } else {
       // Day, Week view - consistent grid-based calculation
@@ -287,15 +271,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         }
       }
 
-      // console.log("DraggableChannel pixelToDate Day debug:", {
-      //   pixel,
-      //   containerWidth,
-      //   numberOfGridColumns,
-      //   stepWidth,
-      //   gridIndex,
-      //   fieldName,
-      //   isAtEnd,
-      // });
+
 
       return dateList[gridIndex] || dateList[0];
     }
@@ -348,18 +324,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       closestPosition = containerWidth; // Snap to the very end
     }
 
-    // Debug logging
-    // console.log("DraggableChannel Snap Debug:", {
-    //   currentPosition,
-    //   containerWidth,
-    //   range,
-    //   numberOfGridColumns,
-    //   actualStepWidth,
-    //   dailyWidth, // Compare with actual step width
-    //   closestIndex,
-    //   closestPosition,
-    //   isFinalEdge: closestIndex === numberOfGridColumns,
-    // });
+
 
     // Ensure the position is within bounds
     return Math.max(0, Math.min(closestPosition, containerWidth));
@@ -404,73 +369,39 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         monthEndIndex = numberOfMonths; // December (month 11)
       }
 
-      // console.log("DraggableChannel Year view date conversion debug:", {
-      //   startPixel,
-      //   endPixel,
-      //   containerWidth,
-      //   numberOfMonths,
-      //   monthStartIndex,
-      //   monthEndIndex,
-      //   type,
-      // });
+
 
       const year = dateList[0]?.getFullYear() || new Date().getFullYear();
-      // console.log("the month end index", monthEndIndex);
       startDateValue = new Date(year, monthStartIndex, 1);
       endDateValue = new Date(year, monthEndIndex, 0); // Last day of the month
 
-      // console.log("endDateValue", endDateValue);
-      // console.log("startDateValue", startDateValue);
+
     } else if (rangeType === "Month") {
       // Month view - use day-level precision for smooth dragging
       const numberOfGridColumns = dateList.length;
       const stepWidth = containerWidth / numberOfGridColumns;
 
-      // console.log(
-      //   "This is the stepWidth",
-      //   stepWidth,
-      //   numberOfGridColumns,
-      //   startPixel,
-      //   endPixel
-      // );
+
 
       const startGridIndex = Math.max(
         0,
         Math.min(numberOfGridColumns - 1, Math.round(startPixel / stepWidth))
       );
 
-      // console.log(
-      //   "This is the startGridIndex",
-      //   startGridIndex,
-      //   dateList[startGridIndex]
-      // );
+
       const endGridIndexRaw = Math.floor((endPixel - 1) / stepWidth);
       const endGridIndex = Math.max(
         0,
         Math.min(numberOfGridColumns - 1, endGridIndexRaw)
       );
 
-      // console.log("DraggableChannel Month view date conversion debug:", {
-      //   startPixel,
-      //   endPixel,
-      //   stepWidth,
-      //   containerWidth,
-      //   numberOfGridColumns,
-      //   startGridIndex,
-      //   endGridIndex,
-      //   type,
-      // });
+
 
       startDateValue = dateList[startGridIndex] || dateList[0];
       endDateValue =
         dateList[endGridIndex] || dateList[numberOfGridColumns - 1];
 
-      // console.log(
-      //   "This is the startDateValue and endDateValue",
-      //   startDateValue,
-      //   endDateValue,
-      //   dateList
-      // );
+
     } else {
       // Day, Week view - use same logic as ResizableChannels
       const numberOfGridColumns = dateList.length;
@@ -691,11 +622,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     const startDate = pixelToDate(newPos, containerWidth, "startDate");
     const endDate = pixelToDate(newPos + newWidth, containerWidth, "endDate");
 
-    // console.log(
-    //   "these are the new dates from handleMouseMoveResize",
-    //   startDate,
-    //   endDate
-    // );
+
     newDatesRef.current = { startDate, endDate };
 
     setParentWidth?.(newWidth);
@@ -820,13 +747,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       const newStartDateStr = moment(startDate).format("YYYY-MM-DD");
       const newEndDateStr = moment(endDate).format("YYYY-MM-DD");
 
-      console.log(
-        "this is the new start date and end date",
-        newStartDateStr,
-        newEndDateStr,
-        currentStartDate,
-        currentEndDate
-      );
+
 
       // Only proceed if the dates have actually changed
       if (rangeType === "Year") {
@@ -867,42 +788,15 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       }
 
       // Dates have changed, proceed with the update
-      console.log(
-        "hookCampaignFormData before clone:",
-        JSON.stringify(hookCampaignFormData, null, 2)
-      );
+
 
       const updated: any = JSON.parse(
         JSON.stringify(campaignFormDataRef.current || {})
       );
 
       // Also log the specific field that's different
-      console.log(
-        "Updated Instagram campaign_start_date:",
-        updated?.channel_mix?.[0]?.social_media?.[0]?.campaign_start_date
-      );
-      console.log(
-        "Hook Instagram campaign_start_date:",
-        hookCampaignFormData?.channel_mix?.[0]?.social_media?.[0]
-          ?.campaign_start_date
-      );
-      console.log(
-        "Prop Instagram campaign_start_date:",
-        campaignFormData?.channel_mix?.[0]?.social_media?.[0]
-          ?.campaign_start_date
-      );
 
-      console.log(
-        "this is the updated on useffect",
-        updated,
-        campaignFormData,
-        hookCampaignFormData
-      );
-      console.log("updated after clone:", JSON.stringify(updated, null, 2));
-      console.log(
-        "Are they equal?",
-        JSON.stringify(hookCampaignFormData) === JSON.stringify(updated)
-      );
+
       const updatedStage = updated?.channel_mix?.find(
         (ch: any) => ch?.funnel_stage === description
       );
@@ -965,11 +859,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
           }
         }
 
-        console.log(
-          "this is the updated after modifications",
-          updated,
-          campaignFormData
-        );
+
 
         setCampaignFormData(updated);
 
@@ -1040,9 +930,8 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
   return (
     <div
-      className={`relative px-[1px] w-full ${
-        disableDrag ? "h-auto" : "h-14"
-      } flex select-none rounded-[10px] cont-${id?.replaceAll(" ", "_")}`}
+      className={`relative px-[1px] w-full ${disableDrag ? "h-auto" : "h-14"
+        } flex select-none rounded-[10px] cont-${id?.replaceAll(" ", "_")}`}
       style={{
         transform: `translateX(${position}px)`,
       }}
@@ -1053,9 +942,8 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
           style={{
             left: `${tooltip.x}px`,
             top: `0px`,
-            transform: `translate(-${
-              tooltip.x + 100 >= (parentWidth || 0) ? 100 : 0
-            }%, -100%)`,
+            transform: `translate(-${tooltip.x + 100 >= (parentWidth || 0) ? 100 : 0
+              }%, -100%)`,
             border: `1px solid ${bg}`,
             color: "white",
           }}
@@ -1065,13 +953,11 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       )}
 
       <div
-        className={` ${color} ${disableDrag ? "min-h-14" : "h-14"} flex ${
-          disableDrag && range === "Year" && (parentWidth || 0) < 150
-            ? "flex-col"
-            : "flex-row"
-        } justify-between items-center text-white px-4 py-[10px] gap-2 border shadow-md min-w-[50px] ${
-          disableDrag ? "cursor-default relative" : "cursor-pointer"
-        } rounded-[10px] cont-${id?.replaceAll(" ", "_")} z-50`}
+        className={` ${color} ${disableDrag ? "min-h-14" : "h-14"} flex ${disableDrag && range === "Year" && (parentWidth || 0) < 150
+          ? "flex-col"
+          : "flex-row"
+          } justify-between items-center text-white px-4 py-[10px] gap-2 border shadow-md min-w-[50px] ${disableDrag ? "cursor-default relative" : "cursor-pointer"
+          } rounded-[10px] cont-${id?.replaceAll(" ", "_")} z-50`}
         style={{
           width: disableDrag
             ? `${(parentWidth || 0) + (rangeType === "Month" ? 0 : 0)}px`
@@ -1083,9 +969,8 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       >
         {/* Left resize handle */}
         <div
-          className={`absolute left-0 w-5 h-full bg-opacity-80 bg-black ${
-            disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
-          } rounded-l-lg text-white flex items-center justify-center z-50`}
+          className={`absolute left-0 w-5 h-full bg-opacity-80 bg-black ${disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
+            } rounded-l-lg text-white flex items-center justify-center z-50`}
           onMouseDown={(e) => {
             if (disableDrag) return;
             handleMouseDownResize(e, "left");
@@ -1098,11 +983,10 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
         {/* Main content */}
         <div
-          className={`flex justify-center items-center w-full ${
-            disableDrag && parentWidth <= 350
-              ? "flex-col gap-1"
-              : "flex-row gap-5"
-          }`}
+          className={`flex justify-center items-center w-full ${disableDrag && parentWidth <= 350
+            ? "flex-col gap-1"
+            : "flex-row gap-5"
+            }`}
         >
           <button
             className="flex justify-center items-center gap-5 w-full"
@@ -1155,9 +1039,8 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
         {/* Right resize handle */}
         <div
-          className={`absolute right-0 w-5 h-full bg-opacity-80 bg-black ${
-            disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
-          } rounded-r-lg text-white flex items-center justify-center`}
+          className={`absolute right-0 w-5 h-full bg-opacity-80 bg-black ${disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
+            } rounded-r-lg text-white flex items-center justify-center`}
           onMouseDown={(e) => {
             if (disableDrag || openItems) return;
             handleMouseDownResize(e, "right");

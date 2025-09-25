@@ -41,7 +41,7 @@ export const authOptions: NextAuthOptions = {
             }),
           }
         );
-        console.log("responseData------", responseData);
+        
         return {
           id: responseData.user.id,
           data: responseData,

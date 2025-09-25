@@ -189,7 +189,6 @@ const AddFinanceModal = ({
         }));
         setFinancialUsers(newOpt);
       } catch (err) {
-        console.log(err);
         if (err?.response?.status === 401) {
           const event = new Event("unauthorizedEvent");
           window.dispatchEvent(event);

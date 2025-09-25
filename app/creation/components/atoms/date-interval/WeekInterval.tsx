@@ -15,12 +15,12 @@ const WeekInterval = ({
   weeksCount: any;
   funnelData?: any;
   disableDrag?: any;
-  range?:any;
-  src?:any
+  range?: any;
+  src?: any
 }) => {
   const { campaignFormData } = useCampaigns();
-  const { range:ddRange } = useDateRange();
-  const {close} = useComments()
+  const { range: ddRange } = useDateRange();
+  const { close } = useComments()
 
   const groupDatesByWeek = (dates: Date[]) => {
     const weeks: string[][] = [];
@@ -34,22 +34,22 @@ const WeekInterval = ({
       const isLastDate = index === dates.length - 1;
 
       if (isSixthIndex || isLastDate) {
-      weeks.push([...currentWeek]);
-      currentWeek = [];
+        weeks.push([...currentWeek]);
+        currentWeek = [];
       }
     });
 
     return weeks;
   };
 
-  const datesByWeek = src=== "dashboard" ? range ? groupDatesByWeek(range) : [] : ddRange ? groupDatesByWeek(ddRange) : [];
+  const datesByWeek = src === "dashboard" ? range ? groupDatesByWeek(range) : [] : ddRange ? groupDatesByWeek(ddRange) : [];
 
   const calculateDailyWidth = useCallback(() => {
     const getViewportWidth = () => {
       return window.innerWidth || document.documentElement.clientWidth || 0;
     };
     const screenWidth = getViewportWidth();
-    const contWidth = screenWidth - (disableDrag ? 80 : close ? 0:367);
+    const contWidth = screenWidth - (disableDrag ? 80 : close ? 0 : 367);
 
     const totalDays = funnelData?.endDay || 30;
     let dailyWidth = contWidth / totalDays;
@@ -82,7 +82,7 @@ const WeekInterval = ({
     return positions;
   }, [weekWidths]);
 
-  //console.log("Week End Positions:", weekEndPositions);
+
 
   const dailyWidth = calculateDailyWidth();
 
@@ -90,39 +90,38 @@ const WeekInterval = ({
   const gridTemplateColumns = weekWidths.map((width) => `${width}px`).join(" ");
 
   // Create background images and positions for week end lines
-      const backgroundImages = weekEndPositions
-        .map(
-          () =>
-            `linear-gradient(to right, transparent calc(100% - 1px), rgba(0,0,255,0.2) calc(100% - 1px), rgba(0,0,255,0.2) 100%)`
-        )
-        .join(", ");
+  const backgroundImages = weekEndPositions
+    .map(
+      () =>
+        `linear-gradient(to right, transparent calc(100% - 1px), rgba(0,0,255,0.2) calc(100% - 1px), rgba(0,0,255,0.2) 100%)`
+    )
+    .join(", ");
 
-      const backgroundSizes = weekEndPositions
-        .map((position) => `${position}px 100%`)
-        .join(", ");
-      const backgroundPositions = weekEndPositions
-        .map((position) => `${position}px 0`)
-        .join(", ");
+  const backgroundSizes = weekEndPositions
+    .map((position) => `${position}px 100%`)
+    .join(", ");
+  const backgroundPositions = weekEndPositions
+    .map((position) => `${position}px 0`)
+    .join(", ");
 
-      return (
-        <div className="w-full border-y bg-white">
-          <div
-            className="bg-white"
-            style={{
-              display: "grid",
-              gridTemplateColumns: gridTemplateColumns,
-              backgroundImage: backgroundImages,
-              // backgroundRepeat: "no-repeat",
-              backgroundSize: backgroundSizes,
-              backgroundPosition: backgroundPositions,
-            }}
+  return (
+    <div className="w-full border-y bg-white">
+      <div
+        className="bg-white"
+        style={{
+          display: "grid",
+          gridTemplateColumns: gridTemplateColumns,
+          backgroundImage: backgroundImages,
+          // backgroundRepeat: "no-repeat",
+          backgroundSize: backgroundSizes,
+          backgroundPosition: backgroundPositions,
+        }}
       >
         {datesByWeek.map((week, i) => (
           <div
             key={i}
-            className={`flex flex-col items-center justify-center relative py-2 bg-white ${
-              i < datesByWeek.length - 1 ? 'border-r border-blue-200' : ''
-            }`}
+            className={`flex flex-col items-center justify-center relative py-2 bg-white ${i < datesByWeek.length - 1 ? 'border-r border-blue-200' : ''
+              }`}
             style={{
               width: `${weekWidths[i]}px`,
             }}

@@ -76,16 +76,12 @@ const Homepage = () => {
           // Also clear comment states when starting a fresh plan
           clearCommentStates();
 
-          console.log(
-            "Cleared channel state and comment states on homepage load - starting fresh plan"
-          );
+
         } else {
-          console.log(
-            "Preserved channel state - user has active campaign or campaign data"
-          );
+
         }
       } catch (error) {
-        console.error("Error managing channel state on homepage load:", error);
+
       }
     }
   }, []);

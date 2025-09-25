@@ -288,7 +288,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             }
           });
 
-          console.log("Cleared all campaign data when switching campaigns");
+
         } catch (error) {
           console.error("Error clearing campaign data:", error);
         }
@@ -357,9 +357,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         // Set flag to indicate user has an active campaign (prevents data clearing)
         if (typeof window !== "undefined") {
           sessionStorage.setItem("hasActiveCampaign", "true");
-          console.log(
-            "Set hasActiveCampaign flag - preserving user's campaign data and context"
-          );
+
         }
 
         // NEW: Restore channel audience data from local storage
@@ -379,14 +377,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             // Update the campaign data with merged audience information
             if (campaignWithAudienceData !== data) {
               setCampaignData(campaignWithAudienceData);
-              console.log(
-                "Restored channel audience data from local storage:",
-                {
-                  campaignId,
-                  hasAudienceData: true,
-                  mergedData: campaignWithAudienceData,
-                }
-              );
+
             }
           } catch (importError) {
             console.warn(
@@ -404,9 +395,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           const shouldPreserveLocalData =
             !isDifferentCampaign && prev && Object.keys(prev).length > 0;
 
-          console.log('Context: shouldPreserveLocalData', shouldPreserveLocalData);
-          console.log('Context: prev.campaign_budget', prev?.campaign_budget);
-          console.log('Context: data.campaign_budget', data?.campaign_budget);
+
 
           return {
             ...prev,
@@ -607,7 +596,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           : response?.data?.user_type?.includes("cleint")
             ? response?.data?.cleint_user?.agency?.id
             : response?.data?.agency_user?.agency?.id;
-      //console.log("agencyId", aId);
+
       setAgencyId(aId);
       return response;
     } catch (error) {
@@ -698,7 +687,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   //       }
   //     );
   //     const data = response?.data?.data || {};
-  //     //console.log("Client Architecture Options Data:", data);
+  //    
   //     setBusinessLevelOptions({
   //       level1:
   //         data?.level_1?.map((item: string) => ({

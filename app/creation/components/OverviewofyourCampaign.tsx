@@ -97,9 +97,7 @@ const OverviewofyourCampaign = () => {
     setRefresh,
   } = useKpis();
 
-  console.log('campaignData-----', campaignData)
-  console.log('campaignFormData-----', campaignFormData)
-  console.log('stage-----', stage)
+
 
   useEffect(() => {
     if (campaignId) {

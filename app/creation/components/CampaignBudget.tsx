@@ -58,7 +58,6 @@ const CampaignBudget = () => {
     // Check for pre-selected granularity level on component mount
     const currentLevel = getCurrentGranularityLevel()
     if (currentLevel) {
-      console.log('Pre-selected granularity level found on mount:', currentLevel)
       setShowLevelCards(false)
     }
   }, [])
@@ -109,11 +108,10 @@ const CampaignBudget = () => {
   // Handle pre-selected granularity level from other sources (goal_level, ad_sets_granularity)
   useEffect(() => {
     const currentLevel = getCurrentGranularityLevel()
-    console.log('Granularity level check:', { currentLevel, budgetStyle, step, showLevelCards })
 
     // If granularity level is already selected and we have a budget style
     if (currentLevel && budgetStyle) {
-      console.log('Auto-advancing to step 3 for pre-selected granularity level')
+
       // Hide level cards since granularity is already selected
       setShowLevelCards(false)
 
@@ -164,7 +162,6 @@ const CampaignBudget = () => {
   const handleBudgetEdit = (param, type) => {
     setChange(true)
     setHasUserMadeChanges(true)
-    console.log('User made budget change:', param, type)
     if (!isEditing) return
 
     setCampaignFormData((prev) => {
@@ -202,8 +199,6 @@ const CampaignBudget = () => {
   const handleValidate = () => {
     setChange(true)
     setHasUserMadeChanges(true)
-    console.log('handleValidate called - budgetStyle:', budgetStyle)
-    console.log('handleValidate - campaignFormData.campaign_budget:', campaignFormData?.campaign_budget)
 
     if (budgetStyle === "top_down") {
       if (!campaignFormData?.campaign_budget?.amount) {
@@ -237,12 +232,10 @@ const CampaignBudget = () => {
       setStep(2)
       return true
     } else if (budgetStyle === "bottom_up") {
-      console.log('Bottom up validation - sub_budget_type:', campaignFormData?.campaign_budget?.sub_budget_type)
       if (
         !campaignFormData?.campaign_budget?.sub_budget_type ||
         campaignFormData?.campaign_budget?.sub_budget_type?.length === 0
       ) {
-        console.log('Bottom up validation failed - no sub_budget_type selected')
         toast("Please select gross or net media budget first", {
           style: { background: "red", color: "white" },
         })
@@ -291,9 +284,7 @@ const CampaignBudget = () => {
     }
   }
 
-  console.log('campaignData---', campaignData)
-  console.log('campaignFormData---', campaignFormData)
-  console.log('campaignFormData.campaign_budget---', campaignFormData?.campaign_budget)
+
 
   // Use campaignData if available (from API), otherwise fall back to campaignFormData (from context/localStorage)
   // This ensures the component works even when campaignData is not yet loaded
@@ -648,7 +639,7 @@ const CampaignBudget = () => {
         <>
           {(() => {
             const currentLevel = getCurrentGranularityLevel()
-            console.log('Top-down budget allocation check:', { currentLevel, budgetStyle, step })
+
             return currentLevel && (
               <ConfigureAdSetsAndBudget num={4} netAmount={netAmount} />
             )
@@ -813,7 +804,6 @@ const CampaignBudget = () => {
         <>
           {(() => {
             const currentLevel = getCurrentGranularityLevel()
-            console.log('Bottom-up budget allocation check:', { currentLevel, budgetStyle, step })
             return currentLevel && (
               <ConfigureAdSetsAndBudget num={3} netAmount={netAmount} />
             )
