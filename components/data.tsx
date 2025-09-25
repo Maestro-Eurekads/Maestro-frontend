@@ -246,7 +246,7 @@ export const getPlatformIcon = (platformName: string): StaticImageData => {
     platformName.toLowerCase(),
     platformName.charAt(0).toUpperCase() + platformName.slice(1).toLowerCase(),
     normalizedName.charAt(0).toUpperCase() +
-      normalizedName.slice(1).toLowerCase(),
+    normalizedName.slice(1).toLowerCase(),
   ];
 
   for (const variation of variations) {
@@ -938,7 +938,7 @@ export const renderUploadedFile = (
     return (
       <>
         {typeof uploadBlobs[index] === "string" &&
-        ext?.name?.includes("pptx") ? (
+          ext?.name?.includes("pptx") ? (
           <iframe
             src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
               uploadBlobs[index]
@@ -969,8 +969,16 @@ export const renderUploadedFile = (
 };
 
 export function hasFormatEntered(channelMix) {
+  // Safety check
+  if (!channelMix || !Array.isArray(channelMix)) {
+    console.log('hasFormatEntered: Invalid channelMix', channelMix)
+    return false
+  }
+
   // Loop through each funnel stage
   for (const stage of channelMix) {
+    if (!stage) continue
+
     // Check each type of media in the funnel stage
     const mediaTypes = [
       "social_media",
@@ -990,14 +998,18 @@ export function hasFormatEntered(channelMix) {
     for (const mediaType of mediaTypes) {
       const platforms = stage[mediaType];
 
+      if (!Array.isArray(platforms)) continue
+
       // Check each platform for a non-empty 'format' array
       for (const platform of platforms) {
-        if (platform.format && platform.format.length > 0) {
+        if (platform && platform.format && Array.isArray(platform.format) && platform.format.length > 0) {
+          console.log('hasFormatEntered: Found format in platform', { platform: platform.platform_name, format: platform.format })
           return true; // At least one format is entered
         }
       }
     }
   }
+  console.log('hasFormatEntered: No formats found')
   return false; // No format found for any platform
 }
 

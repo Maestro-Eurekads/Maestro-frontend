@@ -13,7 +13,8 @@ import { useEditing } from "app/utils/EditingContext"
 import { Toaster } from "react-hot-toast"
 import AskForApproval from "./ApprovalModals/AskforApporval"
 import ApprovalModals from "./ApprovalModals/ApprovalModals"
-import { toast } from "sonner";
+import { toast } from "sonner"
+import { hasFormatEntered } from "./data";
 
 interface BottomProps {
   setIsOpen: (isOpen: boolean) => void
@@ -52,7 +53,6 @@ const clearChannelStateForNewCampaign = () => {
         delete (window as any).channelLevelAudienceState[stageName]
       })
     }
-    console.log("Cleared all channel state for new campaign")
   } catch (error) {
     console.error("Error clearing channel state:", error)
   }
@@ -116,6 +116,16 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       localStorage.setItem(`triggerFormatError_${cId}`, triggerFormatError.toString())
     }
   }, [triggerFormatError, cId])
+
+  // Monitor campaign data to update hasFormatSelected state
+  useEffect(() => {
+    if (campaignFormData?.channel_mix) {
+      const formatSelected = hasFormatEntered(campaignFormData.channel_mix)
+      setHasFormatSelected(formatSelected)
+    } else {
+      setHasFormatSelected(false)
+    }
+  }, [campaignFormData?.channel_mix, active, platformName])
 
 
 
