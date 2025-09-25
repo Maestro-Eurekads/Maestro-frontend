@@ -54,6 +54,13 @@ const CampaignBudget = () => {
     setIsDrawerOpen(false)
     setClose(false)
     setIsEditing(true)
+
+    // Check for pre-selected granularity level on component mount
+    const currentLevel = getCurrentGranularityLevel()
+    if (currentLevel) {
+      console.log('Pre-selected granularity level found on mount:', currentLevel)
+      setShowLevelCards(false)
+    }
   }, [])
 
   const [feeType, setFeeType] = useState(null)
@@ -98,6 +105,22 @@ const CampaignBudget = () => {
       setShowLevelCards(false)
     }
   }, [campaignFormData?.campaign_budget?.level])
+
+  // Handle pre-selected granularity level from other sources (goal_level, ad_sets_granularity)
+  useEffect(() => {
+    const currentLevel = getCurrentGranularityLevel()
+    console.log('Granularity level check:', { currentLevel, budgetStyle, step, showLevelCards })
+
+    // If granularity level is already selected and we have a budget style
+    if (currentLevel && budgetStyle) {
+      console.log('Auto-advancing to step 3 for pre-selected granularity level')
+      // Hide level cards since granularity is already selected
+      setShowLevelCards(false)
+
+      // Always advance to step 3 to show budget allocation when granularity is pre-selected
+      setStep(3)
+    }
+  }, [campaignFormData?.goal_level, campaignFormData?.ad_sets_granularity, campaignFormData?.campaign_budget?.level, budgetStyle, step])
 
 
 
@@ -294,6 +317,13 @@ const CampaignBudget = () => {
         setStep(2)
       }
       if (dataSource?.campaign_budget?.level) {
+        setStep(3)
+        setShowLevelCards(false)
+      }
+
+      // Also check for pre-selected granularity level from other sources
+      const currentLevel = getCurrentGranularityLevel()
+      if (currentLevel && !dataSource?.campaign_budget?.level) {
         setStep(3)
         setShowLevelCards(false)
       }
@@ -616,14 +646,13 @@ const CampaignBudget = () => {
       {/* Top-down: ConfigureAdSetsAndBudget followed by BudgetOverviewSection - Show when Adset level or Channel level is selected */}
       {budgetStyle !== "" && budgetStyle === "top_down" && step > 2 && (
         <>
-          {(campaignFormData?.campaign_budget?.level === "Adset level" ||
-            campaignFormData?.campaign_budget?.level === "Channel level" ||
-            campaignFormData?.goal_level === "Adset level" ||
-            campaignFormData?.goal_level === "Channel level" ||
-            campaignFormData?.ad_sets_granularity === "adset" ||
-            campaignFormData?.ad_sets_granularity === "channel") && (
+          {(() => {
+            const currentLevel = getCurrentGranularityLevel()
+            console.log('Top-down budget allocation check:', { currentLevel, budgetStyle, step })
+            return currentLevel && (
               <ConfigureAdSetsAndBudget num={4} netAmount={netAmount} />
-            )}
+            )
+          })()}
           <BudgetOverviewSection />
         </>
       )}
@@ -782,14 +811,13 @@ const CampaignBudget = () => {
       {/* Step 2: Allocate sub-budgets (ad set/channel) - Show ConfigureAdSetsAndBudget when Adset level or Channel level is selected */}
       {(budgetStyle !== "" && budgetStyle === "bottom_up" && step > 1) && (
         <>
-          {(campaignFormData?.campaign_budget?.level === "Adset level" ||
-            campaignFormData?.campaign_budget?.level === "Channel level" ||
-            campaignFormData?.goal_level === "Adset level" ||
-            campaignFormData?.goal_level === "Channel level" ||
-            campaignFormData?.ad_sets_granularity === "adset" ||
-            campaignFormData?.ad_sets_granularity === "channel") && (
+          {(() => {
+            const currentLevel = getCurrentGranularityLevel()
+            console.log('Bottom-up budget allocation check:', { currentLevel, budgetStyle, step })
+            return currentLevel && (
               <ConfigureAdSetsAndBudget num={3} netAmount={netAmount} />
-            )}
+            )
+          })()}
 
           <FeeSelectionStep
             num1={4}
