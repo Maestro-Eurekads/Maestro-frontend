@@ -38,9 +38,7 @@ const DashboradDoughnutChat = ({
 }) => {
   const chartRef = useRef(null);
 
-  // console.log('campaign---->', campaign)
-  // console.log('dataValues---->', dataValues)
-  // console.log('channel_mix---->', campaign?.channel_mix)
+
 
   // Get funnel stages from channel_mix instead of funnel_stages for consistency
   const funnelStages = campaign?.channel_mix?.map((ch: any) => ch?.funnel_stage) || [];

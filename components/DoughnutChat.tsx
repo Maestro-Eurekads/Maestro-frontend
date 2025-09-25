@@ -216,7 +216,7 @@ const DoughnutChart = ({
     if (totalBudget === 0) return stageBudgets.map(() => 0)
 
     return stageBudgets.map((stage) => {
-      console.log("stage", stage) 
+
       const percentage = stage?.percentage
       return Math.max(0, percentage) // Ensure no negative percentages
     })

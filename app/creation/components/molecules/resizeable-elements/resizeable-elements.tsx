@@ -170,7 +170,7 @@ const ResizeableElements = ({
     const platformsByStage: Record<string, OutletType[]> = {};
     const channelMix = campaignFormData?.channel_mix || [];
 
-    console.log("the campaign form data", campaignFormData);
+
 
     if (channelMix.length > 0) {
       channelMix.forEach((stage: any) => {
@@ -238,7 +238,6 @@ const ResizeableElements = ({
   useEffect(() => {
     if (campaignFormData?.channel_mix) {
       const data = getPlatformsFromStage();
-      // console.log("this is the platform data", data);
       setPlatforms(data);
     }
   }, [campaignFormData, channelWidths]);
@@ -490,30 +489,12 @@ const ResizeableElements = ({
           const monthsSpanned = Math.max(1, endMonth - startMonth + 1);
           const width = monthsSpanned * monthWidth;
 
-          // console.log(
-          //   "monthWidth",
-          //   stageStartDate,
-          //   stageEndDate,
-          //   endMonth,
-          //   startMonth,
-          //   monthsSpanned,
-          //   width
-          // );
+
 
           initialPositions[stageName] = position;
           initialWidths[stageName] = width;
 
-          // console.log("Year view position calculation:", {
-          //   stageName,
-          //   stageStartDate: stageStartDate.toISOString().split("T")[0],
-          //   stageEndDate: stageEndDate.toISOString().split("T")[0],
-          //   startMonth,
-          //   endMonth,
-          //   monthsSpanned,
-          //   monthWidth,
-          //   position,
-          //   width,
-          // });
+
         } else if (rrange === "Month" && stageStartDate && stageEndDate) {
           // Month view calculations - calculate position based on actual dates
           const startDateIndex =
@@ -533,17 +514,7 @@ const ResizeableElements = ({
             dailyWidth
           );
 
-          // console.log("Month view position calculation:", {
-          //   stageName,
-          //   stageStartDate: stageStartDate.toISOString().split("T")[0],
-          //   stageEndDate: stageEndDate.toISOString().split("T")[0],
-          //   startDateIndex,
-          //   endDateIndex,
-          //   dailyWidth,
-          //   position: initialPositions[stageName],
-          //   width: initialWidths[stageName],
-          //   daysBetween,
-          // });
+
         } else {
           // Existing logic for other views (Day, Week)
           const startDateIndex = stageStartDate

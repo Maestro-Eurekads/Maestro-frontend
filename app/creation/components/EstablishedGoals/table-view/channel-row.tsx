@@ -252,7 +252,6 @@ export const ChannelRow = ({
   // Memoize calculated values to prevent unnecessary recalculations
   const getCalculatedValues = () => {
     if (!chData) return {}
-    // console.log((campaignFormData?.campaign_budget?.level === "Adset level" ? adsetFormulas :formulas))
     return Object.fromEntries(
       Object.entries((campaignFormData?.campaign_budget?.level === "Adset level" ? adsetFormulas : formulas))?.map(([key, [fn, ...args]]) => [
         key,
@@ -270,16 +269,13 @@ export const ChannelRow = ({
 
   // Calculate values only when needed
   const calculatedValues = getCalculatedValues();
-  // console.log("🚀 ~ calculatedValues:", calculatedValues)
 
   // Effect to handle calculations and updates
   useEffect(() => {
-    console.log("triggered")
     // Skip if we don't have channel data
     if (!chData) return;
     if (campaignFormData?.campaign_budget?.level === "Adset level") {
-      // debugger;
-      console.log("here called")
+      // debugger; 
       // Check if we need to recalculate (data has changed)
       const needsRecalculation = hasRelevantChanges(
         prevChannelDataRef.current,
@@ -287,8 +283,7 @@ export const ChannelRow = ({
       );
 
       // Only process if we haven't processed this data yet or if relevant data has changed
-      if (!hasProcessed || needsRecalculation) {
-        console.log("called here ")
+      if (!hasProcessed || needsRecalculation) { 
         // Store current channel data for future comparison
         prevChannelDataRef.current = JSON.parse(JSON.stringify(chData));
 

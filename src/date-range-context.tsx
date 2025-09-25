@@ -42,7 +42,6 @@ export const DateRangeProvider = ({ children }: { children: React.ReactNode }) =
 
   const extendRange = useCallback(
     (newStartStr: string, newEndStr: string) => {
-      console.log("Extending range:", newStartStr, newEndStr);
       const newStart = parseISO(newStartStr);
       const newEnd = parseISO(newEndStr);
       if (!range || range.length === 0) return;
@@ -63,7 +62,6 @@ export const DateRangeProvider = ({ children }: { children: React.ReactNode }) =
 
       if (updatedStart !== currentStart || updatedEnd !== currentEnd) {
         const newRange = eachDayOfInterval({ start: updatedStart, end: updatedEnd });
-        console.log({ updatedStart, updatedEnd })
         // setCampaignFormData((prev) => ({
         //   ...prev,
         //   campaign_start_date: format(updatedStart, "yyyy-MM-dd"),

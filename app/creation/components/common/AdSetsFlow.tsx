@@ -251,10 +251,7 @@ const getChannelStateKey = (campaignId?: string | number) => {
       const uniqueId = `new_plan_${timestamp}_${randomSuffix}`;
       (window as any).__newPlanSessionId = uniqueId;
 
-      console.log("Generated new plan session ID:", {
-        sessionId: uniqueId,
-        timestamp: new Date(timestamp).toISOString(),
-      });
+
     }
 
     return `channelLevelAudienceState_${(window as any).__newPlanSessionId}`;
@@ -284,14 +281,7 @@ const loadChannelStateFromStorage = (campaignId?: string | number) => {
       if (stored) {
         try {
           sessionStorage.setItem(key, stored);
-          console.log(
-            "Restored channel state from localStorage to sessionStorage:",
-            {
-              localStorageKey,
-              sessionKey: key,
-              data: JSON.parse(stored),
-            }
-          );
+
         } catch (restoreError) {
           console.error("Error restoring to sessionStorage:", restoreError);
         }
@@ -299,19 +289,11 @@ const loadChannelStateFromStorage = (campaignId?: string | number) => {
     } else if (!stored && !campaignId) {
       // For new plans without campaign ID, explicitly return empty state
       // This ensures no previous plan data is loaded
-      console.log("New plan detected - starting with clean audience state:", {
-        key,
-        isNewPlan: true,
-      });
+
     }
 
     const result = stored ? JSON.parse(stored) : {};
-    console.log("Loaded channel state:", {
-      source,
-      key,
-      hasData: Object.keys(result).length > 0,
-      isNewPlan: !campaignId,
-    });
+
 
     return result;
   } catch (error) {
@@ -340,11 +322,7 @@ const saveChannelStateToStorage = (
     const localStorageKey = `persistent_${key}`;
     localStorage.setItem(localStorageKey, JSON.stringify(state));
 
-    console.log("Saved channel state to both storages:", {
-      sessionKey: key,
-      localStorageKey,
-      state,
-    });
+
   } catch (error) {
     if (error?.response?.status === 401) {
       const event = new Event("unauthorizedEvent");
@@ -427,11 +405,7 @@ export const mergeChannelAudienceIntoCampaign = (
       }
     });
 
-    console.log("Merged channel audience data into campaign:", {
-      originalChannelMix: campaignData.channel_mix,
-      updatedChannelMix,
-      channelAudienceState,
-    });
+
 
     return {
       ...campaignData,
@@ -802,8 +776,8 @@ const AdSet = memo(function AdSet({
           </div>
           <button
             className={`text-[14px] mt-2 font-semibold flex items-center gap-1 ${canAddNewAudience && extraAudience?.length < 10
-                ? "text-[#3175FF] cursor-pointer"
-                : "text-gray-400 cursor-not-allowed"
+              ? "text-[#3175FF] cursor-pointer"
+              : "text-gray-400 cursor-not-allowed"
               }`}
             onClick={() => {
               if (canAddNewAudience) {
@@ -1298,15 +1272,7 @@ const AdsetSettings = memo(function AdsetSettings({
     const campaignId = campaignFormData?.id || campaignFormData?.media_plan_id;
     saveChannelStateToStorage(channelLevelAudienceState, campaignId);
 
-    console.log("Enhanced channel audience state updated and saved:", {
-      stageName,
-      outlet: outlet.outlet,
-      audienceState: enhancedAudienceState,
-      campaignId,
-      timestamp: new Date().toISOString(),
-      hasAdSets: !!(enhancedAudienceState as any).ad_sets,
-      hasExtraAudiences: !!(enhancedAudienceState as any).extra_audiences,
-    });
+
   }, [
     channelAudienceState,
     stageName,
@@ -1320,17 +1286,10 @@ const AdsetSettings = memo(function AdsetSettings({
     if (effectiveGranularity === "channel") {
       const campaignId =
         campaignFormData?.id || campaignFormData?.media_plan_id;
-      console.log("Loading channel state from storage:", {
-        stageName,
-        outlet: outlet.outlet,
-        campaignId,
-      });
+
 
       const storedState = loadChannelStateFromStorage(campaignId);
-      console.log("Retrieved stored state:", {
-        storedState,
-        hasData: Object.keys(storedState).length > 0,
-      });
+
 
       // NEW: Also check for channel audience data in campaign data
       let campaignChannelAudienceState = {};
@@ -1362,11 +1321,7 @@ const AdsetSettings = memo(function AdsetSettings({
 
       // Merge stored state with campaign data state (campaign data takes precedence)
       const mergedState = { ...storedState, ...campaignChannelAudienceState };
-      console.log("Merged channel state:", {
-        storedState,
-        campaignChannelAudienceState,
-        mergedState,
-      });
+
 
       // Merge merged state into in-memory state
       Object.keys(mergedState).forEach((stageName) => {
@@ -1386,13 +1341,9 @@ const AdsetSettings = memo(function AdsetSettings({
 
       // Update local state if this platform has merged data
       if (mergedState[stageName] && mergedState[stageName][outlet.outlet]) {
-        console.log(
-          "Restoring channel audience state:",
-          mergedState[stageName][outlet.outlet]
-        );
+
         setChannelAudienceState({ ...mergedState[stageName][outlet.outlet] });
       } else {
-        console.log("No merged data found for this platform");
       }
     }
   }, [

@@ -21,7 +21,7 @@ interface TimelineContainerProps {
   funnelsData: any[];
   startDate?: any;
   endDate?: any;
-  yearDifference?:any
+  yearDifference?: any
 }
 
 const TimelineContainer: React.FC<TimelineContainerProps> = ({
@@ -37,7 +37,7 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
 
-  console.log("this is the funnels data", funnelsData)
+
 
   // Check if we need to show the scroll indicator
   useEffect(() => {
@@ -71,7 +71,7 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
       daysInMonth[monthYear] = (daysInMonth[monthYear] || 0) + 1;
     });
 
-    // console.log("daysInMonth", daysInMonth);
+    
 
     return daysInMonth;
   }
@@ -82,7 +82,7 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
       const year = format(date, "yyyy");
       daysInYear[year] = (daysInYear[year] || 0) + 1;
     });
-console.log(daysInYear, "daysInYear");
+  
     return daysInYear;
   }
   // Render the appropriate timeline components based on the range
@@ -131,7 +131,7 @@ console.log(daysInYear, "daysInYear");
               getDaysInEachYear={getDaysInEachYear}
               funnelData={funnelsData}
             />
-            <YearTimeline range={dateList} funnels={funnelsData}/>
+            <YearTimeline range={dateList} funnels={funnelsData} />
           </>
         );
       default: // Week is default
@@ -142,7 +142,7 @@ console.log(daysInYear, "daysInYear");
               range={dateList}
               src="dashboard"
             />
-           <DayTimeline daysCount={dayDifference} funnels={funnelsData} range={dateList} />
+            <DayTimeline daysCount={dayDifference} funnels={funnelsData} range={dateList} />
           </>
         );
     }

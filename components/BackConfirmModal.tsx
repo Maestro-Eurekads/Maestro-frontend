@@ -173,8 +173,7 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
     agencyId,
   } = useCampaigns();
 
-  console.log("change------", change);
-  console.log("isOpen------", isOpen);
+
 
   // Set baseline form data when component mounts or when form data changes significantly
   // useEffect(() => {
@@ -437,7 +436,7 @@ const BackConfirmModal: React.FC<BackConfirmModalProps> = ({
       }
       toast.error(
         error?.response?.data?.message ||
-          "Something went wrong. Please try again."
+        "Something went wrong. Please try again."
       );
       setShowModal(false);
     } finally {

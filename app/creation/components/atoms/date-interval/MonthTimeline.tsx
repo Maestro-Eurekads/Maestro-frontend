@@ -20,8 +20,7 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
   range,
 }) => {
 
-  console.log("this is the funnels", funnels)
-  console.log("this is the range", range)
+
   const [expanded, setExpanded] = useState({});
   const [openSections, setOpenSections] = useState({});
   const { campaignFormData, clientCampaignData } = useCampaigns();
@@ -59,7 +58,7 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
               const style =
                 platformStyles.find((style) => style.name === platformName) ||
                 platformStyles[
-                  Math.floor(Math.random() * platformStyles.length)
+                Math.floor(Math.random() * platformStyles.length)
                 ];
               platforms.push({
                 platform_name: platformName,
@@ -202,11 +201,10 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
               >
                 <div
                   onClick={() => toggleShow(index)}
-                  className={`cursor-pointer ${
-                    expanded[index]
+                  className={`cursor-pointer ${expanded[index]
                       ? 'border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] flex justify-between items-center p-4    h-[77px] bg-[#F9FAFB]  "'
                       : "flex justify-between items-center p-4"
-                  } `}
+                    } `}
                 >
                   <div>
                     <h3 className="text-[#061237] font-semibold text-[16px] leading-[22px]  ">
@@ -215,13 +213,13 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                     <p className="text-[#061237] font-medium text-[14px]">
                       {/* 250,000 € */}
                       {budget?.startsWith("null") ||
-                      budget?.startsWith("undefined")
+                        budget?.startsWith("undefined")
                         ? 0
                         : `${Number(
-                            budget.replace(/[^\d.-]/g, "")
-                          ).toLocaleString()} ${budget
-                            .replace(/[\d\s.,-]/g, "")
-                            .trim()}`}
+                          budget.replace(/[^\d.-]/g, "")
+                        ).toLocaleString()} ${budget
+                          .replace(/[\d\s.,-]/g, "")
+                          .trim()}`}
                     </p>
                   </div>
                   <button onClick={() => toggleShow(index)}>
@@ -265,9 +263,9 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                         const { leftPx, widthPx } =
                           stageStartDate && stageEndDate
                             ? computeMonthSpanWidthPx(
-                                stageStartDate,
-                                stageEndDate
-                              )
+                              stageStartDate,
+                              stageEndDate
+                            )
                             : { leftPx: 0, widthPx: 0 };
 
                         return (
@@ -280,9 +278,8 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                           >
                             <div
                               onClick={() => toggleOpen(index, name)}
-                              className={`mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${
-                               color
-                              } text-white`}
+                              className={`mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${color
+                                } text-white`}
                               style={{
                                 gridColumnStart: start,
                                 gridColumnEnd: end + 1,
@@ -307,13 +304,13 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                               </div>
                               <button className="justify-self-end px-3 py-[10px] text-[16px] font-[500] bg-white/25 rounded-[5px]">
                                 {budget?.startsWith("null") ||
-                                budget?.startsWith("undefined")
+                                  budget?.startsWith("undefined")
                                   ? 0
                                   : `${Number(
-                                      budget.replace(/[^\d.-]/g, "")
-                                    ).toLocaleString()} ${budget
-                                      .replace(/[\d\s.,-]/g, "")
-                                      .trim()}`}
+                                    budget.replace(/[^\d.-]/g, "")
+                                  ).toLocaleString()} ${budget
+                                    .replace(/[\d\s.,-]/g, "")
+                                    .trim()}`}
                               </button>
                             </div>
 
@@ -339,15 +336,7 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                                         startDate,
                                         endDate
                                       );
-                                      console.log(
-                                        {
-                                          startIndex,
-                                          endIndex,
-                                          startDate,
-                                          endDate,
-                                        },
-                                        "hererere"
-                                      );
+
                                       return (
                                         <div
                                           key={platform_name}

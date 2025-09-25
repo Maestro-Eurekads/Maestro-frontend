@@ -77,7 +77,7 @@ const clearChannelStateForNewCampaign = () => {
       delete (window as any).__newPlanSessionId;
     }
 
-    console.log("Cleared all channel state for new campaign");
+
   } catch (error) {
     console.error("Error clearing channel state:", error);
   }
@@ -712,7 +712,7 @@ const SaveProgressButton = () => {
         }
         toast.error(
           error.response?.data?.message ||
-            "Something went wrong. Please try again."
+          "Something went wrong. Please try again."
         );
         if (error?.response?.status === 401) {
           const event = new Event("unauthorizedEvent");

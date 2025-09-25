@@ -416,7 +416,7 @@ function FeeSelectionStep({
                           }
                         }
 
-                        console.log('FeeSelectionStep: Selected Gross Media Budget, saving to context:', updatedData.campaign_budget);
+
                         return updatedData;
                       });
                       setShowSelection(false);
@@ -468,7 +468,7 @@ function FeeSelectionStep({
                           }
                         }
 
-                        console.log('FeeSelectionStep: Selected Net Media Budget, saving to context:', updatedData.campaign_budget);
+
                         return updatedData;
                       });
                       setShowSelection(false);

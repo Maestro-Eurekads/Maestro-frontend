@@ -971,7 +971,6 @@ export const renderUploadedFile = (
 export function hasFormatEntered(channelMix) {
   // Safety check
   if (!channelMix || !Array.isArray(channelMix)) {
-    console.log('hasFormatEntered: Invalid channelMix', channelMix)
     return false
   }
 
@@ -1003,13 +1002,11 @@ export function hasFormatEntered(channelMix) {
       // Check each platform for a non-empty 'format' array
       for (const platform of platforms) {
         if (platform && platform.format && Array.isArray(platform.format) && platform.format.length > 0) {
-          console.log('hasFormatEntered: Found format in platform', { platform: platform.platform_name, format: platform.format })
           return true; // At least one format is entered
         }
       }
     }
   }
-  console.log('hasFormatEntered: No formats found')
   return false; // No format found for any platform
 }
 

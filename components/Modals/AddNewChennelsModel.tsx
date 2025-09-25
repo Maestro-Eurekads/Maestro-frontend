@@ -71,7 +71,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
         }
       );
       // await getActiveCampaign()
-      // //console.log("Campaign data updated successfully", response.data);
+     
     } catch (error) {
       if (error?.response?.status === 401) {
         const event = new Event("unauthorizedEvent");
@@ -99,7 +99,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
 
             if (campaignDataItem) {
               Object.keys(formDataItem).forEach((categoryKey) => {
-                // //console.log("🚀 ~ Object.keys ~ categoryKey:", categoryKey);
+                
                 if (
                   categoryKey !== "funnel_stage" &&
                   categoryKey !== "id" &&

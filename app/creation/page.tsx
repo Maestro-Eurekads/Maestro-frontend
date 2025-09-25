@@ -89,8 +89,7 @@ const Creation = () => {
     }
   }, []);
 
-  // console.log("this is the user", user);
-  // console.log("this is the campaignFormData", campaignFormData, agencyId);
+
 
   // ────────────────────────────────────────────────────────────────
   // Guard: only the campaign builder (same Strapi user) can access

@@ -160,7 +160,7 @@ export function extractDateFilters(campaigns: any[]) {
     "July", "August", "September", "October", "November", "December",
   ];
 
-  // //console.log("Extracting date filters from campaigns...",campaigns);
+  
 
   campaigns?.forEach((campaign) => {
     const hasTimelineDates =

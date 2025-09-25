@@ -57,7 +57,7 @@ const SaveAllProgressButton = () => {
         delete (window as any).__newPlanSessionId;
       }
 
-      console.log("Cleared all channel state for new campaign");
+
     } catch (error) {
       console.error("Error clearing channel state:", error);
     }
@@ -230,13 +230,13 @@ const SaveAllProgressButton = () => {
       // Clean channel mix data - only if it exists
       let channelMixCleaned = dataWithValidatedDates?.channel_mix
         ? removeKeysRecursively(dataWithValidatedDates.channel_mix, [
-            "id",
-            "isValidated",
-            "formatValidated",
-            "validatedStages",
-            "documentId",
-            "_aggregated",
-          ])
+          "id",
+          "isValidated",
+          "formatValidated",
+          "validatedStages",
+          "documentId",
+          "_aggregated",
+        ])
         : [];
 
       // NEW: Merge channel audience data from local storage into channel_mix before cleaning
@@ -264,8 +264,8 @@ const SaveAllProgressButton = () => {
         dataWithValidatedDates?.media_plan_details?.approved_by;
       const existingApprovedBy = Array.isArray(existingApprovedByRaw)
         ? existingApprovedByRaw.map((user: any) =>
-            typeof user === "object" ? user.id : user
-          )
+          typeof user === "object" ? user.id : user
+        )
         : [];
 
       // Validate user IDs
