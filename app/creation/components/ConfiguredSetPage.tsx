@@ -545,6 +545,7 @@ const ConfiguredSetPage = ({
           (ch) => ch?.funnel_stage === stageName
         )?.stage_budget?.fixed_value
       ) || 0;
+
     if (
       !isPercentage &&
       (value === "" ||
@@ -554,47 +555,47 @@ const ConfiguredSetPage = ({
     ) {
       const updatedChannelMix = Array.isArray(campaignFormData?.channel_mix)
         ? campaignFormData.channel_mix.map((ch) => {
-            if (ch.funnel_stage === stageName) {
-              const clearedCh = {
-                ...ch,
-                stage_budget: {
-                  fixed_value: "",
-                  percentage_value: "",
-                },
-              };
-              mediaTypes.forEach((type) => {
-                if (clearedCh[type]) {
-                  clearedCh[type] = clearedCh[type].map((p) => ({
-                    ...p,
-                    budget: {
-                      fixed_value: "",
-                      percentage_value: "",
-                    },
-                    ad_sets: Array.isArray(p.ad_sets)
-                      ? p.ad_sets.map((adSet) => ({
-                          ...adSet,
+          if (ch.funnel_stage === stageName) {
+            const clearedCh = {
+              ...ch,
+              stage_budget: {
+                fixed_value: "",
+                percentage_value: "",
+              },
+            };
+            mediaTypes.forEach((type) => {
+              if (clearedCh[type]) {
+                clearedCh[type] = clearedCh[type].map((p) => ({
+                  ...p,
+                  budget: {
+                    fixed_value: "",
+                    percentage_value: "",
+                  },
+                  ad_sets: Array.isArray(p.ad_sets)
+                    ? p.ad_sets.map((adSet) => ({
+                      ...adSet,
+                      budget: {
+                        fixed_value: "",
+                        percentage_value: "",
+                      },
+                      extra_audiences: Array.isArray(adSet.extra_audiences)
+                        ? adSet.extra_audiences.map((extra) => ({
+                          ...extra,
                           budget: {
                             fixed_value: "",
                             percentage_value: "",
                           },
-                          extra_audiences: Array.isArray(adSet.extra_audiences)
-                            ? adSet.extra_audiences.map((extra) => ({
-                                ...extra,
-                                budget: {
-                                  fixed_value: "",
-                                  percentage_value: "",
-                                },
-                              }))
-                            : [],
                         }))
-                      : [],
-                  }));
-                }
-              });
-              return clearedCh;
-            }
-            return ch;
-          })
+                        : [],
+                    }))
+                    : [],
+                }));
+              }
+            });
+            return clearedCh;
+          }
+          return ch;
+        })
         : [];
       const newCampaignBudget = { ...campaignFormData.campaign_budget };
       if (
@@ -688,7 +689,7 @@ const ConfiguredSetPage = ({
         } else {
           numericValue = 0;
         }
-        
+
         if (campaignBudgetType === "gross" && fees.length > 0) {
           newBudget = calculateNetFromGross(numericValue, fees);
           newPercentage = netAmount ? (numericValue / netAmount) * 100 : 0;
@@ -732,90 +733,90 @@ const ConfiguredSetPage = ({
 
     const updatedChannelMix = Array.isArray(campaignFormData?.channel_mix)
       ? campaignFormData.channel_mix.map((ch) => {
-          if (ch.funnel_stage === stageName) {
-            let updatedCh = {
-              ...ch,
-              stage_budget: {
-                fixed_value: isPercentage ? newBudget.toString() : value.replace(/,/g, ""), // Use calculated budget when percentage is entered
-                percentage_value: newPercentage.toFixed(1),
-              },
-            };
-            let sumChannelBudgets = 0;
+        if (ch.funnel_stage === stageName) {
+          let updatedCh = {
+            ...ch,
+            stage_budget: {
+              fixed_value: value.replace(/,/g, ""), // Store the raw input value to preserve decimal input
+              percentage_value: newPercentage.toFixed(1),
+            },
+          };
+          let sumChannelBudgets = 0;
+          mediaTypes.forEach((type) => {
+            if (ch[type]) {
+              sumChannelBudgets += ch[type].reduce(
+                (acc, p) => acc + (Number(p?.budget?.fixed_value) || 0),
+                0
+              );
+            }
+          });
+          if (newBudget === 0 || sumChannelBudgets > newBudget) {
+            const clearedChannels = {};
             mediaTypes.forEach((type) => {
               if (ch[type]) {
-                sumChannelBudgets += ch[type].reduce(
-                  (acc, p) => acc + (Number(p?.budget?.fixed_value) || 0),
-                  0
-                );
-              }
-            });
-            if (newBudget === 0 || sumChannelBudgets > newBudget) {
-              const clearedChannels = {};
-              mediaTypes.forEach((type) => {
-                if (ch[type]) {
-                  clearedChannels[type] = ch[type].map((p) => ({
-                    ...p,
-                    budget: {
-                      fixed_value: "",
-                      percentage_value: "",
-                    },
-                    ad_sets: Array.isArray(p.ad_sets)
-                      ? p.ad_sets.map((adSet) => ({
-                          ...adSet,
+                clearedChannels[type] = ch[type].map((p) => ({
+                  ...p,
+                  budget: {
+                    fixed_value: "",
+                    percentage_value: "",
+                  },
+                  ad_sets: Array.isArray(p.ad_sets)
+                    ? p.ad_sets.map((adSet) => ({
+                      ...adSet,
+                      budget: {
+                        fixed_value: "",
+                        percentage_value: "",
+                      },
+                      extra_audiences: Array.isArray(adSet.extra_audiences)
+                        ? adSet.extra_audiences.map((extra) => ({
+                          ...extra,
                           budget: {
                             fixed_value: "",
                             percentage_value: "",
                           },
-                          extra_audiences: Array.isArray(adSet.extra_audiences)
-                            ? adSet.extra_audiences.map((extra) => ({
-                                ...extra,
-                                budget: {
-                                  fixed_value: "",
-                                  percentage_value: "",
-                                },
-                              }))
-                            : [],
                         }))
-                      : [],
-                  }));
-                }
-              });
-              updatedCh = {
-                ...updatedCh,
-                ...clearedChannels,
-              };
-            } else {
-              const recalculatedChannels = {};
-              mediaTypes.forEach((type) => {
-                if (ch[type]) {
-                  recalculatedChannels[type] = ch[type].map((p) => {
-                    const channelBudget = Number(p?.budget?.fixed_value) || 0;
-                    let newChannelBudget = channelBudget;
-                    if (channelBudget > newBudget) {
-                      newChannelBudget = newBudget;
-                    }
-                    return {
-                      ...p,
-                      budget: {
-                        fixed_value: newChannelBudget.toString(),
-                        percentage_value:
-                          newBudget > 0
-                            ? ((newChannelBudget / newBudget) * 100).toFixed(1)
-                            : "",
-                      },
-                    };
-                  });
-                }
-              });
-              updatedCh = {
-                ...updatedCh,
-                ...recalculatedChannels,
-              };
-            }
-            return updatedCh;
+                        : [],
+                    }))
+                    : [],
+                }));
+              }
+            });
+            updatedCh = {
+              ...updatedCh,
+              ...clearedChannels,
+            };
+          } else {
+            const recalculatedChannels = {};
+            mediaTypes.forEach((type) => {
+              if (ch[type]) {
+                recalculatedChannels[type] = ch[type].map((p) => {
+                  const channelBudget = Number(p?.budget?.fixed_value) || 0;
+                  let newChannelBudget = channelBudget;
+                  if (channelBudget > newBudget) {
+                    newChannelBudget = newBudget;
+                  }
+                  return {
+                    ...p,
+                    budget: {
+                      fixed_value: newChannelBudget.toString(),
+                      percentage_value:
+                        newBudget > 0
+                          ? ((newChannelBudget / newBudget) * 100).toFixed(1)
+                          : "",
+                    },
+                  };
+                });
+              }
+            });
+            updatedCh = {
+              ...updatedCh,
+              ...recalculatedChannels,
+            };
           }
-          return ch;
-        })
+          return updatedCh;
+        }
+        return ch;
+      })
       : [];
 
     const newNetTotal = updatedChannelMix.reduce(
@@ -846,8 +847,8 @@ const ConfiguredSetPage = ({
   ) => {
     const stageData = Array.isArray(campaignFormData?.channel_mix)
       ? campaignFormData.channel_mix.find(
-          (ch) => ch?.funnel_stage === stageName
-        )
+        (ch) => ch?.funnel_stage === stageName
+      )
       : undefined;
     if (!stageData) return;
     const stageBudget = Number(stageData.stage_budget?.fixed_value) || 0;
@@ -926,38 +927,38 @@ const ConfiguredSetPage = ({
               [updatedChannelType]: ch[updatedChannelType].map((p) =>
                 p.platform_name === platformOutlet
                   ? {
-                      ...p,
-                      budget: {
-                        fixed_value: isPercentage ? newBudget.toString() : value.replace(/,/g, ""),
-                        percentage_value:
-                          newBudget === 0
-                            ? ""
-                            : ((newBudget / (stageBudget || 1)) * 100).toFixed(
-                                1
-                              ),
-                      },
-                      ad_sets:
-                        newBudget === 0 && Array.isArray(p.ad_sets)
-                          ? p.ad_sets.map((adSet) => ({
-                              ...adSet,
+                    ...p,
+                    budget: {
+                      fixed_value: value.replace(/,/g, ""), // Store the raw input value to preserve decimal input
+                      percentage_value:
+                        newBudget === 0
+                          ? ""
+                          : ((newBudget / (stageBudget || 1)) * 100).toFixed(
+                            1
+                          ),
+                    },
+                    ad_sets:
+                      newBudget === 0 && Array.isArray(p.ad_sets)
+                        ? p.ad_sets.map((adSet) => ({
+                          ...adSet,
+                          budget: {
+                            fixed_value: "",
+                            percentage_value: "",
+                          },
+                          extra_audiences: Array.isArray(
+                            adSet.extra_audiences
+                          )
+                            ? adSet.extra_audiences.map((extra) => ({
+                              ...extra,
                               budget: {
                                 fixed_value: "",
                                 percentage_value: "",
                               },
-                              extra_audiences: Array.isArray(
-                                adSet.extra_audiences
-                              )
-                                ? adSet.extra_audiences.map((extra) => ({
-                                    ...extra,
-                                    budget: {
-                                      fixed_value: "",
-                                      percentage_value: "",
-                                    },
-                                  }))
-                                : [],
                             }))
-                          : p.ad_sets,
-                    }
+                            : [],
+                        }))
+                        : p.ad_sets,
+                  }
                   : p
               ),
             };
@@ -987,8 +988,8 @@ const ConfiguredSetPage = ({
   const getStageRecap = (stageName: string) => {
     const stageData = Array.isArray(campaignFormData?.channel_mix)
       ? campaignFormData.channel_mix.find(
-          (ch) => ch?.funnel_stage === stageName
-        )
+        (ch) => ch?.funnel_stage === stageName
+      )
       : undefined;
     const currency = campaignFormData?.campaign_budget?.currency || "CAD";
     const stageBudget = Number(stageData?.stage_budget?.fixed_value) || 0;
@@ -999,10 +1000,10 @@ const ConfiguredSetPage = ({
         Number(campaignFormData?.campaign_budget?.amount) ||
         (Array.isArray(campaignFormData?.channel_mix)
           ? campaignFormData.channel_mix.reduce(
-              (acc, stage) =>
-                acc + (Number(stage?.stage_budget?.fixed_value) || 0),
-              0
-            )
+            (acc, stage) =>
+              acc + (Number(stage?.stage_budget?.fixed_value) || 0),
+            0
+          )
           : 0) ||
         0;
     } else {
@@ -1067,11 +1068,10 @@ const ConfiguredSetPage = ({
           <div>
             <span className="font-bold">Remaining: </span>
             <span
-              className={`font-bold ${
-                Number(phaseRemainingBudget) < 1
-                  ? "text-red-500"
-                  : "text-green-600"
-              }`}
+              className={`font-bold ${Number(phaseRemainingBudget) < 1
+                ? "text-red-500"
+                : "text-green-600"
+                }`}
             >
               {getCurrencySymbol(currency)}
               {formatNumberWithCommas(phaseRemainingBudget)}
@@ -1200,13 +1200,12 @@ const ConfiguredSetPage = ({
               </div>
               <div className="flex items-center gap-1.5">
                 <p
-                  className={`font-semibold text-base ${
-                    stageStatus[stage.name] === "Completed"
-                      ? "text-green-500 flex items-center gap-1.5"
-                      : stageStatus[stage.name] === "In progress"
+                  className={`font-semibold text-base ${stageStatus[stage.name] === "Completed"
+                    ? "text-green-500 flex items-center gap-1.5"
+                    : stageStatus[stage.name] === "In progress"
                       ? "text-[#3175FF]"
                       : "text-[#061237] opacity-50"
-                  }`}
+                    }`}
                 >
                   {stageStatus[stage.name]}
                   {stageStatus[stage.name] === "Completed" && <FaCheckCircle />}
@@ -1288,7 +1287,7 @@ const ConfiguredSetPage = ({
                               budgetInputValues[stageName] !== undefined
                                 ? budgetInputValues[stageName]
                                 : campaignBudgetType === "gross" && fees.length > 0
-                                ? formatNumberWithCommas(
+                                  ? formatNumberWithCommas(
                                     calculateGrossFromNet(
                                       campaignFormData?.channel_mix?.find(
                                         (ch: { funnel_stage: string }) =>
@@ -1297,7 +1296,7 @@ const ConfiguredSetPage = ({
                                       fees
                                     )
                                   )
-                                : formatNumberWithCommas(
+                                  : formatNumberWithCommas(
                                     campaignFormData?.channel_mix?.find(
                                       (ch: { funnel_stage: string }) =>
                                         ch?.funnel_stage === stageName
@@ -1427,8 +1426,8 @@ const ConfiguredSetPage = ({
                             platformPercentage =
                               stageBudgetVal > 0
                                 ? ((Number(platformBudget) || 0) /
-                                    stageBudgetVal) *
-                                  100
+                                  stageBudgetVal) *
+                                100
                                 : 0;
                             break;
                           }
@@ -1605,7 +1604,7 @@ const ConfiguredSetPage = ({
                                   </p>
                                   {platform?.ad_sets?.length > 1 &&
                                     campaignFormData?.campaign_budget?.level ===
-                                      "Adset level" && (
+                                    "Adset level" && (
                                       <div
                                         className="flex items-center gap-1 w-full md:w-auto"
                                         style={{
@@ -1674,21 +1673,21 @@ const ConfiguredSetPage = ({
                                     return adSet?.budget?.fixed_value &&
                                       platform.ad_sets?.length
                                       ? Number(
-                                          adSet?.budget?.fixed_value
-                                        ).toFixed(2)
+                                        adSet?.budget?.fixed_value
+                                      ).toFixed(2)
                                       : "0";
                                   };
                                   const adSetPercentage =
                                     (ad_set?.budget?.percentage_value ||
                                       platform?.budget?.fixed_value) &&
-                                    Number(getAdSetBudget(ad_set))
+                                      Number(getAdSetBudget(ad_set))
                                       ? (
-                                          (Number(getAdSetBudget(ad_set)) /
-                                            Number(
-                                              platform?.budget?.fixed_value
-                                            )) *
-                                          100
-                                        ).toFixed(1)
+                                        (Number(getAdSetBudget(ad_set)) /
+                                          Number(
+                                            platform?.budget?.fixed_value
+                                          )) *
+                                        100
+                                      ).toFixed(1)
                                       : "0";
                                   const getAdSetExtraBudget = (
                                     adSet: any,
@@ -1697,9 +1696,9 @@ const ConfiguredSetPage = ({
                                     return adSet?.extra_audiences?.[extraIndex]
                                       ?.budget?.fixed_value
                                       ? Number(
-                                          adSet?.extra_audiences[extraIndex]
-                                            ?.budget?.fixed_value
-                                        ).toFixed(2)
+                                        adSet?.extra_audiences[extraIndex]
+                                          ?.budget?.fixed_value
+                                      ).toFixed(2)
                                       : "0";
                                   };
                                   const getAdSetExtraBudgetPercentage = (
@@ -1729,13 +1728,13 @@ const ConfiguredSetPage = ({
                                       {/* Main vertical line pointing to Ad Sets */}
                                       {campaignFormData?.campaign_budget
                                         ?.level === "Adset level" && (
-                                        <div className="absolute left-0 top-0 bottom-0 w-8 z-10">
-                                          {/* Main vertical line from platform to ad sets */}
-                                          <div className="absolute left-2 top-[-17px] w-0.5 h-[60px] bg-gray-500"></div>
-                                          {/* Horizontal line to ad set */}
-                                          <div className="absolute left-2 top-11 w-5 h-0.5 bg-gray-500 transform -translate-y-1/2"></div>
-                                        </div>
-                                      )}
+                                          <div className="absolute left-0 top-0 bottom-0 w-8 z-10">
+                                            {/* Main vertical line from platform to ad sets */}
+                                            <div className="absolute left-2 top-[-17px] w-0.5 h-[60px] bg-gray-500"></div>
+                                            {/* Horizontal line to ad set */}
+                                            <div className="absolute left-2 top-11 w-5 h-0.5 bg-gray-500 transform -translate-y-1/2"></div>
+                                          </div>
+                                        )}
                                       <div
                                         style={{
                                           marginLeft: "32px",
@@ -1769,8 +1768,8 @@ const ConfiguredSetPage = ({
                                                 <span className="text-xs">
                                                   {ad_set?.size
                                                     ? Number(
-                                                        ad_set?.size
-                                                      ).toLocaleString()
+                                                      ad_set?.size
+                                                    ).toLocaleString()
                                                     : "N/A"}
                                                 </span>
                                               </div>
@@ -1869,28 +1868,28 @@ const ConfiguredSetPage = ({
                                                                                             return {
                                                                                               ...a,
                                                                                               budget:
-                                                                                                {
-                                                                                                  fixed_value:
-                                                                                                    newBudget,
-                                                                                                  percentage_value:
-                                                                                                    p
-                                                                                                      .budget
-                                                                                                      ?.fixed_value
-                                                                                                      ? (
-                                                                                                          (Number(
-                                                                                                            newBudget
-                                                                                                          ) /
-                                                                                                            Number(
-                                                                                                              p
-                                                                                                                .budget
-                                                                                                                ?.fixed_value
-                                                                                                            )) *
-                                                                                                          100
-                                                                                                        ).toFixed(
-                                                                                                          2
-                                                                                                        )
-                                                                                                      : "0",
-                                                                                                },
+                                                                                              {
+                                                                                                fixed_value:
+                                                                                                  newBudget,
+                                                                                                percentage_value:
+                                                                                                  p
+                                                                                                    .budget
+                                                                                                    ?.fixed_value
+                                                                                                    ? (
+                                                                                                      (Number(
+                                                                                                        newBudget
+                                                                                                      ) /
+                                                                                                        Number(
+                                                                                                          p
+                                                                                                            .budget
+                                                                                                            ?.fixed_value
+                                                                                                        )) *
+                                                                                                      100
+                                                                                                    ).toFixed(
+                                                                                                      2
+                                                                                                    )
+                                                                                                    : "0",
+                                                                                              },
                                                                                             };
                                                                                           } else {
                                                                                             totalAdSetBudget +=
@@ -2032,8 +2031,8 @@ const ConfiguredSetPage = ({
                                                       <span className="text-xs">
                                                         {addSet?.size
                                                           ? Number(
-                                                              addSet?.size
-                                                            ).toLocaleString()
+                                                            addSet?.size
+                                                          ).toLocaleString()
                                                           : "N/A"}
                                                       </span>
                                                     </div>
@@ -2056,7 +2055,7 @@ const ConfiguredSetPage = ({
                                                       className="w-full px-2 focus:outline-none text-xs"
                                                       disabled={
                                                         validatedStages[
-                                                          stageName
+                                                        stageName
                                                         ]
                                                       }
                                                       value={formatNumberWithCommas(
@@ -2155,28 +2154,28 @@ const ConfiguredSetPage = ({
                                                                                                           return {
                                                                                                             ...ea,
                                                                                                             budget:
-                                                                                                              {
-                                                                                                                fixed_value:
-                                                                                                                  newBudget,
-                                                                                                                percentage_value:
-                                                                                                                  p
-                                                                                                                    .budget
-                                                                                                                    ?.fixed_value
+                                                                                                            {
+                                                                                                              fixed_value:
+                                                                                                                newBudget,
+                                                                                                              percentage_value:
+                                                                                                                p
+                                                                                                                  .budget
+                                                                                                                  ?.fixed_value
                                                                                                                   ? (
-                                                                                                                      (Number(
-                                                                                                                        newBudget
-                                                                                                                      ) /
-                                                                                                                        Number(
-                                                                                                                          p
-                                                                                                                            .budget
-                                                                                                                            .fixed_value
-                                                                                                                        )) *
-                                                                                                                      100
-                                                                                                                    ).toFixed(
-                                                                                                                      2
-                                                                                                                    )
+                                                                                                                    (Number(
+                                                                                                                      newBudget
+                                                                                                                    ) /
+                                                                                                                      Number(
+                                                                                                                        p
+                                                                                                                          .budget
+                                                                                                                          .fixed_value
+                                                                                                                      )) *
+                                                                                                                    100
+                                                                                                                  ).toFixed(
+                                                                                                                    2
+                                                                                                                  )
                                                                                                                   : "0",
-                                                                                                              },
+                                                                                                            },
                                                                                                           };
                                                                                                         } else {
                                                                                                           totalAdSetBudget +=
@@ -2238,21 +2237,21 @@ const ConfiguredSetPage = ({
                                                                                 return p;
                                                                               }
                                                                             ),
-                                                                      };
+                                                                        };
+                                                                      }
                                                                     }
+                                                                    return ch;
                                                                   }
-                                                                  return ch;
-                                                                }
-                                                              );
-                                                            return {
-                                                              ...prevData,
-                                                              channel_mix:
-                                                                updatedChannelMix,
-                                                            };
-                                                          }
-                                                        );
-                                                      }
-                                                    }}
+                                                                );
+                                                              return {
+                                                                ...prevData,
+                                                                channel_mix:
+                                                                  updatedChannelMix,
+                                                              };
+                                                            }
+                                                          );
+                                                        }
+                                                      }}
                                                     />
                                                     <span className="text-xs">
                                                       {
@@ -2307,10 +2306,10 @@ const ConfiguredSetPage = ({
                       onClick={
                         validatedStages[stage.name]
                           ? () =>
-                              setValidatedStages((prev) => ({
-                                ...prev,
-                                [stage.name]: false,
-                              }))
+                            setValidatedStages((prev) => ({
+                              ...prev,
+                              [stage.name]: false,
+                            }))
                           : () => handleValidateClick(stage.name)
                       }
                       disabled={!isButtonEnabled(stage.name)}

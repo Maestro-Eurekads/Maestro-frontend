@@ -613,12 +613,15 @@ const CampaignBudget = () => {
         </>
       )}
 
-      {/* Top-down: ConfigureAdSetsAndBudget followed by BudgetOverviewSection - Show when Adset level is selected */}
+      {/* Top-down: ConfigureAdSetsAndBudget followed by BudgetOverviewSection - Show when Adset level or Channel level is selected */}
       {budgetStyle !== "" && budgetStyle === "top_down" && step > 2 && (
         <>
           {(campaignFormData?.campaign_budget?.level === "Adset level" ||
+            campaignFormData?.campaign_budget?.level === "Channel level" ||
             campaignFormData?.goal_level === "Adset level" ||
-            campaignFormData?.ad_sets_granularity === "adset") && (
+            campaignFormData?.goal_level === "Channel level" ||
+            campaignFormData?.ad_sets_granularity === "adset" ||
+            campaignFormData?.ad_sets_granularity === "channel") && (
               <ConfigureAdSetsAndBudget num={4} netAmount={netAmount} />
             )}
           <BudgetOverviewSection />
@@ -776,12 +779,15 @@ const CampaignBudget = () => {
         </>
       )}
       {/* || (budgetStyle !== "" && budgetStyle === "bottom_up")  */}
-      {/* Step 2: Allocate sub-budgets (ad set/channel) - Show ConfigureAdSetsAndBudget when Adset level is selected */}
+      {/* Step 2: Allocate sub-budgets (ad set/channel) - Show ConfigureAdSetsAndBudget when Adset level or Channel level is selected */}
       {(budgetStyle !== "" && budgetStyle === "bottom_up" && step > 1) && (
         <>
           {(campaignFormData?.campaign_budget?.level === "Adset level" ||
+            campaignFormData?.campaign_budget?.level === "Channel level" ||
             campaignFormData?.goal_level === "Adset level" ||
-            campaignFormData?.ad_sets_granularity === "adset") && (
+            campaignFormData?.goal_level === "Channel level" ||
+            campaignFormData?.ad_sets_granularity === "adset" ||
+            campaignFormData?.ad_sets_granularity === "channel") && (
               <ConfigureAdSetsAndBudget num={3} netAmount={netAmount} />
             )}
 
