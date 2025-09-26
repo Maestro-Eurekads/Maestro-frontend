@@ -7,6 +7,7 @@ import { useState } from "react";
 import { BsFillMegaphoneFill } from "react-icons/bs";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 import { TbCreditCardFilled, TbZoomFilled } from "react-icons/tb";
+import { isHexColor } from "utils/funnelColorUtils";
 
 interface MonthTimelineProps {
   monthsCount: number;
@@ -267,7 +268,14 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                               stageEndDate
                             )
                             : { leftPx: 0, widthPx: 0 };
-
+                            const getColorStyle = (color: string) => {
+                              if (isHexColor(color)) {
+                                return { className: "", style: { backgroundColor: color } };
+                              }
+                              // If it's not a hex color, assume it's a Tailwind class
+                              return { className: color, style: {} };
+                            };
+                            const { className, style } = getColorStyle(color);
                         return (
                           <div
                             key={name}
@@ -278,13 +286,14 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                           >
                             <div
                               onClick={() => toggleOpen(index, name)}
-                              className={`mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${color
+                              className={`mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${className
                                 } text-white`}
                               style={{
                                 gridColumnStart: start,
                                 gridColumnEnd: end + 1,
                                 marginLeft: `${leftPx}px`,
                                 width: widthPx ? `${widthPx}px` : undefined,
+                                ...style,
                               }}
                             >
                               <div className="flex items-center justify-center gap-3 flex-1">

@@ -12,6 +12,7 @@ import React, { useCallback, useState } from "react";
 import { BsFillMegaphoneFill } from "react-icons/bs";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 import { TbCreditCardFilled, TbZoomFilled } from "react-icons/tb";
+import { isHexColor } from "utils/funnelColorUtils";
 
 function YearTimeline({ range, funnels }) {
   const [expanded, setExpanded] = useState({});
@@ -227,14 +228,21 @@ function YearTimeline({ range, funnels }) {
                         const channels = extractPlatforms(
                           clientCampaignData[index]
                         );
-
+                        const getColorStyle = (color: string) => {
+                          if (isHexColor(color)) {
+                            return { className: "", style: { backgroundColor: color } };
+                          }
+                          // If it's not a hex color, assume it's a Tailwind class
+                          return { className: color, style: {} };
+                        };
+                        const { className, style } = getColorStyle(section.color);
                         return (
                           <div key={section?.name} className="space-y-2">
                             <div
                               onClick={() => toggleOpen(index, section?.name)}
                               className={`w-full flex items-center justify-between rounded-[8px] text-[13px] font-[500] p-2 cursor-pointer hover:shadow-sm transition-shadow min-w-0 ${
-                               section.color
-                              } text-white`}>
+                               className
+                              } text-white`} style={{...style}}>
                               <div
                                 className="flex items-center gap-1 min-w-0 flex-1"
                                 title={section?.name}>

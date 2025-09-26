@@ -7,6 +7,7 @@ import { useState } from "react";
 import { BsFillMegaphoneFill } from "react-icons/bs";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 import { TbCreditCardFilled, TbZoomFilled } from "react-icons/tb";
+import { isHexColor } from "utils/funnelColorUtils";
 
 interface DayTimelineProps {
   daysCount: number;
@@ -188,7 +189,14 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                       const channels = extractPlatforms(
                         clientCampaignData[findInd]
                       );
-
+                      const getColorStyle = (color: string) => {
+                        if (isHexColor(color)) {
+                          return { className: "", style: { backgroundColor: color } };
+                        }
+                        // If it's not a hex color, assume it's a Tailwind class
+                        return { className: color, style: {} };
+                      };
+                      const { className, style } = getColorStyle(color);
                       return (
                         <div
                           key={name}
@@ -199,7 +207,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                           onClick={() => toggleOpen(index, name)}
                         >
                           <div
-                            className={`${color} mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${end - start < 5 ? "flex-col" : "flex-row"}  text-white`}
+                            className={`${className} mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${end - start < 5 ? "flex-col" : "flex-row"}  text-white`}
                             style={{
                               gridColumnStart: start
                                 ? start - startDay === 0
@@ -208,6 +216,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                                 : 1,
                               gridColumnEnd: end + 1 - startDay + 1,
                               // backgroundColor: color,
+                              ...style,
                             }}
                           >
                             <div className="flex items-center justify-center gap-3 flex-1">
