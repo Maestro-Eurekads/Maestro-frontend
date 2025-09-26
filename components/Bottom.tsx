@@ -119,10 +119,19 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
   // Monitor campaign data to update hasFormatSelected state
   useEffect(() => {
+    console.log('Bottom component - Format selection useEffect triggered:', {
+      active,
+      platformName,
+      hasChannelMix: !!campaignFormData?.channel_mix,
+      channelMixLength: campaignFormData?.channel_mix?.length
+    })
+
     if (campaignFormData?.channel_mix) {
       const formatSelected = hasFormatEntered(campaignFormData.channel_mix)
+      console.log('Bottom component - Format selection result:', formatSelected)
       setHasFormatSelected(formatSelected)
     } else {
+      console.log('Bottom component - No channel mix, setting hasFormatSelected to false')
       setHasFormatSelected(false)
     }
   }, [campaignFormData?.channel_mix, active, platformName])
@@ -348,11 +357,22 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                         : {}
                     }
                   >
-                    {active === 0
-                      ? "Start"
-                      : active === 4 && !hasFormatSelected
-                        ? (platformName > 0) ? "Continue" : "Not mandatory step, skip"
-                        : "Continue"}
+                    {(() => {
+                      const buttonText = active === 0
+                        ? "Start"
+                        : active === 4 && !hasFormatSelected
+                          ? (platformName > 0) ? "Continue" : "Not mandatory step, skip"
+                          : "Continue"
+
+                      console.log('Bottom component - Button text logic:', {
+                        active,
+                        hasFormatSelected,
+                        platformName,
+                        buttonText
+                      })
+
+                      return buttonText
+                    })()}
                   </p>
                   <Image src={Continue} alt="Continue" />
                 </>
