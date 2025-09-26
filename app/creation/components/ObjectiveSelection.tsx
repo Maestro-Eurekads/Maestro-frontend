@@ -9,6 +9,10 @@ import axios from "axios";
 import { FaSpinner } from "react-icons/fa";
 import { useActive } from "app/utils/ActiveContext";
 import { toast } from "sonner";
+import {
+  extractObjectives,
+  getFilteredMetrics,
+} from "./EstablishedGoals/table-view/data-processor";
 
 const ObjectiveSelection = () => {
   const { setChange } = useActive();
@@ -295,7 +299,7 @@ const ObjectiveSelection = () => {
     setBuyTypeSearch("");
   };
 
-  const handleSelectOption = (
+  const handleSelectOption = async (
     platformName,
     option,
     category,
@@ -314,43 +318,66 @@ const ObjectiveSelection = () => {
       return newOptions;
     });
 
-    const channelMix = Array.isArray(campaignFormData?.channel_mix)
-      ? campaignFormData.channel_mix
-      : [];
-    const updatedChannelMix = channelMix.map((stage) => {
-      if (stage.funnel_stage === stageName) {
-        const normalizedCategory = category.toLowerCase().replace(" ", "_");
-        const updatedStage = { ...stage };
-        updatedStage[normalizedCategory] = (
-          stage[normalizedCategory] || []
-        ).map((platform) => {
-          if (platform.platform_name === platformName) {
-            const updatedPlatform = { ...platform };
-            updatedPlatform[dropDownName] = option;
-            return updatedPlatform;
-          }
-          return platform;
-        });
+    // Update channel_mix and objectives/metrics in one state update
+    setCampaignFormData((prev) => {
+      const channelMix = Array.isArray(prev?.channel_mix)
+        ? prev.channel_mix
+        : [];
+      const updatedChannelMix = channelMix.map((stage) => {
+        if (stage.funnel_stage === stageName) {
+          const normalizedCategory = category.toLowerCase().replace(" ", "_");
+          const updatedStage = { ...stage };
+          updatedStage[normalizedCategory] = (
+            stage[normalizedCategory] || []
+          ).map((platform) => {
+            if (platform.platform_name === platformName) {
+              const updatedPlatform = { ...platform };
+              updatedPlatform[dropDownName] = option;
+              return updatedPlatform;
+            }
+            return platform;
+          });
 
-        // Ensure platform exists in channel_mix
-        if (
-          !updatedStage[normalizedCategory].some(
-            (p) => p.platform_name === platformName
-          )
-        ) {
-          const newPlatform = { platform_name: platformName };
-          newPlatform[dropDownName] = option;
-          updatedStage[normalizedCategory].push(newPlatform);
+          // Ensure platform exists in channel_mix
+          if (
+            !updatedStage[normalizedCategory].some(
+              (p) => p.platform_name === platformName
+            )
+          ) {
+            const newPlatform = { platform_name: platformName };
+            newPlatform[dropDownName] = option;
+            updatedStage[normalizedCategory].push(newPlatform);
+          }
+          return updatedStage;
         }
-        return updatedStage;
-      }
-      return stage;
+        return stage;
+      });
+      
+      const updatedFormData = {
+        ...prev,
+        channel_mix: updatedChannelMix,
+      };
+
+      // Update objectives and metrics asynchronously with the updated data
+      const updateObjectivesAndMetrics = async () => {
+        try {
+          const obj = await extractObjectives(updatedFormData);
+          const sMetrics = await getFilteredMetrics(obj);
+          setCampaignFormData((currentPrev) => ({
+            ...currentPrev,
+            table_headers: obj || {},
+            selected_metrics: sMetrics || {},
+          }));
+        } catch (error) {
+          console.error("Error updating objectives and metrics:", error);
+        }
+      };
+      
+      updateObjectivesAndMetrics();
+      
+      return updatedFormData;
     });
 
-    setCampaignFormData((prev) => ({
-      ...prev,
-      channel_mix: updatedChannelMix,
-    }));
     setDropdownOpen("");
     setOpenItems((prev) => ({ ...prev, [stageName]: true }));
   };
@@ -555,7 +582,8 @@ const ObjectiveSelection = () => {
         <div className="relative min-w-[200px]">
           <div
             className="flex items-center justify-between px-4 py-2 bg-white border border-gray-300 rounded-lg cursor-pointer"
-            onClick={() => toggleDropdown(platformKey + "obj")}>
+            onClick={() => toggleDropdown(platformKey + "obj")}
+          >
             <p className="text-sm font-medium text-[#061237]">
               {selectedObj || "Buy Objective"}
             </p>
@@ -592,14 +620,16 @@ const ObjectiveSelection = () => {
                         "objective_type"
                       );
                       setBuyObjSearch("");
-                    }}>
+                    }}
+                  >
                     {option?.text}
                   </li>
                 ))}
                 {showInput !== `${platformKey}+custom` ? (
                   <li
                     className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
-                    onClick={() => setShowInput(`${platformKey}+custom`)}>
+                    onClick={() => setShowInput(`${platformKey}+custom`)}
+                  >
                     Add Custom
                   </li>
                 ) : (
@@ -612,13 +642,15 @@ const ObjectiveSelection = () => {
                     <div className="flex gap-[10px] w-full justify-between items-center my-[5px]">
                       <button
                         className="w-full p-[5px] border rounded-[5px]"
-                        onClick={() => setShowInput("")}>
+                        onClick={() => setShowInput("")}
+                      >
                         Cancel
                       </button>
                       <button
                         className="w-full p-[5px] bg-blue-500 text-white rounded-[5px] flex justify-center items-center"
                         onClick={() => handleSaveCustomValue("obj")}
-                        disabled={loading}>
+                        disabled={loading}
+                      >
                         {loading ? (
                           <FaSpinner className="animate-spin" />
                         ) : (
@@ -635,7 +667,8 @@ const ObjectiveSelection = () => {
         <div className="relative min-w-[150px]">
           <div
             className="flex items-center justify-between px-4 py-2 bg-white border border-gray-300 rounded-lg cursor-pointer"
-            onClick={() => toggleDropdown(platformKey)}>
+            onClick={() => toggleDropdown(platformKey)}
+          >
             <p className="text-sm font-medium text-[#061237]">
               {selectedBuy || "Buy Type"}
             </p>
@@ -670,14 +703,16 @@ const ObjectiveSelection = () => {
                         "buy_type"
                       );
                       setBuyTypeSearch("");
-                    }}>
+                    }}
+                  >
                     {option?.text}
                   </li>
                 ))}
                 {showInput !== `${platformKey}+custom+buy` ? (
                   <li
                     className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
-                    onClick={() => setShowInput(`${platformKey}+custom+buy`)}>
+                    onClick={() => setShowInput(`${platformKey}+custom+buy`)}
+                  >
                     Add Custom
                   </li>
                 ) : (
@@ -690,13 +725,15 @@ const ObjectiveSelection = () => {
                     <div className="flex gap-[10px] w-full justify-between items-center my-[5px]">
                       <button
                         className="w-full p-[5px] border rounded-[5px]"
-                        onClick={() => setShowInput("")}>
+                        onClick={() => setShowInput("")}
+                      >
                         Cancel
                       </button>
                       <button
                         className="w-full p-[5px] bg-blue-500 text-white rounded-[5px] flex justify-center items-center"
                         onClick={() => handleSaveCustomValue("buy")}
-                        disabled={loading}>
+                        disabled={loading}
+                      >
                         {loading ? (
                           <FaSpinner className="animate-spin" />
                         ) : (
@@ -728,7 +765,8 @@ const ObjectiveSelection = () => {
               rounded-t-[10px] ${
                 openItems[stage.name] ? "rounded-t-[10px]" : "rounded-[10px]"
               }`}
-              onClick={() => toggleItem(stage.name)}>
+              onClick={() => toggleItem(stage.name)}
+            >
               <div className="flex items-center gap-4">
                 {stage.icon && (
                   <Image
@@ -743,7 +781,8 @@ const ObjectiveSelection = () => {
               </div>
               <div
                 id={`status-${stageName}`}
-                className="flex items-center gap-2">
+                className="flex items-center gap-2"
+              >
                 {statuses[stageName] === "Not Started" ? (
                   <p className="text-[#061237] opacity-50 text-base whitespace-nowrap">
                     Not Started
@@ -797,7 +836,8 @@ const ObjectiveSelection = () => {
                   return (
                     <div
                       key={category}
-                      className="w-full md:flex flex-col items-start gap-6 md:w-4/5">
+                      className="w-full md:flex flex-col items-start gap-6 md:w-4/5"
+                    >
                       <h3 className="text-xl font-semibold text-[#061237] capitalize">
                         {category?.replace("_", " ")}
                       </h3>
