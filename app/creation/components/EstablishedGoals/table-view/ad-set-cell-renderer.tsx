@@ -152,6 +152,13 @@ export const AdSetCellRenderer = ({
     );
   }
 
+  if(body === 'start_date'){
+    return <p>{channel['start_date']}</p>
+  }
+  if(body === 'end_date'){
+    return <p>{channel['end_date']}</p>
+  }
+
   // if (body === "audience_size" && channel?.ad_sets?.length === 1 && adSet?.extra_audience?.length === 0) {
   //   return !adSet?.size ? "-" : adSet?.size;
   // } else {

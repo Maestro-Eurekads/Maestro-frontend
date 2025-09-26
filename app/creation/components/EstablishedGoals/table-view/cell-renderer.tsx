@@ -509,6 +509,13 @@ export const CellRenderer = ({
     );
   }
 
+  if(body === 'start_date'){
+    return <p>{channel['start_date']}</p>
+  }
+  if(body === 'end_date'){
+    return <p>{channel['end_date']}</p>
+  }
+
   // Handle input fields and static values
   if (!showInput) {
     const value =
