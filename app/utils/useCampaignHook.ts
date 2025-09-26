@@ -103,6 +103,7 @@ const fetchClientCampaign = useCallback(
         {
           params: {
             filters,
+            sort: "createdAt:desc",
             populate: {
               budget_details: "*",
               campaign_budget: { populate: ["budget_fees"] },

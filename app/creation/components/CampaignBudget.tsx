@@ -92,11 +92,11 @@ const CampaignBudget = () => {
     setClose(false)
   }, [])
 
-  useEffect(() => {
-    if (campaignId) {
-      getActiveCampaign(campaignId)
-    }
-  }, [campaignId])
+  // useEffect(() => {
+  //   if (campaignId) {
+  //     getActiveCampaign(campaignId)
+  //   }
+  // }, [campaignId])
 
   // Check if goal level has already been selected to prevent modal from showing on refresh
   useEffect(() => {

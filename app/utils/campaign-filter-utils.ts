@@ -470,6 +470,7 @@ export const fetchFilteredCampaigns = async (
     filters: {
       $and: [{ client: { $eq: clientID } }],
     },
+    sort: "createdAt:desc",
     populate: {
       budget_details: "*",
       campaign_budget: { populate: ["budget_fees"] },
