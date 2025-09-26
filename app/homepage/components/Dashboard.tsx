@@ -150,7 +150,7 @@ const Dashboard = () => {
             startDate: start,
             endDate: end,
             name: d?.funnel_stage,
-            budget: `${ch?.campaign_budget?.amount} ${getCurrencySymbol(
+            budget: `${d?.stage_budget?.fixed_value} ${getCurrencySymbol(
               ch?.campaign_budget?.currency
             )}`,
             startDay,
