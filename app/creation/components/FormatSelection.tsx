@@ -1555,6 +1555,13 @@ export const Platforms = ({
       } catch (error: any) {
         // Enhanced error logging for debugging
         console.error("Full error object:", error);
+
+        // Handle specific Strapi upload file relation errors
+        if (error?.response?.data?.message?.includes("plugin::upload.file associated with this entity do not exist")) {
+          console.error("Upload file relation error detected:", error.response.data);
+          toast.error("File upload failed: Some uploaded files are no longer available. Please re-upload the files.");
+          return;
+        }
         console.error("Error response:", error?.response);
         console.error("Error response data:", error?.response?.data);
 

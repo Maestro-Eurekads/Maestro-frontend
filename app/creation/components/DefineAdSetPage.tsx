@@ -575,7 +575,14 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
         let hasData = false;
         if (view === "adset") {
           hasData = platforms.some(
-            (platform: any) => platform.ad_sets && platform.ad_sets.length > 0
+            (platform: any) => {
+              // Check if platform has ad sets with actual audience data
+              if (!platform.ad_sets || platform.ad_sets.length === 0) return false;
+
+              return platform.ad_sets.some((adSet: any) =>
+                adSet.name || adSet.audience_type || adSet.size || adSet.description
+              );
+            }
           );
         } else {
           // For channel view, check channel-level state
@@ -593,6 +600,14 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
             }
           }
         }
+
+        console.log('DefineAdSetPage - Auto-open check:', {
+          stageName,
+          view,
+          hasData,
+          platformsCount: platforms.length,
+          platformsWithAdSets: platforms.filter(p => p.ad_sets && p.ad_sets.length > 0).length
+        });
 
         if (hasData) {
           initialOpenItems[stageName] = true;

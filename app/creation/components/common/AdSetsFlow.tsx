@@ -1366,6 +1366,15 @@ const AdsetSettings = memo(function AdsetSettings({
     );
     const platform = result?.platform;
 
+    console.log('AdSetSettings - Initializing ad sets:', {
+      stageName,
+      outlet: outlet?.outlet,
+      platform: platform?.platform_name,
+      platformAdSets: platform?.ad_sets,
+      currentAdSets: adsets,
+      effectiveGranularity
+    });
+
     if (defaultOpen && !selectedPlatforms.includes(outlet?.outlet)) {
       setSelectedPlatforms((prev) => [...prev, outlet?.outlet]);
     }
@@ -1376,6 +1385,7 @@ const AdsetSettings = memo(function AdsetSettings({
         // Only create default ad set if none exist
         if (adsets.length === 0) {
           const newAdSetId = Date.now();
+          console.log('AdSetSettings - Creating default ad set:', newAdSetId);
           setAdSets([{ id: newAdSetId, addsetNumber: 1 }]);
           setAdSetDataMap({
             [newAdSetId]: {
@@ -1405,6 +1415,10 @@ const AdsetSettings = memo(function AdsetSettings({
           extra_audiences: adSet?.extra_audiences,
           format: adSet?.format,
         };
+      });
+      console.log('AdSetSettings - Loading ad sets from campaign data:', {
+        newAdSets,
+        newAdSetDataMap
       });
       setAdSets(newAdSets);
       setAdSetDataMap(newAdSetDataMap);
@@ -1540,12 +1554,24 @@ const AdsetSettings = memo(function AdsetSettings({
       // GRANULARITY SEPARATION: Only allow deleting ad sets in adset granularity
       if (effectiveGranularity !== "adset") return;
 
+      console.log('AdSetSettings - Deleting ad set:', {
+        id,
+        stageName,
+        outlet: outlet.outlet,
+        currentAdSets: adsets,
+        currentAdSetDataMap: adSetDataMap
+      });
+
       try {
         // We'll need to know if this is the last ad set before updating state
         let isLastAdSet = false;
         setAdSets((prev) => {
           const newAdSets = prev.filter((adset) => adset.id !== id);
           isLastAdSet = newAdSets.length === 0;
+          console.log('AdSetSettings - Updated ad sets after deletion:', {
+            newAdSets,
+            isLastAdSet
+          });
           // PATCH: If last ad set, close the platform (collapse and deselect)
           if (isLastAdSet) {
             setSelectedPlatforms((prevPlatforms) =>
@@ -1560,6 +1586,7 @@ const AdsetSettings = memo(function AdsetSettings({
         setAdSetDataMap((prev) => {
           const newMap = { ...prev };
           delete newMap[id];
+          console.log('AdSetSettings - Updated ad set data map after deletion:', newMap);
           return newMap;
         });
 
@@ -1584,12 +1611,16 @@ const AdsetSettings = memo(function AdsetSettings({
           })
           .filter((data) => data.name || data.audience_type);
 
+        console.log('AdSetSettings - Ad sets to save after deletion:', adSetsToSave);
+
         const updatedChannelMix = updateMultipleAdSets(
           campaignFormData.channel_mix,
           stageName,
           outlet.outlet,
           adSetsToSave
         );
+
+        console.log('AdSetSettings - Updated channel mix after deletion:', updatedChannelMix);
 
         setCampaignFormData((prevData) => ({
           ...prevData,
@@ -2274,8 +2305,34 @@ const AdSetFlow = memo(function AdSetFlow({
             ...(Array.isArray(stage.in_game) ? stage.in_game : []),
             ...(Array.isArray(stage.mobile) ? stage.mobile : []),
           ]
-            .filter((p) => p.ad_sets && p.ad_sets.length > 0)
+            .filter((p) => {
+              // Check if platform has ad sets with actual audience data
+              if (!p.ad_sets || p.ad_sets.length === 0) return false;
+
+              return p.ad_sets.some((adSet: any) =>
+                adSet.name || adSet.audience_type || adSet.size || adSet.description
+              );
+            })
             .map((p) => p.platform_name);
+
+          console.log('AdSetsFlow - Auto-open check for stage:', {
+            stageName: stage.funnel_stage,
+            effectiveGranularity,
+            platformsWithAdsets,
+            totalPlatforms: [
+              ...(Array.isArray(stage.search_engines) ? stage.search_engines : []),
+              ...(Array.isArray(stage.display_networks) ? stage.display_networks : []),
+              ...(Array.isArray(stage.social_media) ? stage.social_media : []),
+              ...(Array.isArray(stage.streaming) ? stage.streaming : []),
+              ...(Array.isArray(stage.ooh) ? stage.ooh : []),
+              ...(Array.isArray(stage.broadcast) ? stage.broadcast : []),
+              ...(Array.isArray(stage.messaging) ? stage.messaging : []),
+              ...(Array.isArray(stage.print) ? stage.print : []),
+              ...(Array.isArray(stage.e_commerce) ? stage.e_commerce : []),
+              ...(Array.isArray(stage.in_game) ? stage.in_game : []),
+              ...(Array.isArray(stage.mobile) ? stage.mobile : []),
+            ].length
+          });
 
           if (platformsWithAdsets.length > 0) {
             autoOpenPlatforms[stage.funnel_stage] = platformsWithAdsets;
