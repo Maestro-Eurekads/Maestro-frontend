@@ -971,8 +971,11 @@ export const renderUploadedFile = (
 export function hasFormatEntered(channelMix) {
   // Safety check
   if (!channelMix || !Array.isArray(channelMix)) {
+    console.log('hasFormatEntered: Invalid channelMix', channelMix)
     return false
   }
+
+  console.log('hasFormatEntered: Checking channel mix for formats', channelMix)
 
   // Loop through each funnel stage
   for (const stage of channelMix) {
@@ -1001,12 +1004,34 @@ export function hasFormatEntered(channelMix) {
 
       // Check each platform for a non-empty 'format' array
       for (const platform of platforms) {
-        if (platform && platform.format && Array.isArray(platform.format) && platform.format.length > 0) {
+        if (!platform) continue
+
+        // Check platform-level formats
+        if (platform.format && Array.isArray(platform.format) && platform.format.length > 0) {
+          console.log('hasFormatEntered: Found platform-level format', {
+            platform: platform.platform_name,
+            format: platform.format
+          })
           return true; // At least one format is entered
+        }
+
+        // Check ad set-level formats (for ad set granularity)
+        if (platform.ad_sets && Array.isArray(platform.ad_sets)) {
+          for (const adSet of platform.ad_sets) {
+            if (adSet && adSet.format && Array.isArray(adSet.format) && adSet.format.length > 0) {
+              console.log('hasFormatEntered: Found ad set-level format', {
+                platform: platform.platform_name,
+                adSet: adSet.name,
+                format: adSet.format
+              })
+              return true; // At least one format is entered in ad sets
+            }
+          }
         }
       }
     }
   }
+  console.log('hasFormatEntered: No formats found')
   return false; // No format found for any platform
 }
 
