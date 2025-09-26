@@ -106,6 +106,46 @@ const UploadModal: React.FC<UploadModalProps> = ({
     );
   };
 
+  // Utility function to validate file references before saving
+  const validateFileReferences = useCallback(async (channelMix: any[]) => {
+    if (!channelMix || !Array.isArray(channelMix)) return true;
+
+    try {
+      // Check if any file references exist in the channel mix
+      const hasFileReferences = channelMix.some(stage => {
+        if (!stage) return false;
+
+        const mediaTypes = ["social_media", "display_networks", "search_engines", "streaming", "ooh", "broadcast", "messaging", "print", "e_commerce", "in_game", "mobile"];
+
+        return mediaTypes.some(mediaType => {
+          const platforms = stage[mediaType];
+          if (!Array.isArray(platforms)) return false;
+
+          return platforms.some(platform => {
+            // Check platform-level formats
+            if (platform?.format?.some(f => f?.previews?.length > 0)) return true;
+
+            // Check ad set-level formats
+            if (platform?.ad_sets?.some(adSet =>
+              adSet?.format?.some(f => f?.previews?.length > 0)
+            )) return true;
+
+            return false;
+          });
+        });
+      });
+
+      if (!hasFileReferences) return true;
+
+      // If we have file references, we could add validation here
+      // For now, we'll let Strapi handle the validation
+      return true;
+    } catch (error) {
+      console.error("Error validating file references:", error);
+      return false;
+    }
+  }, []);
+
   const uploadUpdatedCampaignToStrapi = useCallback(
     async (data: any) => {
       // Check if campaign exists before attempting to save
@@ -201,6 +241,13 @@ const UploadModal: React.FC<UploadModalProps> = ({
       } catch (error) {
         // Enhanced error logging for debugging
         console.error("Full error object:", error);
+
+        // Handle specific Strapi upload file relation errors
+        if (error?.response?.data?.message?.includes("plugin::upload.file associated with this entity do not exist")) {
+          console.error("Upload file relation error detected:", error.response.data);
+          toast.error("File upload failed: Some uploaded files are no longer available. Please re-upload the files.");
+          return;
+        }
         console.error("Error response:", error?.response);
         console.error("Error response data:", error?.response?.data);
         console.error("Error in uploadUpdatedCampaignToStrapi:", error);
