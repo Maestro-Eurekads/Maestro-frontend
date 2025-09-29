@@ -289,9 +289,9 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                               className={`mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${className
                                 } text-white`}
                               style={{
-                                gridColumnStart: start,
+                                gridColumnStart: startMonth - start === 0 ? 1 : start -1,
                                 gridColumnEnd: end + 1,
-                                marginLeft: `${leftPx}px`,
+                                marginLeft: `${leftPx - campaignLeftPx}px`,
                                 width: widthPx ? `${widthPx}px` : undefined,
                                 ...style,
                               }}
