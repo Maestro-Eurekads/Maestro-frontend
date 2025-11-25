@@ -242,29 +242,8 @@ const MainSection = ({
       {/* Zoom Controls */}
       <div className="flex items-center justify-between mb-4 pl-4">
         <div className="flex items-center gap-2 bg-white border rounded-lg p-2 shadow-sm">
-          <button
-            onClick={zoomOut}
-            disabled={zoomLevel <= minZoom}
-            className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Zoom Out (Ctrl + -)"
-          >
-            <ZoomOut className="w-4 h-4" />
-          </button>
+         
 
-          {/* <span className="text-sm font-medium min-w-[60px] text-center">
-            {Math.round(zoomLevel * 100)}%
-          </span> */}
-
-          <button
-            onClick={zoomIn}
-            disabled={zoomLevel >= maxZoom}
-            className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Zoom In (Ctrl + +)"
-          >
-            <ZoomIn className="w-4 h-4" />
-          </button>
-
-          <div className="w-px h-4 bg-gray-300 mx-1" />
 
           <button onClick={resetZoom} className="p-1 rounded hover:bg-gray-100" title="Reset Zoom (Ctrl + 0)">
             <RotateCcw className="w-4 h-4" />

@@ -932,7 +932,7 @@ const SaveProgressButton = ({ deskTopShow, setDeskTopShow }) => {
 					) : (
 						<button
 							className="bottom_blue_save_btn hover:bg-blue-500"
-							onClick={() => showError("Role doesn't have permission!")}
+							onClick={() => showError("oesn't have permission!")}
 						>
 							<p>Confirm</p>
 							<Image src={Continue} alt="Continue" />

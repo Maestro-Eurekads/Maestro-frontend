@@ -29,7 +29,7 @@ import downfull from "../../../public/arrow-down-full.svg";
 import upoffline from "../../../public/arrow-up-offline.svg";
 import { useKpis } from "app/utils/KpiProvider";
 import AlertMain from "components/Alert/AlertMain";
-import MainSection from "./organisms/main-section/main-section";
+import EnhancedMainSection from "./organisms/main-section/enhanced-main-section";
 import differenceInCalendarDays from "date-fns/differenceInCalendarDays";
 import differenceInCalendarWeeks from "date-fns/differenceInCalendarWeeks";
 import differenceInCalendarMonths from "date-fns/differenceInCalendarMonths";
@@ -416,7 +416,7 @@ const OverviewofyourCampaign = () => {
             <Skeleton height={20} width={"100%"} />
             <Skeleton height={20} width={"100%"} />
           </div> : !campaignData ? [] :
-            <MainSection hideDate={true} disableDrag={true} />}
+            <EnhancedMainSection hideDate={true} disableDrag={true} />}
       </div>
     </div>
   );

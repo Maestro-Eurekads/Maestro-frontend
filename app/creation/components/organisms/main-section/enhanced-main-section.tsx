@@ -23,7 +23,7 @@ import { useDateRange as useRange } from "src/date-range-context"
 import YearInterval from "../../atoms/date-interval/YearInterval"
 import { EnhancedDateProvider, useEnhancedDateRange } from "app/utils/enhanced-date-context"
 
-const EnhancedMainSectionContent = ({
+const EnhancedMainSection = ({
   hideDate,
   disableDrag,
   view,
@@ -304,18 +304,6 @@ const EnhancedMainSectionContent = ({
   )
 }
 
-const EnhancedMainSection = (props: {
-  hideDate?: boolean
-  disableDrag?: boolean
-  view?: boolean
-}) => {
-  const { campaignFormData } = useCampaigns()
 
-  return (
-    <>
-      <EnhancedMainSectionContent {...props} />
-    </>
-  )
-}
 
 export default EnhancedMainSection

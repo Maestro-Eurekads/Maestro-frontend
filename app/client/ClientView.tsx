@@ -27,7 +27,7 @@ import { useKpis } from 'app/utils/KpiProvider';
 import { aggregateKPIStatsFromExtracted, categoryOrder, extractKPIByFunnelStage, kpiCategories, mapKPIStatsToStatsDataDynamic } from 'components/Options';
 import ConfigureBudgetComponet from 'app/creation/components/ConfigureAdSetsAndBudget/ConfigureBudgetComponet';
 import Skeleton from 'react-loading-skeleton';
-import MainSection from 'app/creation/components/organisms/main-section/main-section';
+import EnhancedMainSection from 'app/creation/components/organisms/main-section/enhanced-main-section';
 import { toast } from 'sonner';
 import ComfirmModelClient from 'components/Modals/ComfirmModelClient';
 
@@ -240,7 +240,7 @@ const ClientView = () => {
 								<Skeleton height={20} width={"100%"} />
 							</div> : !campaignData ? "" :
 
-								<MainSection hideDate={false} disableDrag={true} view={true} />}
+								<EnhancedMainSection hideDate={false} disableDrag={true} view={true} />}
 
 					</div>
 
