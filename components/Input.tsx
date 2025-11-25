@@ -6,6 +6,7 @@ interface InputProps {
 	label: string;
 	type: string;
 	placeholder: string;
+	disabled?: boolean;
 	required?: boolean;
 }
 
@@ -15,6 +16,7 @@ const Input: React.FC<InputProps> = ({
 	label,
 	type,
 	placeholder,
+	disabled,
 	...props
 }) => {
 	return (
@@ -28,6 +30,7 @@ const Input: React.FC<InputProps> = ({
 				id="input-field"
 				className="flex items-center px-4 py-2 w-full h-[40px] bg-white border border-[#EFEFEF] rounded-[10px] mt-[8px] outline-none transition-all duration-300"
 				type={type}
+				disabled={disabled}
 				placeholder={placeholder}
 				value={value}
 				onChange={handleOnChange}

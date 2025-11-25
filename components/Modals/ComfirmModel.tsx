@@ -366,7 +366,7 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 				setTitle('Media plan completed, well done!');
 				setStatusMessage('Ready to ask for approval?');
 			} else {
-				toast.error('Only the campaign creator who is not an approver can request approval.');
+				toast.error('Only the Plan Creator who is not an approver can request approval.');
 				setIsOpen(false);
 			}
 			return;

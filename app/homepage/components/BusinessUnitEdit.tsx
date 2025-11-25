@@ -6,15 +6,83 @@ import blueSmallPlue from "../../../public/blueSmallPlue.svg";
 import { MdOutlineCancel } from "react-icons/md";
 import { toast } from "sonner";
 
+
+const RenderParameterLevel = ({ param, indices, level, onAddSub, onChange, onRemove }) => {
+  const canAddSubParameters = level < 4;
+  const indentClass = 'ml-6'; // Same indentation for all levels
+
+  return (
+    <div className="relative">
+      {/* Sub-parameters with extended vertical line */}
+      {param.subParameters && param.subParameters.length > 0 && (
+        <div className={`relative mt-2 pl-4 ${indentClass} before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-px before:bg-[#3175FF] before:translate-x-[-1px]`}>
+          {param.subParameters.map((sub, sIndex) => (
+            <div
+              key={`${indices.join('-')}-${sIndex}`}
+              className="relative mb-2 before:content-[''] before:absolute before:left-[-16px] before:top-[20px] before:w-4 before:h-0.5 before:bg-[#3175FF]"
+            >
+              {/* Sub-parameter input */}
+              <div className="flex items-center px-4 py-2 h-[40px] border border-[#EFEFEF] rounded-[10px] bg-white mb-2">
+                <input
+                  type="text"
+                  className="w-full bg-transparent outline-none text-gray-600"
+                  placeholder={`Add sub-parameter ${sIndex + 1} (Level ${level + 1})`}
+                  value={sub.name}
+                  onChange={(e) => onChange([...indices, sIndex], e.target.value)}
+                />
+                <MdOutlineCancel
+                  size={18}
+                  color="red"
+                  onClick={() => onRemove([...indices, sIndex])}
+                  className="cursor-pointer"
+                />
+              </div>
+
+              {/* Recursively render deeper levels, passing the handlers down */}
+              <RenderParameterLevel
+                param={sub}
+                indices={[...indices, sIndex]}
+                level={level + 1}
+                onAddSub={onAddSub}
+                onChange={onChange}
+                onRemove={onRemove}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Add sub-parameter button */}
+      {canAddSubParameters && (
+        <button
+          onClick={() => onAddSub(indices)}
+          className={`mt-2 flex items-center gap-1 text-[#3175FF] font-semibold text-[14px] ${indentClass}`}
+        >
+          <Image src={blueSmallPlue} alt="add" />
+          Add sub-parameter {param.subParameters.length + 1} (Level {level + 1})
+        </button>
+      )}
+    </div>
+  );
+};
+
+
 const EditInput = ({ setInputs, label, setAlert, initialData, isAgencyCreator, setIsLevelChange }) => {
   const [title, setTitle] = useState(initialData?.title || "");
   const [parameters, setParameters] = useState(() =>
     initialData?.parameters?.map(param => ({
-      name: param.name,
-      subParameters: [...param.subParameters],
+      name: param.name || param,
+      subParameters: param.subParameters?.map(sub => ({
+        name: sub.name || sub,
+        subParameters: sub.subParameters?.map(subSub => ({
+          name: subSub.name || subSub,
+          subParameters: subSub.subParameters?.map(subSubSub => ({
+            name: subSubSub.name || subSubSub,
+          })) || [],
+        })) || [],
+      })) || [],
     })) || []
   );
-
 
   // Sync with parent
   useEffect(() => {
@@ -58,10 +126,20 @@ const EditInput = ({ setInputs, label, setAlert, initialData, isAgencyCreator, s
     setParameters(updated);
   };
 
-  const handleAddSubParameter = (index) => {
-    const param = parameters[index];
+  // Generic function to add sub-parameter at any level
+  const handleAddSubParameter = (indices) => {
+    const updated = [...parameters];
+    let current = updated;
 
-    if (!param.name.trim()) {
+    // Navigate to the correct level
+    for (let i = 0; i < indices.length - 1; i++) {
+      current = current[indices[i]].subParameters;
+    }
+
+    const targetIndex = indices[indices.length - 1];
+    const targetParam = current[targetIndex];
+
+    if (!targetParam.name.trim()) {
       setAlert({
         variant: "error",
         message: "Please enter the parameter name first",
@@ -71,8 +149,8 @@ const EditInput = ({ setInputs, label, setAlert, initialData, isAgencyCreator, s
     }
 
     if (
-      param.subParameters.length > 0 &&
-      !param.subParameters[param.subParameters.length - 1].trim()
+      targetParam.subParameters.length > 0 &&
+      !targetParam.subParameters[targetParam.subParameters.length - 1].name.trim()
     ) {
       setAlert({
         variant: "error",
@@ -82,20 +160,35 @@ const EditInput = ({ setInputs, label, setAlert, initialData, isAgencyCreator, s
       return;
     }
 
-    const updated = [...parameters];
-    updated[index].subParameters.push("");
+    targetParam.subParameters.push({ name: "", subParameters: [] });
     setParameters(updated);
   };
 
-  const handleSubChange = (pIndex, sIndex, value) => {
+  // Generic function to handle changes at any level
+  const handleSubChange = (indices, value) => {
     const updated = [...parameters];
-    updated[pIndex].subParameters[sIndex] = value;
+    let current = updated;
+
+    // Navigate to the correct level
+    for (let i = 0; i < indices.length - 1; i++) {
+      current = current[indices[i]].subParameters;
+    }
+
+    current[indices[indices.length - 1]].name = value;
     setParameters(updated);
   };
 
-  const handleRemoveSub = (pIndex, sIndex) => {
+  // Generic function to remove sub-parameter at any level
+  const handleRemoveSub = (indices) => {
     const updated = [...parameters];
-    updated[pIndex].subParameters.splice(sIndex, 1);
+    let current = updated;
+
+    // Navigate to the parent level
+    for (let i = 0; i < indices.length - 1; i++) {
+      current = current[indices[i]].subParameters;
+    }
+
+    current.splice(indices[indices.length - 1], 1);
     setParameters(updated);
   };
 
@@ -116,11 +209,9 @@ const EditInput = ({ setInputs, label, setAlert, initialData, isAgencyCreator, s
       </div>
 
       {/* Parameters */}
-      {/* Wrapper for hierarchy line from parent */}
       <div className="relative mt-2 ml-4 border-l-2 border-dashed border-[#3175FF] pl-4">
         {parameters.map((param, index) => (
           <div key={index} className="mb-4 relative">
-
             {/* Horizontal connector from main line to parameter */}
             <div className="absolute left-[-16px] top-[20px] w-4 h-0.5 bg-[#3175FF]" />
 
@@ -129,7 +220,7 @@ const EditInput = ({ setInputs, label, setAlert, initialData, isAgencyCreator, s
               <input
                 type="text"
                 className="w-full bg-transparent outline-none text-gray-600"
-                placeholder={`Add parameter ${index + 1}`}
+                placeholder={`Add parameter ${index + 1} (Level 1)`}
                 value={param.name}
                 onChange={(e) => handleParameterChange(index, e.target.value)}
               />
@@ -141,44 +232,17 @@ const EditInput = ({ setInputs, label, setAlert, initialData, isAgencyCreator, s
               />
             </div>
 
-            {/* Sub-parameters with extended vertical line */}
-            <div className="relative ml-6 mt-2 pl-4 before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-px before:bg-[#3175FF] before:translate-x-[-1px]">
-              {param.subParameters.map((sub, sIndex) => (
-                <div
-                  key={sIndex}
-                  className="relative flex items-center h-[45px] mb-2 px-4 border border-[#EFEFEF] rounded-[10px] bg-white before:content-[''] before:absolute before:left-[-16px] before:top-1/2 before:w-4 before:h-0.5 before:bg-[#3175FF]"
-                >
-                  <input
-                    type="text"
-                    className="w-full bg-transparent outline-none text-gray-600"
-                    placeholder={`Add sub-parameter ${sIndex + 1}`}
-                    value={sub}
-                    onChange={(e) =>
-                      handleSubChange(index, sIndex, e.target.value)
-                    }
-                  />
-                  <MdOutlineCancel
-                    size={18}
-                    color="red"
-                    onClick={() => handleRemoveSub(index, sIndex)}
-                    className="cursor-pointer"
-                  />
-                </div>
-              ))}
-            </div>
-
-            {/* Add sub-parameter button */}
-            <button
-              onClick={() => handleAddSubParameter(index)}
-              className="ml-6 mt-2 flex items-center gap-1 text-[#3175FF] font-semibold text-[14px]"
-            >
-              <Image src={blueSmallPlue} alt="add" />
-              Add sub-parameter {param.subParameters.length + 1}
-            </button>
+            {/* Render nested sub-parameters */}
+            <RenderParameterLevel
+              param={param}
+              indices={[index]}
+              level={1}
+              onAddSub={handleAddSubParameter}
+              onChange={handleSubChange}
+              onRemove={handleRemoveSub} />
           </div>
         ))}
       </div>
-
 
       {/* Add parameter button */}
       <div className="flex items-center gap-2 mt-3 ml-1">
@@ -193,7 +257,6 @@ const EditInput = ({ setInputs, label, setAlert, initialData, isAgencyCreator, s
     </div>
   );
 };
-
 
 const BusinessUnitEdit = ({ setInputs, setAlert, level1Options, initialData, isAgencyCreator, setIsLevelChange }) => {
   return (
