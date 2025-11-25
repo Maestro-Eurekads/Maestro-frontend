@@ -57,6 +57,7 @@ const Header = ({ setIsOpen, setIsView }) => {
     setFC,
     FC
   } = useCampaigns();
+  const profileClients: any = profile?.clients || [];
 
   const { setSelectedDates } = useSelectedDates()
 
@@ -70,7 +71,7 @@ const Header = ({ setIsOpen, setIsView }) => {
   const [selected, setSelected] = useState("");
 
 
-  const clients: any = getCreateClientData;
+
 
 
 
@@ -101,20 +102,20 @@ const Header = ({ setIsOpen, setIsView }) => {
       setSelectedClient(storedClientId);
     } else {
       const fallbackId =
-        getCreateClientData?.data?.[0]?.id?.toString() ||
-        profile?.clients?.[0]?.id?.toString();
+        profileClients?.[0]?.id?.toString() ||
+        profileClients?.[0]?.id?.toString();
       if (fallbackId) {
         setSelectedId(fallbackId);
         setSelectedClient(fallbackId);
       }
     }
-  }, [userType, getCreateClientIsLoading, profile?.clients]);
+  }, [userType, profileClients]);
 
 
 
   useEffect(() => {
     setActive(0);
-    if (!clients?.data || clients?.data?.length === 0 || !selectedId) {
+    if (!profileClients || profileClients?.length === 0 || !selectedId) {
       setLoading(false);
       return;
     }
@@ -125,7 +126,7 @@ const Header = ({ setIsOpen, setIsView }) => {
     const clientId = selectedId;
     setSelected(clientId);
 
-    const filteredClient = clients?.data?.find(
+    const filteredClient = profileClients?.find(
       (client) => client?.id === Number(clientId)
     );
 
@@ -179,84 +180,78 @@ const Header = ({ setIsOpen, setIsView }) => {
     return () => {
       isMounted = false;
     };
-  }, [clients, selectedId]);
+  }, [profileClients, selectedId]);
 
 
 
   return (
     <div id="header" className="relative w-full">
       <div className="flex items-center">
-        {getCreateClientIsLoading ? (
-          <div className="flex items-center gap-2">
-            <FiLoader className="animate-spin" />
-            <p>Loading clients...</p>
-          </div>
-        ) : (
-          <>
-            <CustomSelect
-              options={(isAdmin ? clients?.data : profile?.clients)
-                ?.filter((c) => !!c?.client_name && !!c?.id && !!c?.createdAt)
-                // ?.sort(
-                //  (a, b) =>
-                //   new Date(b?.createdAt || 0).getTime() -
-                //   new Date(a?.createdAt || 0).getTime()
-                // )
-                ?.map((c) => ({
-                  label: c?.client_name,
-                  value: c?.id.toString(),
-                }))}
-              className="min-w-[150px] z-[20]"
-              placeholder="Search"
-              onChange={(value) => {
-                if (value) {
-                  localStorage.removeItem("campaignFormData")
-                  localStorage.setItem(userType, value?.value);
-                  setSelected(value?.value);
-                  setSelectedId(value?.value);
-                  setSelectedClient(value?.value);
-                }
-              }}
-              value={(isAdmin ? clients?.data : profile?.clients)
-                ?.map((c) => ({
-                  label: c?.client_name,
-                  value: c?.id?.toString(),
-                }))
-                .find(
-                  (option) =>
-                    option?.value === selectedId || option?.value === selected
-                )}
-            />
+        <>
+          <CustomSelect
+            options={(profileClients)
+              ?.filter((c) => !!c?.client_name && !!c?.id && !!c?.createdAt)
+              // ?.sort(
+              //  (a, b) =>
+              //   new Date(b?.createdAt || 0).getTime() -
+              //   new Date(a?.createdAt || 0).getTime()
+              // )
+              ?.map((c) => ({
+                label: c?.client_name,
+                value: c?.id.toString(),
+              }))}
+            className="min-w-[150px] z-[20]"
+            placeholder="Search"
+            onChange={(value) => {
+              if (value) {
+                localStorage.removeItem("campaignFormData")
+                localStorage.setItem(userType, value?.value);
+                setSelected(value?.value);
+                setSelectedId(value?.value);
+                setSelectedClient(value?.value);
+              }
+            }}
+            value={(profileClients)
+              ?.map((c) => ({
+                label: c?.client_name,
+                value: c?.id?.toString(),
+              }))
+              .find(
+                (option) =>
+                  option?.value === selectedId || option?.value === selected
+              )}
+          />
 
+          <button
+            className={`new_plan_btn ml-8 mr-4 ${(!profileClients || !selectedId)
+              ? "!bg-gray-400 cursor-not-allowed"
+              : ""
+              }`}
+            disabled={!profileClients || !selectedId}
+            onClick={() => {
+              if (isAgencyCreator) {
+                toast.error("You do not have permission to perform this action.");
+                return;
+              }
+              setIsView(true);
+            }}
+          >
+            <p className="new_plan_btn_text">View Client</p>
+          </button>
+
+
+          {(isAdmin || isFinancialApprover || isAgencyApprover) && (
             <button
-              className={`new_plan_btn ml-8 mr-4 ${(!profile?.clients || !clients?.data || !selectedId)
-                ? "!bg-gray-400 cursor-not-allowed"
-                : ""
-                }`}
-              disabled={!profile?.clients || !clients?.data || !selectedId}
-              onClick={() => {
-                if (isAgencyCreator) {
-                  toast.error("You do not have permission to perform this action.");
-                  return;
-                }
-                setIsView(true);
-              }}
-            >
-              <p className="new_plan_btn_text">View Client</p>
+              className="client_btn_text whitespace-nowrap w-fit"
+              onClick={() => { setIsOpen(true) }}  >
+              <Image src={plus} alt="plus" />
+              New Client
             </button>
+          )}
 
 
-            {(isAdmin || isFinancialApprover || isAgencyApprover) && (
-              <button
-                className="client_btn_text whitespace-nowrap w-fit"
-                onClick={() => { setIsOpen(true) }}  >
-                <Image src={plus} alt="plus" />
-                New Client
-              </button>
-            )}
+        </>
 
-
-          </>
-        )}
       </div>
 
       {alert && <AlertMain alert={alert} />}
@@ -279,9 +274,9 @@ const Header = ({ setIsOpen, setIsView }) => {
                   })
                 }}>
                 <button
-                  className={`new_plan_btn ${!profile?.clients || !clients?.data || !selectedId ? "!bg-gray-400" : ""
+                  className={`new_plan_btn ${!profileClients || !selectedId ? "!bg-gray-400" : ""
                     }`}
-                  disabled={!profile?.clients || !clients?.data || !selectedId}
+                  disabled={!profileClients || !selectedId}
                 >
                   <Image src={white} alt="white" />
                   <p className="new_plan_btn_text">New media plan</p>
