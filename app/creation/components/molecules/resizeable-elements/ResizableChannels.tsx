@@ -1445,6 +1445,7 @@ const ResizableChannels = ({
                 stageName={parentId}
                 platformName={selectedChannel}
                 view={openView}
+                shouldOpenSidebar={false}
               />
             )
           )}
