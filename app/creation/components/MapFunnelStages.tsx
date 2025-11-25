@@ -1221,7 +1221,7 @@ const MapFunnelStages = () => {
           className="text-[22px]"
           t1="How many funnel stage(s) would you like to activate to achieve your objective?"
         />
-        <SaveProgressButton deskTopShow={undefined} setDeskTopShow={undefined} />
+        <SaveProgressButton />
       </div>
 
       <div className="w-full flex items-start">

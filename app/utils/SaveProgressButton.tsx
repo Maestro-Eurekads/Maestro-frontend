@@ -2,7 +2,7 @@
 import Image from "next/image"
 import clsx from "clsx"
 import Continue from "../../public/arrow-back-outline.svg"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import { BiLoader } from "react-icons/bi"
 import { useEditing } from "app/utils/EditingContext"
 import toast, { Toaster } from "react-hot-toast"
@@ -18,6 +18,7 @@ import { removeKeysRecursively } from "utils/removeID"
 import AlertMain from "components/Alert/AlertMain"
 import { useCampaigns } from "./CampaignsContext"
 import { useActive } from "app/utils/ActiveContext"
+import { areObjectsSimilar } from "./similarityCheck"
 
 interface BottomProps {
 	setIsOpen: (isOpen: boolean) => void
@@ -78,9 +79,10 @@ const preserveFormatsWithPreviews = (platforms) => {
 	})
 }
 
-const SaveProgressButton = ({ deskTopShow, setDeskTopShow }) => {
+const SaveProgressButton = () => {
 
-	const { active, setActive, subStep, setSubStep, setChange } = useActive()
+	const [deskTopShow, setDeskTopShow] = useState(false);
+	const { active, setActive, subStep, setSubStep, setChange, change } = useActive()
 	const { midcapEditing } = useEditing()
 	const [triggerObjectiveError, setTriggerObjectiveError] = useState(false)
 	const [setupyournewcampaignError, setSetupyournewcampaignError] = useState(false)
@@ -120,8 +122,12 @@ const SaveProgressButton = ({ deskTopShow, setDeskTopShow }) => {
 		jwt,
 		agencyId,
 	} = useCampaigns()
-
 	const isInternalApprover = isAdmin || isAgencyApprover || isFinancialApprover
+
+	const hasChanges = useMemo(() => {
+		if (!campaignData || !campaignFormData) return false;
+		return !areObjectsSimilar(campaignFormData, campaignData);
+	}, [campaignFormData, campaignData]);
 
 	// --- Persist format selection for active === 4 ---
 	const hasProceededFromFormatStep = useRef(false)
@@ -940,19 +946,19 @@ const SaveProgressButton = ({ deskTopShow, setDeskTopShow }) => {
 					)
 					
 				) : (  */}
-				{(active === 10 || deskTopShow || !active) ? "" :
+				{(active === 10) ? "" :
 					<div className="flex justify-center items-center gap-3">
 						<button
 							className={clsx(
 								"bottom_blue_save_btn whitespace-nowrap",
-								active === 10 && "opacity-50 cursor-not-allowed",
-								active < 10 && "hover:bg-blue-500",
+								!hasChanges && "opacity-50 cursor-not-allowed",
+								hasChanges && "hover:bg-blue-500",
 								active === 4 && !hasFormatSelected && "px-3 py-2"
 							)}
 							onClick={
 								active === 4 && !hasFormatSelected ? handleSkip : handleContinue
 							}
-							disabled={active === 10}
+							disabled={active === 10 || !hasChanges}
 							onMouseEnter={() => setIsHovered(true)}
 							onMouseLeave={() => setIsHovered(false)}
 						>

@@ -9,46 +9,16 @@ import FinanceView from "./components/FinanceView";
 import AddFinanceModal from "./components/AddFinanceModal";
 import ViewClientModal from "./components/ViewClientModal";
 import { useActive } from "app/utils/ActiveContext";
-import BackConfirmModal from "components/BackConfirmModal";
 import SaveProgressButton from "app/utils/SaveProgressButton";
 
 const Homepage = () => {
-  const { change, setChange } = useActive()
   const [isOpen, setIsOpen] = useState(false);
   const [isView, setIsView] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [deskTopShow, setDeskTopShow] = useState(false);
   const [active, setActive] = useState("Overview");
   const [openModal, setOpenModal] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
   const [userRole, setUserRole] = useState("guest"); // Assuming a default role
 
-
-
-  useEffect(() => {
-    if (change) {
-      setDeskTopShow(true);
-    } else {
-      setDeskTopShow(false);
-    }
-  }, [change])
-
-
-
-
-  const handleConfirmSave = () => {
-    handleSave();
-    setDeskTopShow(false);
-  };
-
-  const handleCancel = () => {
-    setDeskTopShow(false);
-  };
-
-  const handleSave = () => {
-    setChange(false);
-    setDeskTopShow(false);
-  };
 
   return (
     <>
@@ -78,14 +48,6 @@ const Homepage = () => {
           selectedRow={selectedRow}
           userRole={userRole}
         />
-        <SaveProgressButton
-          deskTopShow={deskTopShow}
-          setDeskTopShow={setDeskTopShow} />
-        {/* <BackConfirmModal
-          isOpen={showModal}
-          onClose={handleCancel}
-          onConfirm={handleConfirmSave}
-        /> */}
       </div>
     </>
   );
