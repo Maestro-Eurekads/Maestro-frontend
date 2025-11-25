@@ -14,6 +14,7 @@ import { getCurrencySymbol } from "./data"
 import { addDays, format, subDays } from "date-fns"
 
 interface DraggableChannelProps {
+  onDateRangeChange?: (startDate: Date, endDate: Date) => void
   id?: string
   bg?: string
   description?: string
@@ -71,6 +72,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   endDay,
   endWeek,
   dailyWidth,
+  onDateRangeChange,
 }) => {
   const { funnelWidths, setFunnelWidth } = useFunnelContext()
   const [position, setPosition] = useState(parentLeft || 0)
@@ -100,8 +102,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
   const pixelToDate = (pixel: number, containerWidth: number, fieldName?: string) => {
     if (!dateList.length) return new Date()
-
-    const startDate = dateList[0]
+    const firstDate = dateList[0]
     const totalDays = dateList.length - 1
 
     if (range === "Year") {
@@ -109,7 +110,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       const clampedPixel = Math.max(0, Math.min(pixel, containerWidth))
       const monthFraction = clampedPixel / containerWidth
       const monthIndex = Math.round(monthFraction * totalMonths)
-      const year = startDate.getFullYear()
+      const year = firstDate.getFullYear()
 
       if (fieldName === "endDate") {
         return new Date(year, Math.min(11, monthIndex), 0)
@@ -118,8 +119,8 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     }
 
     const dayIndex = Math.min(totalDays, Math.max(0, Math.round((pixel / containerWidth) * totalDays)))
-    const calculatedDate = new Date(startDate)
-    calculatedDate.setDate(startDate.getDate() + dayIndex)
+    const calculatedDate = new Date(firstDate)
+    calculatedDate.setDate(firstDate.getDate() + dayIndex)
 
     return calculatedDate
   }
@@ -346,7 +347,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       const rightEdgePos = startPos + startWidth + deltaX;
       const snappedRightEdge = snapToTimeline(rightEdgePos, containerRect.width);
       newWidth = Math.max(50, snappedRightEdge - startPos);
-  
+
       if (mouseX > containerRect.width - 50) {
         const newRangeEnd = addDays(rangeEnd, 2);
         extendRange(
@@ -357,8 +358,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     }
   
     const startDate = pixelToDate(newPos, containerRect.width);
-    const endDate = pixelToDate(newPos + newWidth, containerRect.width);
-
+    const endDate = pixelToDate(newPos + (newWidth-50), containerRect.width);
       //   const updatedChannelMix = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === description)
 
   //   if (updatedChannelMix) {
@@ -412,7 +412,8 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   //       campaign_timeline_end_date: maxEndDate,
   //     }),
   //   }
-  
+  onDateRangeChange?.(startDate, endDate);
+
     setParentWidth(newWidth);
     setParentLeft(newPos);
     setPosition(newPos);
@@ -535,7 +536,8 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   
     const startDate = pixelToDate(newPosition, containerRect.width);
     const endDate = pixelToDate(newPosition + parentWidth, containerRect.width);
-  
+    onDateRangeChange?.(startDate, endDate);
+
     setParentLeft(newPosition);
     setPosition(newPosition);
   
@@ -587,7 +589,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
           backgroundColor: color,
           transition: "transform 0.2s ease-out",
         }}
-        onClick={() => setOpenChannel?.(!openChannel)}
+        // onClick={() => setOpenChannel?.(!openChannel)}
         onMouseDown={disableDrag || openItems ? undefined : handleMouseDownDrag}
       >
         {range === "Month" ? (
@@ -610,7 +612,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
           </div>
         )}
         <div />
-        <button className="flex items-center gap-3 w-fit">
+        <button className="flex items-center gap-3 w-fit" onClick={() => setOpenChannel?.(!openChannel)}>
           {Icon?.src ? <Image src={Icon?.src || "/placeholder.svg"} alt="" width={20} height={20} /> : Icon}
           <span className="font-medium">{description}</span>
           <MdOutlineKeyboardArrowDown />

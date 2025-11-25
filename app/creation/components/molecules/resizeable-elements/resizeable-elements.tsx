@@ -86,10 +86,16 @@ const ResizeableElements = ({
     {}
   );
   const [containerWidth, setContainerWidth] = useState(null);
-  const [openItems, setOpenItems] = useState(null);
   const [channelPositions, setChannelPositions] = useState<
     Record<string, number>
   >({});
+  // Computed date ranges (start/end) for each stage based on its position/width
+  const [stageDateRanges, setStageDateRanges] = useState<
+    Record<string, { start: Date; end: Date }>
+  >({});
+
+  const [openItems, setOpenItems] = useState(null);
+
   const [platforms, setPlatforms] = useState({});
   const gridRef = useRef(null);
   const [dailyWidthByView, setDailyWidthByView] = useState<
@@ -113,11 +119,24 @@ const ResizeableElements = ({
 
   const updateChannelWidth = (channelId: string, width: number) => {
     setChannelWidths((prev) => ({ ...prev, [channelId]: width }));
+    // convertWidthAndPositionToDates({widthValue: width, stageName: channelId});
   };
 
   const updateChannelPosition = (channelId: string, left: number) => {
     setChannelPositions((prev) => ({ ...prev, [channelId]: left }));
+    // convertWidthAndPositionToDates({ leftValue: left, stageName: channelId});
   };
+  const handleStageDateChange = (
+    stageName: string,
+    start: Date,
+    end: Date
+  ) => {
+    setStageDateRanges((prev) => ({
+      ...prev,
+      [stageName]: { start, end },
+    }));
+  };
+
 
   // New function to calculate which months a phase spans across
   const calculatePhaseMonthSpans = useCallback(
@@ -466,9 +485,10 @@ console.log(monthsByYear, "herit")
     [range, calculatePhaseMonthSpans, getDailyWidth]
   );
 
+  
+
   useEffect(() => {
     if (!campaignFormData?.funnel_stages || !containerWidth) return;
-console.log("here")
     const initialWidths: Record<string, number> = {};
     const initialPositions: Record<string, number> = {};
     const getViewportWidth = () => {
@@ -481,13 +501,21 @@ console.log("here")
       const stage = campaignFormData?.channel_mix?.find(
         (s) => s?.funnel_stage === stageName
       );
+
+      const selectedRange = stageDateRanges[stageName];
+
       if (stageName && stage) {
-        const stageStartDate = stage?.funnel_stage_timeline_start_date
-          ? parseISO(stage?.funnel_stage_timeline_start_date)
-          : null;
-        const stageEndDate = stage?.funnel_stage_timeline_end_date
-          ? parseISO(stage?.funnel_stage_timeline_end_date)
-          : null;
+        const stageStartDate =
+          selectedRange?.start ||
+          (stage?.funnel_stage_timeline_start_date
+            ? parseISO(stage?.funnel_stage_timeline_start_date)
+            : null);
+
+        const stageEndDate =
+          selectedRange?.end ||
+          (stage?.funnel_stage_timeline_end_date
+            ? parseISO(stage?.funnel_stage_timeline_end_date)
+            : null);
 
         if (rrange === "Year" && stageStartDate && stageEndDate) {
           // Year view calculations
@@ -562,6 +590,7 @@ console.log("here")
     close,
     calculateYearViewPosition,
   ]);
+
 
   // Generate background grid for year view
   const generateYearBackground = useCallback(() => {
@@ -767,6 +796,7 @@ console.log("here")
                 }}
               >
                 <DraggableChannel
+                  onDateRangeChange={(startDate, endDate) => handleStageDateChange(stage?.name, startDate, endDate)}
                   id={stage?.name}
                   openChannel={isOpen}
                   bg={stage?.color?.split("-")[1]}
