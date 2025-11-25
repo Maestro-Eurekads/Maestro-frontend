@@ -886,14 +886,14 @@ const cleanNames = (name: string) => {
 
 // Define clientRoles explicitly to match TableModel
 const clientRoles = [
-  { label: "Campaign Viewer", value: "viewer" },
-  { label: "Client Campaign Approver", value: "client_approver" },
+  { label: "Viewer", value: "viewer" },
+  { label: "Approver", value: "client_approver" },
 ];
 
 const agencyRoles = [
-  { label: "Campaign Creator", value: "agency_creator" },
-  { label: "Agency Campaign Approver", value: "agency_approver" },
-  { label: "Financial Approver", value: "financial_approver" },
+  { label: "Plan Creator", value: "agency_creator" },
+  { label: "Plan Approver", value: "agency_approver" },
+  { label: "Financial role", value: "financial_approver" },
 ];
 
 

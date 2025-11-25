@@ -29,7 +29,8 @@ const TableModel = ({ isOpen, setIsOpen }) => {
    const { isAdmin, isAgencyApprover, isFinancialApprover } = useUserPrivileges();
    const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
-
+   // Add state for agency access toggle
+   const [isAgencyAccessEnabled, setIsAgencyAccessEnabled] = useState(true);
 
    const [inputs, setInputs] = useState({
       name: "",
@@ -73,7 +74,15 @@ const TableModel = ({ isOpen, setIsOpen }) => {
       }
    }, [isOpen]);
 
-
+   // Clear agency access data when disabled
+   useEffect(() => {
+      if (!isAgencyAccessEnabled) {
+         setInputs(prev => ({ ...prev, agencyAccess: [] }));
+         setAgencyInput({ name: "", email: "", roles: "" });
+         setEditingIndex(null);
+         setEditingSection(null);
+      }
+   }, [isAgencyAccessEnabled]);
 
    // Email and name validation regex
    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -81,6 +90,8 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 
    // Handle adding or updating a user to Agency Access
    const handleAddAgencyAccess = () => {
+      if (!isAgencyAccessEnabled) return;
+
       const { name, email, roles } = agencyInput;
       const trimmedEmail = email.trim();
       const trimmedName = name.trim();
@@ -171,6 +182,8 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 
    // Handle edit button click
    const handleEditUser = (section, index) => {
+      if (section === "agencyAccess" && !isAgencyAccessEnabled) return;
+
       const user = inputs[section][index];
       const [...nameParts] = user.name.split(" ");
       const name = nameParts.join(" ");
@@ -188,6 +201,8 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 
    // Handle role checkbox changes (single selection)
    const handleRoleChange = (section, role) => {
+      if (section === "agency" && !isAgencyAccessEnabled) return;
+
       if (section === "agency") {
          setAgencyInput((prev) => ({ ...prev, roles: role }));
       } else {
@@ -197,6 +212,8 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 
    // Handle removing a user from Agency or Client Access
    const handleRemoveUser = (section, email) => {
+      if (section === "agencyAccess" && !isAgencyAccessEnabled) return;
+
       setInputs((prev) => ({
          ...prev,
          [section]: prev[section].filter((e) => e.email !== email),
@@ -211,14 +228,15 @@ const TableModel = ({ isOpen, setIsOpen }) => {
       }));
    };
 
-   // Validate form before submission
+   // Updated validate form - make agency access optional
    const validateForm = () => {
       if (!inputs.name.trim()) {
          toast.error("Client Name is required");
          return false;
       }
 
-      if (inputs.agencyAccess.length === 0) {
+      // Only validate agency access if it's enabled
+      if (isAgencyAccessEnabled && inputs.agencyAccess.length === 0) {
          toast.error("At least one Agency Access user is required");
          return false;
       }
@@ -239,32 +257,39 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 
       try {
          const allEmails = [...inputs.agencyAccess, ...inputs.clientAccess].map((e) => e.email);
-         const existingUsers = await checkExisitingEmails(allEmails, jwt);
-         if (existingUsers?.length > 0) {
-            toast.error(
-               `User(s) with the following email(s) already exist: ${existingUsers
-                  .map((user) => user.email)
-                  .join(", ")}`
-            );
-         } else {
-            const res = await addNewClient(
-               {
-                  client_name: inputs.name,
-                  level_1: inputs.businessUnits,
-                  users: profile?.id,
-                  agency: agencyId,
-               },
-               jwt
-            );
 
-            if (userType && res?.data?.data?.id) {
-               localStorage.setItem(userType.toString(), res?.data?.data?.id);
+         // Only check existing emails if there are emails to check
+         if (allEmails.length > 0) {
+            const existingUsers = await checkExisitingEmails(allEmails, jwt);
+            if (existingUsers?.length > 0) {
+               toast.error(
+                  `User(s) with the following email(s) already exist: ${existingUsers
+                     .map((user) => user.email)
+                     .join(", ")}`
+               );
+               setLoading(false);
+               return;
             }
+         }
 
+         const res = await addNewClient(
+            {
+               client_name: inputs.name,
+               level_1: inputs.businessUnits,
+               users: profile?.id,
+               agency: agencyId,
+            },
+            jwt
+         );
 
-            getProfile();
+         if (userType && res?.data?.data?.id) {
+            localStorage.setItem(userType.toString(), res?.data?.data?.id);
+         }
 
-            // Create user accounts for Agency Access emails
+         getProfile();
+
+         // Create user accounts for Agency Access emails only if enabled and has users
+         if (isAgencyAccessEnabled && inputs.agencyAccess.length > 0) {
             for (const emailEntry of inputs.agencyAccess) {
                try {
                   await addClientUser(
@@ -292,51 +317,50 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                   toast.error(`Failed to create user for ${emailEntry.email}`);
                }
             }
-
-
-
-            // Create user accounts for Client Access emails
-            for (const emailEntry of inputs.clientAccess) {
-               try {
-                  await addClientUser(
-                     {
-                        username: `${emailEntry.name}-${uuidv4().slice(0, 4)}`,
-                        email: emailEntry.email,
-                        password: "123456789",
-                        clients: res?.data?.data?.id,
-                        user_type: emailEntry?.roles === "viewer" ? "client" : "client_approver",
-                        agencyId: agencyId,
-                        emailEntry,
-                     },
-                     jwt
-                  );
-               } catch (error) {
-                  if (error?.response?.status === 401) {
-                     const event = new Event("unauthorizedEvent");
-                     window.dispatchEvent(event);
-                  }
-                  toast.error(`Failed to create user for ${emailEntry.email}`);
-               }
-            }
-
-            await dispatch(getCreateClient({ userId: profile?.id, jwt, agencyId }));
-
-            // Reset form state
-            setInputs({
-               name: "",
-               email: "",
-               full_name: "",
-               agencyAccess: [],
-               clientAccess: [],
-               businessUnits: [],
-            });
-            setAgencyInput({ name: "", email: "", roles: "" });
-            setClientInput({ name: "", email: "", roles: "" });
-            setEditingIndex(null);
-            setEditingSection(null);
-            setIsOpen(false);
-            toast.success("Client created successfully")
          }
+
+         // Create user accounts for Client Access emails
+         for (const emailEntry of inputs.clientAccess) {
+            try {
+               await addClientUser(
+                  {
+                     username: `${emailEntry.name}-${uuidv4().slice(0, 4)}`,
+                     email: emailEntry.email,
+                     password: "123456789",
+                     clients: res?.data?.data?.id,
+                     user_type: emailEntry?.roles === "viewer" ? "client" : "client_approver",
+                     agencyId: agencyId,
+                     emailEntry,
+                  },
+                  jwt
+               );
+            } catch (error) {
+               if (error?.response?.status === 401) {
+                  const event = new Event("unauthorizedEvent");
+                  window.dispatchEvent(event);
+               }
+               toast.error(`Failed to create user for ${emailEntry.email}`);
+            }
+         }
+
+         await dispatch(getCreateClient({ userId: profile?.id, jwt, agencyId }));
+
+         // Reset form state
+         setInputs({
+            name: "",
+            email: "",
+            full_name: "",
+            agencyAccess: [],
+            clientAccess: [],
+            businessUnits: [],
+         });
+         setAgencyInput({ name: "", email: "", roles: "" });
+         setClientInput({ name: "", email: "", roles: "" });
+         setEditingIndex(null);
+         setEditingSection(null);
+         setIsAgencyAccessEnabled(true);
+         setIsOpen(false);
+         toast.success("Client created successfully")
       } catch (error) {
          if (error?.response?.status === 401) {
             const event = new Event("unauthorizedEvent");
@@ -367,9 +391,8 @@ const TableModel = ({ isOpen, setIsOpen }) => {
       setClientInput({ name: "", email: "", roles: "" });
       setEditingIndex(null);
       setEditingSection(null);
+      setIsAgencyAccessEnabled(true);
    };
-
-
 
    return (
       <div className="z-50">
@@ -406,8 +429,30 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                         placeholder="Client Name"
                      />
 
+                     {/* Agency Access Toggle Checkbox */}
+                     <div className="mt-6 mb-4">
+                        <div className="flex items-center gap-3">
+                           <input
+                              type="checkbox"
+                              id="agencyAccessToggle"
+                              checked={isAgencyAccessEnabled}
+                              onChange={(e) => setIsAgencyAccessEnabled(e.target.checked)}
+                              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                           />
+                           <label
+                              htmlFor="agencyAccessToggle"
+                              className="font-medium text-[15px] leading-5 text-gray-600 cursor-pointer"
+                           >
+                              Enable Agency Access
+                           </label>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1 ml-7">
+                           Check this box to add agency users who can manage this client
+                        </p>
+                     </div>
+
                      {/* Agency Access Section */}
-                     <div className="mt-4">
+                     <div className={`mt-4 transition-opacity duration-200 ${isAgencyAccessEnabled ? 'opacity-100' : 'opacity-50'}`}>
                         <label className="font-medium text-[15px] leading-5 text-gray-600">
                            Agency Access
                         </label>
@@ -418,10 +463,11 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                                     type="text"
                                     value={agencyInput.name}
                                     handleOnChange={(e) =>
-                                       setAgencyInput((prev) => ({ ...prev, name: e.target.value }))
+                                       isAgencyAccessEnabled && setAgencyInput((prev) => ({ ...prev, name: e.target.value }))
                                     }
                                     label=""
                                     placeholder="Full Name"
+                                    disabled={!isAgencyAccessEnabled}
                                  />
                               </div>
                               <div className="shrink-0 w-[100%]">
@@ -429,10 +475,11 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                                     type="email"
                                     value={agencyInput.email}
                                     handleOnChange={(e) =>
-                                       setAgencyInput((prev) => ({ ...prev, email: e.target.value }))
+                                       isAgencyAccessEnabled && setAgencyInput((prev) => ({ ...prev, email: e.target.value }))
                                     }
                                     label=""
                                     placeholder="Enter email address"
+                                    disabled={!isAgencyAccessEnabled}
                                  />
                               </div>
                            </div>
@@ -441,29 +488,36 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                               <label className="font-medium text-[15px] leading-5 text-gray-600">Role</label>
                               <div className="mt-1">
                                  {[
-                                    { label: "Campaign Creator", value: "agency_creator" },
-                                    { label: "Agency Campaign Approver", value: "agency_approver" },
-                                    { label: "Financial Approver", value: "financial_approver" },
+                                    { label: "Plan Creator", value: "agency_creator" },
+                                    { label: "Plan Approver", value: "agency_approver" },
+                                    { label: "Plan Role", value: "financial_approver" },
                                  ].map((role) => (
                                     <div key={role.value} className="flex items-center gap-2">
                                        <input
                                           type="checkbox"
                                           checked={agencyInput.roles === role.value}
-                                          onChange={() => handleRoleChange("agency", role.value)}
+                                          onChange={() => isAgencyAccessEnabled && handleRoleChange("agency", role.value)}
+                                          disabled={!isAgencyAccessEnabled}
                                        />
-                                       <span className="text-sm">{role.label}</span>
+                                       <span className={`text-sm ${!isAgencyAccessEnabled ? 'text-gray-400' : ''}`}>
+                                          {role.label}
+                                       </span>
                                     </div>
                                  ))}
                               </div>
                            </div>
                            <button
-                              className="flex items-center justify-center px-6 py-3 w-[76px] h-[40px] bg-[#061237] rounded-lg font-semibold text-[14px] leading-[19px] text-white mt-6"
+                              className={`flex items-center justify-center px-6 py-3 w-[76px] h-[40px] rounded-lg font-semibold text-[14px] leading-[19px] text-white mt-6 transition-colors ${isAgencyAccessEnabled
+                                    ? 'bg-[#061237] hover:bg-[#061237]/90'
+                                    : 'bg-gray-400 cursor-not-allowed'
+                                 }`}
                               onClick={handleAddAgencyAccess}
+                              disabled={!isAgencyAccessEnabled}
                            >
                               {editingIndex !== null && editingSection === "agencyAccess" ? "Update" : "Add"}
                            </button>
                         </div>
-                        {inputs?.agencyAccess.length > 0 && (
+                        {inputs?.agencyAccess.length > 0 && isAgencyAccessEnabled && (
                            <div className="w-full mt-2 mb-4">
                               <div className="border border-gray-200 rounded-lg overflow-hidden">
                                  <div className="max-h-[150px] overflow-y-auto">
@@ -483,10 +537,10 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                                                    <p className="text-xs text-gray-500">
                                                       Role:{" "}
                                                       {user.roles === "agency_creator"
-                                                         ? "Campaign Creator"
+                                                         ? "Plan Creator"
                                                          : user.roles === "agency_approver"
-                                                            ? "Agency Campaign Approver"
-                                                            : "Financial Approver"}
+                                                            ? "Plan Approver"
+                                                            : "Plan Role"}
                                                    </p>
                                                 </div>
                                              </div>
@@ -547,8 +601,8 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                               <label className="font-medium text-[15px] leading-5 text-gray-600">Role</label>
                               <div className="mt-1">
                                  {[
-                                    { label: "Campaign Viewer", value: "viewer" },
-                                    { label: "Client Campaign Approver", value: "approver" },
+                                    { label: "Viewer", value: "viewer" },
+                                    { label: "Approver", value: "approver" },
                                  ].map((role) => (
                                     <div key={role.value} className="flex items-center gap-2">
                                        <input
@@ -587,7 +641,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                                                    <p className="text-xs text-gray-500">{user.email}</p>
                                                    <p className="text-xs text-gray-500">
                                                       Role:{" "}
-                                                      {user.roles === "viewer" ? "Campaign Viewer" : "Client Campaign Approver"}
+                                                      {user.roles === "viewer" ? "Viewer" : "Approver"}
                                                    </p>
                                                 </div>
                                              </div>
@@ -615,15 +669,13 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                      </div>
 
                      <div className="w-full flex items-start gap-3">
-                        <BusinessUnit setInputs={setInputs} setAlert={setAlert} />
+                        <BusinessUnit setInputs={setInputs} setAlert={setAlert} clientName={inputs.name} />
                      </div>
                   </div>
 
                   {/* Footer */}
                   <div className="p-6 border-t bg-white sticky bottom-0 z-10 flex justify-end rounded-b-[32px]">
                      <div className="flex items-center gap-5">
-
-
                         <button className="btn_model_active whitespace-nowrap" onClick={handleSubmit}>
                            {loading ? <SVGLoader width={"30px"} height={"30px"} color={"#FFF"} /> : "Add Client"}
                         </button>
@@ -660,8 +712,6 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                )}
             </div>
          )}
-
-
       </div>
    );
 };
