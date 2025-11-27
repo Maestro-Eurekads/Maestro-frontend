@@ -89,10 +89,6 @@ const ResizeableElements = ({
   const [channelPositions, setChannelPositions] = useState<
     Record<string, number>
   >({});
-  // Computed date ranges (start/end) for each stage based on its position/width
-  const [stageDateRanges, setStageDateRanges] = useState<
-    Record<string, { start: Date; end: Date }>
-  >({});
 
   const [openItems, setOpenItems] = useState(null);
 
@@ -126,16 +122,7 @@ const ResizeableElements = ({
     setChannelPositions((prev) => ({ ...prev, [channelId]: left }));
     // convertWidthAndPositionToDates({ leftValue: left, stageName: channelId});
   };
-  const handleStageDateChange = (
-    stageName: string,
-    start: Date,
-    end: Date
-  ) => {
-    setStageDateRanges((prev) => ({
-      ...prev,
-      [stageName]: { start, end },
-    }));
-  };
+ 
 
 
   // New function to calculate which months a phase spans across
@@ -502,17 +489,14 @@ console.log(monthsByYear, "herit")
         (s) => s?.funnel_stage === stageName
       );
 
-      const selectedRange = stageDateRanges[stageName];
 
       if (stageName && stage) {
         const stageStartDate =
-          selectedRange?.start ||
           (stage?.funnel_stage_timeline_start_date
             ? parseISO(stage?.funnel_stage_timeline_start_date)
             : null);
 
         const stageEndDate =
-          selectedRange?.end ||
           (stage?.funnel_stage_timeline_end_date
             ? parseISO(stage?.funnel_stage_timeline_end_date)
             : null);
@@ -796,7 +780,6 @@ console.log(monthsByYear, "herit")
                 }}
               >
                 <DraggableChannel
-                  onDateRangeChange={(startDate, endDate) => handleStageDateChange(stage?.name, startDate, endDate)}
                   id={stage?.name}
                   openChannel={isOpen}
                   bg={stage?.color?.split("-")[1]}

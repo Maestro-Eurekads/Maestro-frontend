@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { MdDragHandle, MdOutlineKeyboardArrowDown } from "react-icons/md";
 import Image from "next/image";
 import icroundadd from "../public/ic_round-add.svg";
@@ -12,9 +12,8 @@ import { useDateRange as useDRange } from "src/date-context";
 import { useDateRange } from "src/date-range-context";
 import { getCurrencySymbol } from "./data";
 import { addDays, format, subDays } from "date-fns";
-
+import { pixelToDate } from "utils/pixelToDate";
 interface DraggableChannelProps {
-  onDateRangeChange?: (startDate: Date, endDate: Date) => void;
   id?: string;
   bg?: string;
   description?: string;
@@ -72,7 +71,6 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   endDay,
   endWeek,
   dailyWidth,
-  onDateRangeChange,
 }) => {
   const { funnelWidths, setFunnelWidth } = useFunnelContext();
   const [position, setPosition] = useState(parentLeft || 0);
@@ -99,37 +97,6 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   useEffect(() => {
     setPosition(parentLeft || 0);
   }, [parentLeft]);
-
-  const pixelToDate = (
-    pixel: number,
-    containerWidth: number,
-    fieldName?: string
-  ) => {
-    if (!dateList.length) return new Date();
-    const firstDate = dateList[0];
-    const totalDays = dateList.length;
-
-    if (range === "Year") {
-      const totalMonths = 12;
-      const clampedPixel = Math.max(0, Math.min(pixel, containerWidth));
-      const monthFraction = clampedPixel / containerWidth;
-      const monthIndex = Math.round(monthFraction * totalMonths);
-      const year = firstDate.getFullYear();
-
-      if (fieldName === "endDate") {
-        return new Date(year, Math.min(11, monthIndex), 0);
-      }
-      return new Date(year, Math.min(11, monthIndex), 1);
-    }
-
-    const dayIndex = Math.min(
-      totalDays,
-      Math.max(0, Math.round((pixel / containerWidth) * totalDays))
-    );
-
-    const calculatedDate = fieldName === "endDate" ? dateList[dayIndex-1] : dateList[dayIndex];
-    return calculatedDate;
-  };
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
     if (range === "Year") {
@@ -399,64 +366,66 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       }
     }
 
-    const startDate = pixelToDate(newPos, containerRect.width);
-    const endDate = pixelToDate(newPos + newWidth, containerRect.width, "endDate");
-    
-    //   const updatedChannelMix = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === description)
+    const startDate = pixelToDate({
+      dateList,
+      range,
+      pixel: newPos,
+      containerWidth: containerRect.width,
+    });
+    const endDate = pixelToDate({
+      dateList,
+      range,
+      pixel: newPos + newWidth,
+      containerWidth: containerRect.width,
+      fieldName: "endDate",
+    });
 
-    //   if (updatedChannelMix) {
-    //     updatedChannelMix.funnel_stage_timeline_start_date = moment(startDate).format("YYYY-MM-DD")
-    //     updatedChannelMix.funnel_stage_timeline_end_date = moment(endDate).format("YYYY-MM-DD")
+    const updatedChannelMix = campaignFormData?.channel_mix?.find(
+      (ch) => ch?.funnel_stage === description
+    );
 
-    //     const mediaTypes = [
-    //       "social_media",
-    //       "display_networks",
-    //       "search_engines",
-    //       "streaming",
-    //       "ooh",
-    //       "broadcast",
-    //       "messaging",
-    //       "print",
-    //       "e_commerce",
-    //       "in_game",
-    //       "mobile",
-    //     ]
+    if (updatedChannelMix) {
+      updatedChannelMix.funnel_stage_timeline_start_date =
+        moment(startDate).format("YYYY-MM-DD");
+      updatedChannelMix.funnel_stage_timeline_end_date =
+        moment(endDate).format("YYYY-MM-DD");
 
-    //     mediaTypes.forEach((type) => {
-    //       const platforms = updatedChannelMix[type]
-    //       if (platforms && Array.isArray(platforms)) {
-    //         platforms.forEach((platform) => {
-    //           platform.campaign_start_date = moment(startDate).format("YYYY-MM-DD")
-    //           platform.campaign_end_date = moment(endDate).format("YYYY-MM-DD")
-    //         })
-    //       }
-    //     })
-    //   }
+        const allStartDates = campaignFormData?.channel_mix
+        ?.map(
+          (ch) =>
+            ch?.funnel_stage_timeline_start_date &&
+            moment(ch.funnel_stage_timeline_start_date)
+        )
+        .filter((date) => date); // Filter out null or undefined dates
+  
+      const allEndDates = campaignFormData?.channel_mix
+        ?.map(
+          (ch) =>
+            ch?.funnel_stage_timeline_end_date &&
+            moment(ch.funnel_stage_timeline_end_date)
+        )
+        .filter((date) => date); // Filter out null or undefined dates
+  
+      const minStartDate = moment.min(allStartDates).format("YYYY-MM-DD");
+      // console.log("🚀 ~ handleMouseMoveResize ~ minStartDate:", minStartDate)
+      const maxEndDate = moment.max(allEndDates).format("YYYY-MM-DD");
+      // console.log("🚀 ~ handleMouseMoveResize ~ maxEndDate:", maxEndDate)
+  
+      // 💡 Only buffer the data here; flush on mouseup
+      draftCampaignFormRef.current = {
+        ...campaignFormData,
+        channel_mix: campaignFormData?.channel_mix?.map((ch) =>
+          ch.funnel_stage === description ? updatedChannelMix : ch
+        ),
+        ...(range === "Year" && {
+          campaign_timeline_start_date: minStartDate,
+          campaign_timeline_end_date: maxEndDate,
+        }),
+      };
+  
+    }
 
-    //   const allStartDates = campaignFormData?.channel_mix
-    //     ?.map((ch) => ch?.funnel_stage_timeline_start_date && moment(ch.funnel_stage_timeline_start_date))
-    //     .filter((date) => date) // Filter out null or undefined dates
-
-    //   const allEndDates = campaignFormData?.channel_mix
-    //     ?.map((ch) => ch?.funnel_stage_timeline_end_date && moment(ch.funnel_stage_timeline_end_date))
-    //     .filter((date) => date) // Filter out null or undefined dates
-
-    //   const minStartDate = moment.min(allStartDates).format("YYYY-MM-DD")
-    //   // console.log("🚀 ~ handleMouseMoveResize ~ minStartDate:", minStartDate)
-    //   const maxEndDate = moment.max(allEndDates).format("YYYY-MM-DD")
-    //   // console.log("🚀 ~ handleMouseMoveResize ~ maxEndDate:", maxEndDate)
-
-    //   // 💡 Only buffer the data here; flush on mouseup
-    //   draftCampaignFormRef.current = {
-    //     ...campaignFormData,
-    //     channel_mix: campaignFormData.channel_mix.map((ch) => (ch.funnel_stage === description ? updatedChannelMix : ch)),
-    //     ...(range === "Year" && {
-    //       campaign_timeline_start_date: minStartDate,
-    //       campaign_timeline_end_date: maxEndDate,
-    //     }),
-    //   }
-    onDateRangeChange?.(startDate, endDate);
-
+  
     setParentWidth(newWidth);
     setParentLeft(newPos);
     setPosition(newPos);
@@ -583,12 +552,63 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       );
     }
 
-    const startDate = pixelToDate(newPosition, containerRect.width);
-    const endDate = pixelToDate(newPosition + parentWidth, containerRect.width, "endDate");
-    console.log("endDate", endDate);
-    console.log("startDate", startDate);
-    onDateRangeChange?.(startDate, endDate);
+    const startDate = pixelToDate({
+      dateList,
+      range,
+      pixel: newPosition,
+      containerWidth: containerRect.width,
+    });
+    const endDate = pixelToDate({
+      dateList,
+      range,
+      pixel: newPosition + parentWidth,
+      containerWidth: containerRect.width,
+      fieldName: "endDate",
+    });
+    const updatedChannelMix = campaignFormData?.channel_mix?.find(
+      (ch) => ch?.funnel_stage === description
+    );
 
+    if (updatedChannelMix) {
+      updatedChannelMix.funnel_stage_timeline_start_date =
+        moment(startDate).format("YYYY-MM-DD");
+      updatedChannelMix.funnel_stage_timeline_end_date =
+        moment(endDate).format("YYYY-MM-DD");
+
+        const allStartDates = campaignFormData?.channel_mix
+        ?.map(
+          (ch) =>
+            ch?.funnel_stage_timeline_start_date &&
+            moment(ch.funnel_stage_timeline_start_date)
+        )
+        .filter((date) => date); // Filter out null or undefined dates
+  
+      const allEndDates = campaignFormData?.channel_mix
+        ?.map(
+          (ch) =>
+            ch?.funnel_stage_timeline_end_date &&
+            moment(ch.funnel_stage_timeline_end_date)
+        )
+        .filter((date) => date); // Filter out null or undefined dates
+  
+      const minStartDate = moment.min(allStartDates).format("YYYY-MM-DD");
+      // console.log("🚀 ~ handleMouseMoveResize ~ minStartDate:", minStartDate)
+      const maxEndDate = moment.max(allEndDates).format("YYYY-MM-DD");
+      // console.log("🚀 ~ handleMouseMoveResize ~ maxEndDate:", maxEndDate)
+  
+      // 💡 Only buffer the data here; flush on mouseup
+      draftCampaignFormRef.current = {
+        ...campaignFormData,
+        channel_mix: campaignFormData?.channel_mix?.map((ch) =>
+          ch.funnel_stage === description ? updatedChannelMix : ch
+        ),
+        ...(range === "Year" && {
+          campaign_timeline_start_date: minStartDate,
+          campaign_timeline_end_date: maxEndDate,
+        }),
+      };
+  
+    }
     setParentLeft(newPosition);
     setPosition(newPosition);
 
@@ -603,7 +623,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
   const handleMouseUp = () => {
     setTooltip((prev) => ({ ...prev, visible: false }));
-    if (draftCampaignFormRef.current) {
+    if (draftCampaignFormRef.current) { 
       setCampaignFormData(draftCampaignFormRef.current);
       draftCampaignFormRef.current = null;
     }
