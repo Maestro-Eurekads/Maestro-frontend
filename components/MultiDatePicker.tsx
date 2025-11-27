@@ -22,19 +22,32 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
   const { selectedDates, setSelectedDates } = useSelectedDates();
   const [monthOffset, setMonthOffset] = useState(0);
   const { setCampaignFormData, campaignFormData } = useCampaigns();
+  
 
   const getMonthData = (offset: number) => {
-    const today = new Date();
-    const baseDate = new Date(
-      today.getFullYear(),
-      today.getMonth() + offset,
-      1
-    );
+    let baseDate;
+    
+    if (campaignFormData?.campaign_timeline_start_date) {
+      const campaignStart = new Date(campaignFormData.campaign_timeline_start_date);
+      baseDate = new Date(
+        campaignStart.getFullYear(),
+        campaignStart.getMonth() + offset, 
+        1
+      );
+    } else {
+      const today = new Date();
+      baseDate = new Date(
+        today.getFullYear(),
+        today.getMonth() + offset,
+        1
+      );
+    }
+    
     const year = baseDate.getFullYear();
     const month = baseDate.getMonth();
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-
+  
     return {
       name: baseDate.toLocaleString("default", {
         month: "long",
@@ -46,8 +59,6 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
       year,
     };
   };
-
-  // Use selected dates if set, otherwise fallback to API dates
   const fromDate =
     selectedDates.from ||
     parseApiDate(campaignFormData?.campaign_timeline_start_date);
@@ -61,20 +72,14 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
       date < new Date(today.getFullYear(), today.getMonth(), today.getDate())
     );
   };
-
   const handleDateClick = (day: number, monthIndex: number, year: number) => {
-    // if (isPastDate(day, monthIndex, year)) return;
-
     const newDate = { day, month: monthIndex, year };
-
+  
     if (!selectedDates.from || (selectedDates.from && selectedDates.to)) {
+      const startDateStr = `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
       setSelectedDates({ from: newDate, to: null });
-      resetNestedDates(
-        `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(
-          day
-        ).padStart(2, "0")}`,
-        null
-      );
+      resetNestedDates(startDateStr, null);
+      
     } else if (selectedDates.from) {
       const from = new Date(
         selectedDates.from.year,
@@ -82,22 +87,17 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
         selectedDates.from.day
       );
       const to = new Date(year, monthIndex, day);
+      
       if (to > from) {
+        const startDateStr = `${selectedDates.from.year}-${String(selectedDates.from.month + 1).padStart(2, "0")}-${String(selectedDates.from.day).padStart(2, "0")}`;
+        const endDateStr = `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        
         setSelectedDates((prev) => ({ ...prev, to: newDate }));
-        resetNestedDates(
-          campaignFormData?.campaign_timeline_start_date,
-          `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(
-            day
-          ).padStart(2, "0")}`
-        );
+        resetNestedDates(startDateStr, endDateStr);
       } else {
+        const startDateStr = `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
         setSelectedDates({ from: newDate, to: null });
-        resetNestedDates(
-          `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(
-            day
-          ).padStart(2, "0")}`,
-          null
-        );
+        resetNestedDates(startDateStr, null);
       }
     }
   };
@@ -148,16 +148,20 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
   const months = [getMonthData(monthOffset), getMonthData(monthOffset + 1)];
 
   useEffect(() => {
-    const startDate = parseApiDate(campaignData?.campaign_timeline_start_date);
-    const endDate = parseApiDate(campaignData?.campaign_timeline_end_date);
+    const startDate = parseApiDate(campaignFormData?.campaign_timeline_start_date);
+    const endDate = parseApiDate(campaignFormData?.campaign_timeline_end_date);
 
     if (startDate && endDate) {
+      console.log("hey i ran");
+      console.log("startDate", startDate);
+      console.log("endDate", endDate);
       setSelectedDates({
-        from: { ...startDate, year: new Date(campaignData.campaign_timeline_start_date).getFullYear() },
-        to: { ...endDate, year: new Date(campaignData.campaign_timeline_end_date).getFullYear() },
+        from: { ...startDate, year: new Date(campaignFormData.campaign_timeline_start_date).getFullYear() },
+        to: { ...endDate, year: new Date(campaignFormData.campaign_timeline_end_date).getFullYear() },
       });
     }
-  }, [campaignData, setSelectedDates]);
+  }, [campaignFormData]);
+
 
   const isInRange = (day: number, monthIndex: number, year: number) => {
     if (!fromDate || !toDate) return false;
