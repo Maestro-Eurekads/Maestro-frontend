@@ -152,9 +152,6 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
     const endDate = parseApiDate(campaignFormData?.campaign_timeline_end_date);
 
     if (startDate && endDate) {
-      console.log("hey i ran");
-      console.log("startDate", startDate);
-      console.log("endDate", endDate);
       setSelectedDates({
         from: { ...startDate, year: new Date(campaignFormData.campaign_timeline_start_date).getFullYear() },
         to: { ...endDate, year: new Date(campaignFormData.campaign_timeline_end_date).getFullYear() },
