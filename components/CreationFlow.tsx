@@ -33,34 +33,27 @@ const CreationFlow = ({ steps }) => {
         const stepColor = isActive
           ? "bg-blue-500 text-white"
           : isCompleted
-          ? "bg-green-500 text-white"
-          : "bg-gray-300 text-gray-700";
+            ? "bg-green-500 text-white"
+            : "bg-gray-300 text-gray-700";
         const stepColors = isActive
           ? "SideBar_state_text_active"
           : isCompleted
-          ? "SideBar_state_text_done"
-          : "SideBar_state_text";
+            ? "SideBar_state_text_done"
+            : "SideBar_state_text";
 
         return (
           <div
             className=" cursor-pointer"
             key={stepNumber}
             onClick={() => {
-              if (!cId) {
-              setAlert({
-                variant: "warning",
-                message: "Please complete client selection step first",
-                position: "bottom-right",
-              });
-              } else {
-                if(stepNumber === 7 || stepNumber === 8){
-                  setSubStep(0)
-                }
-              setActive(stepNumber);
+              if (stepNumber === 7 || stepNumber === 8) {
+                setSubStep(0)
               }
+              setActive(stepNumber);
+
             }}
             style={{
-              display: stepNumber === 6 ? "none": "flex"
+              display: stepNumber === 6 ? "none" : "flex"
             }}
           >
             {alert && <AlertMain alert={alert} />}
@@ -70,13 +63,12 @@ const CreationFlow = ({ steps }) => {
               </div>
               {stepNumber !== steps?.length && (
                 <div
-                  className={`${step.vl} ${
-                    active > stepNumber + 1
+                  className={`${step.vl} ${active > stepNumber + 1
                       ? `${step?.vl_done}`
                       : active === stepNumber + 1
-                      ? `${step?.vl_active}`
-                      : ""
-                  }`}
+                        ? `${step?.vl_active}`
+                        : ""
+                    }`}
                 />
               )}
             </div>
@@ -85,7 +77,7 @@ const CreationFlow = ({ steps }) => {
                 {step?.title}
               </span>
               {isCompleted && step?.objective && (
-             <div className="objective_step_text whitespace-wrap break-words">
+                <div className="objective_step_text whitespace-wrap break-words">
                   {step?.objective}
                 </div>
               )}

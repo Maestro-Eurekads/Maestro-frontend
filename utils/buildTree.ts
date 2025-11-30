@@ -1,18 +1,23 @@
 export const buildTree = (data: any) => {
   if (!data || !Array.isArray(data.parameters)) return [];
 
-  return data.parameters.map((param) => {
-    const children = (param.subParameters || []).map((sub: string) => ({
-      title: sub,
-      value: `${param.name}-${sub}`,
-      key: `${param.name}-${sub}`,
-    }));
+  const buildNode = (param: any, parentPath: string = '') => {
+    const currentPath = parentPath ? `${parentPath}-${param.name}` : param.name;
 
-    return {
+    const node = {
       title: param.name,
-      value: param.name,
-      key: param.name,
-      children,
+      value: currentPath,
+      key: currentPath,
+      children: [],
     };
-  });
+
+    // Recursively build children if subParameters exist
+    if (param.subParameters && param.subParameters.length > 0) {
+      node.children = param.subParameters.map(sub => buildNode(sub, currentPath));
+    }
+
+    return node;
+  };
+
+  return data.parameters.map((param) => buildNode(param));
 };

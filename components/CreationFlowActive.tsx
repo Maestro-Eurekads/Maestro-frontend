@@ -25,7 +25,7 @@ const CreationFlowActive = ({ steps, close }) => {
   if (!hydrated) return null;
 
   const handleStepClick = (stepNumber: SetStateAction<number>) => {
-    if(stepNumber === 7 || stepNumber === 8){
+    if (stepNumber === 7 || stepNumber === 8) {
       setSubStep(0)
     }
     setActive(stepNumber);
@@ -57,16 +57,10 @@ const CreationFlowActive = ({ steps, close }) => {
               className="cursor-pointer"
               key={stepNumber}
               onClick={() =>
-                !cId
-                  ? setAlert({
-                    variant: "warning",
-                    message: "Please complete client selection step first",
-                    position: "bottom-right",
-                  })
-                  : handleStepClick(stepNumber)
+                handleStepClick(stepNumber)
               } // Handle step click
               style={{
-                display: stepNumber === 6 ? "none": "flex"
+                display: stepNumber === 6 ? "none" : "flex"
               }}
             >
               {alert && <AlertMain alert={alert} />}
