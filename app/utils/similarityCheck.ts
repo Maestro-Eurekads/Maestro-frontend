@@ -1,28 +1,59 @@
-export const areObjectsSimilar = (obj1: any, obj2: any): boolean => {
-    // Handle null/undefined cases
-    if (obj1 === obj2) return true;
-    if (obj1 == null || obj2 == null) return false;
-    if (typeof obj1 !== 'object' || typeof obj2 !== 'object') return obj1 === obj2;
+export const areObjectsSimilar = (
+    obj1: any,
+    obj2: any,
+    skipKeys: string[] = []
+): boolean => {
+    const isEmpty = (value: any): boolean => {
+        return value == null ||
+            (Array.isArray(value) && value.length === 0) ||
+            (typeof value === 'object' && value !== null && !Array.isArray(value) && Object.keys(value).length === 0);
+    };
 
-    // Handle arrays
-    if (Array.isArray(obj1) && Array.isArray(obj2)) {
-        if (obj1.length !== obj2.length) return false;
-        return obj1.every((item, index) => areObjectsSimilar(item, obj2[index]));
-    }
+    const shouldSkipKey = (key: string, currentPath: string = ''): boolean => {
+        const fullPath = currentPath ? `${currentPath}.${key}` : key;
+        return skipKeys.some(skipKey =>
+            skipKey === key || skipKey === fullPath || fullPath.startsWith(skipKey + '.')
+        );
+    };
 
-    // Handle Date objects
-    if (obj1 instanceof Date && obj2 instanceof Date) {
-        return obj1.getTime() === obj2.getTime();
-    }
+    const filterNonEmptyKeys = (obj: any, currentPath: string = ''): string[] => {
+        if (!obj || typeof obj !== 'object') return [];
+        return Object.keys(obj).filter(key =>
+            !isEmpty(obj[key]) && !shouldSkipKey(key, currentPath)
+        );
+    };
 
-    // Handle regular objects
-    const keys1 = Object.keys(obj1);
-    const keys2 = Object.keys(obj2);
+    const compareObjects = (o1: any, o2: any, currentPath: string = ''): boolean => {
+        if (o1 === o2) return true;
+        if (isEmpty(o1) && isEmpty(o2)) return true;
+        if (o1 == null || o2 == null) return false;
+        if (typeof o1 !== 'object' || typeof o2 !== 'object') return o1 === o2;
 
-    if (keys1.length !== keys2.length) return false;
+        if (Array.isArray(o1) && Array.isArray(o2)) {
+            if (o1.length !== o2.length) return false;
+            return o1.every((item, index) => compareObjects(item, o2[index], `${currentPath}[${index}]`));
+        }
 
-    return keys1.every(key => {
-        return Object.prototype.hasOwnProperty.call(obj2, key) &&
-            areObjectsSimilar(obj1[key], obj2[key]);
-    });
+        if (Array.isArray(o1) !== Array.isArray(o2)) {
+            return isEmpty(o1) && isEmpty(o2);
+        }
+
+        if (o1 instanceof Date && o2 instanceof Date) {
+            return o1.getTime() === o2.getTime();
+        }
+
+        const keys1 = filterNonEmptyKeys(o1, currentPath);
+        const keys2 = filterNonEmptyKeys(o2, currentPath);
+
+        if (keys1.length !== keys2.length) return false;
+
+        return keys1.every(key => {
+            const newPath = currentPath ? `${currentPath}.${key}` : key;
+            return Object.prototype.hasOwnProperty.call(o2, key) &&
+                !isEmpty(o2[key]) &&
+                compareObjects(o1[key], o2[key], newPath);
+        });
+    };
+
+    return compareObjects(obj1, obj2);
 };

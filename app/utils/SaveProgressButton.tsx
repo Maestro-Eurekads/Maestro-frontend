@@ -120,13 +120,14 @@ const SaveProgressButton = () => {
 		requiredFields,
 		currencySign,
 		jwt,
+		loadingCampaign,
 		agencyId,
 	} = useCampaigns()
 	const isInternalApprover = isAdmin || isAgencyApprover || isFinancialApprover
 
 	const hasChanges = useMemo(() => {
 		if (!campaignData || !campaignFormData) return false;
-		return !areObjectsSimilar(campaignFormData, campaignData);
+		return !areObjectsSimilar(campaignFormData, campaignData, ['objective_level']);
 	}, [campaignFormData, campaignData]);
 
 	// --- Persist format selection for active === 4 ---
@@ -325,7 +326,6 @@ const SaveProgressButton = () => {
 	const cancelSave = () => {
 		setShowSave(false)
 		setDeskTopShow(false)
-		setActive(0)
 	}
 
 	const handleContinue = () => {
@@ -742,6 +742,7 @@ const SaveProgressButton = () => {
 					"documentId",
 					"_aggregated",
 				]),
+				goal_level: updatedCampaignFormData?.goal_level,
 				table_headers: updatedCampaignFormData?.table_headers,
 				selected_metrics: updatedCampaignFormData?.selected_metrics,
 			})
@@ -951,14 +952,14 @@ const SaveProgressButton = () => {
 						<button
 							className={clsx(
 								"bottom_blue_save_btn whitespace-nowrap",
-								!hasChanges && "opacity-50 cursor-not-allowed",
+								(!hasChanges || loadingCampaign) && "bg-gray-400 cursor-not-allowed",
 								hasChanges && "hover:bg-blue-500",
 								active === 4 && !hasFormatSelected && "px-3 py-2"
 							)}
 							onClick={
 								active === 4 && !hasFormatSelected ? handleSkip : handleContinue
 							}
-							disabled={active === 10 || !hasChanges}
+							disabled={loadingCampaign || !hasChanges}
 							onMouseEnter={() => setIsHovered(true)}
 							onMouseLeave={() => setIsHovered(false)}
 						>
