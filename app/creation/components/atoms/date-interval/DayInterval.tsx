@@ -10,7 +10,6 @@ interface DayIntervalProps {
 
 const DayInterval: React.FC<DayIntervalProps> = ({ daysCount, src , range}) => {
   const { range:ddRange } = useDateRange();
-  // console.log(range)
   return (
     <div className="w-full border-y py-3">
       <div
@@ -22,7 +21,6 @@ const DayInterval: React.FC<DayIntervalProps> = ({ daysCount, src , range}) => {
         {Array.from({ length: ddRange?.length }, (_, i) => {
           const isEdge = i === 0 || i === (src==="dashboard" ? range.length : ddRange?.length - 1);
           const date = src==="dashboard" ? range[i] :ddRange[i]
-          console.log(ddRange)
           return (
             <div key={i} className="flex flex-col items-center relative">
               {/* Week Label */}
