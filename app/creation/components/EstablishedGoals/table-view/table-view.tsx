@@ -13,7 +13,7 @@ import { useActive } from "app/utils/ActiveContext"
 const TableView = () => {
   const { setChange } = useActive()
   const [expandedRows, setExpandedRows] = useState({})
-  const { campaignFormData, setCampaignFormData, updateCampaign } = useCampaigns()
+  const { campaignFormData, setCampaignFormData, updateCampaign, campaignData } = useCampaigns()
   const [isOpen, setIsOpen] = useState(false)
   const [mergedTableHeadersByStage, setMergedTableHeadersByStage] = useState({})
   const [mergedTableBodyByStage, setMergedTableBodyByStage] = useState({})
@@ -333,7 +333,6 @@ const TableView = () => {
     setCampaignFormData((prevData) => {
       const updatedData = { ...prevData }
       const channelMix = updatedData.channel_mix?.find((ch) => ch.funnel_stage === stageName)
-
       if (channelMix) {
         const platform = channelMix[channelName]?.find((platform) => platform.platform_name === platformName)
 
@@ -382,10 +381,8 @@ const TableView = () => {
               platform.ad_sets[adSetIndex]["kpi"] = platform.ad_sets[adSetIndex]["kpi"] || {}
               platform.ad_sets[adSetIndex]["kpi"][fieldName] = Number(value)
             } else {
-              if (campaignFormData?.goal_level !== "Adset level") {
-                platform["kpi"] = platform["kpi"] || {}
-                platform["kpi"][fieldName] = Number(value)
-              }
+              platform["kpi"] = platform["kpi"] || {}
+              platform["kpi"][fieldName] = Number(value)
             }
           }
         }
