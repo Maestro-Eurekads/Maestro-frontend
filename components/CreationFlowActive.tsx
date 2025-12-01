@@ -10,6 +10,8 @@ const CreationFlowActive = ({ steps, close }) => {
   const [hydrated, setHydrated] = useState(false);
   const query = useSearchParams();
   const cId = query.get("campaignId");
+
+
   useEffect(() => {
     if (alert) {
       const timer = setTimeout(() => setAlert(null), 3000);
@@ -51,13 +53,14 @@ const CreationFlowActive = ({ steps, close }) => {
             : isCompleted
               ? "SideBar_state_text_done"
               : "SideBar_state_text";
-
           return (
             <div
-              className="cursor-pointer"
+              className={`SideBar__state ${stepColors} ${cId ? "cursor-pointer" : "pointer-events-none opacity-50"}`}
               key={stepNumber}
-              onClick={() =>
+              onClick={() => {
+                if (!cId) return;
                 handleStepClick(stepNumber)
+              }
               } // Handle step click
               style={{
                 display: stepNumber === 6 ? "none" : "flex"

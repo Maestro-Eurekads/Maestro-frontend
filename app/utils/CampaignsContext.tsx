@@ -130,6 +130,13 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [campaignFormData]);
 
+  useEffect(() => {
+    if (!cId) {
+      setCampaignFormData(getInitialState());
+      setCampaignData(null);
+    }
+  }, [cId])
+
   const [businessLevelOptions, setBusinessLevelOptions] = useState({
     level1: [],
   });
@@ -258,6 +265,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             //@ts-ignore
             campaign_builder: loggedInUser?.id,
             client: campaignFormData?.client_selection?.id,
+            selected_preset_idx: campaignFormData?.selected_preset_idx ?? null,
             client_selection: {
               client: campaignFormData?.client_selection?.value,
               level_1: campaignFormData?.level_1?.id,

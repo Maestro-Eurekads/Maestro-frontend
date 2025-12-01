@@ -44,6 +44,9 @@ const SideNav: React.FC = () => {
   const handleBackClick = (e: React.MouseEvent) => {
     const areSimilar = areObjectsSimilar(campaignFormData, campaignData, ['objective_level']);
     areSimilar ? router.push('/') : setShowModal(true);
+
+    setCampaignData(null);
+    setCampaignData(null);
     // e.preventDefault();
     // e.stopPropagation();
     // dispatch(reset());
