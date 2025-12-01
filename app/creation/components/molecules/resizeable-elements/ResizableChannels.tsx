@@ -141,6 +141,9 @@ const ResizableChannels = ({
     })),
   )
 
+  console.log("channelState", channelState);
+
+
   const [dragging, setDragging] = useState(null);
   const [draggingPosition, setDraggingPosition] = useState(null);
 
@@ -327,10 +330,8 @@ const ResizableChannels = ({
     // Convert pixels to dates
     const startPixel = newLeft - parentLeft
     const endPixel = startPixel + newWidth
-    console.log({startPixel, endPixel})
     const newStartDate = pixelToDate(startPixel, parentWidth, index, "startDate")
     const newEndDate = pixelToDate(endPixel, parentWidth, index, "endDate")
-    console.log({newStartDate, newEndDate})
 
     // Update the channel state
     setChannelState((prev) =>
@@ -367,13 +368,10 @@ const ResizableChannels = ({
   }
 
   const handleMouseUpResize = () => {
-    console.log("Resize ended")
-    console.log(isResizing.current, "isResizing state on mouse up")
     setTooltip((prev) => ({ ...prev, visible: false }))
 
     if (draggingDataRef.current) {
       const { index, newStartDate, newEndDate } = draggingDataRef.current
-      console.log({index, newStartDate, newEndDate})
       // Final update to campaign data
       // setCopy(() => {
       //   const updatedData = JSON.parse(JSON.stringify(campaignFormData))
@@ -435,7 +433,6 @@ const ResizableChannels = ({
       }
 
       setEndDate(end);
-
       setDrange(
         eachDayOfInterval({
           start: start,
@@ -463,17 +460,14 @@ const ResizableChannels = ({
   }, [startDate, endDate]);
 
   const pixelToDate = (pixel, containerWidth, index, fieldName) => {
-    const totalDays =
-      fieldName === "endDate" ? dRange?.length - 1 : dRange?.length;
+    const totalDays =dRange?.length
     const dayIndex = Math.min(
       totalDays,
       Math.max(0, Math.floor((pixel / containerWidth) * totalDays))
     );
 
-    console.log(dayIndex)
-
-    const calculatedDate = new Date(startDate);
-    calculatedDate.setDate(startDate?.getDate() + dayIndex);
+ 
+    const calculatedDate =fieldName === "endDate" ? dRange[dayIndex-1] : dRange[dayIndex];
 
     const updatedCampaignFormData = { ...campaignFormData };
 
@@ -500,8 +494,8 @@ const ResizableChannels = ({
         }
       }
     }
-
-    return calculatedDate ? moment(calculatedDate).format("YYYY-MM-DD") : null;
+  
+    return calculatedDate ? (calculatedDate) : null;
   };
 
   const handleDragStart = (index) => (event) => {
@@ -580,31 +574,6 @@ const ResizableChannels = ({
 
       if (draggingDataRef.current) {
         const { index, startDate, endDate } = draggingDataRef.current;
-
-        setCopy(() => {
-          const updatedData = JSON.parse(JSON.stringify(campaignFormData));
-
-          const channelMix = updatedData.channel_mix.find(
-            (ch) => ch.funnel_stage === parentId
-          );
-
-          if (channelMix) {
-            const channelGroup = channelMix[channels[index].channelName];
-
-            if (Array.isArray(channelGroup)) {
-              const platform = channelGroup.find(
-                (platform) => platform.platform_name === channels[index].name
-              );
-
-              if (platform) {
-                platform.campaign_start_date = startDate;
-                platform.campaign_end_date = endDate;
-              }
-            }
-          }
-
-          return updatedData;
-        });
 
         setChannels((prevChannels) =>
           prevChannels.map((ch, i) =>
@@ -717,9 +686,10 @@ const ResizableChannels = ({
   };
 
   useEffect(() => {
+    console.log("initialChannels", channelState);
     if (initialChannels && initialChannels.length > 0) {
+    
       setChannels(initialChannels);
-      console.log("triggered")
       setChannelState((prev) => {
         const findMix = campaignFormData?.channel_mix?.find(
           (chhh) => chhh?.funnel_stage === parentId
@@ -772,8 +742,7 @@ const ResizableChannels = ({
             })?.length;
           }
 
-          let left =
-             Math.abs(startDateIndex < 0 ? 0 : startDateIndex);
+          let left = Math.max(parentLeft || 0, startDateIndex < 0 ? (parentLeft || 0) : startDateIndex);
 
           let width =
             rrange === "Day"
@@ -790,19 +759,22 @@ const ResizableChannels = ({
                 : parentWidth
               : parentWidth;
 
-          width = Math.min(width, parentWidth);
+          width = Math.min(width, parentWidth || 0);
 
-          if (left + width > parentLeft + parentWidth) {
-            if (width <= parentWidth) {
-              left = parentLeft + parentWidth - width;
+          const parentRight = (parentLeft || 0) + (parentWidth || 0);
+          if (left + width > parentRight) {
+            if (width <= (parentWidth || 0)) {
+              left = Math.max(parentLeft || 0, parentRight - width);
             } else {
-              console.log("here")
-              width = parentWidth;
-              left = parentLeft;
+              width = parentWidth || 0;
+              left = parentLeft || 0;
             }
           }
 
-          console.log("left position here, and data", {left, width, parentLeft, parentWidth, startDateIndex, stageStartDate, adjustedStageStartDate, dateList})
+          if (left < (parentLeft || 0)) {
+            left = parentLeft || 0;
+          }
+
           //@ts-ignore
           const existingState = prev.find((state) => state.id === ch.id);
 
@@ -824,15 +796,54 @@ const ResizableChannels = ({
   }, [initialChannels, parentLeft, parentWidth, campaignFormData, isResizing]);
 
   useEffect(() => {
+    if (!parentLeft && parentLeft !== 0) return;
+    if (!parentWidth) return;
+
+    setChannelState((prev) =>
+      prev.map((state) => {
+        const parentRight = parentLeft + parentWidth;
+        const channelRight = state.left + state.width;
+
+        let newLeft = state.left;
+        let newWidth = state.width;
+
+        if (state.left < parentLeft) {
+          newLeft = parentLeft;
+        }
+
+        if (channelRight > parentRight) {
+          if (state.width <= parentWidth) {
+            newLeft = Math.max(parentLeft, parentRight - state.width);
+          } else {
+            newWidth = parentWidth;
+            newLeft = parentLeft;
+          }
+        }
+
+        if (newLeft + newWidth > parentRight) {
+          newWidth = Math.max(50, parentRight - newLeft);
+        }
+
+        if (newLeft !== state.left || newWidth !== state.width) {
+          return { ...state, left: newLeft, width: newWidth };
+        }
+
+        return state;
+      })
+    );
+  }, [parentLeft, parentWidth]);
+
+  useEffect(() => {
+
     if (!dragging) return;
 
     const totalDays = dateList.length - 1;
 
     const handleMouseMove = (event) => {
+      console.log("dragging");
       event.preventDefault();
       const { index, direction, startX } = dragging;
       const deltaX = event.clientX - startX;
-      console.log("triggered")
       setChannelState((prev) =>
         prev.map((state, i) => {
           if (i !== index) return state;
@@ -886,6 +897,7 @@ const ResizableChannels = ({
             index,
             "endDate"
           );
+          
 
           if (endDate > endDate) {
             const parentEndPixel = parentWidth;
@@ -901,7 +913,7 @@ const ResizableChannels = ({
     };
 
     const handleMouseUp = () => {
-      setDragging(null);
+      setDragging(null);  
     };
 
     document.addEventListener("mousemove", handleMouseMove);
@@ -912,8 +924,6 @@ const ResizableChannels = ({
       document.removeEventListener("mouseup", handleMouseUp);
     };
   }, [dragging, parentWidth]);
-
-  // console.log(isResizing, "isResizing state")
 
   return (
     <div
@@ -1445,6 +1455,7 @@ const ResizableChannels = ({
                 stageName={parentId}
                 platformName={selectedChannel}
                 view={openView}
+                shouldOpenSidebar={false}
               />
             )
           )}

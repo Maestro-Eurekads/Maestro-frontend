@@ -1544,10 +1544,12 @@ export const FormatSelection = ({
   stageName,
   platformName,
   view: openView,
+  shouldOpenSidebar = true,
 }: {
   stageName?: string
   platformName?: string
   view?: "channel" | "adset"
+  shouldOpenSidebar?: boolean
 }) => {
   const { setChange } = useActive()
   const [openTabs, setOpenTabs] = useState<string[]>([])
@@ -1560,7 +1562,9 @@ export const FormatSelection = ({
   useEffect(() => {
     setView(openView ? openView : "channel")
     setIsDrawerOpen(false)
-    setClose(false)
+    if (shouldOpenSidebar) {
+      setClose(false)
+    }
     setCampaignFormData((prev) => ({
       ...prev,
       goal_level: openView ? (openView === "channel" ? "Channel level" : "Adset level") : "Channel level",
