@@ -43,9 +43,10 @@ const CreationFlow = ({ steps }) => {
 
         return (
           <div
-            className=" cursor-pointer"
+            className={`SideBar__state ${stepColors} ${cId ? "cursor-pointer" : "pointer-events-none opacity-50"}`}
             key={stepNumber}
             onClick={() => {
+              if (!cId) return;
               if (stepNumber === 7 || stepNumber === 8) {
                 setSubStep(0)
               }
@@ -64,10 +65,10 @@ const CreationFlow = ({ steps }) => {
               {stepNumber !== steps?.length && (
                 <div
                   className={`${step.vl} ${active > stepNumber + 1
-                      ? `${step?.vl_done}`
-                      : active === stepNumber + 1
-                        ? `${step?.vl_active}`
-                        : ""
+                    ? `${step?.vl_done}`
+                    : active === stepNumber + 1
+                      ? `${step?.vl_active}`
+                      : ""
                     }`}
                 />
               )}

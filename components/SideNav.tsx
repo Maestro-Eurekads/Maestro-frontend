@@ -22,13 +22,17 @@ import { useAppDispatch } from "store/useStore";
 import { reset } from "features/Comment/commentSlice";
 import Skeleton from "react-loading-skeleton";
 import BackConfirmModal from "./BackConfirmModal";
+import { areObjectsSimilar } from "app/utils/similarityCheck";
+
 
 const SideNav: React.FC = () => {
   const { setClose, close, setViewcommentsId, setOpportunities } = useComments();
   const router = useRouter();
   const { setActive, setSubStep, active, subStep } = useActive();
   const dispatch = useAppDispatch();
-  const { campaignData, setCampaignData, loadingCampaign } = useCampaigns();
+  const { campaignData, setCampaignData, loadingCampaign,
+    cId, campaignFormData, createCampaign,
+    updateCampaign, } = useCampaigns();
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
@@ -37,17 +41,21 @@ const SideNav: React.FC = () => {
   }, [active, setClose, subStep]);
 
 
-
   const handleBackClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dispatch(reset());
-    setOpportunities([]);
-    setViewcommentsId("");
+    const areSimilar = areObjectsSimilar(campaignFormData, campaignData, ['objective_level']);
+    areSimilar ? router.push('/') : setShowModal(true);
+
     setCampaignData(null);
-    // setActive(0);
-    // setSubStep(0);
-    router.push("/");
+    setCampaignData(null);
+    // e.preventDefault();
+    // e.stopPropagation();
+    // dispatch(reset());
+    // setOpportunities([]);
+    // setViewcommentsId("");
+    // setCampaignData(null);
+    // // setActive(0);
+    // // setSubStep(0);
+    // router.push("/");
   };
 
 
@@ -63,27 +71,32 @@ const SideNav: React.FC = () => {
   //   }
   // };
 
-  // const handleConfirmSave = () => {
-  //   handleSave();  
-  //   setShowModal(false); 
-  // };
+  const handleConfirmSave = () => {
+    if (cId) {
+      updateCampaign(campaignFormData);
+    } else {
+      createCampaign(campaignFormData);
+    }
+    setShowModal(false);
+    router.push("/");
+  };
 
-  // const handleCancel = () => {
-  //   setShowModal(false); 
-  //   navigateBack();  
-  // };
+  const handleCancel = () => {
+    setShowModal(false);
+    router.push("/");
+  };
 
   // const handleSave = () => { 
   //   setChange(false);
   // };
 
-  const navigateBack = () => {
-    dispatch(reset());
-    setOpportunities([]);
-    setViewcommentsId("");
-    setCampaignData(null);
-    router.push("/");
-  };
+  // const navigateBack = () => {
+  //   dispatch(reset());
+  //   setOpportunities([]);
+  //   setViewcommentsId("");
+  //   setCampaignData(null);
+  //   router.push("/");
+  // };
 
   const steps = useMemo(
     () => [
@@ -249,11 +262,11 @@ const SideNav: React.FC = () => {
           display, and any other rights are exclusively reserved to Eurekads Pte. Ltd.
         </p>
       )}
-      {/* <BackConfirmModal
+      <BackConfirmModal
         isOpen={showModal}
         onClose={handleCancel}
         onConfirm={handleConfirmSave}
-      /> */}
+      />
     </div>
   );
 };

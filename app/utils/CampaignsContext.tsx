@@ -130,6 +130,13 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [campaignFormData]);
 
+  useEffect(() => {
+    if (!cId) {
+      setCampaignFormData(getInitialState());
+      setCampaignData(null);
+    }
+  }, [cId])
+
   const [businessLevelOptions, setBusinessLevelOptions] = useState({
     level1: [],
   });
@@ -182,53 +189,58 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         // const sMetrics = await getFilteredMetrics(obj)
         setCampaignData(data);
         setHeaderData(data?.table_headers || {});
-        setCampaignFormData((prev) => ({
-          ...prev,
-          client_selection: {
-            id: data?.client?.documentId ?? prev?.client_selection?.id,
-            value: data?.client?.client_name ?? prev?.client_selection?.value,
-          },
-          level_1: {
-            id: data?.client_selection?.level_1 ?? prev.level_1?.id,
-            value: data?.client_selection?.level_1 ?? prev.level_1?.value,
-          },
-          media_plan: data?.media_plan_details?.plan_name ?? prev.media_plan,
-          budget_details_currency: {
-            id: data?.budget_details?.currency,
-            value: data?.budget_details?.currency,
-          },
-          country_details: {
-            id: data?.budget_details?.value,
-            value: data?.budget_details?.value,
-          },
-          internal_approver:
-            data?.media_plan_details?.internal_approver ??
-            prev.internal_approver,
-          client_approver:
-            data?.media_plan_details?.client_approver ?? prev.client_approver,
-          campaign_objectives:
-            data?.campaign_objective ?? prev.campaign_objectives,
-          funnel_stages: data?.funnel_stages ?? prev.funnel_stages,
-          channel_mix: data?.channel_mix ?? prev.channel_mix,
-          campaign_timeline_start_date:
-            data?.campaign_timeline_start_date ??
-            prev.campaign_timeline_start_date,
-          campaign_timeline_end_date:
-            data?.campaign_timeline_end_date ?? prev.campaign_timeline_end_date,
-          campaign_budget: data?.campaign_budget ?? prev.campaign_budget,
-          goal_level: data?.goal_level ?? prev.goal_level,
-          progress_percent: data?.progress_percent ?? prev.progress_percent,
-          custom_funnels: data?.custom_funnels ?? prev.custom_funnels,
-          campaign_builder: data?.campaign_builder ?? prev.campaign_builder,
-          user: data?.user ?? prev.user,
-          campaign_id: data?.id ?? prev.id,
-          isApprove: data?.isApprove,
-          table_headers:
-            ((data?.table_headers || {}) ??
-              (prev?.table_headers)) ||
-            {},
-          selected_metrics: ((data?.selected_metrics || {}) ?? (prev?.selected_metrics)) || {},
-        }));
+        console.log("DATA", data)
+        setCampaignFormData({ ...data })
+        // setCampaignFormData((prev) => ({
+        //   ...prev,
+        //   id: campaignId,
+        //   client_selection: {
+        //     id: data?.client?.documentId ?? prev?.client_selection?.id,
+        //     value: data?.client?.client_name ?? prev?.client_selection?.value,
+        //   },
+        //   level_1: {
+        //     id: data?.client_selection?.level_1 ?? prev.level_1?.id,
+        //     value: data?.client_selection?.level_1 ?? prev.level_1?.value,
+        //   },
+        //   media_plan: data?.media_plan_details?.plan_name ?? prev.media_plan,
+        //   budget_details_currency: {
+        //     id: data?.budget_details?.currency,
+        //     value: data?.budget_details?.currency,
+        //   },
+        //   country_details: {
+        //     id: data?.budget_details?.value,
+        //     value: data?.budget_details?.value,
+        //   },
+        //   internal_approver:
+        //     data?.media_plan_details?.internal_approver ??
+        //     prev.internal_approver,
+        //   client_approver:
+        //     data?.media_plan_details?.client_approver ?? prev.client_approver,
+        //   campaign_objectives:
+        //     data?.campaign_objective ?? prev.campaign_objectives,
+        //   funnel_stages: data?.funnel_stages ?? prev.funnel_stages,
+        //   channel_mix: data?.channel_mix ?? prev.channel_mix,
+        //   campaign_timeline_start_date:
+        //     data?.campaign_timeline_start_date ??
+        //     prev.campaign_timeline_start_date,
+        //   campaign_timeline_end_date:
+        //     data?.campaign_timeline_end_date ?? prev.campaign_timeline_end_date,
+        //   campaign_budget: data?.campaign_budget ?? prev.campaign_budget,
+        //   goal_level: data?.goal_level ?? prev.goal_level,
+        //   progress_percent: data?.progress_percent ?? prev.progress_percent,
+        //   custom_funnels: data?.custom_funnels ?? prev.custom_funnels,
+        //   campaign_builder: data?.campaign_builder ?? prev.campaign_builder,
+        //   user: data?.user ?? prev.user,
+        //   campaign_id: data?.id ?? prev.id,
+        //   isApprove: data?.isApprove,
+        //   table_headers:
+        //     ((data?.table_headers || {}) ??
+        //       (prev?.table_headers)) ||
+        //     {},
+        //   selected_metrics: ((data?.selected_metrics || {}) ?? (prev?.selected_metrics)) || {},
+        // })
+
+        // );
         setLoadingCampaign(false);
       } catch (error) {
         if (error?.response?.status === 401) {
@@ -253,6 +265,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             //@ts-ignore
             campaign_builder: loggedInUser?.id,
             client: campaignFormData?.client_selection?.id,
+            selected_preset_idx: campaignFormData?.selected_preset_idx ?? null,
             client_selection: {
               client: campaignFormData?.client_selection?.value,
               level_1: campaignFormData?.level_1?.id,
@@ -275,11 +288,12 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           },
         }
       );
-      await updateUsersWithCampaign(
-        clientUsers?.map((uu) => uu?.id),
-        response?.data?.data?.id,
-        jwt
-      );
+      if (clientUsers?.length > 0)
+        await updateUsersWithCampaign(
+          clientUsers?.map((uu) => uu?.id),
+          response?.data?.data?.id,
+          jwt
+        );
       return response;
     } catch (error) {
       if (error?.response?.status === 401) {
@@ -360,6 +374,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const updateCampaign = useCallback(
     async (data) => {
       try {
+        console.log("UPDATING", data)
         setLoading(true);
         const response = await axios.put(
           `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`,

@@ -579,8 +579,8 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 		toast.success(`Requested changes for the media plan: ${label}`);
 	};
 
-	console.log('stage---stage', stage)
-	console.log('showVersionPrompt----kk', showVersionPrompt)
+	// console.log('stage---stage', stage)
+	// console.log('showVersionPrompt----kk', showVersionPrompt)
 
 	if (!isOpen) return null;
 

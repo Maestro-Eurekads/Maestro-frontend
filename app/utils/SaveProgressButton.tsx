@@ -2,7 +2,7 @@
 import Image from "next/image"
 import clsx from "clsx"
 import Continue from "../../public/arrow-back-outline.svg"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import { BiLoader } from "react-icons/bi"
 import { useEditing } from "app/utils/EditingContext"
 import toast, { Toaster } from "react-hot-toast"
@@ -18,6 +18,8 @@ import { removeKeysRecursively } from "utils/removeID"
 import AlertMain from "components/Alert/AlertMain"
 import { useCampaigns } from "./CampaignsContext"
 import { useActive } from "app/utils/ActiveContext"
+import { areObjectsSimilar } from "./similarityCheck"
+import { useRouter } from "next/navigation"
 
 interface BottomProps {
 	setIsOpen: (isOpen: boolean) => void
@@ -78,9 +80,9 @@ const preserveFormatsWithPreviews = (platforms) => {
 	})
 }
 
-const SaveProgressButton = ({ deskTopShow, setDeskTopShow }) => {
+const SaveProgressButton = () => {
 
-	const { active, setActive, subStep, setSubStep, setChange } = useActive()
+	const { active, setActive, subStep, setSubStep, setChange, change } = useActive()
 	const { midcapEditing } = useEditing()
 	const [triggerObjectiveError, setTriggerObjectiveError] = useState(false)
 	const [setupyournewcampaignError, setSetupyournewcampaignError] = useState(false)
@@ -101,6 +103,7 @@ const SaveProgressButton = ({ deskTopShow, setDeskTopShow }) => {
 	const [hasFormatSelected, setHasFormatSelected] = useState(false)
 	const [showSave, setShowSave] = useState(false)
 	const { isFinancialApprover, isAgencyApprover, isAdmin, loggedInUser } = useUserPrivileges()
+	const router = useRouter();
 
 	const {
 		createCampaign,
@@ -118,10 +121,16 @@ const SaveProgressButton = ({ deskTopShow, setDeskTopShow }) => {
 		requiredFields,
 		currencySign,
 		jwt,
+		loadingCampaign,
 		agencyId,
 	} = useCampaigns()
 
 	const isInternalApprover = isAdmin || isAgencyApprover || isFinancialApprover
+
+	const hasChanges = useMemo(() => {
+		if (!campaignData || !campaignFormData) return false;
+		return !areObjectsSimilar(campaignFormData, campaignData, ['objective_level']);
+	}, [campaignFormData, campaignData]);
 
 	// --- Persist format selection for active === 4 ---
 	const hasProceededFromFormatStep = useRef(false)
@@ -318,12 +327,24 @@ const SaveProgressButton = ({ deskTopShow, setDeskTopShow }) => {
 
 	const cancelSave = () => {
 		setShowSave(false)
-		setDeskTopShow(false)
-		setActive(0)
 	}
 
 	const handleContinue = () => {
 		setShowSave(true)
+	}
+
+	// Creates a new campaign if cId is not present, otherwise updates existing campaign
+	const handleSavingConfirmation = async () => {
+		if (cId) {
+			handleSave();
+		} else {
+			setLoading(true);
+			const response = await createCampaign(campaignFormData);
+			setLoading(false);
+			setShowSave(false);
+			setActive(1)
+			router.push(`/creation?campaignId=${response?.data?.data?.documentId}`);
+		}
 	}
 
 	const handleSave = async () => {
@@ -539,6 +560,8 @@ const SaveProgressButton = ({ deskTopShow, setDeskTopShow }) => {
 			try {
 				await updateCampaign({
 					...data,
+					selected_preset_idx: campaignFormData?.selected_preset_idx ?? null,
+					goal_level: campaignFormData?.goal_level ?? null,
 					progress_percent:
 						campaignFormData?.progress_percent > calcPercent ? campaignFormData?.progress_percent : calcPercent,
 				})
@@ -607,7 +630,7 @@ const SaveProgressButton = ({ deskTopShow, setDeskTopShow }) => {
 
 				setCampaignFormData(cleanedFormData)
 				localStorage.setItem("campaignFormData", JSON.stringify(cleanedFormData))
-
+				console.log('YOOOO')
 				const payload = {
 					data: {
 						campaign_builder: loggedInUser?.id,
@@ -736,6 +759,7 @@ const SaveProgressButton = ({ deskTopShow, setDeskTopShow }) => {
 					"documentId",
 					"_aggregated",
 				]),
+				goal_level: updatedCampaignFormData?.goal_level,
 				table_headers: updatedCampaignFormData?.table_headers,
 				selected_metrics: updatedCampaignFormData?.selected_metrics,
 			})
@@ -820,11 +844,9 @@ const SaveProgressButton = ({ deskTopShow, setDeskTopShow }) => {
 				window.dispatchEvent(event)
 			}
 			setShowSave(false)
-			setDeskTopShow(false)
 		} finally {
 			setLoading(false)
 			setShowSave(false)
-			setDeskTopShow(false)
 		}
 	}
 
@@ -839,6 +861,16 @@ const SaveProgressButton = ({ deskTopShow, setDeskTopShow }) => {
 	const showConfirm =
 		active === 10 && (isInternalApprover ? isAdmin || internalApproverEmails.includes(loggedInUser.email) : false)
 
+	const isButtonDisabled = useMemo(() => {
+		// Always disable if campaign is loading
+		if (loadingCampaign) return true;
+
+		// If there's a cId (existing campaign), disable if no changes
+		if (cId) return !hasChanges;
+
+		// If no cId (new campaign), always enable
+		return false;
+	}, [loadingCampaign, cId, hasChanges]);
 	return (
 		<div >
 			<Toaster position="bottom-right" />
@@ -940,23 +972,23 @@ const SaveProgressButton = ({ deskTopShow, setDeskTopShow }) => {
 					)
 					
 				) : (  */}
-				{(active === 10 || deskTopShow || !active) ? "" :
+				{(active === 10) ? "" :
 					<div className="flex justify-center items-center gap-3">
 						<button
 							className={clsx(
 								"bottom_blue_save_btn whitespace-nowrap",
-								active === 10 && "opacity-50 cursor-not-allowed",
-								active < 10 && "hover:bg-blue-500",
+								isButtonDisabled && "bg-gray-400 cursor-not-allowed",
+								hasChanges && "hover:bg-blue-500",
 								active === 4 && !hasFormatSelected && "px-3 py-2"
 							)}
 							onClick={
 								active === 4 && !hasFormatSelected ? handleSkip : handleContinue
 							}
-							disabled={active === 10}
+							disabled={isButtonDisabled}
 							onMouseEnter={() => setIsHovered(true)}
 							onMouseLeave={() => setIsHovered(false)}
 						>
-							Save
+							{cId ? "Save" : "Create"}
 						</button>
 
 					</div>}
@@ -966,7 +998,7 @@ const SaveProgressButton = ({ deskTopShow, setDeskTopShow }) => {
 					<div className="bg-white rounded-xl shadow-lg w-[400px] p-6 text-center">
 						<h2 className="text-xl font-semibold text-gray-800 mb-4">Confirm Save</h2>
 						<p className="text-gray-700 mb-6">
-							Do you want to save this step progress?
+							{cId ? "Do you want to save this step progress?" : "Do you want to save your latest progress before leaving?"}
 						</p>
 						<div className="flex justify-center gap-4">
 							<button
@@ -977,7 +1009,7 @@ const SaveProgressButton = ({ deskTopShow, setDeskTopShow }) => {
 							</button>
 							<button
 								className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-								onClick={handleSave}
+								onClick={handleSavingConfirmation}
 							>
 								{loading ? (
 									<center>
@@ -991,33 +1023,6 @@ const SaveProgressButton = ({ deskTopShow, setDeskTopShow }) => {
 					</div>
 				</div>
 			)}
-			{deskTopShow &&
-				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-					<div className="bg-white rounded-2xl p-6 w-[90%] max-w-md shadow-lg">
-						<h2 className="text-lg font-semibold text-gray-800 mb-2">Unsaved Changes</h2>
-						<p className="text-sm text-gray-600 mb-6">“If you leave the plan the progress will be lost”</p>
-						<p className="text-sm text-gray-600 mb-6">“Would you like to save your progress?”</p>
-						<div className="flex justify-end gap-3">
-							<button
-								className="px-4 py-2 rounded-md bg-gray-300 text-gray-800 hover:bg-gray-400"
-								onClick={cancelSave}
-							>
-								No
-							</button>
-							<button
-								className="px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700"
-								onClick={handleSave}
-							>
-								{loading ? (
-									<center>
-										<BiLoader className="animate-spin" size={20} />
-									</center>
-								) : (
-									"Yes, Save")}
-							</button>
-						</div>
-					</div>
-				</div>}
 		</div>
 	);
 };

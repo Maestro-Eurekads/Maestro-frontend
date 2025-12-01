@@ -104,6 +104,8 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   // --- FIX: Prevent infinite update loop for goal_level ---
   // Only update goal_level if it is not set, or if it is set to a different value, but only once per view change.
   // Use a ref to track if we've already forced the update for this view.
+
+  // This makes a change in the form data by adding the goal_level based on the current view
   const goalLevelUpdateRef = useRef<{ [view: string]: boolean }>({})
 
   useEffect(() => {

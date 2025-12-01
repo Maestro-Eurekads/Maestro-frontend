@@ -365,17 +365,30 @@ const MapFunnelStages = () => {
           selected_preset_idx: matchingPresetIdx,
         }));
       } else {
-        setSelectedConfigIdx(null);
+        const hasExistingSelection = campaignData?.selected_preset_idx !== undefined ||
+          campaignData?.selected_config_idx !== undefined;
 
-        setSelectedPreset(isNewPlan || !clientId ? 1 : null);
+        const fallbackPresetIdx = !hasExistingSelection && (isNewPlan || !clientId) ? 1 : null;
+
+        setSelectedConfigIdx(null);
+        setSelectedPreset(fallbackPresetIdx);
 
         setCampaignFormData((prev: any) => ({
           ...prev,
-
           selected_config_idx: null,
-
-          selected_preset_idx: isNewPlan || !clientId ? 1 : null,
+          selected_preset_idx: fallbackPresetIdx,
         }));
+        // setSelectedConfigIdx(null);
+
+        // setSelectedPreset(isNewPlan || !clientId ? 1 : null);
+
+        // setCampaignFormData((prev: any) => ({
+        //   ...prev,
+
+        //   selected_config_idx: null,
+
+        //   selected_preset_idx: isNewPlan || !clientId ? 1 : null,
+        // }));
       }
     }
   }, [clientId, mediaPlanId, campaignData, loadingCampaign]);
@@ -1221,7 +1234,7 @@ const MapFunnelStages = () => {
           className="text-[22px]"
           t1="How many funnel stage(s) would you like to activate to achieve your objective?"
         />
-        <SaveProgressButton deskTopShow={undefined} setDeskTopShow={undefined} />
+        <SaveProgressButton />
       </div>
 
       <div className="w-full flex items-start">
