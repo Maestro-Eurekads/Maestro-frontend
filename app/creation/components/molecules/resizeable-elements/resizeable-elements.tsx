@@ -628,7 +628,6 @@ console.log(monthsByYear, "herit")
                     const regularGridSize = `${dailyWidth}px 100%`;
                     let cumulativeDays = 0;
                     const boundaryPositions: number[] = [];
-
                     const sortedYears = Object.keys(monthsByYear).sort();
                     sortedYears.forEach((year, yearIndex) => {
                       const monthsInYear = monthsByYear[year];
@@ -718,7 +717,6 @@ console.log(monthsByYear, "herit")
               className="text-center text-sm font-medium py-2 border-r border-gray-200"
             >
               <p className="text-blue-500">{monthLabel?.split(" ")[0]}</p>
-              <p>{monthLabel?.split(" ")[1]}</p>
             </div>
           ))}
         </div>

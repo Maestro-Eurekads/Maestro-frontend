@@ -126,23 +126,19 @@ const WeekInterval = ({
           >
             {/* Week Label */}
             <div>
-              <div className="font-[500] text-[13px]">
+              <div className="font-[500] text-[13px] flex gap-2 items-center">
                 {datesByWeek[i] && (
                   <div className="flex flex-row gap-2 items-center justify-center">
                     <p>
-                      {moment(datesByWeek[i][0]).format("DD")} -{" "}
-                      {moment(datesByWeek[i][datesByWeek[i].length - 1]).format(
-                        "DD"
-                      )}
+                      {`${moment(datesByWeek[i][0]).format("DD")} ${moment(datesByWeek[i][0]).format("MMM")}`} 
                     </p>
                   </div>
                 )}
+                -
                 {datesByWeek[i] && (
                   <p className="text-[rgba(0,0,255,0.5)]">
-                    {moment(datesByWeek[i][0]).format("MMM")} -{" "}
-                    {moment(datesByWeek[i][datesByWeek[i].length - 1]).format(
-                      "MMM"
-                    )}
+                    {`${moment(datesByWeek[i][datesByWeek[i].length - 1]).format("DD")} ${moment(datesByWeek[i][datesByWeek[i].length - 1]).format("MMM")}`}
+                   
                   </p>
                 )}
               </div>
