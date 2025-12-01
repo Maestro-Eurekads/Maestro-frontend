@@ -140,11 +140,11 @@ export const CellRenderer = ({
     const rawValue =
       body === "budget_size"
         ? campaignFormData?.channel_mix
-            ?.find((ch) => ch?.funnel_stage === stage.name)
-            ?.[channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)?.budget?.fixed_value || ""
+          ?.find((ch) => ch?.funnel_stage === stage.name)
+          ?.[channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)?.budget?.fixed_value || ""
         : campaignFormData?.channel_mix
-            ?.find((ch) => ch?.funnel_stage === stage.name)
-            ?.[channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)?.kpi?.[body] || ""
+          ?.find((ch) => ch?.funnel_stage === stage.name)
+          ?.[channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)?.kpi?.[body] || ""
 
     return rawValue.toString()
   }
@@ -198,7 +198,7 @@ export const CellRenderer = ({
       // For CPM, preserve decimal places (2 max)
       return formatNumber(Number.parseFloat(numericValue.toFixed(2)))
     } else {
-      if(body !== "reach"  && body !== "video_views" && body !== "impressions") {
+      if (body !== "reach" && body !== "video_views" && body !== "impressions") {
         // For other fields, round to whole numbers
         return formatNumber(Math.floor(numericValue).toFixed(0))
       }
@@ -366,7 +366,7 @@ export const CellRenderer = ({
   }
 
   // Handle calculated fields
-  if (goalLevel === "Channel level" &&calculatedFields.includes(body)) {
+  if (goalLevel === "Channel level" && calculatedFields.includes(body)) {
     return (
       <div
         className="flex justify- items-center gap-5 w-fit max-w-[150px] group"
@@ -380,13 +380,12 @@ export const CellRenderer = ({
               const value =
                 campaignFormData?.goal_level === "Adset level" ? channel?.kpi?.[body] : getCalculatedValue(body)
               return value && value !== "-"
-                ? `${
-                    isCurrencyType
-                      ? `${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}`
-                      : isSecondsType
-                        ? "secs"
-                        : ""
-                  }${(body == "reach" ||  body == "video_views" || body == "impressions") ? value : formatNumber(Number(value))}`
+                ? `${isCurrencyType
+                  ? `${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}`
+                  : isSecondsType
+                    ? "secs"
+                    : ""
+                }${(body == "reach" || body == "video_views" || body == "impressions") ? value : formatNumber(Number(value))}`
                 : "-"
             })()}
           </p>
@@ -398,7 +397,7 @@ export const CellRenderer = ({
 
   // Handle input fields and static values
   if (!showInput) {
-    const value = goalLevel === "Channel level" ? channel?.[body] : cellType === "number" ? channel?.kpi?.[body] ? Number(channel?.kpi?.[body]).toFixed(0): "":(channel?.kpi?.[body])
+    const value = goalLevel === "Channel level" ? channel?.[body] : cellType === "number" ? channel?.kpi?.[body] ? Number(channel?.kpi?.[body]).toFixed(0) : "" : (channel?.kpi?.[body])
     if (exemptFields.includes(body)) {
       return value === "Invalid date" ? "-" : value
     }
@@ -406,7 +405,7 @@ export const CellRenderer = ({
       "-"
     ) : (
       <div className="flex justify-center items-center gap-5 w-fit">
-        <p>{cellType === "number" ? formatNumber(Number.parseFloat(value)?.toFixed(0)) :formatNumber(Number.parseFloat(value)?.toFixed(2))}</p>
+        <p>{cellType === "number" ? formatNumber(Number.parseFloat(value)?.toFixed(0)) : formatNumber(Number.parseFloat(value)?.toFixed(2))}</p>
         <Ban size={10} className="hidden group-hover:block shrink-0 cursor-pointer" />
       </div>
     )
@@ -444,9 +443,9 @@ export const CellRenderer = ({
             setIsTyping(false)
             setIsFocused(false)
           }}
-          disabled={isNR || goalLevel === "Adset level"}
+          disabled={isNR}
           className={`bg-slate-100 hover:bg-white border-none outline-none max-w-[90px] p-1 ${isNR ? "text-gray-400" : ""}`}
-          // placeholder={body === "budget_size" ? "BUDGET" : body ? body?.toUpperCase() : "Insert value"}
+        // placeholder={body === "budget_size" ? "BUDGET" : body ? body?.toUpperCase() : "Insert value"}
         />
       )}
       <Ban
