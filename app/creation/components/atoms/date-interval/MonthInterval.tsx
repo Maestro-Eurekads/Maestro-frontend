@@ -66,7 +66,6 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
 
       // Extract month names
       const names = Array.from(new Set(dateList.map((date) => format(date, "MMMM"))))
-
       setSetMonthName(names)
     }
   }, [campaignFormData])
@@ -129,33 +128,119 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
     }
   }, [monthCount])
 
-  return (
-    <div className="w-full border-y">
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns,
-          backgroundImage: `linear-gradient(to right, rgba(0,0,255,0.2) 1px, transparent 1px)`,
-          backgroundSize: getBackgroundSize(),
-        }}
-      >
-        {Object.entries(daysInMonth || {}).map(([monthName], i) => (
+  const monthEntries = Object.entries(daysInMonth || {})
+  const yearHeaders: Array<{ year: string, startIndex: number, span: number }> = []
+  let currentYear: string | null = null
+  let currentStartIndex = 0
+  let currentSpan = 0
+
+  monthEntries.forEach(([monthName], index) => {
+    const parts = monthName.split(' ')
+    const year = parts.length > 1 ? parts[parts.length - 1] : new Date().getFullYear().toString()
+    
+    if (currentYear === null) {
+      currentYear = year
+      currentStartIndex = index
+      currentSpan = 1
+    } else if (currentYear === year) {
+      currentSpan++
+    } else {
+      yearHeaders.push({
+        year: currentYear,
+        startIndex: currentStartIndex,
+        span: currentSpan
+      })
+      currentYear = year
+      currentStartIndex = index
+      currentSpan = 1
+    }
+  })
+  
+  if (currentYear !== null) {
+    yearHeaders.push({
+      year: currentYear,
+      startIndex: currentStartIndex,
+      span: currentSpan
+    })
+  }
+
+  const yearStartIndices = new Map<number, string>()
+  yearHeaders.forEach(header => {
+    yearStartIndices.set(header.startIndex, header.year)
+  })
+
+return (
+  <div className="w-full border-y relative">
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: gridTemplateColumns,
+        position: "relative",
+        zIndex: 20, 
+      }}
+      className="border-b border-blue-200"
+    >
+      {yearHeaders.map((header, idx) => (
+        <div
+          key={`year-${idx}`}
+          style={{
+            gridColumn: `span ${header.span}`,
+            position: "relative", 
+          }}
+          className="h-full" 
+        >
+          <div
+            style={{
+              position: "sticky",
+              left: 0,
+              width: "fit-content",
+              zIndex: 10,
+              backgroundColor: "white", 
+              paddingRight: "12px", 
+            }}
+            className="py-2 px-2 border-r border-blue-200/50 h-full flex items-center"
+          >
+            <span className="font-[600] text-[16px] text-[rgba(0,0,0,0.7)]">
+              {header.year}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns,
+        backgroundImage: `linear-gradient(to right, rgba(0,0,255,0.2) 1px, transparent 1px)`,
+        backgroundSize: getBackgroundSize(),
+        zIndex: 0, 
+      }}
+    >
+      {Object.entries(daysInMonth || {}).map(([monthName], i) => {
+        const monthOnly = monthName.split(" ")[0]
+        const isYearBoundary = i > 0 && yearStartIndices.has(i)
+
+        return (
           <div
             key={i}
             className="flex flex-col items-center relative py-3 border-r border-blue-200 last:border-r-0"
             style={{
-              // Ensure consistent spacing within each month column
-              minWidth: monthCount > 2 ?`20%` : "auto",
+              minWidth: monthCount > 2 ? `20%` : "auto",
+              borderLeft: isYearBoundary ? "2px solid rgba(0,0,255,0.3)" : "none",
             }}
           >
             <div className="flex flex-row gap-2 items-center">
-              <span className="font-[500] text-[13px] text-[rgba(0,0,0,0.5)]">{monthName}</span>
+              <span className="font-[500] text-[13px] text-[rgba(0,0,0,0.5)]">
+                {monthOnly}
+              </span>
             </div>
           </div>
-        ))}
-      </div>
+        )
+      })}
     </div>
-  )
+  </div>
+)
 }
-
 export default MonthInterval
+
