@@ -245,13 +245,13 @@ const ResizeableElements = ({
 
       if (isInfiniteTimeline) {
         if (viewType === "Day" || viewType === "Week") {
-          dailyWidth = 30;
+          dailyWidth = 50;
         } else if (viewType === "Year") {
           dailyWidth = 80;
         } else if (viewType === "Month") {
           dailyWidth = 100;
         } else {
-          dailyWidth = 30;
+          dailyWidth = 50;
         }
       } else {
         if (viewType === "Day" || viewType === "Week") {

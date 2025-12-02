@@ -51,15 +51,15 @@ const MainSection = ({
   const getDailyWidthForView = useCallback(() => {
     switch (range) {
       case "Day":
-        return 30;
+        return 50;
       case "Week":
-        return 30;
+        return 50;
       case "Year":
         return 80;
       case "Month":
         return 100;
       default:
-        return 30;
+        return 50;
     }
   }, [range]);
 
@@ -73,6 +73,59 @@ const MainSection = ({
     return 800;
   }, [range]);
   
+  const getFocusDate = useCallback(() => {
+    let focusDate: Date | null = null;
+    
+    if (campaignFormData?.channel_mix && campaignFormData.channel_mix.length > 0) {
+      const allDates: Date[] = [];
+      campaignFormData.channel_mix.forEach((stage: any) => {
+        if (stage.funnel_stage_timeline_start_date) {
+          allDates.push(new Date(stage.funnel_stage_timeline_start_date));
+        }
+        const mediaTypes = [
+          "social_media", "display_networks", "search_engines", "streaming",
+          "ooh", "broadcast", "messaging", "print", "e_commerce", "in_game", "mobile"
+        ];
+        mediaTypes.forEach((type) => {
+          if (stage[type] && Array.isArray(stage[type])) {
+            stage[type].forEach((platform: any) => {
+              if (platform.campaign_start_date) {
+                allDates.push(new Date(platform.campaign_start_date));
+              }
+            });
+          }
+        });
+      });
+      
+      if (allDates.length > 0) {
+        focusDate = allDates.reduce((earliest, current) => 
+          current < earliest ? current : earliest
+        );
+      }
+    }
+    
+    if (!focusDate && campaignFormData?.campaign_timeline_start_date) {
+      focusDate = new Date(campaignFormData.campaign_timeline_start_date);
+    }
+    
+    return focusDate;
+  }, [campaignFormData?.channel_mix, campaignFormData?.campaign_timeline_start_date]);
+
+  const calculateScrollPosition = useCallback((focusDate: Date, viewType: string, tlStart: Date) => {
+    if (viewType === "Year") {
+      const yearTimelineStart = startOfYear(tlStart);
+      const monthsFromStart = differenceInCalendarMonths(focusDate, yearTimelineStart);
+      return Math.max(0, (monthsFromStart * 80) - 150);
+    } else if (viewType === "Month") {
+      const weeksFromStart = differenceInCalendarWeeks(focusDate, tlStart, { weekStartsOn: 1 });
+      return Math.max(0, (weeksFromStart * 100) - 150);
+    } else {
+      const daysFromStart = differenceInCalendarDays(focusDate, tlStart);
+      const dailyWidth = getDailyWidthForView();
+      return Math.max(0, (daysFromStart * dailyWidth) - 150);
+    }
+  }, [getDailyWidthForView]);
+
   useEffect(() => {
     if (
       !hasScrolledToInitial.current && 
@@ -82,66 +135,18 @@ const MainSection = ({
       rrange?.length > 0
     ) {
       const container = scrollContainerRef.current;
-      
-      let focusDate: Date | null = null;
-      
-      if (campaignFormData?.channel_mix && campaignFormData.channel_mix.length > 0) {
-        const allDates: Date[] = [];
-        campaignFormData.channel_mix.forEach((stage: any) => {
-          if (stage.funnel_stage_timeline_start_date) {
-            allDates.push(new Date(stage.funnel_stage_timeline_start_date));
-          }
-          const mediaTypes = [
-            "social_media", "display_networks", "search_engines", "streaming",
-            "ooh", "broadcast", "messaging", "print", "e_commerce", "in_game", "mobile"
-          ];
-          mediaTypes.forEach((type) => {
-            if (stage[type] && Array.isArray(stage[type])) {
-              stage[type].forEach((platform: any) => {
-                if (platform.campaign_start_date) {
-                  allDates.push(new Date(platform.campaign_start_date));
-                }
-              });
-            }
-          });
-        });
-        
-        if (allDates.length > 0) {
-          focusDate = allDates.reduce((earliest, current) => 
-            current < earliest ? current : earliest
-          );
-        }
-      }
-      
-      if (!focusDate && campaignFormData?.campaign_timeline_start_date) {
-        focusDate = new Date(campaignFormData.campaign_timeline_start_date);
-      }
+      const focusDate = getFocusDate();
       
       if (!focusDate) return;
       
-      let scrollPosition: number;
-      
-      if (range === "Year") {
-        const yearTimelineStart = startOfYear(timelineStart);
-        const monthsFromStart = differenceInCalendarMonths(focusDate, yearTimelineStart);
-        const monthWidth = 80;
-        scrollPosition = Math.max(0, (monthsFromStart * monthWidth) - 150);
-      } else if (range === "Month") {
-        const weeksFromStart = differenceInCalendarWeeks(focusDate, timelineStart, { weekStartsOn: 1 });
-        const weekWidth = 100;
-        scrollPosition = Math.max(0, (weeksFromStart * weekWidth) - 150);
-      } else {
-        const daysFromStart = differenceInCalendarDays(focusDate, timelineStart);
-        const dailyWidth = getDailyWidthForView();
-        scrollPosition = Math.max(0, (daysFromStart * dailyWidth) - 150);
-      }
+      const scrollPosition = calculateScrollPosition(focusDate, range, timelineStart);
       
       setTimeout(() => {
         container.scrollLeft = scrollPosition;
         hasScrolledToInitial.current = true;
       }, 200);
     }
-  }, [range]);
+  }, [isInfiniteTimeline, timelineStart, rrange?.length, range, getFocusDate, calculateScrollPosition]);
 
   const previousViewRef = useRef<string | null>(null);
   
@@ -155,45 +160,10 @@ const MainSection = ({
       previousViewRef.current !== range
     ) {
       const container = scrollContainerRef.current;
-      
-      let focusDate: Date | null = null;
-      
-      if (campaignFormData?.channel_mix && campaignFormData.channel_mix.length > 0) {
-        const allDates: Date[] = [];
-        campaignFormData.channel_mix.forEach((stage: any) => {
-          if (stage.funnel_stage_timeline_start_date) {
-            allDates.push(new Date(stage.funnel_stage_timeline_start_date));
-          }
-        });
-        
-        if (allDates.length > 0) {
-          focusDate = allDates.reduce((earliest, current) => 
-            current < earliest ? current : earliest
-          );
-        }
-      }
-      
-      if (!focusDate && campaignFormData?.campaign_timeline_start_date) {
-        focusDate = new Date(campaignFormData.campaign_timeline_start_date);
-      }
+      const focusDate = getFocusDate();
       
       if (focusDate) {
-        let scrollPosition: number;
-        
-        if (range === "Year") {
-          const yearTimelineStart = startOfYear(timelineStart);
-          const monthsFromStart = differenceInCalendarMonths(focusDate, yearTimelineStart);
-          const monthWidth = 80;
-          scrollPosition = Math.max(0, (monthsFromStart * monthWidth) - 150);
-        } else if (range === "Month") {
-          const weeksFromStart = differenceInCalendarWeeks(focusDate, timelineStart, { weekStartsOn: 1 });
-          const weekWidth = 100;
-          scrollPosition = Math.max(0, (weeksFromStart * weekWidth) - 150);
-        } else {
-          const daysFromStart = differenceInCalendarDays(focusDate, timelineStart);
-          const dailyWidth = getDailyWidthForView();
-          scrollPosition = Math.max(0, (daysFromStart * dailyWidth) - 150);
-        }
+        const scrollPosition = calculateScrollPosition(focusDate, range, timelineStart);
         
         setTimeout(() => {
           container.scrollLeft = scrollPosition;
@@ -202,7 +172,7 @@ const MainSection = ({
     }
     
     previousViewRef.current = range;
-  }, [range, isInfiniteTimeline, timelineStart, campaignFormData?.channel_mix, campaignFormData?.campaign_timeline_start_date, getDailyWidthForView]);
+  }, [range, isInfiniteTimeline, timelineStart, getFocusDate, calculateScrollPosition]);
   
   const handleScroll = useCallback(() => {
     if (!isInfiniteTimeline || !scrollContainerRef.current) return;

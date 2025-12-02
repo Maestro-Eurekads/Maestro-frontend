@@ -54,10 +54,8 @@ const WeekInterval = ({
     const screenWidth = getViewportWidth();
     const contWidth = screenWidth - (disableDrag ? 80 : close ? 0:367);
 
-    // For infinite timeline, use a fixed daily width to ensure scrollability
     if (isInfiniteTimeline && effectiveRange && effectiveRange.length > 0) {
-      // Use minimum 30px per day for good scrollability
-      return 30;
+      return 50;
     }
 
     const totalDays = funnelData?.endDay || 30;

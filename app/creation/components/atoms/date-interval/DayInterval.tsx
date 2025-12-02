@@ -12,7 +12,7 @@ const DayInterval: React.FC<DayIntervalProps> = ({ daysCount, src , range}) => {
   const { range: ddRange, extendedRange, isInfiniteTimeline } = useDateRange();
     const effectiveRange = isInfiniteTimeline ? extendedRange : ddRange;
   
-  const dailyWidth = isInfiniteTimeline ? 30 : undefined; // 30px per day for scrollable timeline
+  const dailyWidth = isInfiniteTimeline ? 50 : undefined;
   const gridColumns = isInfiniteTimeline 
     ? `repeat(${effectiveRange?.length || 0}, ${dailyWidth}px)`
     : `repeat(${effectiveRange?.length || 0}, 1fr)`;

@@ -34,6 +34,7 @@ import { useDateRange as DateRange } from "src/date-context";
 import { FaSpinner } from "react-icons/fa";
 
 interface Channel {
+  id?: number;
   name: string;
   channelName: string;
   icon: string;
@@ -489,7 +490,7 @@ const ResizableChannels = ({
     }
   }, [startDate, endDate]);
 
-  const pixelToDate = (pixel, containerWidth, index, fieldName) => {
+  const pixelToDate = (pixel, containerWidth, index, fieldName, shouldUpdate = false) => {
     let calculatedDate: Date | null = null;
     
     if (!dateList || dateList.length === 0) return null;
@@ -542,28 +543,26 @@ const ResizableChannels = ({
       calculatedDate = dateList[dayIndex];
     }
 
-    const updatedCampaignFormData = { ...campaignFormData };
+    if (shouldUpdate && calculatedDate) {
+      const updatedCampaignFormData = { ...campaignFormData };
 
-    const channelMix = updatedCampaignFormData.channel_mix.find(
-      (ch) => ch.funnel_stage === parentId
-    );
-
-    if (channelMix) {
-      const platform = channelMix[channels[index].channelName]?.find(
-        (platform) => platform.platform_name === channels[index].name
+      const channelMix = updatedCampaignFormData.channel_mix.find(
+        (ch) => ch.funnel_stage === parentId
       );
 
-      if (platform) {
-        if (fieldName === "startDate") {
-          platform.campaign_start_date = calculatedDate
-            ? moment(calculatedDate).format("YYYY-MM-DD")
-            : null;
-        } else {
-          const endDateToUse =
-            endDate && calculatedDate > endDate ? endDate : calculatedDate;
-          platform.campaign_end_date = endDateToUse
-            ? moment(endDateToUse).format("YYYY-MM-DD")
-            : null;
+      if (channelMix) {
+        const platform = channelMix[channels[index].channelName]?.find(
+          (platform) => platform.platform_name === channels[index].name
+        );
+
+        if (platform) {
+          if (fieldName === "startDate") {
+            platform.campaign_start_date = moment(calculatedDate).format("YYYY-MM-DD");
+          } else {
+            const endDateToUse =
+              endDate && calculatedDate > endDate ? endDate : calculatedDate;
+            platform.campaign_end_date = moment(endDateToUse).format("YYYY-MM-DD");
+          }
         }
       }
     }
@@ -659,6 +658,11 @@ const ResizableChannels = ({
               : ch
           )
         );
+
+        const startPixel = (channelState[index]?.left || parentLeft) - parentLeft;
+        const endPixel = startPixel + (channelState[index]?.width || 50);
+        pixelToDate(startPixel, parentWidth, index, "startDate", true);
+        pixelToDate(endPixel, parentWidth, index, "endDate", true);
 
         draggingDataRef.current = null;
       }
@@ -758,141 +762,144 @@ const ResizableChannels = ({
     }
   };
 
+  const hasInitializedRef = useRef(false);
+  const prevViewTypeRef = useRef(viewType);
+  
   useEffect(() => {
-    if (initialChannels && initialChannels.length > 0) {
+    if (!initialChannels || initialChannels.length === 0) return;
+    if (!parentWidth || !dailyWidth || !dateList || dateList.length === 0) return;
     
-      setChannels(initialChannels);
-      setChannelState((prev) => {
-        const findMix = campaignFormData?.channel_mix?.find(
-          (chhh) => chhh?.funnel_stage === parentId
+    const viewChanged = prevViewTypeRef.current !== viewType;
+    prevViewTypeRef.current = viewType;
+    
+    if (hasInitializedRef.current && !viewChanged) return;
+    
+    setChannels(initialChannels);
+    setChannelState((prev) => {
+      const findMix = campaignFormData?.channel_mix?.find(
+        (chhh) => chhh?.funnel_stage === parentId
+      );
+      if (!findMix) return prev;
+      
+      const newState = initialChannels.map((ch, index) => {
+        const findChannel = findMix[ch?.channelName]?.find(
+          (plt) => plt?.platform_name === ch?.name
         );
-        const newState = initialChannels.map((ch, index) => {
-          const findChannel = findMix[ch?.channelName]?.find(
-            (plt) => plt?.platform_name === ch?.name
+
+        const stageStartDate = findChannel?.campaign_start_date
+          ? parseISO(findChannel?.campaign_start_date)
+          : null;
+
+        const adjustedStageStartDate =
+          stageStartDate && stageStartDate < startDate
+            ? stageStartDate
+            : stageStartDate < startDate
+            ? startDate
+            : stageStartDate;
+
+        const stageEndDate = findChannel?.campaign_end_date
+          ? parseISO(findChannel?.campaign_end_date)
+          : null;
+
+        const isEndDateExceeded =
+          stageEndDate && endDate && stageEndDate > endDate;
+
+        const adjustedStageEndDate = isEndDateExceeded
+          ? endDate
+          : stageEndDate;
+
+        let startDateIndex = 0;
+        let width = parentWidth;
+
+        if (viewType === "Year" && dateList && dateList.length > 0) {
+          const timelineStart = startOfYear(dateList[0]);
+          const timelineEnd = endOfYear(dateList[dateList.length - 1]);
+          const allMonths = eachMonthOfInterval({ start: timelineStart, end: timelineEnd });
+          
+          const startMonthIndex = adjustedStageStartDate 
+            ? allMonths.findIndex(m => format(m, "yyyy-MM") === format(adjustedStageStartDate, "yyyy-MM"))
+            : 0;
+          const endMonthIndex = adjustedStageEndDate
+            ? allMonths.findIndex(m => format(m, "yyyy-MM") === format(adjustedStageEndDate, "yyyy-MM"))
+            : startMonthIndex;
+          
+          startDateIndex = startMonthIndex >= 0 ? startMonthIndex * dailyWidth : 0;
+          const monthsSpanned = endMonthIndex >= startMonthIndex ? endMonthIndex - startMonthIndex + 1 : 1;
+          width = monthsSpanned * dailyWidth;
+        } else if (viewType === "Month" && dateList && dateList.length > 0) {
+          const allWeeks = eachWeekOfInterval(
+            { start: dateList[0], end: dateList[dateList.length - 1] },
+            { weekStartsOn: 1 }
           );
+          
+          const startWeekIndex = adjustedStageStartDate 
+            ? allWeeks.findIndex(weekStart => {
+                const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
+                return adjustedStageStartDate >= weekStart && adjustedStageStartDate <= weekEnd;
+              })
+            : 0;
+          const endWeekIndex = adjustedStageEndDate
+            ? allWeeks.findIndex(weekStart => {
+                const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
+                return adjustedStageEndDate >= weekStart && adjustedStageEndDate <= weekEnd;
+              })
+            : startWeekIndex;
+          
+          startDateIndex = startWeekIndex >= 0 ? startWeekIndex * dailyWidth : 0;
+          const weeksSpanned = endWeekIndex >= startWeekIndex ? endWeekIndex - startWeekIndex + 1 : 1;
+          width = weeksSpanned * dailyWidth;
+        } else {
+          startDateIndex = adjustedStageStartDate
+            ? dateList?.findIndex((date) => isEqual(date, adjustedStageStartDate)) * dailyWidth
+            : 0;
 
-          const stageStartDate = findChannel?.campaign_start_date
-            ? parseISO(findChannel?.campaign_start_date)
-            : null;
-
-          const adjustedStageStartDate =
-            stageStartDate && stageStartDate < startDate
-              ? stageStartDate
-              : stageStartDate < startDate
-              ? startDate
-              : stageStartDate;
-
-          const stageEndDate = findChannel?.campaign_end_date
-            ? parseISO(findChannel?.campaign_end_date)
-            : null;
-
-          const isEndDateExceeded =
-            stageEndDate && endDate && stageEndDate > endDate;
-
-          const adjustedStageEndDate = isEndDateExceeded
-            ? endDate
-            : stageEndDate;
-
-          let startDateIndex = 0;
-          let width = parentWidth;
-
-          if (viewType === "Year" && dateList && dateList.length > 0) {
-            const timelineStart = startOfYear(dateList[0]);
-            const timelineEnd = endOfYear(dateList[dateList.length - 1]);
-            const allMonths = eachMonthOfInterval({ start: timelineStart, end: timelineEnd });
-            
-            const startMonthIndex = adjustedStageStartDate 
-              ? allMonths.findIndex(m => format(m, "yyyy-MM") === format(adjustedStageStartDate, "yyyy-MM"))
-              : 0;
-            const endMonthIndex = adjustedStageEndDate
-              ? allMonths.findIndex(m => format(m, "yyyy-MM") === format(adjustedStageEndDate, "yyyy-MM"))
-              : startMonthIndex;
-            
-            startDateIndex = startMonthIndex >= 0 ? startMonthIndex * dailyWidth : 0;
-            const monthsSpanned = endMonthIndex >= startMonthIndex ? endMonthIndex - startMonthIndex + 1 : 1;
-            width = monthsSpanned * dailyWidth;
-          } else if (viewType === "Month" && dateList && dateList.length > 0) {
-            const allWeeks = eachWeekOfInterval(
-              { start: dateList[0], end: dateList[dateList.length - 1] },
-              { weekStartsOn: 1 }
-            );
-            
-            const startWeekIndex = adjustedStageStartDate 
-              ? allWeeks.findIndex(weekStart => {
-                  const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
-                  return adjustedStageStartDate >= weekStart && adjustedStageStartDate <= weekEnd;
-                })
-              : 0;
-            const endWeekIndex = adjustedStageEndDate
-              ? allWeeks.findIndex(weekStart => {
-                  const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
-                  return adjustedStageEndDate >= weekStart && adjustedStageEndDate <= weekEnd;
-                })
-              : startWeekIndex;
-            
-            startDateIndex = startWeekIndex >= 0 ? startWeekIndex * dailyWidth : 0;
-            const weeksSpanned = endWeekIndex >= startWeekIndex ? endWeekIndex - startWeekIndex + 1 : 1;
-            width = weeksSpanned * dailyWidth;
+          let daysBetween;
+          if (adjustedStageStartDate && adjustedStageEndDate) {
+            daysBetween = eachDayOfInterval({
+              start: adjustedStageStartDate,
+              end: adjustedStageEndDate,
+            })?.length;
           } else {
-            startDateIndex = adjustedStageStartDate
-              ? dateList?.findIndex((date) => isEqual(date, adjustedStageStartDate)) * dailyWidth
-              : 0;
-
-            let daysBetween;
-            if (adjustedStageStartDate && adjustedStageEndDate) {
-              daysBetween = eachDayOfInterval({
-                start: adjustedStageStartDate,
-                end: adjustedStageEndDate,
-              })?.length;
-            } else {
-              daysBetween = eachDayOfInterval({
-                start: new Date(findChannel?.campaign_start_date) || null,
-                end: isEndDateExceeded
-                  ? endDate
-                  : new Date(findChannel?.campaign_end_date) || null,
-              })?.length;
-            }
-
-            width = daysBetween > 0 ? dailyWidth * daysBetween : parentWidth;
+            daysBetween = eachDayOfInterval({
+              start: new Date(findChannel?.campaign_start_date) || null,
+              end: isEndDateExceeded
+                ? endDate
+                : new Date(findChannel?.campaign_end_date) || null,
+            })?.length;
           }
 
-          let left = Math.max(parentLeft || 0, startDateIndex < 0 ? (parentLeft || 0) : startDateIndex);
+          width = daysBetween > 0 ? dailyWidth * daysBetween : parentWidth;
+        }
 
-          width = Math.min(width, parentWidth || 0);
+        let left = Math.max(parentLeft || 0, startDateIndex < 0 ? (parentLeft || 0) : startDateIndex);
 
-          const parentRight = (parentLeft || 0) + (parentWidth || 0);
-          if (left + width > parentRight) {
-            if (width <= (parentWidth || 0)) {
-              left = Math.max(parentLeft || 0, parentRight - width);
-            } else {
-              width = parentWidth || 0;
-              left = parentLeft || 0;
-            }
-          }
+        width = Math.min(width, parentWidth || 0);
 
-          if (left < (parentLeft || 0)) {
+        const parentRight = (parentLeft || 0) + (parentWidth || 0);
+        if (left + width > parentRight) {
+          if (width <= (parentWidth || 0)) {
+            left = Math.max(parentLeft || 0, parentRight - width);
+          } else {
+            width = parentWidth || 0;
             left = parentLeft || 0;
           }
+        }
 
-          //@ts-ignore
-          const existingState = prev.find((state) => state.id === ch.id);
+        if (left < (parentLeft || 0)) {
+          left = parentLeft || 0;
+        }
 
-          return existingState
-            ? {
-                ...existingState,
-                left: left,
-                width: width,
-              }
-            : {
-                left: parentLeft,
-                width: Math.min(width, 50),
-              };
-        });
-
-        return newState;
+        return {
+          left: left,
+          width: width,
+          id: ch.id,
+        };
       });
-    }
-  }, [initialChannels, parentLeft, parentWidth, campaignFormData, isResizing, viewType, dailyWidth, dateList]);
+
+      hasInitializedRef.current = true;
+      return newState;
+    });
+  }, [initialChannels, parentLeft, parentWidth, viewType, dailyWidth, dateList]);
 
   useEffect(() => {
     if (!parentLeft && parentLeft !== 0) return;
@@ -1022,6 +1029,16 @@ const ResizableChannels = ({
     };
 
     const handleMouseUp = () => {
+      if (dragging) {
+        const { index } = dragging;
+        const state = channelState[index];
+        if (state) {
+          const startPixel = state.left - parentLeft;
+          const endPixel = startPixel + state.width;
+          pixelToDate(startPixel, parentWidth, index, "startDate", true);
+          pixelToDate(endPixel, parentWidth, index, "endDate", true);
+        }
+      }
       setDragging(null);  
     };
 
