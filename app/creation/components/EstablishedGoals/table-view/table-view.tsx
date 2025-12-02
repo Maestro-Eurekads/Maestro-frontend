@@ -171,7 +171,7 @@ const TableView = () => {
         table_headers: {
           ...prev.table_headers,
           [currentEditingStage]: Array.from(
-            new Set([...(prev.table_headers[currentEditingStage] || []), ...selectedMetrics.map((m) => m.obj)]),
+            new Set([...(prev.table_headers?.[currentEditingStage] || []), ...selectedMetrics.map((m) => m.obj)]),
           ),
         },
         selected_metrics: {
@@ -397,7 +397,7 @@ const TableView = () => {
   // const allObjectives = useMemo(() => Object.keys(tableHeaders), []);
 
   const objectivesForStage = useMemo(() => {
-    return currentEditingStage ? campaignFormData?.table_headers[currentEditingStage] || [] : []
+    return currentEditingStage ? campaignFormData?.table_headers?.[currentEditingStage] || [] : []
   }, [campaignFormData, currentEditingStage])
 
   const existingHeaderNames = useMemo(() => {
