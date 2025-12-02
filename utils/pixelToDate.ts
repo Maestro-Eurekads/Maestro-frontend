@@ -1,22 +1,23 @@
-import { eachMonthOfInterval, startOfYear, endOfYear, startOfMonth } from "date-fns";
+import { eachMonthOfInterval, eachWeekOfInterval, startOfYear, endOfYear, startOfMonth, startOfWeek, endOfWeek } from "date-fns";
 
 export const pixelToDate = (
    {dateList, range, pixel, containerWidth, fieldName, dailyWidth}: {dateList: Date[], range: string, pixel: number, containerWidth: number, fieldName?: string, dailyWidth?: number}
   ) => {
     if (!dateList.length) return new Date();
     const firstDate = dateList[0];
+    const lastDate = dateList[dateList.length - 1];
     const totalDays = dateList.length;
+
+    let adjustedPixel = pixel;
+    if (fieldName === "endDate") {
+      adjustedPixel = Math.max(0, pixel - 1);
+    }
 
     if (range === "Year") {
       const monthWidth = dailyWidth || 80;
       const timelineStart = startOfYear(firstDate);
-      const timelineEnd = endOfYear(dateList[dateList.length - 1]);
+      const timelineEnd = endOfYear(lastDate);
       const allMonths = eachMonthOfInterval({ start: timelineStart, end: timelineEnd });
-      
-      let adjustedPixel = pixel;
-      if (fieldName === "endDate") {
-        adjustedPixel = Math.max(0, pixel - 1);
-      }
       
       const monthIndex = Math.min(
         allMonths.length - 1,
@@ -30,12 +31,25 @@ export const pixelToDate = (
       return startOfMonth(allMonths[monthIndex]);
     }
 
-    const unitWidth = dailyWidth || (containerWidth / totalDays);
-    
-    let adjustedPixel = pixel;
-    if (fieldName === "endDate") {
-      adjustedPixel = Math.max(0, pixel - 1);
+    if (range === "Month") {
+      const weekWidth = dailyWidth || 100;
+      const allWeeks = eachWeekOfInterval(
+        { start: firstDate, end: lastDate },
+        { weekStartsOn: 1 }
+      );
+      
+      const weekIndex = Math.min(
+        allWeeks.length - 1,
+        Math.max(0, Math.floor(adjustedPixel / weekWidth))
+      );
+
+      if (fieldName === "endDate") {
+        return endOfWeek(allWeeks[weekIndex], { weekStartsOn: 1 });
+      }
+      return startOfWeek(allWeeks[weekIndex], { weekStartsOn: 1 });
     }
+
+    const unitWidth = dailyWidth || (containerWidth / totalDays);
     
     const dayIndex = Math.min(
       totalDays - 1,

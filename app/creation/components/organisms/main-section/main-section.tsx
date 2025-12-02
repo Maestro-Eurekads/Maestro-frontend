@@ -8,6 +8,7 @@ import {
   differenceInCalendarDays,
   differenceInCalendarMonths,
   differenceInCalendarYears,
+  differenceInCalendarWeeks,
   eachWeekOfInterval,
   format,
   isSameWeek,
@@ -56,13 +57,17 @@ const MainSection = ({
       case "Year":
         return 80;
       case "Month":
+        return 100;
       default:
-        return 15;
+        return 30;
     }
   }, [range]);
 
   const getScrollTriggerDistance = useCallback(() => {
     if (range === "Year") {
+      return 1000;
+    }
+    if (range === "Month") {
       return 1000;
     }
     return 800;
@@ -121,6 +126,10 @@ const MainSection = ({
         const monthsFromStart = differenceInCalendarMonths(focusDate, yearTimelineStart);
         const monthWidth = 80;
         scrollPosition = Math.max(0, (monthsFromStart * monthWidth) - 150);
+      } else if (range === "Month") {
+        const weeksFromStart = differenceInCalendarWeeks(focusDate, timelineStart, { weekStartsOn: 1 });
+        const weekWidth = 100;
+        scrollPosition = Math.max(0, (weeksFromStart * weekWidth) - 150);
       } else {
         const daysFromStart = differenceInCalendarDays(focusDate, timelineStart);
         const dailyWidth = getDailyWidthForView();
@@ -132,7 +141,7 @@ const MainSection = ({
         hasScrolledToInitial.current = true;
       }, 200);
     }
-  }, [isInfiniteTimeline, timelineStart, campaignFormData?.channel_mix, campaignFormData?.campaign_timeline_start_date, rrange?.length, getDailyWidthForView, range]);
+  }, [range]);
 
   const previousViewRef = useRef<string | null>(null);
   
@@ -176,6 +185,10 @@ const MainSection = ({
           const monthsFromStart = differenceInCalendarMonths(focusDate, yearTimelineStart);
           const monthWidth = 80;
           scrollPosition = Math.max(0, (monthsFromStart * monthWidth) - 150);
+        } else if (range === "Month") {
+          const weeksFromStart = differenceInCalendarWeeks(focusDate, timelineStart, { weekStartsOn: 1 });
+          const weekWidth = 100;
+          scrollPosition = Math.max(0, (weeksFromStart * weekWidth) - 150);
         } else {
           const daysFromStart = differenceInCalendarDays(focusDate, timelineStart);
           const dailyWidth = getDailyWidthForView();

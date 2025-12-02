@@ -1,8 +1,8 @@
 "use client"
 
 import type React from "react"
-import { useCallback, useEffect, useState } from "react"
-import { eachDayOfInterval, addDays, format, subMonths, addMonths, startOfMonth, endOfMonth } from "date-fns"
+import { useCallback, useEffect, useState, useMemo } from "react"
+import { eachWeekOfInterval, format, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns"
 import { useCampaigns } from "app/utils/CampaignsContext"
 import { useDateRange } from "src/date-range-context"
 
@@ -14,6 +14,8 @@ interface MonthIntervalProps {
   disableDrag?: any
 }
 
+const WEEK_WIDTH_PX = 100
+
 const MonthInterval: React.FC<MonthIntervalProps> = ({
   monthsCount,
   view,
@@ -21,255 +23,184 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
   disableDrag,
   funnelData,
 }) => {
-  const [monthNames, setSetMonthName] = useState([])
-  const [daysInMonth, setDaysInEachMonth] = useState<Record<string, number>>({})
   const { campaignFormData } = useCampaigns()
-  const { extendedRange, isInfiniteTimeline, bufferMonths } = useDateRange()
-  const [containerWidth, setContainerWidth] = useState(0)
+  const { extendedRange, isInfiniteTimeline } = useDateRange()
 
-  // Calculate days in each month from extended range
-  useEffect(() => {
-    // Always use extended range when available (for infinite timeline)
-    if (extendedRange && extendedRange.length > 0) {
-      const daysInMonthMap: Record<string, number> = {}
-      extendedRange.forEach((date) => {
-        const monthYear = format(date, "MMMM yyyy")
-        daysInMonthMap[monthYear] = (daysInMonthMap[monthYear] || 0) + 1
-      })
-      setDaysInEachMonth(daysInMonthMap)
-    } else if (getDaysInEachMonth) {
-      setDaysInEachMonth(getDaysInEachMonth())
-    }
-  }, [extendedRange, isInfiniteTimeline])
-
-  // Optimized grid template columns calculation
-  const totalDays = Object.values(daysInMonth || {}).reduce((acc, days) => acc + (days as number), 0)
-
-  const monthCount = Object.keys(daysInMonth || {}).length
-
-  const calculateDailyWidthForGrid = useCallback(() => {
-      if (isInfiniteTimeline) {
-      return 15
-    }
+  const weeks = useMemo(() => {
+    if (!extendedRange || extendedRange.length === 0) return []
     
-    const getViewportWidth = () => {
-      return window.innerWidth || document.documentElement.clientWidth || 0
-    }
-    const screenWidth = getViewportWidth()
-    const contWidth = screenWidth - (disableDrag ? 80 : 367)
-    const dailyWidth = contWidth / (totalDays || 30)
-    return Math.max(dailyWidth, 10)
-  }, [disableDrag, totalDays, isInfiniteTimeline])
-
-  const dailyWidthForGrid = calculateDailyWidthForGrid()
-
-  const gridTemplateColumns = (() => {
-    let result: string;
-    // Always use pixel widths when infinite timeline is enabled (regardless of month count)
-    if (isInfiniteTimeline) {
-      // For infinite timeline: use pixel widths based on days in each month
-      result = Object.values(daysInMonth || {})
-        .map((days) => `${(days as number) * dailyWidthForGrid}px`)
-        .join(" ")
-    } else if (monthCount > 2) {
-      // When more than 2 months but not infinite, each month takes 20% of container
-      result = Object.keys(daysInMonth || {})
-        .map(() => `20%`)
-        .join(" ")
-    } else {
-      // Original proportional logic for 1-2 months
-      result = Object.values(daysInMonth || {})
-        .map((days) => `${Math.round(((days as number) / totalDays) * 100)}%`)
-        .join(" ")
-    }
-    return result
-  })()
-
-  useEffect(() => {
-    if (campaignFormData) {
-      const startDate = new Date(campaignFormData?.campaign_timeline_start_date)
-      const endDate = new Date(campaignFormData?.campaign_timeline_end_date)
-
-      const differenceInDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
-
-      const dateList = eachDayOfInterval({
-        start: new Date(campaignFormData?.campaign_timeline_start_date) || new Date(),
-        end:
-          addDays(new Date(campaignFormData?.campaign_timeline_start_date), differenceInDays) ||
-          addDays(new Date(), 13),
-      })
-
-      // Extract month names
-      const names = Array.from(new Set(dateList.map((date) => format(date, "MMMM"))))
-      setSetMonthName(names)
-    }
-  }, [campaignFormData])
-
-  useEffect(()=>{
-    const getViewportWidth = () => {
-      return window.innerWidth || document.documentElement.clientWidth || 0
-    }
-
-    const screenWidth = getViewportWidth()
-    const contWidth = screenWidth - (disableDrag ? 80 : 367)
-    setContainerWidth(contWidth)
-  }, [])
-
-  const calculateDailyWidth = useCallback(() => {
-    const getViewportWidth = () => {
-      return window.innerWidth || document.documentElement.clientWidth || 0
-    }
-
-    const screenWidth = getViewportWidth()
-    const contWidth = screenWidth - (disableDrag ? 80 : 367)
-
-    let dailyWidth: number
-
-    if (monthCount > 2) {
-      // When more than 2 months, each month takes 30% of container
-      const monthWidth = contWidth
-      const avgDaysPerMonth = totalDays / monthCount
-      dailyWidth = monthWidth / avgDaysPerMonth
-    } else {
-      // Original logic for 1-2 months
-      const totalDays = funnelData?.endDay || 30
-      dailyWidth = contWidth / totalDays
-    }
-
-    // Ensure minimum width constraints
-    dailyWidth = Math.max(dailyWidth, 10)
-
-    return Math.round(dailyWidth)
-  }, [disableDrag, funnelData?.endDay, monthCount, totalDays])
-
-  const dailyWidth = calculateDailyWidth()
-
-  // Calculate background size based on month count
-  const getBackgroundSize = useCallback(() => {
-    if (isInfiniteTimeline && monthCount > 2) {
-      // For infinite timeline, use pixel-based background
-      return `${dailyWidthForGrid}px 100%`
-    } else if (monthCount > 2) {
-      // For multiple months with percentage-based
-      return `20% 100%`
-    } else {
-      // Original background sizing for 1-2 months
-      return `100% 100%`
-    }
-  }, [monthCount, isInfiniteTimeline, dailyWidthForGrid])
-
-  const monthEntries = Object.entries(daysInMonth || {})
-  const yearHeaders: Array<{ year: string, startIndex: number, span: number }> = []
-  let currentYear: string | null = null
-  let currentStartIndex = 0
-  let currentSpan = 0
-
-  monthEntries.forEach(([monthName], index) => {
-    const parts = monthName.split(' ')
-    const year = parts.length > 1 ? parts[parts.length - 1] : new Date().getFullYear().toString()
+    const startDate = extendedRange[0]
+    const endDate = extendedRange[extendedRange.length - 1]
     
-    if (currentYear === null) {
-      currentYear = year
-      currentStartIndex = index
-      currentSpan = 1
-    } else if (currentYear === year) {
-      currentSpan++
-    } else {
-      yearHeaders.push({
-        year: currentYear,
-        startIndex: currentStartIndex,
-        span: currentSpan
-      })
-      currentYear = year
-      currentStartIndex = index
-      currentSpan = 1
-    }
-  })
-  
-  if (currentYear !== null) {
-    yearHeaders.push({
-      year: currentYear,
-      startIndex: currentStartIndex,
-      span: currentSpan
+    const allWeeks = eachWeekOfInterval(
+      { start: startDate, end: endDate },
+      { weekStartsOn: 1 }
+    )
+    
+    return allWeeks.map((weekStart) => {
+      const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 })
+      return {
+        start: weekStart,
+        end: weekEnd,
+        label: `${format(weekStart, "d")}-${format(weekEnd, "d")}`,
+        month: format(weekStart, "MMM"),
+        year: format(weekStart, "yyyy"),
+        monthYear: format(weekStart, "MMMM yyyy"),
+      }
     })
-  }
+  }, [extendedRange])
 
-  const yearStartIndices = new Map<number, string>()
-  yearHeaders.forEach(header => {
-    yearStartIndices.set(header.startIndex, header.year)
-  })
+  const weeksByMonth = useMemo(() => {
+    const grouped: Record<string, typeof weeks> = {}
+    weeks.forEach((week) => {
+      if (!grouped[week.monthYear]) {
+        grouped[week.monthYear] = []
+      }
+      grouped[week.monthYear].push(week)
+    })
+    return grouped
+  }, [weeks])
 
-return (
-  <div className={isInfiniteTimeline ? "min-w-max border-y relative" : "w-full border-y relative"}>
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: gridTemplateColumns,
-        position: "relative",
-        zIndex: 20, 
-      }}
-      className="border-b border-blue-200"
-    >
-      {yearHeaders.map((header, idx) => (
-        <div
-          key={`year-${idx}`}
-          style={{
-            gridColumn: `span ${header.span}`,
-            position: "relative", 
-          }}
-          className="h-full" 
-        >
+  const sortedMonths = useMemo(() => {
+    return Object.keys(weeksByMonth).sort((a, b) => {
+      const dateA = new Date(a)
+      const dateB = new Date(b)
+      return dateA.getTime() - dateB.getTime()
+    })
+  }, [weeksByMonth])
+
+  const yearHeaders = useMemo(() => {
+    const headers: Array<{ year: string; span: number }> = []
+    let currentYear: string | null = null
+    let currentSpan = 0
+
+    sortedMonths.forEach((monthYear) => {
+      const year = monthYear.split(" ")[1]
+      const weeksInMonth = weeksByMonth[monthYear].length
+
+      if (currentYear === null) {
+        currentYear = year
+        currentSpan = weeksInMonth
+      } else if (currentYear === year) {
+        currentSpan += weeksInMonth
+      } else {
+        headers.push({ year: currentYear, span: currentSpan })
+        currentYear = year
+        currentSpan = weeksInMonth
+      }
+    })
+
+    if (currentYear !== null) {
+      headers.push({ year: currentYear, span: currentSpan })
+    }
+
+    return headers
+  }, [sortedMonths, weeksByMonth])
+
+  const totalWeeks = weeks.length
+
+  const calculateContainerWidth = useCallback(() => {
+    if (typeof window === "undefined") return 1000
+    const screenWidth = window.innerWidth || document.documentElement.clientWidth || 0
+    return screenWidth - (disableDrag ? 80 : 367)
+  }, [disableDrag])
+
+  const weekWidth = isInfiniteTimeline ? WEEK_WIDTH_PX : Math.max(calculateContainerWidth() / totalWeeks, 60)
+
+  const gridTemplateColumns = useMemo(() => {
+    if (isInfiniteTimeline) {
+      return `repeat(${totalWeeks}, ${WEEK_WIDTH_PX}px)`
+    } else {
+      return `repeat(${totalWeeks}, ${weekWidth}px)`
+    }
+  }, [totalWeeks, isInfiniteTimeline, weekWidth])
+
+  const allWeeksFlat = useMemo(() => {
+    const result: Array<{
+      week: typeof weeks[0]
+      isFirstOfMonth: boolean
+      monthName: string
+    }> = []
+
+    sortedMonths.forEach((monthYear) => {
+      const monthWeeks = weeksByMonth[monthYear]
+      monthWeeks.forEach((week, idx) => {
+        result.push({
+          week,
+          isFirstOfMonth: idx === 0,
+          monthName: monthYear.split(" ")[0],
+        })
+      })
+    })
+
+    return result
+  }, [sortedMonths, weeksByMonth])
+
+  return (
+    <div className={isInfiniteTimeline ? "min-w-max border-y relative" : "w-full border-y relative"}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns,
+        }}
+        className="border-b border-blue-200"
+      >
+        {yearHeaders.map((header, idx) => (
           <div
+            key={`year-${idx}`}
             style={{
-              position: "sticky",
-              left: 0,
-              width: "fit-content",
-              zIndex: 10,
-              backgroundColor: "white", 
-              paddingRight: "12px", 
+              gridColumn: `span ${header.span}`,
             }}
-            className="py-2 px-2 border-r border-blue-200/50 h-full flex items-center"
+            className="relative h-full"
           >
-            <span className="font-[600] text-[16px] text-[rgba(0,0,0,0.7)]">
-              {header.year}
-            </span>
-          </div>
-        </div>
-      ))}
-    </div>
-
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns,
-        backgroundImage: `linear-gradient(to right, rgba(0,0,255,0.2) 1px, transparent 1px)`,
-        backgroundSize: getBackgroundSize(),
-        zIndex: 0, 
-      }}
-    >
-      {Object.entries(daysInMonth || {}).map(([monthName], i) => {
-        const monthOnly = monthName.split(" ")[0]
-        const isYearBoundary = i > 0 && yearStartIndices.has(i)
-
-        return (
-          <div
-            key={i}
-            className="flex flex-col items-center relative py-3 border-r border-blue-200 last:border-r-0"
-            style={{
-              borderLeft: isYearBoundary ? "2px solid rgba(0,0,255,0.3)" : "none",
-            }}
-          >
-            <div className="flex flex-row gap-2 items-center">
-              <span className="font-[500] text-[13px] text-[rgba(0,0,0,0.5)]">
-                {monthOnly}
+            <div
+              style={{
+                position: "sticky",
+                left: 0,
+                width: "fit-content",
+                backgroundColor: "white",
+                paddingRight: "12px",
+                zIndex: 10,
+              }}
+              className="py-2 px-3 border-r border-blue-200/50 h-full flex items-center"
+            >
+              <span className="font-[600] text-[16px] text-[rgba(0,0,0,0.7)]">
+                {header.year}
               </span>
             </div>
           </div>
-        )
-      })}
-    </div>
-  </div>
-)
-}
-export default MonthInterval
+        ))}
+      </div>
 
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns,
+          backgroundImage: `linear-gradient(to right, rgba(0,0,255,0.1) 1px, transparent 1px)`,
+          backgroundSize: `${weekWidth}px 100%`,
+        }}
+      >
+        {allWeeksFlat.map((item, i) => (
+          <div
+            key={`week-${i}`}
+            className="flex flex-col items-center justify-center relative py-2 border-r border-blue-200 last:border-r-0"
+            style={{
+              borderLeft: item.isFirstOfMonth && i > 0 ? "2px solid rgba(0,0,255,0.3)" : "none",
+            }}
+          >
+            {item.isFirstOfMonth && (
+              <span className="font-[600] text-[12px] text-[rgba(0,0,0,0.7)] mb-1">
+                {item.monthName}
+              </span>
+            )}
+            <span className="font-[400] text-[11px] text-[rgba(0,0,0,0.4)]">
+              {item.week.label}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+export default MonthInterval

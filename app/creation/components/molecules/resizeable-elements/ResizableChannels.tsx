@@ -10,12 +10,15 @@ import {
   differenceInCalendarDays,
   eachDayOfInterval,
   eachMonthOfInterval,
+  eachWeekOfInterval,
   isEqual,
   parseISO,
   format,
   startOfYear,
   endOfYear,
   startOfMonth,
+  startOfWeek,
+  endOfWeek,
 } from "date-fns";
 import moment from "moment";
 import { getCurrencySymbol, renderUploadedFile } from "components/data";
@@ -210,34 +213,6 @@ const ResizableChannels = ({
   ) => {
     if (!dateList || dateList.length === 0) return;
 
-    let dayStartIndex: number;
-    let dayEndIndex: number;
-
-    if (viewType === "Year") {
-      const timelineStart = startOfYear(dateList[0]);
-      const timelineEnd = endOfYear(dateList[dateList.length - 1]);
-      const allMonths = eachMonthOfInterval({ start: timelineStart, end: timelineEnd });
-      
-      dayStartIndex = Math.min(
-        allMonths.length - 1,
-        Math.max(0, Math.floor(startPixel / dailyWidth))
-      );
-      dayEndIndex = Math.min(
-        allMonths.length - 1,
-        Math.max(0, Math.floor(endPixel / dailyWidth))
-      );
-    } else {
-      const totalDays = dateList.length - 1;
-      dayStartIndex = Math.min(
-        totalDays,
-        Math.max(0, Math.floor(startPixel / dailyWidth))
-      );
-      dayEndIndex = Math.min(
-        totalDays,
-        Math.max(0, Math.floor(endPixel / dailyWidth))
-      );
-    }
-
     let startDateValue: Date;
     let endDateValue: Date;
     let formattedStartDate: string;
@@ -247,13 +222,34 @@ const ResizableChannels = ({
       const timelineStart = startOfYear(dateList[0]);
       const timelineEnd = endOfYear(dateList[dateList.length - 1]);
       const allMonths = eachMonthOfInterval({ start: timelineStart, end: timelineEnd });
-      startDateValue = allMonths[dayStartIndex] || startDate;
-      endDateValue = allMonths[dayEndIndex] || endDate;
+      
+      const startIdx = Math.min(allMonths.length - 1, Math.max(0, Math.floor(startPixel / dailyWidth)));
+      const endIdx = Math.min(allMonths.length - 1, Math.max(0, Math.floor(endPixel / dailyWidth)));
+      
+      startDateValue = allMonths[startIdx] || startDate;
+      endDateValue = allMonths[endIdx] || endDate;
       formattedStartDate = format(startDateValue, "MMM yyyy");
       formattedEndDate = format(endDateValue, "MMM yyyy");
+    } else if (viewType === "Month") {
+      const allWeeks = eachWeekOfInterval(
+        { start: dateList[0], end: dateList[dateList.length - 1] },
+        { weekStartsOn: 1 }
+      );
+      
+      const startIdx = Math.min(allWeeks.length - 1, Math.max(0, Math.floor(startPixel / dailyWidth)));
+      const endIdx = Math.min(allWeeks.length - 1, Math.max(0, Math.floor(endPixel / dailyWidth)));
+      
+      startDateValue = allWeeks[startIdx] || startDate;
+      endDateValue = endOfWeek(allWeeks[endIdx], { weekStartsOn: 1 }) || endDate;
+      formattedStartDate = format(startDateValue, "MMM d");
+      formattedEndDate = format(endDateValue, "MMM d");
     } else {
-      startDateValue = dateList[dayStartIndex] || startDate;
-      endDateValue = dateList[dayEndIndex] || endDate;
+      const totalDays = dateList.length - 1;
+      const startIdx = Math.min(totalDays, Math.max(0, Math.floor(startPixel / dailyWidth)));
+      const endIdx = Math.min(totalDays, Math.max(0, Math.floor(endPixel / dailyWidth)));
+      
+      startDateValue = dateList[startIdx] || startDate;
+      endDateValue = dateList[endIdx] || endDate;
       formattedStartDate = format(startDateValue, "MMM dd");
       formattedEndDate = format(endDateValue, "MMM dd");
     }
@@ -519,6 +515,23 @@ const ResizableChannels = ({
         calculatedDate = lastDayOfMonth;
       } else {
         calculatedDate = startOfMonth(allMonths[monthIndex]);
+      }
+    } else if (viewType === "Month") {
+      const allWeeks = eachWeekOfInterval(
+        { start: dateList[0], end: dateList[dateList.length - 1] },
+        { weekStartsOn: 1 }
+      );
+      
+      const weekIndex = Math.min(
+        allWeeks.length - 1,
+        Math.max(0, Math.floor(adjustedPixel / dailyWidth))
+      );
+      
+      if (fieldName === "endDate") {
+        const weekEnd = endOfWeek(allWeeks[weekIndex], { weekStartsOn: 1 });
+        calculatedDate = weekEnd;
+      } else {
+        calculatedDate = startOfWeek(allWeeks[weekIndex], { weekStartsOn: 1 });
       }
     } else {
       const totalDays = dateList.length;
@@ -798,6 +811,28 @@ const ResizableChannels = ({
             startDateIndex = startMonthIndex >= 0 ? startMonthIndex * dailyWidth : 0;
             const monthsSpanned = endMonthIndex >= startMonthIndex ? endMonthIndex - startMonthIndex + 1 : 1;
             width = monthsSpanned * dailyWidth;
+          } else if (viewType === "Month" && dateList && dateList.length > 0) {
+            const allWeeks = eachWeekOfInterval(
+              { start: dateList[0], end: dateList[dateList.length - 1] },
+              { weekStartsOn: 1 }
+            );
+            
+            const startWeekIndex = adjustedStageStartDate 
+              ? allWeeks.findIndex(weekStart => {
+                  const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
+                  return adjustedStageStartDate >= weekStart && adjustedStageStartDate <= weekEnd;
+                })
+              : 0;
+            const endWeekIndex = adjustedStageEndDate
+              ? allWeeks.findIndex(weekStart => {
+                  const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
+                  return adjustedStageEndDate >= weekStart && adjustedStageEndDate <= weekEnd;
+                })
+              : startWeekIndex;
+            
+            startDateIndex = startWeekIndex >= 0 ? startWeekIndex * dailyWidth : 0;
+            const weeksSpanned = endWeekIndex >= startWeekIndex ? endWeekIndex - startWeekIndex + 1 : 1;
+            width = weeksSpanned * dailyWidth;
           } else {
             startDateIndex = adjustedStageStartDate
               ? dateList?.findIndex((date) => isEqual(date, adjustedStageStartDate)) * dailyWidth
@@ -906,6 +941,12 @@ const ResizableChannels = ({
       const timelineEnd = endOfYear(dateList[dateList.length - 1]);
       const allMonths = eachMonthOfInterval({ start: timelineStart, end: timelineEnd });
       totalUnits = allMonths.length - 1;
+    } else if (viewType === "Month" && dateList && dateList.length > 0) {
+      const allWeeks = eachWeekOfInterval(
+        { start: dateList[0], end: dateList[dateList.length - 1] },
+        { weekStartsOn: 1 }
+      );
+      totalUnits = allWeeks.length - 1;
     }
 
     const handleMouseMove = (event) => {
