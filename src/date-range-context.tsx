@@ -8,9 +8,8 @@ export type DateRange = {
   end: Date | null;
 };
 
-// Start with 6 months buffer, extend by 6 months when reaching edges
 const INITIAL_MONTHS_BUFFER = 6;
-const EXTENSION_MONTHS = 6; // Add 6 months at a time (not a full year - better for performance)
+const EXTENSION_MONTHS = 12;
 
 type DateRangeContextType = {
   range: Date[];

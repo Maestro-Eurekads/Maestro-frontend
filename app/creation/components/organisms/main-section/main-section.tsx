@@ -24,10 +24,7 @@ import YearInterval from "../../atoms/date-interval/YearInterval";
 import { useActive } from "app/utils/ActiveContext";
 import { useComments } from "app/utils/CommentProvider";
 
-// Trigger distance for infinite scroll (in pixels) - larger = smoother
-const SCROLL_TRIGGER_DISTANCE = 500;
-// Debounce delay to prevent rapid extensions
-const EXTENSION_DEBOUNCE_MS = 300;
+const EXTENSION_DEBOUNCE_MS = 100;
 
 const MainSection = ({
   hideDate,
@@ -63,6 +60,13 @@ const MainSection = ({
         return 15;
     }
   }, [range]);
+
+  const getScrollTriggerDistance = useCallback(() => {
+    if (range === "Year") {
+      return 1000;
+    }
+    return 800;
+  }, [range]);
   
   useEffect(() => {
     if (
@@ -70,21 +74,55 @@ const MainSection = ({
       scrollContainerRef.current && 
       isInfiniteTimeline && 
       timelineStart && 
-      campaignFormData?.campaign_timeline_start_date &&
       rrange?.length > 0
     ) {
       const container = scrollContainerRef.current;
-      const campaignStart = new Date(campaignFormData.campaign_timeline_start_date);
+      
+      let focusDate: Date | null = null;
+      
+      if (campaignFormData?.channel_mix && campaignFormData.channel_mix.length > 0) {
+        const allDates: Date[] = [];
+        campaignFormData.channel_mix.forEach((stage: any) => {
+          if (stage.funnel_stage_timeline_start_date) {
+            allDates.push(new Date(stage.funnel_stage_timeline_start_date));
+          }
+          const mediaTypes = [
+            "social_media", "display_networks", "search_engines", "streaming",
+            "ooh", "broadcast", "messaging", "print", "e_commerce", "in_game", "mobile"
+          ];
+          mediaTypes.forEach((type) => {
+            if (stage[type] && Array.isArray(stage[type])) {
+              stage[type].forEach((platform: any) => {
+                if (platform.campaign_start_date) {
+                  allDates.push(new Date(platform.campaign_start_date));
+                }
+              });
+            }
+          });
+        });
+        
+        if (allDates.length > 0) {
+          focusDate = allDates.reduce((earliest, current) => 
+            current < earliest ? current : earliest
+          );
+        }
+      }
+      
+      if (!focusDate && campaignFormData?.campaign_timeline_start_date) {
+        focusDate = new Date(campaignFormData.campaign_timeline_start_date);
+      }
+      
+      if (!focusDate) return;
       
       let scrollPosition: number;
       
       if (range === "Year") {
         const yearTimelineStart = startOfYear(timelineStart);
-        const monthsFromStart = differenceInCalendarMonths(campaignStart, yearTimelineStart);
+        const monthsFromStart = differenceInCalendarMonths(focusDate, yearTimelineStart);
         const monthWidth = 80;
         scrollPosition = Math.max(0, (monthsFromStart * monthWidth) - 150);
       } else {
-        const daysFromStart = differenceInCalendarDays(campaignStart, timelineStart);
+        const daysFromStart = differenceInCalendarDays(focusDate, timelineStart);
         const dailyWidth = getDailyWidthForView();
         scrollPosition = Math.max(0, (daysFromStart * dailyWidth) - 150);
       }
@@ -94,54 +132,115 @@ const MainSection = ({
         hasScrolledToInitial.current = true;
       }, 200);
     }
-  }, [isInfiniteTimeline, timelineStart, campaignFormData?.campaign_timeline_start_date, rrange?.length, getDailyWidthForView, range]);
+  }, [isInfiniteTimeline, timelineStart, campaignFormData?.channel_mix, campaignFormData?.campaign_timeline_start_date, rrange?.length, getDailyWidthForView, range]);
+
+  const previousViewRef = useRef<string | null>(null);
+  
+  useEffect(() => {
+    if (
+      scrollContainerRef.current && 
+      isInfiniteTimeline && 
+      timelineStart && 
+      range &&
+      previousViewRef.current !== null &&
+      previousViewRef.current !== range
+    ) {
+      const container = scrollContainerRef.current;
+      
+      let focusDate: Date | null = null;
+      
+      if (campaignFormData?.channel_mix && campaignFormData.channel_mix.length > 0) {
+        const allDates: Date[] = [];
+        campaignFormData.channel_mix.forEach((stage: any) => {
+          if (stage.funnel_stage_timeline_start_date) {
+            allDates.push(new Date(stage.funnel_stage_timeline_start_date));
+          }
+        });
+        
+        if (allDates.length > 0) {
+          focusDate = allDates.reduce((earliest, current) => 
+            current < earliest ? current : earliest
+          );
+        }
+      }
+      
+      if (!focusDate && campaignFormData?.campaign_timeline_start_date) {
+        focusDate = new Date(campaignFormData.campaign_timeline_start_date);
+      }
+      
+      if (focusDate) {
+        let scrollPosition: number;
+        
+        if (range === "Year") {
+          const yearTimelineStart = startOfYear(timelineStart);
+          const monthsFromStart = differenceInCalendarMonths(focusDate, yearTimelineStart);
+          const monthWidth = 80;
+          scrollPosition = Math.max(0, (monthsFromStart * monthWidth) - 150);
+        } else {
+          const daysFromStart = differenceInCalendarDays(focusDate, timelineStart);
+          const dailyWidth = getDailyWidthForView();
+          scrollPosition = Math.max(0, (daysFromStart * dailyWidth) - 150);
+        }
+        
+        setTimeout(() => {
+          container.scrollLeft = scrollPosition;
+        }, 100);
+      }
+    }
+    
+    previousViewRef.current = range;
+  }, [range, isInfiniteTimeline, timelineStart, campaignFormData?.channel_mix, campaignFormData?.campaign_timeline_start_date, getDailyWidthForView]);
   
   const handleScroll = useCallback(() => {
-    if (!isInfiniteTimeline || !scrollContainerRef.current || isExtendingRef.current) return;
-    
-    const now = Date.now();
-    if (now - lastExtensionTime.current < EXTENSION_DEBOUNCE_MS) return;
+    if (!isInfiniteTimeline || !scrollContainerRef.current) return;
     
     const container = scrollContainerRef.current;
     const scrollLeft = container.scrollLeft;
     const scrollWidth = container.scrollWidth;
     const clientWidth = container.clientWidth;
+    const triggerDistance = getScrollTriggerDistance();
     
-    if (scrollLeft < SCROLL_TRIGGER_DISTANCE) {
+    const now = Date.now();
+    const timeSinceLastExtension = now - lastExtensionTime.current;
+    
+    if (scrollLeft < triggerDistance && !isExtendingRef.current) {
+      if (timeSinceLastExtension < EXTENSION_DEBOUNCE_MS) return;
+      
       isExtendingRef.current = true;
       lastExtensionTime.current = now;
       
       const oldScrollWidth = container.scrollWidth;
+      const currentScrollLeft = container.scrollLeft;
       
       extendTimelineBefore();
       
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          const newScrollWidth = container.scrollWidth;
-          const addedWidth = newScrollWidth - oldScrollWidth;
-          
-          if (addedWidth > 0) {
-            container.scrollLeft = scrollLeft + addedWidth;
-          }
-          
-          isExtendingRef.current = false;
-        });
-      });
+      setTimeout(() => {
+        const newScrollWidth = container.scrollWidth;
+        const addedWidth = newScrollWidth - oldScrollWidth;
+        
+        if (addedWidth > 0) {
+          container.scrollLeft = currentScrollLeft + addedWidth;
+        }
+        
+        isExtendingRef.current = false;
+      }, 50);
     }
     
-    if (scrollWidth - scrollLeft - clientWidth < SCROLL_TRIGGER_DISTANCE) {
+    const distanceFromEnd = scrollWidth - scrollLeft - clientWidth;
+    
+    if (distanceFromEnd < triggerDistance && !isExtendingRef.current) {
+      if (timeSinceLastExtension < EXTENSION_DEBOUNCE_MS) return;
+      
       isExtendingRef.current = true;
       lastExtensionTime.current = now;
       
       extendTimelineAfter();
       
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          isExtendingRef.current = false;
-        });
-      });
+      setTimeout(() => {
+        isExtendingRef.current = false;
+      }, 50);
     }
-  }, [isInfiniteTimeline, extendTimelineBefore, extendTimelineAfter]);
+  }, [isInfiniteTimeline, extendTimelineBefore, extendTimelineAfter, getScrollTriggerDistance]);
   
   useEffect(() => {
     const container = scrollContainerRef.current;
@@ -307,14 +406,7 @@ const MainSection = ({
                 {renderTimeline()}
               </div>
             </div>
-            <div
-              className="absolute right-[4px] top-18 w-1 bg-orange-500 z-20"
-              style={{ height: "94%" }}
-            ></div>
-            <div
-              className="absolute left-[8px] top-18 w-1 bg-orange-500 z-20"
-              style={{ height: "94%" }}
-            ></div>
+           
             <ResizeableElements
               funnelData={funnelsData}
               disableDrag={disableDrag}
