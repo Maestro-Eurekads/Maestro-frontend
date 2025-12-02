@@ -3,7 +3,6 @@ import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import type { StaticImageData } from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
-// import DraggableChannel from "../../../../../components/DraggableChannel";
 import ResizableChannels from "./ResizableChannels";
 import { useFunnelContext } from "../../../../utils/FunnelContextType";
 import {
@@ -79,9 +78,11 @@ const ResizeableElements = ({
   const { funnelWidths } = useFunnelContext();
   const { close } = useComments();
   const [openChannels, setOpenChannels] = useState<Record<string, boolean>>({});
-  const { range } = useDateRange();
+  const { range, extendedRange, isInfiniteTimeline, campaignRange } = useDateRange();
   const { range: rrange } = useRange();
   const { campaignFormData, loadingCampaign } = useCampaigns();
+  
+  const gridRange = isInfiniteTimeline ? extendedRange : range;
   const [channelWidths, setChannelWidths] = useState<Record<string, number>>(
     {}
   );
@@ -115,17 +116,12 @@ const ResizeableElements = ({
 
   const updateChannelWidth = (channelId: string, width: number) => {
     setChannelWidths((prev) => ({ ...prev, [channelId]: width }));
-    // convertWidthAndPositionToDates({widthValue: width, stageName: channelId});
   };
 
   const updateChannelPosition = (channelId: string, left: number) => {
     setChannelPositions((prev) => ({ ...prev, [channelId]: left }));
-    // convertWidthAndPositionToDates({ leftValue: left, stageName: channelId});
   };
- 
 
-
-  // New function to calculate which months a phase spans across
   const calculatePhaseMonthSpans = useCallback(
     (startDate: Date, endDate: Date): MonthSpan[] => {
       const months = eachMonthOfInterval({ start: startDate, end: endDate });
@@ -152,16 +148,15 @@ const ResizeableElements = ({
     []
   );
 
-  // Generate 12 months for year view
   const generateYearMonths = useCallback(() => {
-    if (!range || range.length === 0) return [];
+    if (!gridRange || gridRange.length === 0) return [];
 
-    const startDate = startOfYear(range[0]); // Force start to Jan 1
-    const endDate = endOfYear(range[range.length - 1]); // Force end to Dec 31
+    const startDate = startOfYear(gridRange[0]);
+    const endDate = endOfYear(gridRange[gridRange.length - 1]);
 
     const months = eachMonthOfInterval({ start: startDate, end: endDate });
     return months.map((month) => format(month, "MMMM yyyy"));
-  }, [range]);
+  }, [gridRange]);
 
   const getPlatformsFromStage = useCallback(() => {
     const platformsByStage: Record<string, OutletType[]> = {};
@@ -244,19 +239,27 @@ const ResizeableElements = ({
 
       let dailyWidth: number;
 
-      if (viewType === "Day" || viewType === "Week") {
-        const endPeriod = funnelData?.endDay || 1;
-        dailyWidth = contWidth / endPeriod;
-        dailyWidth = dailyWidth < 50 ? 50 : dailyWidth;
-      } else if (viewType === "Year") {
-        // Year view - calculate width per month (12 months)
-        const monthWidth = contWidth / 12;
-        dailyWidth = Math.max(monthWidth, 60); // Minimum 60px per month
+      if (isInfiniteTimeline) {
+        if (viewType === "Day" || viewType === "Week") {
+          dailyWidth = 30;
+        } else if (viewType === "Year") {
+          dailyWidth = 80;
+        } else {
+          dailyWidth = 15;
+        }
       } else {
-        // Month - ensure all months fit within screen width
-        const totalDays = totalDaysInRange || funnelData?.endDay || 30;
-        dailyWidth = contWidth / totalDays;
-        dailyWidth = Math.max(dailyWidth, 10);
+        if (viewType === "Day" || viewType === "Week") {
+          const endPeriod = funnelData?.endDay || 1;
+          dailyWidth = contWidth / endPeriod;
+          dailyWidth = dailyWidth < 50 ? 50 : dailyWidth;
+        } else if (viewType === "Year") {
+          const monthWidth = contWidth / 12;
+          dailyWidth = Math.max(monthWidth, 60);
+        } else {
+          const totalDays = totalDaysInRange || funnelData?.endDay || 30;
+          dailyWidth = contWidth / totalDays;
+          dailyWidth = Math.max(dailyWidth, 10);
+        }
       }
 
       setDailyWidthByView((prev) => ({
@@ -266,31 +269,29 @@ const ResizeableElements = ({
 
       return Math.round(dailyWidth);
     },
-    [disableDrag, funnelData?.endDay, funnelData?.endMonth, close]
+    [disableDrag, funnelData?.endDay, funnelData?.endMonth, close, isInfiniteTimeline]
   );
 
   useEffect(() => {
     if (!rrange || !gridRef?.current) return;
 
-    // Calculate days in each month
-    const result = getDaysInEachMonth(range);
+    const effectiveRange = gridRange && gridRange.length > 0 ? gridRange : range;
+    if (!effectiveRange || effectiveRange.length === 0) return;
+
+    const result = getDaysInEachMonth(effectiveRange);
     setDaysInEachMonth(result);
 
-    // Calculate months organized by year
-    const yearMonthResult = getMonthsByYear(range);
+    const yearMonthResult = getMonthsByYear(effectiveRange);
     setMonthsByYear(yearMonthResult);
 
-    // Generate year months for year view
     const yearMonthsList = generateYearMonths();
     setYearMonths(yearMonthsList);
 
-    // Calculate total days
     const totalDaysInRange = Object.values(result).reduce(
       (sum: number, days: number) => sum + days,
       0
     );
 
-    // Update container width and daily width
     requestAnimationFrame(() => {
       const gridContainer = document.querySelector(
         ".grid-container"
@@ -313,11 +314,11 @@ const ResizeableElements = ({
     rrange,
     funnelData?.endMonth,
     range,
+    gridRange,
     calculateAndCacheDailyWidth,
     generateYearMonths,
   ]);
 
-  // Enhanced function that returns the number of days in each month using the state range as reference
   const getDaysInEachMonth = useCallback(
     (range: Date[]): Record<string, number> => {
       const daysInMonth: Record<string, number> = {};
@@ -332,7 +333,6 @@ const ResizeableElements = ({
     []
   );
 
-  // Enhanced function that returns months organized by year
   const getMonthsByYear = useCallback(
     (range: Date[]): Record<string, Record<string, number>> => {
       const monthsByYear: Record<string, Record<string, number>> = {};
@@ -347,25 +347,26 @@ const ResizeableElements = ({
 
         monthsByYear[year][month] = (monthsByYear[year][month] || 0) + 1;
       });
-console.log(monthsByYear, "herit")
       return monthsByYear;
     },
     []
   );
 
-  // Enhanced function to generate dynamic grid template columns for different views
   const generateGridColumns = useCallback(() => {
     const dailyWidth = dailyWidthByView[rrange] || 50;
+    
+    const totalDaysForGrid = isInfiniteTimeline && gridRange?.length > 0 
+      ? gridRange.length 
+      : (funnelData?.endDay || 1);
 
     if (rrange === "Day" || rrange === "Week") {
-      return `repeat(${funnelData?.endDay || 1}, ${dailyWidth}px)`;
+      return `repeat(${totalDaysForGrid}, ${dailyWidth}px)`;
     } else if (rrange === "Year") {
-      const startDate = startOfYear(range[0]);
-      const endDate = endOfYear(range[range.length - 1]);
+      const startDate = startOfYear(gridRange[0]);
+      const endDate = endOfYear(gridRange[gridRange.length - 1]);
       const months = eachMonthOfInterval({ start: startDate, end: endDate });
       return `repeat(${months.length}, ${dailyWidth}px)`;
     } else {
-      // Month view logic (existing)
       if (Object.keys(monthsByYear).length > 0) {
         const columnDefinitions: string[] = [];
         const sortedYears = Object.keys(monthsByYear).sort();
@@ -420,28 +421,32 @@ console.log(monthsByYear, "herit")
     monthsByYear,
     dailyWidthByView,
     funnelData?.endDay,
+    isInfiniteTimeline,
+    gridRange,
   ]);
 
-  // Enhanced function to get grid column end position for different views
   const getGridColumnEnd = useCallback(() => {
+    const totalDaysForGrid = isInfiniteTimeline && gridRange?.length > 0 
+      ? gridRange.length 
+      : (funnelData?.endDay || 1);
+      
     if (rrange === "Day") {
-      return funnelData?.endDay || 1;
+      return totalDaysForGrid;
     } else if (rrange === "Week") {
-      return funnelData?.endDay || 1;
+      return totalDaysForGrid;
     } else if (rrange === "Year") {
-      const startDate = startOfYear(range[0]);
-      const endDate = endOfYear(range[range.length - 1]);
+      const startDate = startOfYear(gridRange[0]);
+      const endDate = endOfYear(gridRange[gridRange.length - 1]);
       const months = eachMonthOfInterval({ start: startDate, end: endDate });
-      return months; // 12 months
+      return months.length;
     } else {
-      // Month view
       const totalDays = Object.values(daysInEachMonth).reduce(
         (sum: number, days: number) => sum + days,
         0
       );
       return totalDays || funnelData?.endDay || 30;
     }
-  }, [rrange, funnelData?.endDay, funnelData?.endWeek, daysInEachMonth]);
+  }, [rrange, funnelData?.endDay, funnelData?.endWeek, daysInEachMonth, isInfiniteTimeline, gridRange]);
 
   const getDailyWidth = useCallback(
     (viewType?: string): number => {
@@ -450,29 +455,6 @@ console.log(monthsByYear, "herit")
     },
     [dailyWidthByView, rrange]
   );
-
-  // Calculate phase positioning for year view
-  const calculateYearViewPosition = useCallback(
-    (startDate: Date, endDate: Date) => {
-      if (!range || range.length === 0)
-        return { position: 0, width: 0, spans: [] };
-
-      const monthSpans = calculatePhaseMonthSpans(startDate, endDate);
-      const monthWidth = getDailyWidth("Year");
-
-      // Find the starting month index (0-11)
-      const startMonth = startDate.getMonth();
-      const position = startMonth * monthWidth;
-
-      // Calculate total width across all months the phase spans
-      const width = monthSpans.length * monthWidth;
-
-      return { position, width, spans: monthSpans };
-    },
-    [range, calculatePhaseMonthSpans, getDailyWidth]
-  );
-
-  
 
   useEffect(() => {
     if (!campaignFormData?.funnel_stages || !containerWidth) return;
@@ -489,7 +471,6 @@ console.log(monthsByYear, "herit")
         (s) => s?.funnel_stage === stageName
       );
 
-
       if (stageName && stage) {
         const stageStartDate =
           (stage?.funnel_stage_timeline_start_date
@@ -502,17 +483,29 @@ console.log(monthsByYear, "herit")
             : null);
 
         if (rrange === "Year" && stageStartDate && stageEndDate) {
-          // Year view calculations
-          const yearCalc = calculateYearViewPosition(
-            stageStartDate,
-            stageEndDate
+          const monthWidth = getDailyWidth("Year");
+          const timelineStart = startOfYear(gridRange[0]);
+          const allMonths = eachMonthOfInterval({ 
+            start: timelineStart, 
+            end: endOfYear(gridRange[gridRange.length - 1]) 
+          });
+          
+          const startMonthIndex = allMonths.findIndex(m => 
+            format(m, "yyyy-MM") === format(stageStartDate, "yyyy-MM")
           );
-          initialPositions[stageName] = yearCalc.position;
-          initialWidths[stageName] = yearCalc.width;
+          const endMonthIndex = allMonths.findIndex(m => 
+            format(m, "yyyy-MM") === format(stageEndDate, "yyyy-MM")
+          );
+          
+          const position = startMonthIndex >= 0 ? startMonthIndex * monthWidth : 0;
+          const monthsSpanned = endMonthIndex >= startMonthIndex ? endMonthIndex - startMonthIndex + 1 : 1;
+          
+          initialPositions[stageName] = position;
+          initialWidths[stageName] = monthsSpanned * monthWidth;
         } else {
-          // Existing logic for other views
+          const effectiveRange = gridRange && gridRange.length > 0 ? gridRange : range;
           const startDateIndex = stageStartDate
-            ? range?.findIndex((date) => isEqual(date, stageStartDate)) *
+            ? effectiveRange?.findIndex((date) => isEqual(date, stageStartDate)) *
               getDailyWidth()
             : 0;
 
@@ -536,12 +529,15 @@ console.log(monthsByYear, "herit")
           const dailyWidth = getDailyWidth();
 
           initialWidths[stageName] = (() => {
-            if (rrange === "Day" || rrange === "Week") {
+            if (isInfiniteTimeline) {
               return daysBetween > 0
                 ? dailyWidth * daysBetween
-                : dailyWidth * daysFromStart - 0;
+                : dailyWidth * daysFromStart;
+            } else if (rrange === "Day" || rrange === "Week") {
+              return daysBetween > 0
+                ? dailyWidth * daysBetween
+                : dailyWidth * daysFromStart;
             } else {
-              // Month view
               const totalDaysInRange = Object.values(
                 daysInEachMonth || {}
               ).reduce((sum: number, days: number) => sum + days, 0);
@@ -550,7 +546,7 @@ console.log(monthsByYear, "herit")
               );
               return daysBetween > 0
                 ? widthPerDay * daysBetween
-                : widthPerDay * daysFromStart - 0;
+                : widthPerDay * daysFromStart;
             }
           })();
 
@@ -572,11 +568,10 @@ console.log(monthsByYear, "herit")
     range,
     getDailyWidth,
     close,
-    calculateYearViewPosition,
+    isInfiniteTimeline,
+    gridRange,
   ]);
 
-
-  // Generate background grid for year view
   const generateYearBackground = useCallback(() => {
     if (rrange !== "Year") return {};
 
@@ -589,7 +584,7 @@ console.log(monthsByYear, "herit")
 
   return (
     <div
-      className={`w-full min-h-[494px] relative pb-5 grid-container overflow-x-hidden`}
+      className={isInfiniteTimeline ? `min-w-max min-h-[494px] relative pb-5 grid-container` : `w-full min-h-[494px] relative pb-5 grid-container`}
       ref={gridRef}
       style={{
         ...(rrange === "Year"
@@ -599,7 +594,6 @@ console.log(monthsByYear, "herit")
                 if (rrange === "Day" || rrange === "Week") {
                   return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px), linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
                 } else {
-                  // Month view background logic (existing)
                   const months = Object.keys(daysInEachMonth);
                   if (months.length <= 1) {
                     return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px), linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
@@ -613,8 +607,15 @@ console.log(monthsByYear, "herit")
               })(),
               backgroundSize: (() => {
                 const dailyWidth = getDailyWidth();
+                const totalDays = isInfiniteTimeline && gridRange?.length > 0 
+                  ? gridRange.length 
+                  : (funnelData?.endDay || 1);
+                  
+                if (isInfiniteTimeline) {
+                  return `${dailyWidth}px 100%`;
+                }
+                  
                 if (rrange === "Day" || rrange === "Week") {
-                  const totalDays = funnelData?.endDay || 1;
                   const dailyGridSize = `${dailyWidth}px 100%`;
                   if (rrange === "Week") {
                     return dailyGridSize;
@@ -623,7 +624,6 @@ console.log(monthsByYear, "herit")
                     dailyWidth * totalDays
                   }px) 100%`;
                 } else {
-                  // Month view background size logic (existing)
                   if (Object.keys(monthsByYear).length > 0) {
                     const regularGridSize = `${dailyWidth}px 100%`;
                     let cumulativeDays = 0;
@@ -701,29 +701,9 @@ console.log(monthsByYear, "herit")
             }),
       }}
     >
-      {/* Year view month headers */}
-      {rrange === "Year" && (
-        <div
-          className="sticky top-0 z-10 bg-transparent border-b mb-4"
-          style={{
-            display: "grid",
-            gridTemplateColumns: generateGridColumns(),
-            gap: "0px",
-          }}
-        >
-          {generateYearMonths().map((monthLabel, index) => (
-            <div
-              key={index}
-              className="text-center text-sm font-medium py-2 border-r border-gray-200"
-            >
-              <p className="text-blue-500">{monthLabel?.split(" ")[0]}</p>
-            </div>
-          ))}
-        </div>
-      )}
+     
 
       {loadingCampaign ? (
-        // Skeleton loading UI
         <div className="w-full p-4">
           {[1, 2, 3].map((item) => (
             <div key={item} className="mb-8">
@@ -746,7 +726,6 @@ console.log(monthsByYear, "herit")
           ))}
         </div>
       ) : (
-        // Original content
         campaignFormData?.funnel_stages?.map((stageName, index) => {
           const stage = campaignFormData?.custom_funnels?.find(
             (s) => s?.name === stageName
@@ -757,7 +736,6 @@ console.log(monthsByYear, "herit")
           const channelWidth = funnelWidths[stage?.name] || 400;
           const isOpen = openChannels[stage?.name] || false;
 
-          // Get the specific width and position for this channel or use default
           const currentChannelWidth = channelWidths[stage?.name] || 350;
           const currentChannelPosition = channelPositions[stage?.name] || 0;
 
@@ -786,7 +764,7 @@ console.log(monthsByYear, "herit")
                   setIsOpen={setIsOpen}
                   setOpenChannel={() => toggleChannel(stage?.name)}
                   Icon={stage?.activeIcon}
-                  dateList={range}
+                  dateList={gridRange}
                   dragConstraints={gridRef}
                   parentWidth={currentChannelWidth}
                   setParentWidth={(width) =>
@@ -814,7 +792,7 @@ console.log(monthsByYear, "herit")
                       parentWidth={currentChannelWidth}
                       parentLeft={currentChannelPosition}
                       setIsOpen={setIsOpen}
-                      dateList={range}
+                      dateList={gridRange}
                       setSelectedStage={setSelectedStage}
                       disableDrag={disableDrag}
                       openItems={openItems}
@@ -823,6 +801,7 @@ console.log(monthsByYear, "herit")
                       endDay={funnelData?.endDay}
                       endWeek={funnelData?.endWeek}
                       dailyWidth={getDailyWidth()}
+                      viewType={rrange}
                     />
                   </div>
                 )}

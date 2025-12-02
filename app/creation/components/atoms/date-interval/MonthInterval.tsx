@@ -2,8 +2,9 @@
 
 import type React from "react"
 import { useCallback, useEffect, useState } from "react"
-import { eachDayOfInterval, addDays, format } from "date-fns"
+import { eachDayOfInterval, addDays, format, subMonths, addMonths, startOfMonth, endOfMonth } from "date-fns"
 import { useCampaigns } from "app/utils/CampaignsContext"
+import { useDateRange } from "src/date-range-context"
 
 interface MonthIntervalProps {
   monthsCount: number
@@ -21,33 +22,67 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
   funnelData,
 }) => {
   const [monthNames, setSetMonthName] = useState([])
-  const [daysInMonth, setDaysInEachMonth] = useState([])
+  const [daysInMonth, setDaysInEachMonth] = useState<Record<string, number>>({})
   const { campaignFormData } = useCampaigns()
+  const { extendedRange, isInfiniteTimeline, bufferMonths } = useDateRange()
   const [containerWidth, setContainerWidth] = useState(0)
 
+  // Calculate days in each month from extended range
   useEffect(() => {
-    if (getDaysInEachMonth) {
+    // Always use extended range when available (for infinite timeline)
+    if (extendedRange && extendedRange.length > 0) {
+      const daysInMonthMap: Record<string, number> = {}
+      extendedRange.forEach((date) => {
+        const monthYear = format(date, "MMMM yyyy")
+        daysInMonthMap[monthYear] = (daysInMonthMap[monthYear] || 0) + 1
+      })
+      setDaysInEachMonth(daysInMonthMap)
+    } else if (getDaysInEachMonth) {
       setDaysInEachMonth(getDaysInEachMonth())
     }
-  }, [getDaysInEachMonth])
+  }, [extendedRange, isInfiniteTimeline])
 
   // Optimized grid template columns calculation
   const totalDays = Object.values(daysInMonth || {}).reduce((acc, days) => acc + (days as number), 0)
 
   const monthCount = Object.keys(daysInMonth || {}).length
 
+  const calculateDailyWidthForGrid = useCallback(() => {
+      if (isInfiniteTimeline) {
+      return 15
+    }
+    
+    const getViewportWidth = () => {
+      return window.innerWidth || document.documentElement.clientWidth || 0
+    }
+    const screenWidth = getViewportWidth()
+    const contWidth = screenWidth - (disableDrag ? 80 : 367)
+    const dailyWidth = contWidth / (totalDays || 30)
+    return Math.max(dailyWidth, 10)
+  }, [disableDrag, totalDays, isInfiniteTimeline])
+
+  const dailyWidthForGrid = calculateDailyWidthForGrid()
+
   const gridTemplateColumns = (() => {
-    if (monthCount > 2) {
-      // When more than 2 months, each month takes 30% of container
-      return Object.keys(daysInMonth || {})
+    let result: string;
+    // Always use pixel widths when infinite timeline is enabled (regardless of month count)
+    if (isInfiniteTimeline) {
+      // For infinite timeline: use pixel widths based on days in each month
+      result = Object.values(daysInMonth || {})
+        .map((days) => `${(days as number) * dailyWidthForGrid}px`)
+        .join(" ")
+    } else if (monthCount > 2) {
+      // When more than 2 months but not infinite, each month takes 20% of container
+      result = Object.keys(daysInMonth || {})
         .map(() => `20%`)
         .join(" ")
     } else {
       // Original proportional logic for 1-2 months
-      return Object.values(daysInMonth || {})
+      result = Object.values(daysInMonth || {})
         .map((days) => `${Math.round(((days as number) / totalDays) * 100)}%`)
         .join(" ")
     }
+    return result
   })()
 
   useEffect(() => {
@@ -111,22 +146,17 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
 
   // Calculate background size based on month count
   const getBackgroundSize = useCallback(() => {
-    const getViewportWidth = () => {
-      return window.innerWidth || document.documentElement.clientWidth || 0
-    }
-
-    const screenWidth = getViewportWidth()
-    const contWidth = screenWidth - (disableDrag ? 80 : 367)
-    
-    if (monthCount > 2) {
-      // For multiple months with 30% each, create appropriate grid lines
-      const monthWidth = 20 // 30% per month
+    if (isInfiniteTimeline && monthCount > 2) {
+      // For infinite timeline, use pixel-based background
+      return `${dailyWidthForGrid}px 100%`
+    } else if (monthCount > 2) {
+      // For multiple months with percentage-based
       return `20% 100%`
     } else {
       // Original background sizing for 1-2 months
       return `100% 100%`
     }
-  }, [monthCount])
+  }, [monthCount, isInfiniteTimeline, dailyWidthForGrid])
 
   const monthEntries = Object.entries(daysInMonth || {})
   const yearHeaders: Array<{ year: string, startIndex: number, span: number }> = []
@@ -170,7 +200,7 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
   })
 
 return (
-  <div className="w-full border-y relative">
+  <div className={isInfiniteTimeline ? "min-w-max border-y relative" : "w-full border-y relative"}>
     <div
       style={{
         display: "grid",
@@ -226,7 +256,6 @@ return (
             key={i}
             className="flex flex-col items-center relative py-3 border-r border-blue-200 last:border-r-0"
             style={{
-              minWidth: monthCount > 2 ? `20%` : "auto",
               borderLeft: isYearBoundary ? "2px solid rgba(0,0,255,0.3)" : "none",
             }}
           >

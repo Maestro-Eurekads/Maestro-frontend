@@ -1,28 +1,47 @@
+import { eachMonthOfInterval, startOfYear, endOfYear, startOfMonth } from "date-fns";
+
 export const pixelToDate = (
-   {dateList, range, pixel, containerWidth, fieldName}: {dateList: Date[], range: string, pixel: number, containerWidth: number, fieldName?: string}
+   {dateList, range, pixel, containerWidth, fieldName, dailyWidth}: {dateList: Date[], range: string, pixel: number, containerWidth: number, fieldName?: string, dailyWidth?: number}
   ) => {
     if (!dateList.length) return new Date();
     const firstDate = dateList[0];
     const totalDays = dateList.length;
 
     if (range === "Year") {
-      const totalMonths = 12;
-      const clampedPixel = Math.max(0, Math.min(pixel, containerWidth));
-      const monthFraction = clampedPixel / containerWidth;
-      const monthIndex = Math.round(monthFraction * totalMonths);
-      const year = firstDate.getFullYear();
+      const monthWidth = dailyWidth || 80;
+      const timelineStart = startOfYear(firstDate);
+      const timelineEnd = endOfYear(dateList[dateList.length - 1]);
+      const allMonths = eachMonthOfInterval({ start: timelineStart, end: timelineEnd });
+      
+      let adjustedPixel = pixel;
+      if (fieldName === "endDate") {
+        adjustedPixel = Math.max(0, pixel - 1);
+      }
+      
+      const monthIndex = Math.min(
+        allMonths.length - 1,
+        Math.max(0, Math.floor(adjustedPixel / monthWidth))
+      );
 
       if (fieldName === "endDate") {
-        return new Date(year, Math.min(11, monthIndex), 0);
+        const endMonth = allMonths[monthIndex];
+        return new Date(endMonth.getFullYear(), endMonth.getMonth() + 1, 0);
       }
-      return new Date(year, Math.min(11, monthIndex), 1);
+      return startOfMonth(allMonths[monthIndex]);
     }
 
+    const unitWidth = dailyWidth || (containerWidth / totalDays);
+    
+    let adjustedPixel = pixel;
+    if (fieldName === "endDate") {
+      adjustedPixel = Math.max(0, pixel - 1);
+    }
+    
     const dayIndex = Math.min(
-      totalDays,
-      Math.max(0, Math.round((pixel / containerWidth) * totalDays))
+      totalDays - 1,
+      Math.max(0, Math.floor(adjustedPixel / unitWidth))
     );
 
-    const calculatedDate = fieldName === "endDate" ? dateList[dayIndex-1] : dateList[dayIndex];
+    const calculatedDate = dateList[dayIndex];
     return calculatedDate;
   };

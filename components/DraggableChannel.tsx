@@ -99,25 +99,9 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   }, [parentLeft]);
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
-    if (range === "Year") {
-      const monthWidth = containerWidth / 12;
-      const monthIndex = Math.round(currentPosition / monthWidth);
-      return Math.min(monthIndex * monthWidth, containerWidth);
-    }
-
-    const baseStep = dailyWidth || containerWidth / (dateList.length - 1);
-    const snapPoints = [];
-    for (let i = 0; i <= containerWidth; i += baseStep) {
-      snapPoints.push(i);
-    }
-
-    const closestSnap = snapPoints.reduce((prev, curr) =>
-      Math.abs(curr - currentPosition) < Math.abs(prev - currentPosition)
-        ? curr
-        : prev
-    );
-
-    return closestSnap;
+    const unitWidth = dailyWidth || 30;
+    const snapIndex = Math.round(currentPosition / unitWidth);
+    return snapIndex * unitWidth;
   };
 
   const updateTooltipWithDates = (
@@ -129,20 +113,26 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   ) => {
     if (!dateList.length) return;
 
-    const totalDays = dateList.length - 1;
-    const containerWidth = parentWidth || 100;
+    const gridContainer = document.querySelector(".grid-container") as HTMLElement;
+    if (!gridContainer) return;
+    const containerRect = gridContainer.getBoundingClientRect();
 
-    const dayStartIndex = Math.min(
-      totalDays,
-      Math.max(0, Math.round((startPixel / containerWidth) * totalDays))
-    );
-    const dayEndIndex = Math.min(
-      totalDays,
-      Math.max(0, Math.round((endPixel / containerWidth) * totalDays))
-    );
-
-    const startDateValue = dateList[dayStartIndex] || dateList[0];
-    const endDateValue = dateList[dayEndIndex] || dateList[totalDays];
+    const startDateValue = pixelToDate({
+      dateList,
+      range,
+      pixel: startPixel,
+      containerWidth: containerRect.width,
+      dailyWidth,
+    });
+    
+    const endDateValue = pixelToDate({
+      dateList,
+      range,
+      pixel: endPixel,
+      containerWidth: containerRect.width,
+      fieldName: "endDate",
+      dailyWidth,
+    });
 
     const formattedStartDate =
       range === "Year"
@@ -173,9 +163,9 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     ) as HTMLElement;
     if (!container) return;
 
-    const containerRect = container.getBoundingClientRect();
-    const tooltipX = mouseX - containerRect.left;
-    const tooltipY = mouseY - containerRect.top - 50;
+    const contRect = container.getBoundingClientRect();
+    const tooltipX = mouseX - contRect.left;
+    const tooltipY = mouseY - contRect.top - 50;
 
     setTooltip({
       visible: true,
@@ -371,6 +361,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       range,
       pixel: newPos,
       containerWidth: containerRect.width,
+      dailyWidth,
     });
     const endDate = pixelToDate({
       dateList,
@@ -378,6 +369,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       pixel: newPos + newWidth,
       containerWidth: containerRect.width,
       fieldName: "endDate",
+      dailyWidth,
     });
 
     const updatedChannelMix = campaignFormData?.channel_mix?.find(
@@ -557,6 +549,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       range,
       pixel: newPosition,
       containerWidth: containerRect.width,
+      dailyWidth,
     });
     const endDate = pixelToDate({
       dateList,
@@ -564,6 +557,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       pixel: newPosition + parentWidth,
       containerWidth: containerRect.width,
       fieldName: "endDate",
+      dailyWidth,
     });
     const updatedChannelMix = campaignFormData?.channel_mix?.find(
       (ch) => ch?.funnel_stage === description

@@ -12,16 +12,22 @@ import {
   format,
   isSameWeek,
   parseISO,
+  startOfYear,
 } from "date-fns";
 import DayInterval from "../../atoms/date-interval/DayInterval";
 import MonthInterval from "../../atoms/date-interval/MonthInterval";
 import WeekInterval from "../../atoms/date-interval/WeekInterval";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import AddNewChennelsModel from "components/Modals/AddNewChennelsModel";
 import { useDateRange as useRange } from "src/date-range-context";
 import YearInterval from "../../atoms/date-interval/YearInterval";
 import { useActive } from "app/utils/ActiveContext";
 import { useComments } from "app/utils/CommentProvider";
+
+// Trigger distance for infinite scroll (in pixels) - larger = smoother
+const SCROLL_TRIGGER_DISTANCE = 500;
+// Debounce delay to prevent rapid extensions
+const EXTENSION_DEBOUNCE_MS = 300;
 
 const MainSection = ({
   hideDate,
@@ -33,12 +39,117 @@ const MainSection = ({
   view?: boolean;
 }) => {
   const {  campaignFormData } = useCampaigns();
-  const { range: rrange } = useRange();
+  const { range: rrange, extendTimelineBefore, extendTimelineAfter, isInfiniteTimeline, dailyWidthPx, timelineStart } = useRange();
   const { range } = useDateRange();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedStage, setSelectedStage] = useState("");
   const { active, subStep } = useActive();
   const { setClose } = useComments();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isExtendingRef = useRef(false);
+  const lastExtensionTime = useRef(0);
+  const hasScrolledToInitial = useRef(false);
+  
+  const getDailyWidthForView = useCallback(() => {
+    switch (range) {
+      case "Day":
+        return 30;
+      case "Week":
+        return 30;
+      case "Year":
+        return 80;
+      case "Month":
+      default:
+        return 15;
+    }
+  }, [range]);
+  
+  useEffect(() => {
+    if (
+      !hasScrolledToInitial.current && 
+      scrollContainerRef.current && 
+      isInfiniteTimeline && 
+      timelineStart && 
+      campaignFormData?.campaign_timeline_start_date &&
+      rrange?.length > 0
+    ) {
+      const container = scrollContainerRef.current;
+      const campaignStart = new Date(campaignFormData.campaign_timeline_start_date);
+      
+      let scrollPosition: number;
+      
+      if (range === "Year") {
+        const yearTimelineStart = startOfYear(timelineStart);
+        const monthsFromStart = differenceInCalendarMonths(campaignStart, yearTimelineStart);
+        const monthWidth = 80;
+        scrollPosition = Math.max(0, (monthsFromStart * monthWidth) - 150);
+      } else {
+        const daysFromStart = differenceInCalendarDays(campaignStart, timelineStart);
+        const dailyWidth = getDailyWidthForView();
+        scrollPosition = Math.max(0, (daysFromStart * dailyWidth) - 150);
+      }
+      
+      setTimeout(() => {
+        container.scrollLeft = scrollPosition;
+        hasScrolledToInitial.current = true;
+      }, 200);
+    }
+  }, [isInfiniteTimeline, timelineStart, campaignFormData?.campaign_timeline_start_date, rrange?.length, getDailyWidthForView, range]);
+  
+  const handleScroll = useCallback(() => {
+    if (!isInfiniteTimeline || !scrollContainerRef.current || isExtendingRef.current) return;
+    
+    const now = Date.now();
+    if (now - lastExtensionTime.current < EXTENSION_DEBOUNCE_MS) return;
+    
+    const container = scrollContainerRef.current;
+    const scrollLeft = container.scrollLeft;
+    const scrollWidth = container.scrollWidth;
+    const clientWidth = container.clientWidth;
+    
+    if (scrollLeft < SCROLL_TRIGGER_DISTANCE) {
+      isExtendingRef.current = true;
+      lastExtensionTime.current = now;
+      
+      const oldScrollWidth = container.scrollWidth;
+      
+      extendTimelineBefore();
+      
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const newScrollWidth = container.scrollWidth;
+          const addedWidth = newScrollWidth - oldScrollWidth;
+          
+          if (addedWidth > 0) {
+            container.scrollLeft = scrollLeft + addedWidth;
+          }
+          
+          isExtendingRef.current = false;
+        });
+      });
+    }
+    
+    if (scrollWidth - scrollLeft - clientWidth < SCROLL_TRIGGER_DISTANCE) {
+      isExtendingRef.current = true;
+      lastExtensionTime.current = now;
+      
+      extendTimelineAfter();
+      
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          isExtendingRef.current = false;
+        });
+      });
+    }
+  }, [isInfiniteTimeline, extendTimelineBefore, extendTimelineAfter]);
+  
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container || !isInfiniteTimeline) return;
+    
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [handleScroll, isInfiniteTimeline]);
 
   const startDates = campaignFormData?.campaign_timeline_start_date
     ? campaignFormData?.campaign_timeline_start_date
@@ -185,7 +296,10 @@ const MainSection = ({
       {!hideDate && <DateComponent useDate={true} />}
 
       <div className="box-border w-full min-h-auto bg-white border-b-2 relative mt-4">
-        <div className="overflow-auto w-full h-full hide-vertical-scrollbar">
+        <div 
+          ref={scrollContainerRef}
+          className="overflow-auto w-full h-full hide-vertical-scrollbar"
+        >
           <div className="relative min-w-max px-2">
             <div className="relative">
               <div className="bg-white">
