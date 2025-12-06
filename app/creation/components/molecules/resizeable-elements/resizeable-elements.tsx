@@ -82,7 +82,7 @@ const ResizeableElements = ({
   const { funnelWidths } = useFunnelContext();
   const { close } = useComments();
   const [openChannels, setOpenChannels] = useState<Record<string, boolean>>({});
-  const { range, extendedRange, isInfiniteTimeline, campaignRange } = useDateRange();
+  const { range, extendedRange, isInfiniteTimeline } = useDateRange();
   const { range: rrange } = useRange();
   const { campaignFormData, loadingCampaign } = useCampaigns();
   
@@ -126,31 +126,6 @@ const ResizeableElements = ({
     setChannelPositions((prev) => ({ ...prev, [channelId]: left }));
   };
 
-  const calculatePhaseMonthSpans = useCallback(
-    (startDate: Date, endDate: Date): MonthSpan[] => {
-      const months = eachMonthOfInterval({ start: startDate, end: endDate });
-
-      return months.map((monthStart) => {
-        const monthEnd = endOfMonth(monthStart);
-        const actualStart = startDate > monthStart ? startDate : monthStart;
-        const actualEnd = endDate < monthEnd ? endDate : monthEnd;
-
-        const startDay = differenceInDays(actualStart, monthStart) + 1;
-        const endDay = differenceInDays(actualEnd, monthStart) + 1;
-        const totalDaysInMonth = differenceInDays(monthEnd, monthStart) + 1;
-
-        return {
-          month: format(monthStart, "MMMM"),
-          year: format(monthStart, "yyyy"),
-          startDay,
-          endDay,
-          totalDaysInMonth,
-          isPartial: actualStart > monthStart || actualEnd < monthEnd,
-        };
-      });
-    },
-    []
-  );
 
   const generateYearMonths = useCallback(() => {
     if (!gridRange || gridRange.length === 0) return [];
@@ -431,11 +406,7 @@ const ResizeableElements = ({
     if (!campaignFormData?.funnel_stages || !containerWidth) return;
     const initialWidths: Record<string, number> = {};
     const initialPositions: Record<string, number> = {};
-    const getViewportWidth = () => {
-      return window.innerWidth || document.documentElement.clientWidth || 0;
-    };
-    const screenWidth = getViewportWidth();
-    const availableWidth = screenWidth - (disableDrag ? 60 : close ? 0 : 367);
+
 
     campaignFormData.funnel_stages.forEach((stageName) => {
       const stage = campaignFormData?.channel_mix?.find(
@@ -598,14 +569,12 @@ const ResizeableElements = ({
           const stage = campaignFormData?.custom_funnels?.find(
             (s) => s?.name === stageName
           );
-          const funn = funnelStages?.find((ff) => ff?.name === stageName);
           if (!stage) return null;
-
-          const channelWidth = funnelWidths[stage?.name] || 400;
           const isOpen = openChannels[stage?.name] || false;
 
           const currentChannelWidth = channelWidths[stage?.name] || 350;
           const currentChannelPosition = channelPositions[stage?.name] || 0;
+       
 
           return (
             <div
