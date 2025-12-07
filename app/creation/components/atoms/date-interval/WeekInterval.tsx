@@ -65,6 +65,10 @@ const WeekInterval = ({
       return 50;
     }
 
+    if (isInfiniteTimeline && effectiveRange && effectiveRange.length > 0) {
+      return 50;
+    }
+
     const totalDays = funnelData?.endDay || 30;
     let dailyWidth = contWidth / totalDays;
 

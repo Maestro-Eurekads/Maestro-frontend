@@ -123,10 +123,11 @@ export const CellRenderer = ({
   const isCurrencyType = cellType === "currency"
   const isSecondsType = cellType === "seconds"
   const isCPM = body === "cpm"
+  const isFrequency = body === "frequency"
   const showInput = tableHeaders[bodyIndex]?.showInput
 
   // Helper functions
-  const formatNumber = (num: number | string): string => {
+  const formatNumber = (num: number | string, field?: string): string => {
     if (isNaN(Number(num)) || num === null || num === undefined) return "-"
     return new Intl.NumberFormat("en-US").format(Number(num))
   }
@@ -175,7 +176,6 @@ export const CellRenderer = ({
     }
 
     const numericValue = Number.parseFloat(value.toString().replace(/,/g, ""))
-
     if (isPercentType) {
       if (!value.toString().includes("%")) {
         if (numericValue < 1) {
@@ -197,6 +197,9 @@ export const CellRenderer = ({
     } else if (isCPM) {
       // For CPM, preserve decimal places (2 max)
       return formatNumber(Number.parseFloat(numericValue.toFixed(2)))
+    } else if (isFrequency) {
+      // For Frequency, preserve decimal places (1 max)
+      return formatNumber(Number.parseFloat(numericValue.toFixed(1)))
     } else {
       if (body !== "reach" && body !== "video_views" && body !== "impressions") {
         // For other fields, round to whole numbers
@@ -214,6 +217,12 @@ export const CellRenderer = ({
 
     // Remove formatting characters for validation
     const cleanValue = value.replace(/[,$%]/g, "").replace(/secs?/g, "")
+
+    if (isFrequency) {
+      // Frequency: Allow up to 1 decimal places
+      const regex = /^[0-9]*\.?[0-9]{0,1}$/
+      return regex.test(cleanValue)
+    }
 
     if (isPercentType || isCurrencyType || isCPM) {
       // For percent, currency, and CPM: allow decimal input with restrictions
@@ -254,7 +263,7 @@ export const CellRenderer = ({
     let cleanValue = value.replace(/[,$%]/g, "").replace(/secs?/g, "")
 
     // Handle decimal format based on type
-    if (isPercentType || isCurrencyType || isCPM) {
+    if (isPercentType || isCurrencyType || isCPM || isFrequency) {
       const parts = cleanValue.split(".")
       if (parts.length > 2) {
         // More than one decimal point - keep only the first one
@@ -378,14 +387,14 @@ export const CellRenderer = ({
           <p>
             {(() => {
               const value =
-                campaignFormData?.goal_level === "Adset level" ? channel?.kpi?.[body] : getCalculatedValue(body)
+                campaignFormData?.goal_level === "Adset level" ? channel?.kpi?.[body] : formatNumber(getCalculatedValue(body), body)
               return value && value !== "-"
                 ? `${isCurrencyType
                   ? `${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}`
                   : isSecondsType
                     ? "secs"
                     : ""
-                }${(body == "reach" || body == "video_views" || body == "impressions") ? value : formatNumber(Number(value))}`
+                }${(body == "reach" || body == "video_views" || body == "impressions") ? value : value}`
                 : "-"
             })()}
           </p>
@@ -397,7 +406,7 @@ export const CellRenderer = ({
 
   // Handle input fields and static values
   if (!showInput) {
-    const value = goalLevel === "Channel level" ? channel?.[body] : cellType === "number" ? channel?.kpi?.[body] ? Number(channel?.kpi?.[body]).toFixed(0) : "" : (channel?.kpi?.[body])
+    const value = goalLevel === "Channel level" ? channel?.[body] : cellType === "number" ? channel?.kpi?.[body] ? formatNumber(channel?.kpi?.[body], body) : "" : (channel?.kpi?.[body])
     if (exemptFields.includes(body)) {
       return value === "Invalid date" ? "-" : value
     }
@@ -405,7 +414,7 @@ export const CellRenderer = ({
       "-"
     ) : (
       <div className="flex justify-center items-center gap-5 w-fit">
-        <p>{cellType === "number" ? formatNumber(Number.parseFloat(value)?.toFixed(0)) : formatNumber(Number.parseFloat(value)?.toFixed(2))}</p>
+        <p>{cellType === "number" ? value : formatNumber(Number.parseFloat(value)?.toFixed(2))}</p>
         <Ban size={10} className="hidden group-hover:block shrink-0 cursor-pointer" />
       </div>
     )
