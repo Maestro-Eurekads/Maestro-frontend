@@ -10,18 +10,18 @@ const WeekInterval = ({
   funnelData,
   disableDrag,
   range,
-  src
+  src,
 }: {
   weeksCount: any;
   funnelData?: any;
   disableDrag?: any;
-  range?:any;
-  src?:any
+  range?: any;
+  src?: any;
 }) => {
   const { campaignFormData } = useCampaigns();
   const { range: ddRange, extendedRange, isInfiniteTimeline } = useDateRange();
-  const {close} = useComments()
-  
+  const { close } = useComments();
+
   // Use extended range for infinite timeline
   const effectiveRange = isInfiniteTimeline ? extendedRange : ddRange;
 
@@ -37,22 +37,29 @@ const WeekInterval = ({
       const isLastDate = index === dates.length - 1;
 
       if (isSixthIndex || isLastDate) {
-      weeks.push([...currentWeek]);
-      currentWeek = [];
+        weeks.push([...currentWeek]);
+        currentWeek = [];
       }
     });
 
     return weeks;
   };
 
-  const datesByWeek = src=== "dashboard" ? range ? groupDatesByWeek(range) : [] : effectiveRange ? groupDatesByWeek(effectiveRange) : [];
+  const datesByWeek =
+    src === "dashboard"
+      ? range
+        ? groupDatesByWeek(range)
+        : []
+      : effectiveRange
+      ? groupDatesByWeek(effectiveRange)
+      : [];
 
   const calculateDailyWidth = useCallback(() => {
     const getViewportWidth = () => {
       return window.innerWidth || document.documentElement.clientWidth || 0;
     };
     const screenWidth = getViewportWidth();
-    const contWidth = screenWidth - (disableDrag ? 80 : close ? 0:367);
+    const contWidth = screenWidth - (disableDrag ? 80 : close ? 0 : 367);
 
     if (isInfiniteTimeline && effectiveRange && effectiveRange.length > 0) {
       return 50;
@@ -65,7 +72,13 @@ const WeekInterval = ({
     dailyWidth = Math.max(dailyWidth, 50);
 
     return Math.round(dailyWidth);
-  }, [disableDrag, funnelData?.endDay, close, isInfiniteTimeline, effectiveRange]);
+  }, [
+    disableDrag,
+    funnelData?.endDay,
+    close,
+    isInfiniteTimeline,
+    effectiveRange,
+  ]);
 
   // Calculate individual week widths based on actual days in each week
   const weekWidths = useMemo(() => {
@@ -97,31 +110,33 @@ const WeekInterval = ({
   const gridTemplateColumns = weekWidths.map((width) => `${width}px`).join(" ");
 
   // Create background images and positions for week end lines
-      const backgroundImages = weekEndPositions
-        .map(
-          () =>
-            `linear-gradient(to right, transparent calc(100% - 1px), rgba(0,0,255,0.1) calc(100% - 1px), rgba(0,0,255,0.1) 100%)`
-        )
-        .join(", ");
+  const backgroundImages = weekEndPositions
+    .map(
+      () =>
+        `linear-gradient(to right, transparent calc(100% - 1px), rgba(0,0,255,0.1) calc(100% - 1px), rgba(0,0,255,0.1) 100%)`
+    )
+    .join(", ");
 
-      const backgroundSizes = weekEndPositions
-        .map((position) => `${position}px 100%`)
-        .join(", ");
-      const backgroundPositions = weekEndPositions
-        .map((position) => `${position+1}px 0`)
-        .join(", ");
+  const backgroundSizes = weekEndPositions
+    .map((position) => `${position}px 100%`)
+    .join(", ");
+  const backgroundPositions = weekEndPositions
+    .map((position) => `${position + 1}px 0`)
+    .join(", ");
 
-      return (
-        <div className={isInfiniteTimeline ? "min-w-max border-y" : "w-full border-y"}>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: gridTemplateColumns,
-              backgroundImage: backgroundImages,
-              // backgroundRepeat: "no-repeat",
-              backgroundSize: backgroundSizes,
-              backgroundPosition: backgroundPositions,
-            }}
+  return (
+    <div
+      className={isInfiniteTimeline ? "min-w-max border-y" : "w-full border-y"}
+    >
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: gridTemplateColumns,
+          backgroundImage: backgroundImages,
+          // backgroundRepeat: "no-repeat",
+          backgroundSize: backgroundSizes,
+          backgroundPosition: backgroundPositions,
+        }}
       >
         {datesByWeek.map((week, i) => (
           <div
@@ -136,16 +151,24 @@ const WeekInterval = ({
               <div className="font-[500] text-[13px] flex gap-2 items-center">
                 {datesByWeek[i] && (
                   <div className="flex flex-row gap-2 items-center justify-center">
-                    <p>
-                      {`${moment(datesByWeek[i][0]).format("DD")} ${moment(datesByWeek[i][0]).format("MMM")}`} 
-                    </p>
+                    <p>{moment(datesByWeek[i][0]).format("DD")}</p>
+                    <span className="text-blue-500">
+                      {moment(datesByWeek[i][0]).format("MMM")}
+                    </span>
                   </div>
                 )}
                 -
                 {datesByWeek[i] && (
-                  <p className="text-[rgba(0,0,255,0.5)]">
-                    {`${moment(datesByWeek[i][datesByWeek[i].length - 1]).format("DD")} ${moment(datesByWeek[i][datesByWeek[i].length - 1]).format("MMM")}`}
-                   
+                  <p className="flex items-center gap-1">
+                    {`${moment(
+                      datesByWeek[i][datesByWeek[i].length - 1]
+                    ).format("DD")}`}
+
+                    <span className="text-blue-500">
+                      {moment(datesByWeek[i][datesByWeek[i].length - 1]).format(
+                        "MMM"
+                      )}
+                    </span>
                   </p>
                 )}
               </div>
