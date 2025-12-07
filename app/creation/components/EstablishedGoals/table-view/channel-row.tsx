@@ -276,12 +276,10 @@ export const ChannelRow = ({
 
   // Effect to handle calculations and updates
   useEffect(() => {
-    console.log("triggered")
     // Skip if we don't have channel data
     if (!chData) return;
     if (campaignFormData?.campaign_budget?.level === "Adset level") {
       // debugger;
-      console.log("here called")
       // Check if we need to recalculate (data has changed)
       const needsRecalculation = hasRelevantChanges(
         prevChannelDataRef.current,
@@ -290,7 +288,6 @@ export const ChannelRow = ({
 
       // Only process if we haven't processed this data yet or if relevant data has changed
       if (!hasProcessed || needsRecalculation) {
-        console.log("called here ")
         // Store current channel data for future comparison
         prevChannelDataRef.current = JSON.parse(JSON.stringify(chData));
 
