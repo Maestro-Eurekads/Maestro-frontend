@@ -47,6 +47,7 @@ export const AdSetCellRenderer = ({
   const isCurrencyType = tableHeaders[bodyIndex]?.type === "currency";
   const isSecondsType = tableHeaders[bodyIndex]?.type === "seconds";
   const isCPM = body === "cpm"
+  const isFrequency = body === "frequency"
   const showInput = tableHeaders[bodyIndex]?.showInput
 
   // Handle channel cell with icon and name
@@ -284,6 +285,9 @@ export const AdSetCellRenderer = ({
     } else if (isCPM) {
       // For CPM, preserve decimal places (2 max)
       return formatNumber(Number.parseFloat(numericValue.toFixed(2)))
+    } else if (isFrequency) {
+      // For Frequency, preserve decimal places (1 max)
+      return formatNumber(Number.parseFloat(numericValue.toFixed(1)))
     } else {
       // For other fields, round to whole numbers
       if (body !== "reach" && body !== "video_views") {
@@ -304,6 +308,12 @@ export const AdSetCellRenderer = ({
 
     // Remove formatting characters for validation
     const cleanValue = value.replace(/[,$%]/g, "").replace(/secs?/g, "")
+
+    if (isFrequency) {
+      // Frequency: Allow up to 1 decimal places
+      const regex = /^[0-9]*\.?[0-9]{0,1}$/
+      return regex.test(cleanValue)
+    }
 
     if (isPercentType || isCurrencyType || isCPM) {
       // For percent, currency, and CPM: allow decimal input with restrictions
@@ -344,7 +354,7 @@ export const AdSetCellRenderer = ({
     let cleanValue = value.replace(/[,$%]/g, "").replace(/secs?/g, "")
 
     // Handle decimal format based on type
-    if (isPercentType || isCurrencyType || isCPM) {
+    if (isPercentType || isCurrencyType || isCPM || isFrequency) {
       const parts = cleanValue.split(".")
       if (parts.length > 2) {
         // More than one decimal point - keep only the first one
