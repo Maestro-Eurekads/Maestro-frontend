@@ -30,6 +30,7 @@ import AdSetsFlow from "../../../components/common/AdSetsFlow";
 import FormatSelection from "../../FormatSelection";
 import { useDateRange as DateRange } from "src/date-context";
 import { FaSpinner } from "react-icons/fa";
+import { pixelToDate as pixelToDateUtil } from "utils/pixelToDate";
 
 interface Channel {
   id?: number;
@@ -72,10 +73,10 @@ interface TooltipState {
 }
 
 interface ChannelState {
-  left: number
-  width: number
-  startDate?: string
-  endDate?: string
+  left: number;
+  width: number;
+  startDate?: string;
+  endDate?: string;
 }
 
 const ResizableChannels = ({
@@ -92,13 +93,8 @@ const ResizableChannels = ({
   dailyWidth,
   viewType,
 }: ResizableChannelsProps) => {
-  const {
-    campaignFormData,
-    setCampaignFormData,
-    cId,
-    campaignData,
-    jwt,
-  } = useCampaigns();
+  const { campaignFormData, setCampaignFormData, cId, campaignData, jwt } =
+    useCampaigns();
   const draggingDataRef = useRef(null);
   const isDraggingRef = useRef(false);
   const { range: rrange } = DateRange();
@@ -115,17 +111,14 @@ const ResizableChannels = ({
   const initialStartDateRef = useRef(null);
   const initialEndDateRef = useRef(null);
 
-
   const [channelState, setChannelState] = useState<ChannelState[]>(
     channels?.map((ch) => ({
       left: parentLeft,
       width: Math.min(10, parentWidth),
       startDate: ch.start_date,
       endDate: ch.end_date,
-    })),
-  )
-
-
+    }))
+  );
 
   const [dragging, setDragging] = useState(null);
   const [draggingPosition, setDraggingPosition] = useState(null);
@@ -145,12 +138,52 @@ const ResizableChannels = ({
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
 
+  // Simple helper to save channel dates to campaignFormData
+  const saveChannelDates = (
+    index: number,
+    newStartDate: Date,
+    newEndDate: Date
+  ) => {
+    if (!channels[index]) return;
+
+    const updatedFormData = JSON.parse(JSON.stringify(campaignFormData));
+    const channelMix = updatedFormData.channel_mix?.find(
+      (ch) => ch.funnel_stage === parentId
+    );
+
+    if (channelMix) {
+      const platform = channelMix[channels[index].channelName]?.find(
+        (p) => p.platform_name === channels[index].name
+      );
+
+      if (platform) {
+        const formattedStart = moment(newStartDate).format("YYYY-MM-DD");
+        const formattedEnd = moment(newEndDate).format("YYYY-MM-DD");
+
+        console.log("=== SAVING CHANNEL DATES ===");
+        console.log("Channel:", channels[index].name);
+        console.log("Parent stage:", parentId);
+        console.log("Saving start_date:", formattedStart);
+        console.log("Saving end_date:", formattedEnd);
+        console.log("Current channelState left:", channelState[index]?.left);
+        console.log("Current channelState width:", channelState[index]?.width);
+        console.log("parentLeft:", parentLeft);
+        console.log("dailyWidth:", dailyWidth);
+        console.log("viewType:", viewType);
+
+        platform.campaign_start_date = formattedStart;
+        platform.campaign_end_date = formattedEnd;
+        setCampaignFormData(updatedFormData);
+      }
+    }
+  };
+
   const isResizing = useRef<{
-    startX: number
-    initialState: ChannelState
-    direction: "left" | "right"
-    index: number
-  } | null>(null)
+    startX: number;
+    initialState: ChannelState;
+    direction: "left" | "right";
+    index: number;
+  } | null>(null);
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
     const baseStep = dailyWidth;
@@ -192,11 +225,20 @@ const ResizableChannels = ({
     if (viewType === "Year") {
       const timelineStart = startOfYear(dateList[0]);
       const timelineEnd = endOfYear(dateList[dateList.length - 1]);
-      const allMonths = eachMonthOfInterval({ start: timelineStart, end: timelineEnd });
-      
-      const startIdx = Math.min(allMonths.length - 1, Math.max(0, Math.floor(startPixel / dailyWidth)));
-      const endIdx = Math.min(allMonths.length - 1, Math.max(0, Math.floor(endPixel / dailyWidth)));
-      
+      const allMonths = eachMonthOfInterval({
+        start: timelineStart,
+        end: timelineEnd,
+      });
+
+      const startIdx = Math.min(
+        allMonths.length - 1,
+        Math.max(0, Math.floor(startPixel / dailyWidth))
+      );
+      const endIdx = Math.min(
+        allMonths.length - 1,
+        Math.max(0, Math.floor(endPixel / dailyWidth))
+      );
+
       startDateValue = allMonths[startIdx] || startDate;
       endDateValue = allMonths[endIdx] || endDate;
       formattedStartDate = format(startDateValue, "MMM yyyy");
@@ -206,19 +248,32 @@ const ResizableChannels = ({
         { start: dateList[0], end: dateList[dateList.length - 1] },
         { weekStartsOn: 1 }
       );
-      
-      const startIdx = Math.min(allWeeks.length - 1, Math.max(0, Math.floor(startPixel / dailyWidth)));
-      const endIdx = Math.min(allWeeks.length - 1, Math.max(0, Math.floor(endPixel / dailyWidth)));
-      
+
+      const startIdx = Math.min(
+        allWeeks.length - 1,
+        Math.max(0, Math.floor(startPixel / dailyWidth))
+      );
+      const endIdx = Math.min(
+        allWeeks.length - 1,
+        Math.max(0, Math.floor(endPixel / dailyWidth))
+      );
+
       startDateValue = allWeeks[startIdx] || startDate;
-      endDateValue = endOfWeek(allWeeks[endIdx], { weekStartsOn: 1 }) || endDate;
+      endDateValue =
+        endOfWeek(allWeeks[endIdx], { weekStartsOn: 1 }) || endDate;
       formattedStartDate = format(startDateValue, "MMM d");
       formattedEndDate = format(endDateValue, "MMM d");
     } else {
       const totalDays = dateList.length - 1;
-      const startIdx = Math.min(totalDays, Math.max(0, Math.floor(startPixel / dailyWidth)));
-      const endIdx = Math.min(totalDays, Math.max(0, Math.floor(endPixel / dailyWidth)));
-      
+      const startIdx = Math.min(
+        totalDays,
+        Math.max(0, Math.floor(startPixel / dailyWidth))
+      );
+      const endIdx = Math.min(
+        totalDays,
+        Math.max(0, Math.floor(endPixel / dailyWidth))
+      );
+
       startDateValue = dateList[startIdx] || startDate;
       endDateValue = dateList[endIdx] || endDate;
       formattedStartDate = format(startDateValue, "MMM dd");
@@ -248,10 +303,14 @@ const ResizableChannels = ({
     });
   };
 
-  const handleMouseDownResize = (e: React.MouseEvent<HTMLDivElement>, direction: "left" | "right", index: number) => {
-    if (disableDrag) return
-    e.preventDefault()
-    e.stopPropagation()
+  const handleMouseDownResize = (
+    e: React.MouseEvent<HTMLDivElement>,
+    direction: "left" | "right",
+    index: number
+  ) => {
+    if (disableDrag) return;
+    e.preventDefault();
+    e.stopPropagation();
 
     // Store the initial state for this resize operation
     isResizing.current = {
@@ -259,81 +318,105 @@ const ResizableChannels = ({
       initialState: { ...channelState[index] },
       direction,
       index,
-    }
+    };
 
-    const startPixel = channelState[index].left - parentLeft
-    const endPixel = startPixel + channelState[index].width
-    updateTooltipWithDates(startPixel, endPixel, index, e.clientX, "resize")
+    const startPixel = channelState[index].left - parentLeft;
+    const endPixel = startPixel + channelState[index].width;
+    updateTooltipWithDates(startPixel, endPixel, index, e.clientX, "resize");
 
-    document.addEventListener("mousemove", handleMouseMoveResize)
-    document.addEventListener("mouseup", handleMouseUpResize)
-  }
+    document.addEventListener("mousemove", handleMouseMoveResize);
+    document.addEventListener("mouseup", handleMouseUpResize);
+  };
 
   const handleMouseMoveResize = (e: MouseEvent) => {
-    if (!isResizing.current) return
+    if (!isResizing.current) return;
 
-    const { startX, initialState, direction, index } = isResizing.current
-    const deltaX = e.clientX - startX
+    const { startX, initialState, direction, index } = isResizing.current;
+    const deltaX = e.clientX - startX;
 
-    const gridContainer = document.querySelector(".grid-container") as HTMLElement
-    if (!gridContainer) return
+    const gridContainer = document.querySelector(
+      ".grid-container"
+    ) as HTMLElement;
+    if (!gridContainer) return;
 
-    const containerRect = gridContainer.getBoundingClientRect()
-    const parentRightEdge = parentLeft + parentWidth
+    const containerRect = gridContainer.getBoundingClientRect();
+    const parentRightEdge = parentLeft + parentWidth;
 
-    let newWidth = initialState.width
-    let newLeft = initialState.left
+    let newWidth = initialState.width;
+    let newLeft = initialState.left;
 
     if (direction === "left") {
       // Left edge resize - adjust position and width
-      const proposedLeft = Math.max(parentLeft, initialState.left + deltaX)
-      const proposedWidth = initialState.width - (proposedLeft - initialState.left)
+      const proposedLeft = Math.max(parentLeft, initialState.left + deltaX);
+      const proposedWidth =
+        initialState.width - (proposedLeft - initialState.left);
 
       // Ensure minimum width
       if (proposedWidth < 50) {
-        newWidth = 50
-        newLeft = initialState.left + initialState.width - 50
+        newWidth = 50;
+        newLeft = initialState.left + initialState.width - 50;
       } else {
-        newLeft = proposedLeft
-        newWidth = proposedWidth
+        newLeft = proposedLeft;
+        newWidth = proposedWidth;
       }
 
       // Snap the left edge to timeline
-      const snappedLeft = snapToTimeline(newLeft - parentLeft, containerRect.width) + parentLeft
-      newWidth = initialState.left + initialState.width - snappedLeft
-      newLeft = snappedLeft
+      const snappedLeft =
+        snapToTimeline(newLeft - parentLeft, containerRect.width) + parentLeft;
+      newWidth = initialState.left + initialState.width - snappedLeft;
+      newLeft = snappedLeft;
 
       // Ensure we don't exceed parent boundaries
       if (newLeft < parentLeft) {
-        newLeft = parentLeft
-        newWidth = initialState.left + initialState.width - parentLeft
+        newLeft = parentLeft;
+        newWidth = initialState.left + initialState.width - parentLeft;
       }
 
       if (newLeft + newWidth > parentRightEdge) {
-        newWidth = parentRightEdge - newLeft
+        newWidth = parentRightEdge - newLeft;
       }
     } else {
       // Right edge resize - keep left position fixed, adjust width only
-      newLeft = initialState.left // Always use initial left position
-      const proposedWidth = Math.max(50, initialState.width + deltaX)
+      newLeft = initialState.left; // Always use initial left position
+      const proposedWidth = Math.max(50, initialState.width + deltaX);
 
       // Calculate the right edge position
-      const rightEdgePos = newLeft + proposedWidth
+      const rightEdgePos = newLeft + proposedWidth;
 
       // Snap the right edge to timeline
-      const snappedRightEdge = snapToTimeline(rightEdgePos - parentLeft, containerRect.width) + parentLeft
+      const snappedRightEdge =
+        snapToTimeline(rightEdgePos - parentLeft, containerRect.width) +
+        parentLeft;
 
       // Ensure the snapped right edge doesn't exceed parent boundaries
-      const finalRightEdge = Math.min(snappedRightEdge, parentRightEdge)
+      const finalRightEdge = Math.min(snappedRightEdge, parentRightEdge);
 
       // Calculate final width based on the constrained right edge
-      newWidth = Math.max(50, finalRightEdge - newLeft)
+      newWidth = Math.max(50, finalRightEdge - newLeft);
     }
 
-    const startPixel = newLeft - parentLeft
-    const endPixel = startPixel + newWidth
-    const newStartDate = pixelToDate(startPixel, parentWidth, index, "startDate")
-    const newEndDate = pixelToDate(endPixel, parentWidth, index, "endDate")
+    // Use ABSOLUTE pixel positions for date calculation
+    const newStartDate = pixelToDateUtil({
+      dateList,
+      viewType,
+      pixel: newLeft,
+      containerWidth: parentWidth,
+      dailyWidth,
+    });
+    const newEndDate = pixelToDateUtil({
+      dateList,
+      viewType,
+      pixel: newLeft + newWidth,
+      containerWidth: parentWidth,
+      fieldName: "endDate",
+      dailyWidth,
+    });
+
+    console.log("=== RESIZE MOVE ===");
+    console.log("newLeft (absolute pixel):", newLeft);
+    console.log("newWidth:", newWidth);
+    console.log("Calculated newStartDate:", newStartDate);
+    console.log("Calculated newEndDate:", newEndDate);
 
     setChannelState((prev) =>
       prev.map((state, i) =>
@@ -342,12 +425,16 @@ const ResizableChannels = ({
               ...state,
               left: newLeft,
               width: newWidth,
-              startDate: newStartDate ? moment(newStartDate).format("YYYY-MM-DD") : state.startDate,
-              endDate: newEndDate ? moment(newEndDate).format("YYYY-MM-DD") : state.endDate,
+              startDate: newStartDate
+                ? moment(newStartDate).format("YYYY-MM-DD")
+                : state.startDate,
+              endDate: newEndDate
+                ? moment(newEndDate).format("YYYY-MM-DD")
+                : state.endDate,
             }
-          : state,
-      ),
-    )
+          : state
+      )
+    );
 
     // Update channels data
     setChannels((prev) =>
@@ -358,28 +445,39 @@ const ResizableChannels = ({
               start_date: newStartDate,
               end_date: newEndDate,
             }
-          : ch,
-      ),
-    )
+          : ch
+      )
+    );
 
-    updateTooltipWithDates(startPixel, endPixel, index, e.clientX, "resize")
+    // For tooltip, use relative pixels (visual display)
+    const relativeStart = newLeft - parentLeft;
+    updateTooltipWithDates(
+      relativeStart,
+      relativeStart + newWidth,
+      index,
+      e.clientX,
+      "resize"
+    );
 
     // Store data for final update
-    draggingDataRef.current = { index, newStartDate, newEndDate }
-  }
+    draggingDataRef.current = { index, newStartDate, newEndDate };
+  };
 
   const handleMouseUpResize = () => {
-    setTooltip((prev) => ({ ...prev, visible: false }))
+    setTooltip((prev) => ({ ...prev, visible: false }));
 
     if (draggingDataRef.current) {
-      // const { index, newStartDate, newEndDate } = draggingDataRef.current
-      draggingDataRef.current = null
+      const { index, newStartDate, newEndDate } = draggingDataRef.current;
+      if (newStartDate && newEndDate) {
+        saveChannelDates(index, newStartDate, newEndDate);
+      }
+      draggingDataRef.current = null;
     }
 
-    isResizing.current = null
-    document.removeEventListener("mousemove", handleMouseMoveResize)
-    document.removeEventListener("mouseup", handleMouseUpResize)
-  }
+    isResizing.current = null;
+    document.removeEventListener("mousemove", handleMouseMoveResize);
+    document.removeEventListener("mouseup", handleMouseUpResize);
+  };
 
   useEffect(() => {
     if (campaignFormData) {
@@ -417,29 +515,40 @@ const ResizableChannels = ({
     }
   }, [campaignFormData, parentId]);
 
-
-
-  const pixelToDate = (pixel, containerWidth, index, fieldName, shouldUpdate = false) => {
+  const pixelToDate = (
+    pixel,
+    containerWidth,
+    index,
+    fieldName,
+    shouldUpdate = false
+  ) => {
     let calculatedDate: Date | null = null;
     if (!dateList || dateList.length === 0) return null;
     let adjustedPixel = pixel;
     if (fieldName === "endDate") {
       adjustedPixel = Math.max(0, pixel - 1);
     }
-    
+
     if (viewType === "Year") {
       const timelineStart = startOfYear(dateList[0]);
       const timelineEnd = endOfYear(dateList[dateList.length - 1]);
-      const allMonths = eachMonthOfInterval({ start: timelineStart, end: timelineEnd });
-      
+      const allMonths = eachMonthOfInterval({
+        start: timelineStart,
+        end: timelineEnd,
+      });
+
       const monthIndex = Math.min(
         allMonths.length - 1,
         Math.max(0, Math.floor(adjustedPixel / dailyWidth))
       );
-      
+
       if (fieldName === "endDate") {
         const endMonth = allMonths[monthIndex];
-        const lastDayOfMonth = new Date(endMonth.getFullYear(), endMonth.getMonth() + 1, 0);
+        const lastDayOfMonth = new Date(
+          endMonth.getFullYear(),
+          endMonth.getMonth() + 1,
+          0
+        );
         calculatedDate = lastDayOfMonth;
       } else {
         calculatedDate = startOfMonth(allMonths[monthIndex]);
@@ -449,12 +558,12 @@ const ResizableChannels = ({
         { start: dateList[0], end: dateList[dateList.length - 1] },
         { weekStartsOn: 1 }
       );
-      
+
       const weekIndex = Math.min(
         allWeeks.length - 1,
         Math.max(0, Math.floor(adjustedPixel / dailyWidth))
       );
-      
+
       if (fieldName === "endDate") {
         const weekEnd = endOfWeek(allWeeks[weekIndex], { weekStartsOn: 1 });
         calculatedDate = weekEnd;
@@ -484,16 +593,18 @@ const ResizableChannels = ({
 
         if (platform) {
           if (fieldName === "startDate") {
-            platform.campaign_start_date = moment(calculatedDate).format("YYYY-MM-DD");
+            platform.campaign_start_date =
+              moment(calculatedDate).format("YYYY-MM-DD");
           } else {
             const endDateToUse =
               endDate && calculatedDate > endDate ? endDate : calculatedDate;
-            platform.campaign_end_date = moment(endDateToUse).format("YYYY-MM-DD");
+            platform.campaign_end_date =
+              moment(endDateToUse).format("YYYY-MM-DD");
           }
         }
       }
     }
-  
+
     return calculatedDate ? calculatedDate : null;
   };
 
@@ -508,13 +619,7 @@ const ResizableChannels = ({
 
     const startPixel = (channelState[index]?.left || parentLeft) - parentLeft;
     const endPixel = startPixel + (channelState[index]?.width || 50);
-    updateTooltipWithDates(
-      startPixel,
-      endPixel,
-      index,
-      event.clientX,
-      "drag"
-    );
+    updateTooltipWithDates(startPixel, endPixel, index, event.clientX, "drag");
   };
 
   useEffect(() => {
@@ -545,21 +650,36 @@ const ResizableChannels = ({
         )
       );
 
-      const startPixel = newLeft - parentLeft;
-      const endPixel = startPixel + channelWidth;
-      const startDate = pixelToDate(
-        startPixel,
-        parentWidth,
-        index,
-        "startDate"
-      );
-      const endDate = pixelToDate(endPixel, parentWidth, index, "endDate");
+      // Use ABSOLUTE pixel positions for date calculation
+      const startDate = pixelToDateUtil({
+        dateList,
+        viewType,
+        pixel: newLeft,
+        containerWidth: parentWidth,
+        dailyWidth,
+      });
+      const endDate = pixelToDateUtil({
+        dateList,
+        viewType,
+        pixel: newLeft + channelWidth,
+        containerWidth: parentWidth,
+        fieldName: "endDate",
+        dailyWidth,
+      });
+
+      console.log("=== DRAG MOVE ===");
+      console.log("newLeft (absolute pixel):", newLeft);
+      console.log("channelWidth:", channelWidth);
+      console.log("Calculated startDate:", startDate);
+      console.log("Calculated endDate:", endDate);
 
       draggingDataRef.current = { index, startDate, endDate };
 
+      // For tooltip, still use relative pixels (visual display)
+      const relativeStart = newLeft - parentLeft;
       updateTooltipWithDates(
-        startPixel,
-        endPixel,
+        relativeStart,
+        relativeStart + channelWidth,
         index,
         event.clientX,
         "drag"
@@ -567,27 +687,79 @@ const ResizableChannels = ({
     };
 
     const handleDragEnd = () => {
+      console.log("=== DRAG END CALLED ===");
+      console.log("draggingDataRef.current:", draggingDataRef.current);
+      console.log("channels:", channels);
+
       setTooltip((prev) => ({ ...prev, visible: false }));
 
       if (draggingDataRef.current) {
-        const { index, startDate, endDate } = draggingDataRef.current;
+        const {
+          index,
+          startDate: newStart,
+          endDate: newEnd,
+        } = draggingDataRef.current;
+
+        console.log(
+          "Extracted values - index:",
+          index,
+          "newStart:",
+          newStart,
+          "newEnd:",
+          newEnd
+        );
+        console.log("channels[index]:", channels[index]);
 
         setChannels((prevChannels) =>
           prevChannels.map((ch, i) =>
             i === index
               ? {
                   ...ch,
-                  start_date: startDate,
-                  end_date: endDate,
+                  start_date: newStart,
+                  end_date: newEnd,
                 }
               : ch
           )
         );
 
-        const startPixel = (channelState[index]?.left || parentLeft) - parentLeft;
-        const endPixel = startPixel + (channelState[index]?.width || 50);
-        pixelToDate(startPixel, parentWidth, index, "startDate", true);
-        pixelToDate(endPixel, parentWidth, index, "endDate", true);
+        // Save to campaignFormData directly (avoid stale closure)
+        console.log(
+          "Checking condition - newStart:",
+          !!newStart,
+          "newEnd:",
+          !!newEnd,
+          "channels[index]:",
+          !!channels[index]
+        );
+        if (newStart && newEnd && channels[index]) {
+          console.log("Condition passed! Proceeding to save...");
+          const updatedFormData = JSON.parse(JSON.stringify(campaignFormData));
+          const channelMix = updatedFormData.channel_mix?.find(
+            (ch) => ch.funnel_stage === parentId
+          );
+
+          if (channelMix) {
+            const platform = channelMix[channels[index].channelName]?.find(
+              (p) => p.platform_name === channels[index].name
+            );
+
+            if (platform) {
+              console.log("=== DRAG END SAVING ===");
+              console.log("Channel:", channels[index].name);
+              console.log(
+                "Saving:",
+                moment(newStart).format("YYYY-MM-DD"),
+                "to",
+                moment(newEnd).format("YYYY-MM-DD")
+              );
+
+              platform.campaign_start_date =
+                moment(newStart).format("YYYY-MM-DD");
+              platform.campaign_end_date = moment(newEnd).format("YYYY-MM-DD");
+              setCampaignFormData(updatedFormData);
+            }
+          }
+        }
 
         draggingDataRef.current = null;
       }
@@ -603,10 +775,17 @@ const ResizableChannels = ({
     return () => {
       document.removeEventListener("mousemove", handleDragMove);
       document.removeEventListener("mouseup", handleDragEnd);
-      isDraggingRef.current = false;
-      draggingDataRef.current = null;
+      // Don't clear refs here - they're needed by handleDragEnd even after cleanup
     };
-  }, [draggingPosition, parentLeft, channelState]);
+  }, [
+    draggingPosition,
+    parentLeft,
+    channelState,
+    channels,
+    campaignFormData,
+    parentId,
+    setCampaignFormData,
+  ]);
 
   const handleDeleteChannel = async (indexToDelete) => {
     const updatedChannels = channels.filter(
@@ -689,44 +868,111 @@ const ResizableChannels = ({
 
   const hasInitializedRef = useRef(false);
   const prevViewTypeRef = useRef(viewType);
-  
+  const prevParentLeftRef = useRef(parentLeft);
+  const prevParentWidthRef = useRef(parentWidth);
+
+  // Sync children visuals when parent is dragged or resized
+  useEffect(() => {
+    if (!hasInitializedRef.current) return;
+    if (!channelState || channelState.length === 0) return;
+
+    const prevLeft = prevParentLeftRef.current;
+    const prevWidth = prevParentWidthRef.current;
+    const deltaLeft = parentLeft - prevLeft;
+    const parentRightEdge = parentLeft + parentWidth;
+
+    // Only update if parent actually moved or resized
+    if (deltaLeft !== 0 || prevWidth !== parentWidth) {
+      setChannelState((prev) =>
+        prev.map((state) => {
+          let newLeft = state.left + deltaLeft;
+          let newWidth = state.width;
+
+          // Clamp to parent boundaries
+          if (newLeft < parentLeft) {
+            newLeft = parentLeft;
+          }
+          if (newLeft + newWidth > parentRightEdge) {
+            // If channel exceeds right edge, shrink it or move it
+            if (newWidth > parentWidth) {
+              newWidth = parentWidth;
+              newLeft = parentLeft;
+            } else {
+              newLeft = parentRightEdge - newWidth;
+            }
+          }
+
+          return { ...state, left: newLeft, width: newWidth };
+        })
+      );
+    }
+
+    prevParentLeftRef.current = parentLeft;
+    prevParentWidthRef.current = parentWidth;
+  }, [parentLeft, parentWidth]);
+
   useEffect(() => {
     if (!initialChannels || initialChannels.length === 0) return;
-    if (!parentWidth || !dailyWidth || !dateList || dateList.length === 0) return;
-    
+    if (!parentWidth || !dailyWidth || !dateList || dateList.length === 0)
+      return;
+    // Wait for parent dates to be set
+    if (!startDate || !endDate) return;
+
     const viewChanged = prevViewTypeRef.current !== viewType;
     prevViewTypeRef.current = viewType;
-    
+
     if (hasInitializedRef.current && !viewChanged) return;
-    
+
     setChannels(initialChannels);
     setChannelState((prev) => {
       const findMix = campaignFormData?.channel_mix?.find(
         (chhh) => chhh?.funnel_stage === parentId
       );
       if (!findMix) return prev;
-      
+
+      console.log("=== LOADING CHANNEL POSITIONS ===");
+      console.log("Parent stage:", parentId);
+      console.log("parentLeft:", parentLeft);
+      console.log("parentWidth:", parentWidth);
+      console.log("dailyWidth:", dailyWidth);
+      console.log("viewType:", viewType);
+
       const newState = initialChannels.map((ch, index) => {
         const findChannel = findMix[ch?.channelName]?.find(
           (plt) => plt?.platform_name === ch?.name
+        );
+
+        console.log("--- Channel:", ch?.name, "---");
+        console.log(
+          "Loaded campaign_start_date:",
+          findChannel?.campaign_start_date
+        );
+        console.log(
+          "Loaded campaign_end_date:",
+          findChannel?.campaign_end_date
         );
 
         const stageStartDate = findChannel?.campaign_start_date
           ? parseISO(findChannel?.campaign_start_date)
           : null;
 
-        const adjustedStageStartDate = stageStartDate && stageStartDate < startDate ? stageStartDate : startDate;
+        // Use channel's start date, clamp to parent start if before parent
+        const adjustedStageStartDate = stageStartDate
+          ? stageStartDate < startDate
+            ? startDate
+            : stageStartDate
+          : startDate;
 
         const stageEndDate = findChannel?.campaign_end_date
           ? parseISO(findChannel?.campaign_end_date)
           : null;
 
-        const isEndDateExceeded =
-          stageEndDate && endDate && stageEndDate > endDate;
-
-        const adjustedStageEndDate = isEndDateExceeded
-          ? endDate
-          : stageEndDate;
+        // Use channel's end date, clamp to parent end if after parent
+        const adjustedStageEndDate = stageEndDate
+          ? stageEndDate > endDate
+            ? endDate
+            : stageEndDate
+          : endDate;
 
         let startDateIndex = 0;
         let width = parentWidth;
@@ -734,64 +980,105 @@ const ResizableChannels = ({
         if (viewType === "Year" && dateList && dateList.length > 0) {
           const timelineStart = startOfYear(dateList[0]);
           const timelineEnd = endOfYear(dateList[dateList.length - 1]);
-          const allMonths = eachMonthOfInterval({ start: timelineStart, end: timelineEnd });
-          
-          const startMonthIndex = adjustedStageStartDate 
-            ? allMonths.findIndex(m => format(m, "yyyy-MM") === format(adjustedStageStartDate, "yyyy-MM"))
+          const allMonths = eachMonthOfInterval({
+            start: timelineStart,
+            end: timelineEnd,
+          });
+
+          const startMonthIndex = adjustedStageStartDate
+            ? allMonths.findIndex(
+                (m) =>
+                  format(m, "yyyy-MM") ===
+                  format(adjustedStageStartDate, "yyyy-MM")
+              )
             : 0;
           const endMonthIndex = adjustedStageEndDate
-            ? allMonths.findIndex(m => format(m, "yyyy-MM") === format(adjustedStageEndDate, "yyyy-MM"))
+            ? allMonths.findIndex(
+                (m) =>
+                  format(m, "yyyy-MM") ===
+                  format(adjustedStageEndDate, "yyyy-MM")
+              )
             : startMonthIndex;
-          
-          startDateIndex = startMonthIndex >= 0 ? startMonthIndex * dailyWidth : 0;
-          const monthsSpanned = endMonthIndex >= startMonthIndex ? endMonthIndex - startMonthIndex + 1 : 1;
+
+          startDateIndex =
+            startMonthIndex >= 0 ? startMonthIndex * dailyWidth : 0;
+          const monthsSpanned =
+            endMonthIndex >= startMonthIndex
+              ? endMonthIndex - startMonthIndex + 1
+              : 1;
           width = monthsSpanned * dailyWidth;
         } else if (viewType === "Month" && dateList && dateList.length > 0) {
           const allWeeks = eachWeekOfInterval(
             { start: dateList[0], end: dateList[dateList.length - 1] },
             { weekStartsOn: 1 }
           );
-          
-          const startWeekIndex = adjustedStageStartDate 
-            ? allWeeks.findIndex(weekStart => {
+
+          const startWeekIndex = adjustedStageStartDate
+            ? allWeeks.findIndex((weekStart) => {
                 const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
-                return adjustedStageStartDate >= weekStart && adjustedStageStartDate <= weekEnd;
+                return (
+                  adjustedStageStartDate >= weekStart &&
+                  adjustedStageStartDate <= weekEnd
+                );
               })
             : 0;
           const endWeekIndex = adjustedStageEndDate
-            ? allWeeks.findIndex(weekStart => {
+            ? allWeeks.findIndex((weekStart) => {
                 const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
-                return adjustedStageEndDate >= weekStart && adjustedStageEndDate <= weekEnd;
+                return (
+                  adjustedStageEndDate >= weekStart &&
+                  adjustedStageEndDate <= weekEnd
+                );
               })
             : startWeekIndex;
-          
-          startDateIndex = startWeekIndex >= 0 ? startWeekIndex * dailyWidth : 0;
-          const weeksSpanned = endWeekIndex >= startWeekIndex ? endWeekIndex - startWeekIndex + 1 : 1;
+
+          startDateIndex =
+            startWeekIndex >= 0 ? startWeekIndex * dailyWidth : 0;
+          const weeksSpanned =
+            endWeekIndex >= startWeekIndex
+              ? endWeekIndex - startWeekIndex + 1
+              : 1;
           width = weeksSpanned * dailyWidth;
         } else {
-          startDateIndex = adjustedStageStartDate
-            ? dateList?.findIndex((date) => isEqual(date, adjustedStageStartDate)) * dailyWidth
-            : 0;
+          // Use format to compare dates (ignores time component)
+          const channelStartStr = adjustedStageStartDate
+            ? format(adjustedStageStartDate, "yyyy-MM-dd")
+            : null;
 
-          let daysBetween;
+          const foundIndex = channelStartStr
+            ? dateList?.findIndex(
+                (date) => format(date, "yyyy-MM-dd") === channelStartStr
+              )
+            : -1;
+
+          console.log(
+            "findIndex result:",
+            foundIndex,
+            "for date:",
+            channelStartStr
+          );
+          console.log(
+            "dateList[0]:",
+            dateList?.[0] ? format(dateList[0], "yyyy-MM-dd") : "N/A"
+          );
+
+          startDateIndex = foundIndex >= 0 ? foundIndex * dailyWidth : 0;
+
+          let daysBetween = 0;
           if (adjustedStageStartDate && adjustedStageEndDate) {
             daysBetween = eachDayOfInterval({
               start: adjustedStageStartDate,
               end: adjustedStageEndDate,
-            })?.length;
-          } else {
-            daysBetween = eachDayOfInterval({
-              start: new Date(findChannel?.campaign_start_date) || null,
-              end: isEndDateExceeded
-                ? endDate
-                : new Date(findChannel?.campaign_end_date) || null,
             })?.length;
           }
 
           width = daysBetween > 0 ? dailyWidth * daysBetween : parentWidth;
         }
 
-        let left = Math.max(parentLeft || 0, startDateIndex < 0 ? (parentLeft || 0) : startDateIndex);
+        let left = Math.max(
+          parentLeft || 0,
+          startDateIndex < 0 ? parentLeft || 0 : startDateIndex
+        );
 
         width = Math.min(width, parentWidth || 0);
 
@@ -809,6 +1096,10 @@ const ResizableChannels = ({
           left = parentLeft || 0;
         }
 
+        console.log("Calculated left:", left);
+        console.log("Calculated width:", width);
+        console.log("startDateIndex:", startDateIndex);
+
         return {
           left: left,
           width: width,
@@ -819,9 +1110,16 @@ const ResizableChannels = ({
       hasInitializedRef.current = true;
       return newState;
     });
-  }, [initialChannels, parentLeft, parentWidth, viewType, dailyWidth, dateList]);
-
-
+  }, [
+    initialChannels,
+    parentLeft,
+    parentWidth,
+    viewType,
+    dailyWidth,
+    dateList,
+    startDate,
+    endDate,
+  ]);
 
   useEffect(() => {
     if (!dragging) return;
@@ -830,7 +1128,10 @@ const ResizableChannels = ({
     if (viewType === "Year" && dateList && dateList.length > 0) {
       const timelineStart = startOfYear(dateList[0]);
       const timelineEnd = endOfYear(dateList[dateList.length - 1]);
-      const allMonths = eachMonthOfInterval({ start: timelineStart, end: timelineEnd });
+      const allMonths = eachMonthOfInterval({
+        start: timelineStart,
+        end: timelineEnd,
+      });
       totalUnits = allMonths.length - 1;
     } else if (viewType === "Month" && dateList && dateList.length > 0) {
       const allWeeks = eachWeekOfInterval(
@@ -897,7 +1198,6 @@ const ResizableChannels = ({
             index,
             "endDate"
           );
-          
 
           if (endDate > endDate) {
             const parentEndPixel = parentWidth;
@@ -923,7 +1223,7 @@ const ResizableChannels = ({
           pixelToDate(endPixel, parentWidth, index, "endDate", true);
         }
       }
-      setDragging(null);  
+      setDragging(null);
     };
 
     document.addEventListener("mousemove", handleMouseMove);
@@ -1470,52 +1770,52 @@ const ResizableChannels = ({
           )}
         </div>
       </Modal>
-      {openAdset &&
-      <Modal
-        isOpen={selectedChannel && openAdset ? true : false}
-        onClose={() => setOpenAdset(false)}
-      >
-        <div className="bg-white w-[950px] p-2 rounded-lg max-h-[600px] overflow-y-scroll">
-          <button
-            className="flex justify-end w-fit ml-auto"
-            onClick={() => setOpenAdset(false)}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="25"
-              height="25"
-              viewBox="0 0 25 25"
-              fill="none"
-            >
-              <path
-                d="M18.7266 6.5L6.72656 18.5M6.72656 6.5L18.7266 18.5"
-                stroke="#717680"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-          <AdSetsFlow stageName={parentId} platformName={selectedChannel} />
-          <div className="w-fit ml-auto">
+      {openAdset && (
+        <Modal
+          isOpen={selectedChannel && openAdset ? true : false}
+          onClose={() => setOpenAdset(false)}
+        >
+          <div className="bg-white w-[950px] p-2 rounded-lg max-h-[600px] overflow-y-scroll">
             <button
-              className="bg-blue-500 text-white rounded-md p-2 flex justify-center items-center"
-              onClick={async () => {
-                await sendUpdatedDataToAPI(campaignFormData);
-                await setOpenAdset(false);
-              }}
-              disabled={deleting}
+              className="flex justify-end w-fit ml-auto"
+              onClick={() => setOpenAdset(false)}
             >
-              {deleting ? (
-                <FaSpinner className="animate-spin" />
-              ) : (
-                "Confirm Changes"
-              )}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="25"
+                height="25"
+                viewBox="0 0 25 25"
+                fill="none"
+              >
+                <path
+                  d="M18.7266 6.5L6.72656 18.5M6.72656 6.5L18.7266 18.5"
+                  stroke="#717680"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
             </button>
+            <AdSetsFlow stageName={parentId} platformName={selectedChannel} />
+            <div className="w-fit ml-auto">
+              <button
+                className="bg-blue-500 text-white rounded-md p-2 flex justify-center items-center"
+                onClick={async () => {
+                  await sendUpdatedDataToAPI(campaignFormData);
+                  await setOpenAdset(false);
+                }}
+                disabled={deleting}
+              >
+                {deleting ? (
+                  <FaSpinner className="animate-spin" />
+                ) : (
+                  "Confirm Changes"
+                )}
+              </button>
+            </div>
           </div>
-        </div>
-      </Modal>
-      }
+        </Modal>
+      )}
     </div>
   );
 };
