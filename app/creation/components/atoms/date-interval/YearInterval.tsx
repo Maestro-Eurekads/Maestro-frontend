@@ -1,9 +1,10 @@
 "use client";
 
 import type React from "react";
-import { useCallback, useEffect, useState } from "react";
-import { eachDayOfInterval, addDays, format } from "date-fns";
+import { useEffect, useState, useMemo, useCallback } from "react";
+import { eachMonthOfInterval, format, startOfYear, endOfYear } from "date-fns";
 import { useCampaigns } from "app/utils/CampaignsContext";
+import { useDateRange } from "src/date-range-context";
 
 interface YearIntervalProps {
   yearsCount?: number;
@@ -13,6 +14,8 @@ interface YearIntervalProps {
   disableDrag?: any;
 }
 
+const MONTH_WIDTH_PX = 80;
+
 const YearInterval: React.FC<YearIntervalProps> = ({
   yearsCount,
   view,
@@ -20,121 +23,150 @@ const YearInterval: React.FC<YearIntervalProps> = ({
   disableDrag,
   funnelData,
 }) => {
-  const [yearNames, setYearNames] = useState<string[]>([]);
-  const [daysInEachYear, setDaysInEachYear] = useState<Record<string, number>>(
-    {}
-  );
   const { campaignFormData } = useCampaigns();
-
-  // Function to calculate days in each year from the campaign timeline
-  const calculateDaysInEachYear = useCallback(() => {
-    if (
-      !campaignFormData?.campaign_timeline_start_date ||
-      !campaignFormData?.campaign_timeline_end_date
-    ) {
-      return {};
-    }
-
-    const startDate = new Date(campaignFormData.campaign_timeline_start_date);
-    const endDate = new Date(campaignFormData.campaign_timeline_end_date);
-
-    const dateList = eachDayOfInterval({ start: startDate, end: endDate });
-    const yearDays: Record<string, number> = {};
-
-    dateList.forEach((date) => {
-      const year = format(date, "yyyy");
-      yearDays[year] = (yearDays[year] || 0) + 1;
-    });
-
-    return yearDays;
-  }, [campaignFormData]);
-
-  // Use provided function or calculate internally
-  const daysInYear = getDaysInEachYear ? getDaysInEachYear() : daysInEachYear;
-
-  // Compute gridTemplateColumns dynamically from daysInYear
-  const totalDays = Object.values(daysInYear || {}).reduce(
-    //@ts-ignore
-    (acc, days) => acc + Number(days),
-    0
-  );
-
-  const gridTemplateColumns = Object.values(daysInYear || {})
-    //@ts-ignore
-    .map((days) => `${((days as number) / totalDays) * 100}%`)
-    .join(" ");
+  const { extendedRange, isInfiniteTimeline } = useDateRange();
+  
+  const [monthsByYear, setMonthsByYear] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
-    if (campaignFormData) {
-      const startDate = new Date(campaignFormData.campaign_timeline_start_date);
-      const endDate = new Date(campaignFormData.campaign_timeline_end_date);
-
-      const differenceInDaysCount = Math.ceil(
-        (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
-      );
-
-      const dateList = eachDayOfInterval({
-        start: startDate,
-        end: addDays(startDate, differenceInDaysCount),
-      });
-
-      // Extract unique year names
-      const years = Array.from(
-        new Set(dateList.map((date) => format(date, "yyyy")))
-      );
-      setYearNames(years);
-
-      // Calculate days in each year if not provided externally
-      if (!getDaysInEachYear) {
-        const yearDaysData = calculateDaysInEachYear();
-        setDaysInEachYear(yearDaysData);
-      }
+    let months: Date[] = [];
+    
+    if (isInfiniteTimeline && extendedRange && extendedRange.length > 0) {
+      const startDate = startOfYear(extendedRange[0]);
+      const endDate = endOfYear(extendedRange[extendedRange.length - 1]);
+      months = eachMonthOfInterval({ start: startDate, end: endDate });
+    } else if (campaignFormData?.campaign_timeline_start_date && campaignFormData?.campaign_timeline_end_date) {
+      const startDate = startOfYear(new Date(campaignFormData.campaign_timeline_start_date));
+      const endDate = endOfYear(new Date(campaignFormData.campaign_timeline_end_date));
+      months = eachMonthOfInterval({ start: startDate, end: endDate });
     }
-  }, [campaignFormData, getDaysInEachYear, calculateDaysInEachYear]);
+    
+    const grouped: Record<string, string[]> = {};
+    months.forEach((month) => {
+      const year = format(month, "yyyy");
+      const monthName = format(month, "MMM");
+      if (!grouped[year]) {
+        grouped[year] = [];
+      }
+      grouped[year].push(monthName);
+    });
+    
+    setMonthsByYear(grouped);
+  }, [campaignFormData, extendedRange, isInfiniteTimeline]);
 
-  const calculateDailyWidth = useCallback(() => {
-    const getViewportWidth = () => {
-      return window.innerWidth || document.documentElement.clientWidth || 0;
-    };
-    const screenWidth = getViewportWidth();
-    const contWidth = screenWidth - (disableDrag ? 80 : 367);
+  const sortedYears = useMemo(() => Object.keys(monthsByYear).sort(), [monthsByYear]);
+  
+  const totalMonths = useMemo(() => 
+    sortedYears.reduce((acc, year) => acc + monthsByYear[year].length, 0),
+    [sortedYears, monthsByYear]
+  );
 
-    const totalDays = funnelData?.endDay || 365; // Default to 365 for year view
-    let dailyWidth = contWidth / totalDays;
+  const calculateContainerWidth = useCallback(() => {
+    if (typeof window === 'undefined') return 1000;
+    const screenWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+    return screenWidth - (disableDrag ? 80 : 367);
+  }, [disableDrag]);
 
-    // Ensure minimum width constraints
-    dailyWidth = Math.max(dailyWidth, 10); // Smaller minimum for year view
+  const gridTemplateColumns = useMemo(() => {
+    if (isInfiniteTimeline) {
+      return `repeat(${totalMonths}, ${MONTH_WIDTH_PX}px)`;
+    } else {
+      const contWidth = calculateContainerWidth();
+      const monthWidth = Math.max(contWidth / totalMonths, 60);
+      return `repeat(${totalMonths}, ${monthWidth}px)`;
+    }
+  }, [totalMonths, isInfiniteTimeline, calculateContainerWidth]);
 
-    return Math.round(dailyWidth);
-  }, [disableDrag, funnelData?.endDay]);
+  const allMonths = useMemo(() => {
+    const result: Array<{ month: string; year: string; isFirstOfYear: boolean }> = [];
+    sortedYears.forEach((year) => {
+      monthsByYear[year].forEach((month, idx) => {
+        result.push({
+          month,
+          year,
+          isFirstOfYear: idx === 0,
+        });
+      });
+    });
+    return result;
+  }, [sortedYears, monthsByYear]);
 
-  const dailyWidth = calculateDailyWidth();
+  const yearHeaders = useMemo(() => {
+    const headers: Array<{ year: string; span: number; startIndex: number }> = [];
+    let currentIndex = 0;
+    
+    sortedYears.forEach((year) => {
+      const monthCount = monthsByYear[year].length;
+      headers.push({
+        year,
+        span: monthCount,
+        startIndex: currentIndex,
+      });
+      currentIndex += monthCount;
+    });
+    
+    return headers;
+  }, [sortedYears, monthsByYear]);
+
+  const monthWidth = isInfiniteTimeline ? MONTH_WIDTH_PX : Math.max(calculateContainerWidth() / totalMonths, 60);
 
   return (
-    <div className="w-full border-y border-r">
+    <div className={isInfiniteTimeline ? "min-w-max border-y relative" : "w-full border-y relative"}>
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: `repeat(${yearNames.length}, 1fr)`,
-          backgroundImage: `linear-gradient(to right, rgba(0,0,255,0.3) 1px, transparent 1px)`,
-          backgroundSize: `100% 100%`,
+          gridTemplateColumns,
+        }}
+        className="border-b border-blue-200"
+      >
+        {yearHeaders.map((header) => (
+          <div
+            key={header.year}
+            style={{
+              gridColumn: `span ${header.span}`,
+            }}
+            className="relative h-full"
+          >
+            <div
+              style={{
+                position: "sticky",
+                left: 0,
+                width: "fit-content",
+                backgroundColor: "white",
+                paddingRight: "12px",
+                zIndex: 10,
+              }}
+              className="py-2 px-3 border-r border-blue-200/50 h-full flex items-center"
+            >
+              <span className="font-[600] text-[16px] text-[rgba(0,0,0,0.7)]">
+                {header.year}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns,
+          backgroundImage: `linear-gradient(to right, rgba(0,0,255,0.1) 1px, transparent 1px)`,
+          backgroundSize: `${monthWidth}px 100%`,
         }}
       >
-        {yearNames.map((yearName, i) => {
-          // console.log("Ye", yearName)
-          return (
-            <div
-              key={i}
-              className="flex flex-col items-center relative py-4 border-r-2 border-blue-300 last:border-r-0"
-            >
-              <div className="flex flex-row gap-2 items-center">
-                <span className="font-[600] text-[16px] text-[rgba(0,0,0,0.7)]">
-                  {yearName}
-                </span>
-              </div>
-            </div>
-          );
-        })}
+        {allMonths.map((item, i) => (
+          <div
+            key={`${item.year}-${item.month}-${i}`}
+            className="flex flex-col items-center justify-center relative py-3 border-r border-blue-200 last:border-r-0"
+            style={{
+              borderLeft: item.isFirstOfYear && i > 0 ? "2px solid rgba(0,0,255,0.3)" : "none",
+            }}
+          >
+            <span className="font-[500] text-[13px] text-[rgba(0,0,0,0.5)]">
+              {item.month}
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );

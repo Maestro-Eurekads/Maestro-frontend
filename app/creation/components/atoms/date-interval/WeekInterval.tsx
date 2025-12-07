@@ -19,8 +19,11 @@ const WeekInterval = ({
   src?:any
 }) => {
   const { campaignFormData } = useCampaigns();
-  const { range:ddRange } = useDateRange();
+  const { range: ddRange, extendedRange, isInfiniteTimeline } = useDateRange();
   const {close} = useComments()
+  
+  // Use extended range for infinite timeline
+  const effectiveRange = isInfiniteTimeline ? extendedRange : ddRange;
 
   const groupDatesByWeek = (dates: Date[]) => {
     const weeks: string[][] = [];
@@ -42,7 +45,7 @@ const WeekInterval = ({
     return weeks;
   };
 
-  const datesByWeek = src=== "dashboard" ? range ? groupDatesByWeek(range) : [] : ddRange ? groupDatesByWeek(ddRange) : [];
+  const datesByWeek = src=== "dashboard" ? range ? groupDatesByWeek(range) : [] : effectiveRange ? groupDatesByWeek(effectiveRange) : [];
 
   const calculateDailyWidth = useCallback(() => {
     const getViewportWidth = () => {
@@ -51,6 +54,10 @@ const WeekInterval = ({
     const screenWidth = getViewportWidth();
     const contWidth = screenWidth - (disableDrag ? 80 : close ? 0:367);
 
+    if (isInfiniteTimeline && effectiveRange && effectiveRange.length > 0) {
+      return 50;
+    }
+
     const totalDays = funnelData?.endDay || 30;
     let dailyWidth = contWidth / totalDays;
 
@@ -58,7 +65,7 @@ const WeekInterval = ({
     dailyWidth = Math.max(dailyWidth, 50);
 
     return Math.round(dailyWidth);
-  }, [disableDrag, funnelData?.endDay, close]);
+  }, [disableDrag, funnelData?.endDay, close, isInfiniteTimeline, effectiveRange]);
 
   // Calculate individual week widths based on actual days in each week
   const weekWidths = useMemo(() => {
@@ -105,7 +112,7 @@ const WeekInterval = ({
         .join(", ");
 
       return (
-        <div className="w-full border-y">
+        <div className={isInfiniteTimeline ? "min-w-max border-y" : "w-full border-y"}>
           <div
             style={{
               display: "grid",

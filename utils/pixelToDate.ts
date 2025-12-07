@@ -1,28 +1,86 @@
-export const pixelToDate = (
-   {dateList, range, pixel, containerWidth, fieldName}: {dateList: Date[], range: string, pixel: number, containerWidth: number, fieldName?: string}
-  ) => {
-    if (!dateList.length) return new Date();
-    const firstDate = dateList[0];
-    const totalDays = dateList.length;
+import {
+  eachMonthOfInterval,
+  eachWeekOfInterval,
+  startOfYear,
+  endOfYear,
+  startOfMonth,
+  startOfWeek,
+  endOfWeek,
+} from "date-fns";
 
-    if (range === "Year") {
-      const totalMonths = 12;
-      const clampedPixel = Math.max(0, Math.min(pixel, containerWidth));
-      const monthFraction = clampedPixel / containerWidth;
-      const monthIndex = Math.round(monthFraction * totalMonths);
-      const year = firstDate.getFullYear();
+export const pixelToDate = ({
+  dateList,
+  viewType,
+  pixel,
+  containerWidth,
+  fieldName,
+  dailyWidth,
+}: {
+  dateList: Date[];
+  viewType: string;
+  pixel: number;
+  containerWidth: number;
+  fieldName?: string;
+  dailyWidth?: number;
+}) => {
+  if (!dateList.length) return new Date();
+  const firstDate = dateList[0];
+  const lastDate = dateList[dateList.length - 1];
+  const totalDays = dateList.length;
 
-      if (fieldName === "endDate") {
-        return new Date(year, Math.min(11, monthIndex), 0);
-      }
-      return new Date(year, Math.min(11, monthIndex), 1);
-    }
+  let adjustedPixel = pixel;
+  if (fieldName === "endDate") {
+    adjustedPixel = Math.max(0, pixel - 1);
+  }
 
-    const dayIndex = Math.min(
-      totalDays,
-      Math.max(0, Math.round((pixel / containerWidth) * totalDays))
+  if (viewType === "Year") {
+    const monthWidth = dailyWidth || 80;
+    const timelineStart = startOfYear(firstDate);
+    const timelineEnd = endOfYear(lastDate);
+    const allMonths = eachMonthOfInterval({
+      start: timelineStart,
+      end: timelineEnd,
+    });
+
+    const monthIndex = Math.min(
+      allMonths.length - 1,
+      Math.max(0, Math.floor(adjustedPixel / monthWidth))
     );
 
-    const calculatedDate = fieldName === "endDate" ? dateList[dayIndex-1] : dateList[dayIndex];
-    return calculatedDate;
-  };
+    if (fieldName === "endDate") {
+      const endMonth = allMonths[monthIndex];
+      return new Date(endMonth.getFullYear(), endMonth.getMonth() + 1, 0);
+    }
+    return startOfMonth(allMonths[monthIndex]);
+  }
+
+  if (viewType === "Month") {
+    const weekWidth = dailyWidth || 100;
+    const allWeeks = eachWeekOfInterval(
+      { start: firstDate, end: lastDate },
+      { weekStartsOn: 1 }
+    );
+
+    const weekIndex = Math.min(
+      allWeeks.length - 1,
+      Math.max(0, Math.floor(adjustedPixel / weekWidth))
+    );
+
+    if (fieldName === "endDate") {
+      return endOfWeek(allWeeks[weekIndex], { weekStartsOn: 1 });
+    }
+    return startOfWeek(allWeeks[weekIndex], { weekStartsOn: 1 });
+  }
+
+  const unitWidth = dailyWidth || containerWidth / totalDays;
+  const dayIndex = Math.min(
+    totalDays - 1,
+    Math.max(0, Math.floor(adjustedPixel / unitWidth))
+  );
+
+  const calculatedDate = dateList[dayIndex];
+  return calculatedDate;
+};
+
+
+

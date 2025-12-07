@@ -9,18 +9,25 @@ interface DayIntervalProps {
 }
 
 const DayInterval: React.FC<DayIntervalProps> = ({ daysCount, src , range}) => {
-  const { range:ddRange } = useDateRange();
+  const { range: ddRange, extendedRange, isInfiniteTimeline } = useDateRange();
+    const effectiveRange = isInfiniteTimeline ? extendedRange : ddRange;
+  
+  const dailyWidth = isInfiniteTimeline ? 50 : undefined;
+  const gridColumns = isInfiniteTimeline 
+    ? `repeat(${effectiveRange?.length || 0}, ${dailyWidth}px)`
+    : `repeat(${effectiveRange?.length || 0}, 1fr)`;
+  
   return (
-    <div className="w-full border-y py-3">
+    <div className={isInfiniteTimeline ? "min-w-max border-y py-3" : "w-full border-y py-3"}>
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: `repeat(${ddRange?.length},1fr )`,
+          gridTemplateColumns: gridColumns,
         }}
       >
-        {Array.from({ length: ddRange?.length }, (_, i) => {
-          const isEdge = i === 0 || i === (src==="dashboard" ? range.length : ddRange?.length - 1);
-          const date = src==="dashboard" ? range[i] :ddRange[i]
+        {Array.from({ length: effectiveRange?.length || 0 }, (_, i) => {
+          const isEdge = i === 0 || i === (src==="dashboard" ? range?.length : effectiveRange?.length - 1);
+          const date = src==="dashboard" ? range?.[i] : effectiveRange?.[i]
           return (
             <div key={i} className="flex flex-col items-center relative">
               {/* Week Label */}

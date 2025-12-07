@@ -3,7 +3,6 @@ import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import type { StaticImageData } from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
-// import DraggableChannel from "../../../../../components/DraggableChannel";
 import ResizableChannels from "./ResizableChannels";
 import { useFunnelContext } from "../../../../utils/FunnelContextType";
 import {
@@ -16,6 +15,7 @@ import { useDateRange as useRange } from "src/date-context";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import {
   eachDayOfInterval,
+  eachWeekOfInterval,
   format,
   isEqual,
   parseISO,
@@ -24,6 +24,9 @@ import {
   differenceInDays,
   startOfYear,
   endOfYear,
+  startOfWeek,
+  endOfWeek,
+  differenceInWeeks,
 } from "date-fns";
 import { useComments } from "app/utils/CommentProvider";
 import EnhancedDraggableChannel from "components/enhanced-draggable-channel";
@@ -79,9 +82,11 @@ const ResizeableElements = ({
   const { funnelWidths } = useFunnelContext();
   const { close } = useComments();
   const [openChannels, setOpenChannels] = useState<Record<string, boolean>>({});
-  const { range } = useDateRange();
+  const { range, extendedRange, isInfiniteTimeline } = useDateRange();
   const { range: rrange } = useRange();
   const { campaignFormData, loadingCampaign } = useCampaigns();
+  
+  const gridRange = isInfiniteTimeline ? extendedRange : range;
   const [channelWidths, setChannelWidths] = useState<Record<string, number>>(
     {}
   );
@@ -115,53 +120,22 @@ const ResizeableElements = ({
 
   const updateChannelWidth = (channelId: string, width: number) => {
     setChannelWidths((prev) => ({ ...prev, [channelId]: width }));
-    // convertWidthAndPositionToDates({widthValue: width, stageName: channelId});
   };
 
   const updateChannelPosition = (channelId: string, left: number) => {
     setChannelPositions((prev) => ({ ...prev, [channelId]: left }));
-    // convertWidthAndPositionToDates({ leftValue: left, stageName: channelId});
   };
- 
 
 
-  // New function to calculate which months a phase spans across
-  const calculatePhaseMonthSpans = useCallback(
-    (startDate: Date, endDate: Date): MonthSpan[] => {
-      const months = eachMonthOfInterval({ start: startDate, end: endDate });
-
-      return months.map((monthStart) => {
-        const monthEnd = endOfMonth(monthStart);
-        const actualStart = startDate > monthStart ? startDate : monthStart;
-        const actualEnd = endDate < monthEnd ? endDate : monthEnd;
-
-        const startDay = differenceInDays(actualStart, monthStart) + 1;
-        const endDay = differenceInDays(actualEnd, monthStart) + 1;
-        const totalDaysInMonth = differenceInDays(monthEnd, monthStart) + 1;
-
-        return {
-          month: format(monthStart, "MMMM"),
-          year: format(monthStart, "yyyy"),
-          startDay,
-          endDay,
-          totalDaysInMonth,
-          isPartial: actualStart > monthStart || actualEnd < monthEnd,
-        };
-      });
-    },
-    []
-  );
-
-  // Generate 12 months for year view
   const generateYearMonths = useCallback(() => {
-    if (!range || range.length === 0) return [];
+    if (!gridRange || gridRange.length === 0) return [];
 
-    const startDate = startOfYear(range[0]); // Force start to Jan 1
-    const endDate = endOfYear(range[range.length - 1]); // Force end to Dec 31
+    const startDate = startOfYear(gridRange[0]);
+    const endDate = endOfYear(gridRange[gridRange.length - 1]);
 
     const months = eachMonthOfInterval({ start: startDate, end: endDate });
     return months.map((month) => format(month, "MMMM yyyy"));
-  }, [range]);
+  }, [gridRange]);
 
   const getPlatformsFromStage = useCallback(() => {
     const platformsByStage: Record<string, OutletType[]> = {};
@@ -244,19 +218,32 @@ const ResizeableElements = ({
 
       let dailyWidth: number;
 
-      if (viewType === "Day" || viewType === "Week") {
-        const endPeriod = funnelData?.endDay || 1;
-        dailyWidth = contWidth / endPeriod;
-        dailyWidth = dailyWidth < 50 ? 50 : dailyWidth;
-      } else if (viewType === "Year") {
-        // Year view - calculate width per month (12 months)
-        const monthWidth = contWidth / 12;
-        dailyWidth = Math.max(monthWidth, 60); // Minimum 60px per month
+      if (isInfiniteTimeline) {
+        if (viewType === "Day" || viewType === "Week") {
+          dailyWidth = 50;
+        } else if (viewType === "Year") {
+          dailyWidth = 80;
+        } else if (viewType === "Month") {
+          dailyWidth = 100;
+        } else {
+          dailyWidth = 50;
+        }
       } else {
-        // Month - ensure all months fit within screen width
-        const totalDays = totalDaysInRange || funnelData?.endDay || 30;
-        dailyWidth = contWidth / totalDays;
-        dailyWidth = Math.max(dailyWidth, 10);
+        if (viewType === "Day" || viewType === "Week") {
+          const endPeriod = funnelData?.endDay || 1;
+          dailyWidth = contWidth / endPeriod;
+          dailyWidth = dailyWidth < 50 ? 50 : dailyWidth;
+        } else if (viewType === "Year") {
+          const monthWidth = contWidth / 12;
+          dailyWidth = Math.max(monthWidth, 60);
+        } else if (viewType === "Month") {
+          const totalWeeks = gridRange ? Math.ceil(gridRange.length / 7) : 4;
+          dailyWidth = Math.max(contWidth / totalWeeks, 60);
+        } else {
+          const totalDays = totalDaysInRange || funnelData?.endDay || 30;
+          dailyWidth = contWidth / totalDays;
+          dailyWidth = Math.max(dailyWidth, 10);
+        }
       }
 
       setDailyWidthByView((prev) => ({
@@ -266,31 +253,29 @@ const ResizeableElements = ({
 
       return Math.round(dailyWidth);
     },
-    [disableDrag, funnelData?.endDay, funnelData?.endMonth, close]
+    [disableDrag, funnelData?.endDay, funnelData?.endMonth, close, isInfiniteTimeline]
   );
 
   useEffect(() => {
     if (!rrange || !gridRef?.current) return;
 
-    // Calculate days in each month
-    const result = getDaysInEachMonth(range);
+    const effectiveRange = gridRange && gridRange.length > 0 ? gridRange : range;
+    if (!effectiveRange || effectiveRange.length === 0) return;
+
+    const result = getDaysInEachMonth(effectiveRange);
     setDaysInEachMonth(result);
 
-    // Calculate months organized by year
-    const yearMonthResult = getMonthsByYear(range);
+    const yearMonthResult = getMonthsByYear(effectiveRange);
     setMonthsByYear(yearMonthResult);
 
-    // Generate year months for year view
     const yearMonthsList = generateYearMonths();
     setYearMonths(yearMonthsList);
 
-    // Calculate total days
     const totalDaysInRange = Object.values(result).reduce(
       (sum: number, days: number) => sum + days,
       0
     );
 
-    // Update container width and daily width
     requestAnimationFrame(() => {
       const gridContainer = document.querySelector(
         ".grid-container"
@@ -313,11 +298,11 @@ const ResizeableElements = ({
     rrange,
     funnelData?.endMonth,
     range,
+    gridRange,
     calculateAndCacheDailyWidth,
     generateYearMonths,
   ]);
 
-  // Enhanced function that returns the number of days in each month using the state range as reference
   const getDaysInEachMonth = useCallback(
     (range: Date[]): Record<string, number> => {
       const daysInMonth: Record<string, number> = {};
@@ -332,7 +317,6 @@ const ResizeableElements = ({
     []
   );
 
-  // Enhanced function that returns months organized by year
   const getMonthsByYear = useCallback(
     (range: Date[]): Record<string, Record<string, number>> => {
       const monthsByYear: Record<string, Record<string, number>> = {};
@@ -347,101 +331,68 @@ const ResizeableElements = ({
 
         monthsByYear[year][month] = (monthsByYear[year][month] || 0) + 1;
       });
-console.log(monthsByYear, "herit")
       return monthsByYear;
     },
     []
   );
 
-  // Enhanced function to generate dynamic grid template columns for different views
+  const getWeeksInRange = useCallback(() => {
+    if (!gridRange || gridRange.length === 0) return [];
+    const startDate = gridRange[0];
+    const endDate = gridRange[gridRange.length - 1];
+    return eachWeekOfInterval({ start: startDate, end: endDate }, { weekStartsOn: 1 });
+  }, [gridRange]);
+
   const generateGridColumns = useCallback(() => {
     const dailyWidth = dailyWidthByView[rrange] || 50;
+    
+    const totalDaysForGrid = isInfiniteTimeline && gridRange?.length > 0 
+      ? gridRange.length 
+      : (funnelData?.endDay || 1);
 
     if (rrange === "Day" || rrange === "Week") {
-      return `repeat(${funnelData?.endDay || 1}, ${dailyWidth}px)`;
+      return `repeat(${totalDaysForGrid}, ${dailyWidth}px)`;
     } else if (rrange === "Year") {
-      const startDate = startOfYear(range[0]);
-      const endDate = endOfYear(range[range.length - 1]);
+      const startDate = startOfYear(gridRange[0]);
+      const endDate = endOfYear(gridRange[gridRange.length - 1]);
       const months = eachMonthOfInterval({ start: startDate, end: endDate });
       return `repeat(${months.length}, ${dailyWidth}px)`;
+    } else if (rrange === "Month") {
+      const weeks = getWeeksInRange();
+      return `repeat(${weeks.length}, ${dailyWidth}px)`;
     } else {
-      // Month view logic (existing)
-      if (Object.keys(monthsByYear).length > 0) {
-        const columnDefinitions: string[] = [];
-        const sortedYears = Object.keys(monthsByYear).sort();
-
-        sortedYears.forEach((year) => {
-          const monthsInYear = monthsByYear[year];
-          const monthOrder = [
-            "January",
-            "February",
-            "March",
-            "April",
-            "May",
-            "June",
-            "July",
-            "August",
-            "September",
-            "October",
-            "November",
-            "December",
-          ];
-
-          monthOrder.forEach((month) => {
-            if (monthsInYear[month]) {
-              const daysInThisMonth = monthsInYear[month];
-              for (let i = 0; i < daysInThisMonth; i++) {
-                columnDefinitions.push(`${dailyWidth}px`);
-              }
-            }
-          });
-        });
-
-        return columnDefinitions.join(" ");
-      }
-
-      const months = Object.keys(daysInEachMonth);
-      if (months.length === 0)
-        return `repeat(${funnelData?.endDay || 30}, ${dailyWidth}px)`;
-
-      const columnDefinitions: string[] = [];
-      months.forEach((month) => {
-        const daysInThisMonth = daysInEachMonth[month];
-        for (let i = 0; i < daysInThisMonth; i++) {
-          columnDefinitions.push(`${dailyWidth}px`);
-        }
-      });
-
-      return columnDefinitions.join(" ");
+      return `repeat(${totalDaysForGrid}, ${dailyWidth}px)`;
     }
   }, [
     rrange,
-    daysInEachMonth,
-    monthsByYear,
     dailyWidthByView,
     funnelData?.endDay,
+    isInfiniteTimeline,
+    gridRange,
+    getWeeksInRange,
   ]);
 
-  // Enhanced function to get grid column end position for different views
   const getGridColumnEnd = useCallback(() => {
+    const totalDaysForGrid = isInfiniteTimeline && gridRange?.length > 0 
+      ? gridRange.length 
+      : (funnelData?.endDay || 1);
+      
     if (rrange === "Day") {
-      return funnelData?.endDay || 1;
+      return totalDaysForGrid;
     } else if (rrange === "Week") {
-      return funnelData?.endDay || 1;
+      return totalDaysForGrid;
     } else if (rrange === "Year") {
-      const startDate = startOfYear(range[0]);
-      const endDate = endOfYear(range[range.length - 1]);
+      const startDate = startOfYear(gridRange[0]);
+      const endDate = endOfYear(gridRange[gridRange.length - 1]);
       const months = eachMonthOfInterval({ start: startDate, end: endDate });
-      return months; // 12 months
+      return months.length;
+    } else if (rrange === "Month") {
+      const weeks = getWeeksInRange();
+      return weeks.length;
     } else {
-      // Month view
-      const totalDays = Object.values(daysInEachMonth).reduce(
-        (sum: number, days: number) => sum + days,
-        0
-      );
-      return totalDays || funnelData?.endDay || 30;
+      return totalDaysForGrid;
     }
-  }, [rrange, funnelData?.endDay, funnelData?.endWeek, daysInEachMonth]);
+  }, [rrange, funnelData?.endDay, funnelData?.endWeek, daysInEachMonth, isInfiniteTimeline, gridRange, getWeeksInRange]);
 
   const getDailyWidth = useCallback(
     (viewType?: string): number => {
@@ -451,44 +402,16 @@ console.log(monthsByYear, "herit")
     [dailyWidthByView, rrange]
   );
 
-  // Calculate phase positioning for year view
-  const calculateYearViewPosition = useCallback(
-    (startDate: Date, endDate: Date) => {
-      if (!range || range.length === 0)
-        return { position: 0, width: 0, spans: [] };
-
-      const monthSpans = calculatePhaseMonthSpans(startDate, endDate);
-      const monthWidth = getDailyWidth("Year");
-
-      // Find the starting month index (0-11)
-      const startMonth = startDate.getMonth();
-      const position = startMonth * monthWidth;
-
-      // Calculate total width across all months the phase spans
-      const width = monthSpans.length * monthWidth;
-
-      return { position, width, spans: monthSpans };
-    },
-    [range, calculatePhaseMonthSpans, getDailyWidth]
-  );
-
-  
-
   useEffect(() => {
     if (!campaignFormData?.funnel_stages || !containerWidth) return;
     const initialWidths: Record<string, number> = {};
     const initialPositions: Record<string, number> = {};
-    const getViewportWidth = () => {
-      return window.innerWidth || document.documentElement.clientWidth || 0;
-    };
-    const screenWidth = getViewportWidth();
-    const availableWidth = screenWidth - (disableDrag ? 60 : close ? 0 : 367);
+
 
     campaignFormData.funnel_stages.forEach((stageName) => {
       const stage = campaignFormData?.channel_mix?.find(
         (s) => s?.funnel_stage === stageName
       );
-
 
       if (stageName && stage) {
         const stageStartDate =
@@ -502,17 +425,47 @@ console.log(monthsByYear, "herit")
             : null);
 
         if (rrange === "Year" && stageStartDate && stageEndDate) {
-          // Year view calculations
-          const yearCalc = calculateYearViewPosition(
-            stageStartDate,
-            stageEndDate
+          const monthWidth = getDailyWidth("Year");
+          const timelineStart = startOfYear(gridRange[0]);
+          const allMonths = eachMonthOfInterval({ 
+            start: timelineStart, 
+            end: endOfYear(gridRange[gridRange.length - 1]) 
+          });
+          
+          const startMonthIndex = allMonths.findIndex(m => 
+            format(m, "yyyy-MM") === format(stageStartDate, "yyyy-MM")
           );
-          initialPositions[stageName] = yearCalc.position;
-          initialWidths[stageName] = yearCalc.width;
+          const endMonthIndex = allMonths.findIndex(m => 
+            format(m, "yyyy-MM") === format(stageEndDate, "yyyy-MM")
+          );
+          
+          const position = startMonthIndex >= 0 ? startMonthIndex * monthWidth : 0;
+          const monthsSpanned = endMonthIndex >= startMonthIndex ? endMonthIndex - startMonthIndex + 1 : 1;
+          
+          initialPositions[stageName] = position;
+          initialWidths[stageName] = monthsSpanned * monthWidth;
+        } else if (rrange === "Month" && stageStartDate && stageEndDate) {
+          const weekWidth = getDailyWidth("Month");
+          const allWeeks = getWeeksInRange();
+          
+          const startWeekIndex = allWeeks.findIndex(weekStart => {
+            const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
+            return stageStartDate >= weekStart && stageStartDate <= weekEnd;
+          });
+          const endWeekIndex = allWeeks.findIndex(weekStart => {
+            const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
+            return stageEndDate >= weekStart && stageEndDate <= weekEnd;
+          });
+          
+          const position = startWeekIndex >= 0 ? startWeekIndex * weekWidth : 0;
+          const weeksSpanned = endWeekIndex >= startWeekIndex ? endWeekIndex - startWeekIndex + 1 : 1;
+          
+          initialPositions[stageName] = position;
+          initialWidths[stageName] = weeksSpanned * weekWidth;
         } else {
-          // Existing logic for other views
+          const effectiveRange = gridRange && gridRange.length > 0 ? gridRange : range;
           const startDateIndex = stageStartDate
-            ? range?.findIndex((date) => isEqual(date, stageStartDate)) *
+            ? effectiveRange?.findIndex((date) => isEqual(date, stageStartDate)) *
               getDailyWidth()
             : 0;
 
@@ -535,24 +488,9 @@ console.log(monthsByYear, "herit")
 
           const dailyWidth = getDailyWidth();
 
-          initialWidths[stageName] = (() => {
-            if (rrange === "Day" || rrange === "Week") {
-              return daysBetween > 0
-                ? dailyWidth * daysBetween
-                : dailyWidth * daysFromStart - 0;
-            } else {
-              // Month view
-              const totalDaysInRange = Object.values(
-                daysInEachMonth || {}
-              ).reduce((sum: number, days: number) => sum + days, 0);
-              const widthPerDay = Math.round(
-                availableWidth / (totalDaysInRange || 30)
-              );
-              return daysBetween > 0
-                ? widthPerDay * daysBetween
-                : widthPerDay * daysFromStart - 0;
-            }
-          })();
+          initialWidths[stageName] = daysBetween > 0
+            ? dailyWidth * daysBetween
+            : dailyWidth * daysFromStart;
 
           initialPositions[stageName] = startDateIndex;
         }
@@ -572,158 +510,39 @@ console.log(monthsByYear, "herit")
     range,
     getDailyWidth,
     close,
-    calculateYearViewPosition,
+    isInfiniteTimeline,
+    gridRange,
+    getWeeksInRange,
   ]);
 
-
-  // Generate background grid for year view
-  const generateYearBackground = useCallback(() => {
-    if (rrange !== "Year") return {};
-
-    const monthWidth = getDailyWidth("Year");
-    return {
-      backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
-      backgroundSize: `${monthWidth}px 100%`,
-    };
+  const generateBackground = useCallback(() => {
+    const dailyWidth = getDailyWidth();
+    
+    if (rrange === "Year") {
+      return {
+        backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
+        backgroundSize: `${dailyWidth}px 100%`,
+      };
+    } else if (rrange === "Month") {
+      return {
+        backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
+        backgroundSize: `${dailyWidth}px 100%`,
+      };
+    } else {
+      return {
+        backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
+        backgroundSize: `${dailyWidth}px 100%`,
+      };
+    }
   }, [rrange, getDailyWidth]);
 
   return (
     <div
-      className={`w-full min-h-[494px] relative pb-5 grid-container overflow-x-hidden`}
+      className={isInfiniteTimeline ? `min-w-max min-h-[494px] relative pb-5 grid-container` : `w-full min-h-[494px] relative pb-5 grid-container`}
       ref={gridRef}
-      style={{
-        ...(rrange === "Year"
-          ? generateYearBackground()
-          : {
-              backgroundImage: (() => {
-                if (rrange === "Day" || rrange === "Week") {
-                  return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px), linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
-                } else {
-                  // Month view background logic (existing)
-                  const months = Object.keys(daysInEachMonth);
-                  if (months.length <= 1) {
-                    return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px), linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
-                  }
-
-                  const regularGrid = `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
-                  const monthBoundaryGrid = `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
-
-                  return `${monthBoundaryGrid}`;
-                }
-              })(),
-              backgroundSize: (() => {
-                const dailyWidth = getDailyWidth();
-                if (rrange === "Day" || rrange === "Week") {
-                  const totalDays = funnelData?.endDay || 1;
-                  const dailyGridSize = `${dailyWidth}px 100%`;
-                  if (rrange === "Week") {
-                    return dailyGridSize;
-                  }
-                  return `${dailyGridSize}, calc(${
-                    dailyWidth * totalDays
-                  }px) 100%`;
-                } else {
-                  // Month view background size logic (existing)
-                  if (Object.keys(monthsByYear).length > 0) {
-                    const regularGridSize = `${dailyWidth}px 100%`;
-                    let cumulativeDays = 0;
-                    const boundaryPositions: number[] = [];
-                    const sortedYears = Object.keys(monthsByYear).sort();
-                    sortedYears.forEach((year, yearIndex) => {
-                      const monthsInYear = monthsByYear[year];
-                      const monthOrder = [
-                        "January",
-                        "February",
-                        "March",
-                        "April",
-                        "May",
-                        "June",
-                        "July",
-                        "August",
-                        "September",
-                        "October",
-                        "November",
-                        "December",
-                      ];
-
-                      monthOrder.forEach((month, monthIndex) => {
-                        if (monthsInYear[month]) {
-                          cumulativeDays += monthsInYear[month];
-                          if (
-                            !(
-                              yearIndex === sortedYears.length - 1 &&
-                              monthIndex === monthOrder.length - 1
-                            )
-                          ) {
-                            boundaryPositions.push(cumulativeDays * dailyWidth);
-                          }
-                        }
-                      });
-                    });
-
-                    const boundaryBackgrounds = boundaryPositions
-                      .map((position) => `20% 100%`)
-                      .join(", ");
-                    return boundaryBackgrounds
-                      ? ` ${boundaryBackgrounds}`
-                      : regularGridSize;
-                  }
-
-                  const months = Object.keys(daysInEachMonth);
-                  if (months.length === 0) {
-                    return `calc(${dailyWidth}px) 100%, calc(${
-                      dailyWidth * 7
-                    }px) 100%`;
-                  }
-
-                  let cumulativeDays = 0;
-                  const monthEndPositions: number[] = [];
-
-                  months.forEach((month, index) => {
-                    const daysInThisMonth = daysInEachMonth[month];
-                    cumulativeDays += daysInThisMonth;
-
-                    if (index < months.length - 1) {
-                      monthEndPositions.push(cumulativeDays * dailyWidth);
-                    }
-                  });
-
-                  const regularGridSize = `${dailyWidth}px 100%`;
-                  const monthBoundaryBackgrounds = monthEndPositions
-                    .map((position) => `20% 100%`)
-                    .join(", ");
-
-                  return monthBoundaryBackgrounds
-                    ? ` ${monthBoundaryBackgrounds}`
-                    : regularGridSize;
-                }
-              })(),
-            }),
-      }}
+      style={generateBackground()}
     >
-      {/* Year view month headers */}
-      {rrange === "Year" && (
-        <div
-          className="sticky top-0 z-10 bg-transparent border-b mb-4"
-          style={{
-            display: "grid",
-            gridTemplateColumns: generateGridColumns(),
-            gap: "0px",
-          }}
-        >
-          {generateYearMonths().map((monthLabel, index) => (
-            <div
-              key={index}
-              className="text-center text-sm font-medium py-2 border-r border-gray-200"
-            >
-              <p className="text-blue-500">{monthLabel?.split(" ")[0]}</p>
-            </div>
-          ))}
-        </div>
-      )}
-
       {loadingCampaign ? (
-        // Skeleton loading UI
         <div className="w-full p-4">
           {[1, 2, 3].map((item) => (
             <div key={item} className="mb-8">
@@ -746,20 +565,16 @@ console.log(monthsByYear, "herit")
           ))}
         </div>
       ) : (
-        // Original content
         campaignFormData?.funnel_stages?.map((stageName, index) => {
           const stage = campaignFormData?.custom_funnels?.find(
             (s) => s?.name === stageName
           );
-          const funn = funnelStages?.find((ff) => ff?.name === stageName);
           if (!stage) return null;
-
-          const channelWidth = funnelWidths[stage?.name] || 400;
           const isOpen = openChannels[stage?.name] || false;
 
-          // Get the specific width and position for this channel or use default
           const currentChannelWidth = channelWidths[stage?.name] || 350;
           const currentChannelPosition = channelPositions[stage?.name] || 0;
+       
 
           return (
             <div
@@ -786,7 +601,7 @@ console.log(monthsByYear, "herit")
                   setIsOpen={setIsOpen}
                   setOpenChannel={() => toggleChannel(stage?.name)}
                   Icon={stage?.activeIcon}
-                  dateList={range}
+                  dateList={gridRange}
                   dragConstraints={gridRef}
                   parentWidth={currentChannelWidth}
                   setParentWidth={(width) =>
@@ -814,7 +629,7 @@ console.log(monthsByYear, "herit")
                       parentWidth={currentChannelWidth}
                       parentLeft={currentChannelPosition}
                       setIsOpen={setIsOpen}
-                      dateList={range}
+                      dateList={gridRange}
                       setSelectedStage={setSelectedStage}
                       disableDrag={disableDrag}
                       openItems={openItems}
@@ -823,6 +638,7 @@ console.log(monthsByYear, "herit")
                       endDay={funnelData?.endDay}
                       endWeek={funnelData?.endWeek}
                       dailyWidth={getDailyWidth()}
+                      viewType={rrange}
                     />
                   </div>
                 )}
