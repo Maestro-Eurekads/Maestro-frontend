@@ -138,7 +138,6 @@ const ResizableChannels = ({
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
 
-  // Simple helper to save channel dates to campaignFormData
   const saveChannelDates = (
     index: number,
     newStartDate: Date,
@@ -159,17 +158,6 @@ const ResizableChannels = ({
       if (platform) {
         const formattedStart = moment(newStartDate).format("YYYY-MM-DD");
         const formattedEnd = moment(newEndDate).format("YYYY-MM-DD");
-
-        console.log("=== SAVING CHANNEL DATES ===");
-        console.log("Channel:", channels[index].name);
-        console.log("Parent stage:", parentId);
-        console.log("Saving start_date:", formattedStart);
-        console.log("Saving end_date:", formattedEnd);
-        console.log("Current channelState left:", channelState[index]?.left);
-        console.log("Current channelState width:", channelState[index]?.width);
-        console.log("parentLeft:", parentLeft);
-        console.log("dailyWidth:", dailyWidth);
-        console.log("viewType:", viewType);
 
         platform.campaign_start_date = formattedStart;
         platform.campaign_end_date = formattedEnd;
@@ -312,7 +300,6 @@ const ResizableChannels = ({
     e.preventDefault();
     e.stopPropagation();
 
-    // Store the initial state for this resize operation
     isResizing.current = {
       startX: e.clientX,
       initialState: { ...channelState[index] },
@@ -346,12 +333,10 @@ const ResizableChannels = ({
     let newLeft = initialState.left;
 
     if (direction === "left") {
-      // Left edge resize - adjust position and width
       const proposedLeft = Math.max(parentLeft, initialState.left + deltaX);
       const proposedWidth =
         initialState.width - (proposedLeft - initialState.left);
 
-      // Ensure minimum width
       if (proposedWidth < 50) {
         newWidth = 50;
         newLeft = initialState.left + initialState.width - 50;
@@ -360,13 +345,11 @@ const ResizableChannels = ({
         newWidth = proposedWidth;
       }
 
-      // Snap the left edge to timeline
       const snappedLeft =
         snapToTimeline(newLeft - parentLeft, containerRect.width) + parentLeft;
       newWidth = initialState.left + initialState.width - snappedLeft;
       newLeft = snappedLeft;
 
-      // Ensure we don't exceed parent boundaries
       if (newLeft < parentLeft) {
         newLeft = parentLeft;
         newWidth = initialState.left + initialState.width - parentLeft;
@@ -376,26 +359,20 @@ const ResizableChannels = ({
         newWidth = parentRightEdge - newLeft;
       }
     } else {
-      // Right edge resize - keep left position fixed, adjust width only
-      newLeft = initialState.left; // Always use initial left position
+      newLeft = initialState.left;
       const proposedWidth = Math.max(50, initialState.width + deltaX);
 
-      // Calculate the right edge position
       const rightEdgePos = newLeft + proposedWidth;
 
-      // Snap the right edge to timeline
       const snappedRightEdge =
         snapToTimeline(rightEdgePos - parentLeft, containerRect.width) +
         parentLeft;
 
-      // Ensure the snapped right edge doesn't exceed parent boundaries
       const finalRightEdge = Math.min(snappedRightEdge, parentRightEdge);
 
-      // Calculate final width based on the constrained right edge
       newWidth = Math.max(50, finalRightEdge - newLeft);
     }
 
-    // Use ABSOLUTE pixel positions for date calculation
     const newStartDate = pixelToDateUtil({
       dateList,
       viewType,
@@ -411,12 +388,6 @@ const ResizableChannels = ({
       fieldName: "endDate",
       dailyWidth,
     });
-
-    console.log("=== RESIZE MOVE ===");
-    console.log("newLeft (absolute pixel):", newLeft);
-    console.log("newWidth:", newWidth);
-    console.log("Calculated newStartDate:", newStartDate);
-    console.log("Calculated newEndDate:", newEndDate);
 
     setChannelState((prev) =>
       prev.map((state, i) =>
@@ -436,7 +407,6 @@ const ResizableChannels = ({
       )
     );
 
-    // Update channels data
     setChannels((prev) =>
       prev.map((ch, i) =>
         i === index
@@ -449,7 +419,6 @@ const ResizableChannels = ({
       )
     );
 
-    // For tooltip, use relative pixels (visual display)
     const relativeStart = newLeft - parentLeft;
     updateTooltipWithDates(
       relativeStart,
@@ -459,7 +428,6 @@ const ResizableChannels = ({
       "resize"
     );
 
-    // Store data for final update
     draggingDataRef.current = { index, newStartDate, newEndDate };
   };
 
@@ -650,7 +618,6 @@ const ResizableChannels = ({
         )
       );
 
-      // Use ABSOLUTE pixel positions for date calculation
       const startDate = pixelToDateUtil({
         dateList,
         viewType,
@@ -667,15 +634,8 @@ const ResizableChannels = ({
         dailyWidth,
       });
 
-      console.log("=== DRAG MOVE ===");
-      console.log("newLeft (absolute pixel):", newLeft);
-      console.log("channelWidth:", channelWidth);
-      console.log("Calculated startDate:", startDate);
-      console.log("Calculated endDate:", endDate);
-
       draggingDataRef.current = { index, startDate, endDate };
 
-      // For tooltip, still use relative pixels (visual display)
       const relativeStart = newLeft - parentLeft;
       updateTooltipWithDates(
         relativeStart,
@@ -687,10 +647,6 @@ const ResizableChannels = ({
     };
 
     const handleDragEnd = () => {
-      console.log("=== DRAG END CALLED ===");
-      console.log("draggingDataRef.current:", draggingDataRef.current);
-      console.log("channels:", channels);
-
       setTooltip((prev) => ({ ...prev, visible: false }));
 
       if (draggingDataRef.current) {
@@ -699,16 +655,6 @@ const ResizableChannels = ({
           startDate: newStart,
           endDate: newEnd,
         } = draggingDataRef.current;
-
-        console.log(
-          "Extracted values - index:",
-          index,
-          "newStart:",
-          newStart,
-          "newEnd:",
-          newEnd
-        );
-        console.log("channels[index]:", channels[index]);
 
         setChannels((prevChannels) =>
           prevChannels.map((ch, i) =>
@@ -722,17 +668,7 @@ const ResizableChannels = ({
           )
         );
 
-        // Save to campaignFormData directly (avoid stale closure)
-        console.log(
-          "Checking condition - newStart:",
-          !!newStart,
-          "newEnd:",
-          !!newEnd,
-          "channels[index]:",
-          !!channels[index]
-        );
         if (newStart && newEnd && channels[index]) {
-          console.log("Condition passed! Proceeding to save...");
           const updatedFormData = JSON.parse(JSON.stringify(campaignFormData));
           const channelMix = updatedFormData.channel_mix?.find(
             (ch) => ch.funnel_stage === parentId
@@ -744,15 +680,6 @@ const ResizableChannels = ({
             );
 
             if (platform) {
-              console.log("=== DRAG END SAVING ===");
-              console.log("Channel:", channels[index].name);
-              console.log(
-                "Saving:",
-                moment(newStart).format("YYYY-MM-DD"),
-                "to",
-                moment(newEnd).format("YYYY-MM-DD")
-              );
-
               platform.campaign_start_date =
                 moment(newStart).format("YYYY-MM-DD");
               platform.campaign_end_date = moment(newEnd).format("YYYY-MM-DD");
@@ -775,7 +702,6 @@ const ResizableChannels = ({
     return () => {
       document.removeEventListener("mousemove", handleDragMove);
       document.removeEventListener("mouseup", handleDragEnd);
-      // Don't clear refs here - they're needed by handleDragEnd even after cleanup
     };
   }, [
     draggingPosition,
@@ -871,7 +797,6 @@ const ResizableChannels = ({
   const prevParentLeftRef = useRef(parentLeft);
   const prevParentWidthRef = useRef(parentWidth);
 
-  // Sync children visuals when parent is dragged or resized
   useEffect(() => {
     if (!hasInitializedRef.current) return;
     if (!channelState || channelState.length === 0) return;
@@ -879,21 +804,21 @@ const ResizableChannels = ({
     const prevLeft = prevParentLeftRef.current;
     const prevWidth = prevParentWidthRef.current;
     const deltaLeft = parentLeft - prevLeft;
-    const parentRightEdge = parentLeft + parentWidth;
+    const widthChanged = prevWidth !== parentWidth;
 
-    // Only update if parent actually moved or resized
-    if (deltaLeft !== 0 || prevWidth !== parentWidth) {
+    if (widthChanged) {
+      hasInitializedRef.current = false;
+    } else if (deltaLeft !== 0) {
+      const parentRightEdge = parentLeft + parentWidth;
       setChannelState((prev) =>
         prev.map((state) => {
           let newLeft = state.left + deltaLeft;
           let newWidth = state.width;
 
-          // Clamp to parent boundaries
           if (newLeft < parentLeft) {
             newLeft = parentLeft;
           }
           if (newLeft + newWidth > parentRightEdge) {
-            // If channel exceeds right edge, shrink it or move it
             if (newWidth > parentWidth) {
               newWidth = parentWidth;
               newLeft = parentLeft;
@@ -915,13 +840,14 @@ const ResizableChannels = ({
     if (!initialChannels || initialChannels.length === 0) return;
     if (!parentWidth || !dailyWidth || !dateList || dateList.length === 0)
       return;
-    // Wait for parent dates to be set
     if (!startDate || !endDate) return;
 
     const viewChanged = prevViewTypeRef.current !== viewType;
     prevViewTypeRef.current = viewType;
 
-    if (hasInitializedRef.current && !viewChanged) return;
+    if (hasInitializedRef.current && !viewChanged) {
+      return;
+    }
 
     setChannels(initialChannels);
     setChannelState((prev) => {
@@ -930,33 +856,15 @@ const ResizableChannels = ({
       );
       if (!findMix) return prev;
 
-      console.log("=== LOADING CHANNEL POSITIONS ===");
-      console.log("Parent stage:", parentId);
-      console.log("parentLeft:", parentLeft);
-      console.log("parentWidth:", parentWidth);
-      console.log("dailyWidth:", dailyWidth);
-      console.log("viewType:", viewType);
-
       const newState = initialChannels.map((ch, index) => {
         const findChannel = findMix[ch?.channelName]?.find(
           (plt) => plt?.platform_name === ch?.name
-        );
-
-        console.log("--- Channel:", ch?.name, "---");
-        console.log(
-          "Loaded campaign_start_date:",
-          findChannel?.campaign_start_date
-        );
-        console.log(
-          "Loaded campaign_end_date:",
-          findChannel?.campaign_end_date
         );
 
         const stageStartDate = findChannel?.campaign_start_date
           ? parseISO(findChannel?.campaign_start_date)
           : null;
 
-        // Use channel's start date, clamp to parent start if before parent
         const adjustedStageStartDate = stageStartDate
           ? stageStartDate < startDate
             ? startDate
@@ -967,7 +875,6 @@ const ResizableChannels = ({
           ? parseISO(findChannel?.campaign_end_date)
           : null;
 
-        // Use channel's end date, clamp to parent end if after parent
         const adjustedStageEndDate = stageEndDate
           ? stageEndDate > endDate
             ? endDate
@@ -1040,7 +947,6 @@ const ResizableChannels = ({
               : 1;
           width = weeksSpanned * dailyWidth;
         } else {
-          // Use format to compare dates (ignores time component)
           const channelStartStr = adjustedStageStartDate
             ? format(adjustedStageStartDate, "yyyy-MM-dd")
             : null;
@@ -1050,17 +956,6 @@ const ResizableChannels = ({
                 (date) => format(date, "yyyy-MM-dd") === channelStartStr
               )
             : -1;
-
-          console.log(
-            "findIndex result:",
-            foundIndex,
-            "for date:",
-            channelStartStr
-          );
-          console.log(
-            "dateList[0]:",
-            dateList?.[0] ? format(dateList[0], "yyyy-MM-dd") : "N/A"
-          );
 
           startDateIndex = foundIndex >= 0 ? foundIndex * dailyWidth : 0;
 
@@ -1095,10 +990,6 @@ const ResizableChannels = ({
         if (left < (parentLeft || 0)) {
           left = parentLeft || 0;
         }
-
-        console.log("Calculated left:", left);
-        console.log("Calculated width:", width);
-        console.log("startDateIndex:", startDateIndex);
 
         return {
           left: left,

@@ -217,14 +217,14 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     let newWidth = startWidth;
     let newPos = startPos;
 
+    const deltaX = e.clientX - startX;
+
     if (direction === "left") {
-      const deltaX = e.clientX - startX;
       newPos = Math.max(0, startPos + deltaX);
       newWidth = Math.max(50, startWidth - deltaX);
       newPos = snapToTimeline(newPos);
       newWidth = startWidth - (newPos - startPos);
     } else {
-      const deltaX = e.clientX - startX;
       const rightEdgePos = startPos + startWidth + deltaX;
       const snappedRightEdge = snapToTimeline(rightEdgePos);
       newWidth = Math.max(50, snappedRightEdge - startPos);
@@ -283,6 +283,9 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
                 let childStart = moment(platform.campaign_start_date);
                 let childEnd = moment(platform.campaign_end_date);
 
+                const originalChildStart = childStart.format("YYYY-MM-DD");
+                const originalChildEnd = childEnd.format("YYYY-MM-DD");
+
                 if (childStart.isBefore(parentStart)) {
                   childStart = parentStart.clone();
                 }
@@ -293,10 +296,13 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
                   childEnd = childStart.clone();
                 }
 
+                const newChildStart = childStart.format("YYYY-MM-DD");
+                const newChildEnd = childEnd.format("YYYY-MM-DD");
+
                 return {
                   ...platform,
-                  campaign_start_date: childStart.format("YYYY-MM-DD"),
-                  campaign_end_date: childEnd.format("YYYY-MM-DD"),
+                  campaign_start_date: newChildStart,
+                  campaign_end_date: newChildEnd,
                 };
               }
               return platform;
@@ -334,6 +340,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
           campaign_timeline_end_date: maxEndDate,
         }),
       };
+      setCampaignFormData(draftCampaignFormRef.current);
     }
 
     setParentWidth(newWidth);
@@ -370,11 +377,11 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
   const handleMouseMoveDrag = (e: MouseEvent) => {
     if (!isDragging.current) return;
-    // to know where the mouse is being dragged from and the start position of the channel
+
     const { startX, startPos } = isDragging.current;
     const gridContainer = document.querySelector(".grid-container");
     if (!gridContainer) return;
-    // getting grid container width and left position
+
     const containerWidth = gridContainer.scrollWidth;
     const minX = 0;
     const maxX = containerWidth - parentWidth;
@@ -481,7 +488,6 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         }),
       };
       setCampaignFormData(draftCampaignFormRef.current);
-
     }
     setParentLeft(newPosition);
     setPosition(newPosition);
