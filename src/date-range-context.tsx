@@ -1,6 +1,27 @@
 "use client";
-import { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
-import { addDays, addMonths, addYears, subMonths, subYears, eachDayOfInterval, subDays, differenceInDays, parseISO, startOfMonth, endOfMonth, startOfYear, endOfYear } from "date-fns";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+} from "react";
+import {
+  addDays,
+  addMonths,
+  addYears,
+  subMonths,
+  subYears,
+  eachDayOfInterval,
+  subDays,
+  differenceInDays,
+  parseISO,
+  startOfMonth,
+  endOfMonth,
+  startOfYear,
+  endOfYear,
+} from "date-fns";
 import { useCampaigns } from "app/utils/CampaignsContext";
 
 export type DateRange = {
@@ -8,8 +29,8 @@ export type DateRange = {
   end: Date | null;
 };
 
-const INITIAL_MONTHS_BUFFER = 6;
-const EXTENSION_MONTHS = 12;
+const INITIAL_MONTHS_BUFFER = 36;
+const EXTENSION_MONTHS = 24;
 
 type DateRangeContextType = {
   range: Date[];
@@ -19,24 +40,28 @@ type DateRangeContextType = {
   extendRange: (newStart: string, newEnd: string) => void;
   // Infinite timeline
   extendedRange: Date[];
-  campaignRange: Date[]; // Original campaign dates without buffer
+  campaignRange: Date[];
   bufferMonths: number;
   setBufferMonths: (months: number) => void;
   isInfiniteTimeline: boolean;
   setIsInfiniteTimeline: (value: boolean) => void;
-  // Functions to extend timeline dynamically - returns number of days added
   extendTimelineBefore: () => number;
   extendTimelineAfter: () => number;
   timelineStart: Date | null;
   timelineEnd: Date | null;
-  // Daily width for scroll calculations
   dailyWidthPx: number;
   setDailyWidthPx: (width: number) => void;
 };
 
-const DateRangeContext = createContext<DateRangeContextType | undefined>(undefined);
+const DateRangeContext = createContext<DateRangeContextType | undefined>(
+  undefined
+);
 
-export const DateRangeProvider = ({ children }: { children: React.ReactNode }) => {
+export const DateRangeProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   const { campaignFormData } = useCampaigns();
   const [range, setRange] = useState<Date[]>([]);
   const [extendedRange, setExtendedRange] = useState<Date[]>([]);
@@ -46,12 +71,10 @@ export const DateRangeProvider = ({ children }: { children: React.ReactNode }) =
   const [isInfiniteTimeline, setIsInfiniteTimeline] = useState(true);
   const [timelineStart, setTimelineStart] = useState<Date | null>(null);
   const [timelineEnd, setTimelineEnd] = useState<Date | null>(null);
-  const [dailyWidthPx, setDailyWidthPx] = useState(15); // Default daily width in pixels
-  
-  // Track if we've initialized
+  const [dailyWidthPx, setDailyWidthPx] = useState(15);
+
   const initialized = useRef(false);
 
-  // Initialize timeline with large range
   useEffect(() => {
     if (
       campaignFormData?.campaign_timeline_start_date &&
@@ -59,17 +82,25 @@ export const DateRangeProvider = ({ children }: { children: React.ReactNode }) =
     ) {
       const startDate = new Date(campaignFormData.campaign_timeline_start_date);
       const endDate = new Date(campaignFormData.campaign_timeline_end_date);
-      
-      // Original campaign range (no buffer)
-      const campaignDateList = eachDayOfInterval({ start: startDate, end: endDate });
+
+      const campaignDateList = eachDayOfInterval({
+        start: startDate,
+        end: endDate,
+      });
       setCampaignRange(campaignDateList);
-      
+
       if (isInfiniteTimeline) {
-        // Start with 6 months buffer before and after campaign dates
-        const extendedStart = startOfMonth(subMonths(startDate, INITIAL_MONTHS_BUFFER));
-        const extendedEnd = endOfMonth(addMonths(endDate, INITIAL_MONTHS_BUFFER));
-        const extendedDateList = eachDayOfInterval({ start: extendedStart, end: extendedEnd });
-        
+        const extendedStart = startOfMonth(
+          subMonths(startDate, INITIAL_MONTHS_BUFFER)
+        );
+        const extendedEnd = endOfMonth(
+          addMonths(endDate, INITIAL_MONTHS_BUFFER)
+        );
+        const extendedDateList = eachDayOfInterval({
+          start: extendedStart,
+          end: extendedEnd,
+        });
+
         setTimelineStart(extendedStart);
         setTimelineEnd(extendedEnd);
         setExtendedRange(extendedDateList);
@@ -78,7 +109,10 @@ export const DateRangeProvider = ({ children }: { children: React.ReactNode }) =
       } else {
         const bufferedStart = subDays(startDate, 0);
         const bufferedEnd = addDays(endDate, 0);
-        const dateList = eachDayOfInterval({ start: bufferedStart, end: bufferedEnd });
+        const dateList = eachDayOfInterval({
+          start: bufferedStart,
+          end: bufferedEnd,
+        });
         setTimelineStart(bufferedStart);
         setTimelineEnd(bufferedEnd);
         setRange(dateList);
@@ -87,33 +121,38 @@ export const DateRangeProvider = ({ children }: { children: React.ReactNode }) =
     }
   }, [campaignFormData, isInfiniteTimeline]);
 
-  // Extend timeline before (add 6 months to the beginning) - returns days added
   const extendTimelineBefore = useCallback((): number => {
     if (!timelineStart || !timelineEnd) return 0;
-    
+
     const newStart = startOfMonth(subMonths(timelineStart, EXTENSION_MONTHS));
     const daysAdded = differenceInDays(timelineStart, newStart);
-    const newDateList = eachDayOfInterval({ start: newStart, end: timelineEnd });
-    
+    const newDateList = eachDayOfInterval({
+      start: newStart,
+      end: timelineEnd,
+    });
+
     setTimelineStart(newStart);
     setExtendedRange(newDateList);
     setRange(newDateList);
-    
+
     return daysAdded;
   }, [timelineStart, timelineEnd]);
 
-  // Extend timeline after (add 6 months to the end) - returns days added
+  // Extend timeline after ( 6 months to the end) - returns days added
   const extendTimelineAfter = useCallback((): number => {
     if (!timelineStart || !timelineEnd) return 0;
-    
+
     const newEnd = endOfMonth(addMonths(timelineEnd, EXTENSION_MONTHS));
     const daysAdded = differenceInDays(newEnd, timelineEnd);
-    const newDateList = eachDayOfInterval({ start: timelineStart, end: newEnd });
-    
+    const newDateList = eachDayOfInterval({
+      start: timelineStart,
+      end: newEnd,
+    });
+
     setTimelineEnd(newEnd);
     setExtendedRange(newDateList);
     setRange(newDateList);
-    
+
     return daysAdded;
   }, [timelineStart, timelineEnd]);
 
@@ -136,7 +175,10 @@ export const DateRangeProvider = ({ children }: { children: React.ReactNode }) =
       }
 
       if (updatedStart !== currentStart || updatedEnd !== currentEnd) {
-        const newRange = eachDayOfInterval({ start: updatedStart, end: updatedEnd });
+        const newRange = eachDayOfInterval({
+          start: updatedStart,
+          end: updatedEnd,
+        });
         setTimelineStart(updatedStart);
         setTimelineEnd(updatedEnd);
         setRange(newRange);
@@ -148,11 +190,11 @@ export const DateRangeProvider = ({ children }: { children: React.ReactNode }) =
 
   return (
     <DateRangeContext.Provider
-      value={{ 
-        range, 
-        setRange, 
-        dateRangeWidth, 
-        setDateRangeWidth, 
+      value={{
+        range,
+        setRange,
+        dateRangeWidth,
+        setDateRangeWidth,
         extendRange,
         extendedRange,
         campaignRange,
