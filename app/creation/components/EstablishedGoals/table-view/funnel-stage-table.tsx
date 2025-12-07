@@ -29,13 +29,13 @@ export const FunnelStageTable = ({
   nrAdCells,
   toggleNRAdCell,
 }) => {
-  const {campaignFormData} = useCampaigns()
+  const { campaignFormData } = useCampaigns()
   // Fallback color if stage.color is undefined
   const changeColorText = stage?.color?.replace("bg", "text")
   // console.log("🚀 ~ changeColorText:", changeColorText)
   const stageColor = changeColorText || "#3175FF";
   const channels = stageData?.map((channel) => channel?.channel_name) || [];
-  const stageBudget = campaignFormData?.channel_mix?.find((f)=>f?.funnel_stage === stage.name)?.stage_budget
+  const stageBudget = campaignFormData?.channel_mix?.find((f) => f?.funnel_stage === stage.name)?.stage_budget
   const offlineChannels = ["ooh", "print", "broadcast"];
   const hasOfflineChannel = channels.some((channel) =>
     offlineChannels.includes(channel?.toLowerCase())
@@ -69,31 +69,30 @@ export const FunnelStageTable = ({
                 {tableHeaders?.map((header, hIndex) => (
                   <th
                     key={hIndex}
-                    className={`py-4 px-3 cursor-pointer ${
-                      nrColumns?.includes(
-                        header.name
-                          .toLowerCase()
-                          .replace(/ /g, "_")
-                          .replace(/\//g, "")
-                          .replace(/-/g, "_")
-                      )
-                        ? "text-gray-400"
-                        : ""
-                    } w-fit`}
-                    // onClick={() => toggleNRColumn(stage.name, header.name)}
+                    className={`py-4 px-3 cursor-pointer ${nrColumns?.includes(
+                      header.name
+                        .toLowerCase()
+                        .replace(/ /g, "_")
+                        .replace(/\//g, "")
+                        .replace(/-/g, "_")
+                    )
+                      ? "text-gray-400"
+                      : ""
+                      } w-fit`}
+                  // onClick={() => toggleNRColumn(stage.name, header.name)}
                   >
                     {header?.name === "Audience"
                       ? ""
                       : header?.name === "Budget Size"
-                      ? "Budget"
-                      : goalLevel === "Channel level" &&
-                        header?.name === "Audience Size"
-                      ? ""
-                      : header?.name === "GRP"
-                      ? hasOfflineChannel
-                        ? header?.name
-                        : ""
-                      : header?.name}
+                        ? "Budget"
+                        : goalLevel === "Channel level" &&
+                          header?.name === "Audience Size"
+                          ? ""
+                          : header?.name === "GRP"
+                            ? hasOfflineChannel
+                              ? header?.name
+                              : ""
+                            : header?.name}
                     {nrColumns?.includes(
                       header.name
                         .toLowerCase()

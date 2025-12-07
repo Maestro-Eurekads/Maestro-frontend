@@ -154,7 +154,7 @@ export async function extractObjectives(data) {
             ) {
               result[funnelStage].push(media.objective_type);
             } else {
-              if(!result[funnelStage].includes("Brand Awareness")) {
+              if (!result[funnelStage].includes("Brand Awareness")) {
                 result[funnelStage].push("Brand Awareness");
               }
             }
@@ -196,11 +196,11 @@ export async function getFilteredMetrics(selectedHeaders) {
       result[stage].push(
         ...availableMetrics
           ?.filter((metric: { name: string }) =>
-        !defaultHeaders.includes(metric.name)
+            !defaultHeaders.includes(metric.name)
           )
           .map((metric: { [key: string]: any }) => ({
-        ...metric,
-        obj: objective, // Add the new property 'obj' with the current objective
+            ...metric,
+            obj: objective, // Add the new property 'obj' with the current objective
           }))
       );
     });

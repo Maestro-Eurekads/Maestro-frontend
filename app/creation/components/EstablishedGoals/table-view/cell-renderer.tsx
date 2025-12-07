@@ -126,7 +126,7 @@ export const CellRenderer = ({
   const showInput = tableHeaders[bodyIndex]?.showInput
 
   // Helper functions
-  const formatNumber = (num: number | string): string => {
+  const formatNumber = (num: number | string, field?: string): string => {
     if (isNaN(Number(num)) || num === null || num === undefined) return "-"
     return new Intl.NumberFormat("en-US").format(Number(num))
   }
@@ -378,14 +378,14 @@ export const CellRenderer = ({
           <p>
             {(() => {
               const value =
-                campaignFormData?.goal_level === "Adset level" ? channel?.kpi?.[body] : getCalculatedValue(body)
+                campaignFormData?.goal_level === "Adset level" ? channel?.kpi?.[body] : formatNumber(getCalculatedValue(body), body)
               return value && value !== "-"
                 ? `${isCurrencyType
                   ? `${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}`
                   : isSecondsType
                     ? "secs"
                     : ""
-                }${(body == "reach" || body == "video_views" || body == "impressions") ? value : formatNumber(Number(value))}`
+                }${(body == "reach" || body == "video_views" || body == "impressions") ? value : value}`
                 : "-"
             })()}
           </p>
@@ -397,7 +397,7 @@ export const CellRenderer = ({
 
   // Handle input fields and static values
   if (!showInput) {
-    const value = goalLevel === "Channel level" ? channel?.[body] : cellType === "number" ? channel?.kpi?.[body] ? Number(channel?.kpi?.[body]).toFixed(0) : "" : (channel?.kpi?.[body])
+    const value = goalLevel === "Channel level" ? channel?.[body] : cellType === "number" ? channel?.kpi?.[body] ? formatNumber(channel?.kpi?.[body], body) : "" : (channel?.kpi?.[body])
     if (exemptFields.includes(body)) {
       return value === "Invalid date" ? "-" : value
     }
@@ -405,7 +405,7 @@ export const CellRenderer = ({
       "-"
     ) : (
       <div className="flex justify-center items-center gap-5 w-fit">
-        <p>{cellType === "number" ? formatNumber(Number.parseFloat(value)?.toFixed(0)) : formatNumber(Number.parseFloat(value)?.toFixed(2))}</p>
+        <p>{cellType === "number" ? value : formatNumber(Number.parseFloat(value)?.toFixed(2))}</p>
         <Ban size={10} className="hidden group-hover:block shrink-0 cursor-pointer" />
       </div>
     )

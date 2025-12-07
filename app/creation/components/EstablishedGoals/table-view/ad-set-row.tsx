@@ -44,7 +44,7 @@ export const AdSetRow = ({
   const { campaignFormData } = useCampaigns();
   const chData = campaignFormData?.channel_mix
     ?.find((ch) => ch?.funnel_stage === stage.name)
-    [channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)
+  [channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)
     ?.ad_sets[adSetIndex];
   const obj = campaignFormData?.campaign_objective;
 
@@ -192,17 +192,17 @@ export const AdSetRow = ({
 
   const getCalculatedValues = () => {
     if (!chData) return {}
-  
+
     return Object.fromEntries(
       Object.entries(formulas).map(([key, [fn, ...args]]) => [
         key,
         typeof fn === "function"
           ? fn.apply(
-              null,
-              args.map((arg) =>
-                Array.isArray(arg) ? Number(getNestedValue(chData, ...arg)) : Number(getNestedValue(chData, arg)),
-              ),
-            )
+            null,
+            args.map((arg) =>
+              Array.isArray(arg) ? Number(getNestedValue(chData, ...arg)) : Number(getNestedValue(chData, arg)),
+            ),
+          )
           : null,
       ]),
     )
@@ -228,7 +228,12 @@ export const AdSetRow = ({
       }
     });
   }, [
+    adSet?.kpi?.cost__lead,
+    adSet?.kpi?.cpcv,
+    adSet?.kpi?.cpe,
     chData?.kpi?.cpm,
+    chData?.kpi?.cpc,
+    chData?.kpi?.cpv,
     chData?.kpi?.frequency,
     chData?.kpi?.vtr,
     chData?.kpi?.completion_rate,

@@ -36,10 +36,10 @@ export const AdSetCellRenderer = ({
     "reach",
   ];
 
-    // State for input handling
-    const [inputValue, setInputValue] = useState("")
-    const [isTyping, setIsTyping] = useState(false)
-    const [isFocused, setIsFocused] = useState(false)
+  // State for input handling
+  const [inputValue, setInputValue] = useState("")
+  const [isTyping, setIsTyping] = useState(false)
+  const [isFocused, setIsFocused] = useState(false)
 
   const isNR = nrAdCells[`${channel?.name}-${adSetIndex}`]?.[body];
   const cellType = tableHeaders[bodyIndex]?.type as CellType
@@ -58,38 +58,34 @@ export const AdSetCellRenderer = ({
             className="l-vertical-ad"
             style={{
               left: "30px",
-              height: `${
-                adSetIndex < 1
-                  ? "50px"
-                  : expandedAdsetKPI[`${stage.name}${adSetIndex - 1}`] &&
-                    channel?.ad_sets[adSetIndex - 1]?.extra_audiences?.length >
-                      0
-                  ? `${
-                      channel?.ad_sets[adSetIndex - 1]?.extra_audiences
-                        ?.length > 1
-                        ? 215
-                        : 155 *
-                          channel?.ad_sets[adSetIndex - 1]?.extra_audiences
-                            ?.length
-                    }px`
+              height: `${adSetIndex < 1
+                ? "50px"
+                : expandedAdsetKPI[`${stage.name}${adSetIndex - 1}`] &&
+                  channel?.ad_sets[adSetIndex - 1]?.extra_audiences?.length >
+                  0
+                  ? `${channel?.ad_sets[adSetIndex - 1]?.extra_audiences
+                    ?.length > 1
+                    ? 215
+                    : 155 *
+                    channel?.ad_sets[adSetIndex - 1]?.extra_audiences
+                      ?.length
+                  }px`
                   : "75px"
-              }`,
-              top: `${
-                adSetIndex < 1
-                  ? "-50px"
-                  : expandedAdsetKPI[`${stage.name}${adSetIndex - 1}`] &&
-                    channel?.ad_sets[adSetIndex - 1]?.extra_audiences?.length >
-                      0
-                  ? `-${
-                      channel?.ad_sets[adSetIndex - 1]?.extra_audiences
-                        ?.length > 1
-                        ? 215
-                        : 155 *
-                          channel?.ad_sets[adSetIndex - 1]?.extra_audiences
-                            ?.length
-                    }px`
+                }`,
+              top: `${adSetIndex < 1
+                ? "-50px"
+                : expandedAdsetKPI[`${stage.name}${adSetIndex - 1}`] &&
+                  channel?.ad_sets[adSetIndex - 1]?.extra_audiences?.length >
+                  0
+                  ? `-${channel?.ad_sets[adSetIndex - 1]?.extra_audiences
+                    ?.length > 1
+                    ? 215
+                    : 155 *
+                    channel?.ad_sets[adSetIndex - 1]?.extra_audiences
+                      ?.length
+                  }px`
                   : "-75px"
-              }`,
+                }`,
             }}
           ></div>
           <div className="l-horizontal-ad" style={{ left: "30px" }}></div>
@@ -143,11 +139,11 @@ export const AdSetCellRenderer = ({
           {1}.
         </span> */}
         {!expandedAdsetKPI[`${stage.name}${adSetIndex}`] &&
-        adSet?.extra_audiences?.length > 0
+          adSet?.extra_audiences?.length > 0
           ? ""
           : !adSet?.audience_type
-          ? "-"
-          : adSet?.audience_type}
+            ? "-"
+            : adSet?.audience_type}
       </div>
     );
   }
@@ -207,211 +203,211 @@ export const AdSetCellRenderer = ({
     "cpp",
   ];
 
-    const formatNumber = (num: number | string): string => {
-      if (isNaN(Number(num)) || num === null || num === undefined) return "-"
-      return new Intl.NumberFormat("en-US").format(Number(num))
-    }
-  
-    const getCalculatedValue = (key: string): string => {
-      const value = calculatedValues[key]
-      return isNaN(value) || !isFinite(value) ? "-" : (cellType !== "number") ? Number.parseFloat(value).toFixed(2) : Number.parseFloat(value).toFixed(0)
-    }
-  
-    const getRawValue = (): string => {
-      const rawValue =
+  const formatNumber = (num: number | string): string => {
+    if (isNaN(Number(num)) || num === null || num === undefined) return "-"
+    return new Intl.NumberFormat("en-US").format(Number(num))
+  }
+
+  const getCalculatedValue = (key: string): string => {
+    const value = calculatedValues[key]
+    return isNaN(value) || !isFinite(value) ? "-" : (cellType !== "number") ? Number.parseFloat(value).toFixed(2) : Number.parseFloat(value).toFixed(0)
+  }
+
+  const getRawValue = (): string => {
+    const rawValue =
       body === "audience_size"
-      ? campaignFormData?.channel_mix
+        ? campaignFormData?.channel_mix
           ?.find((ch) => ch?.funnel_stage === stage.name)
           ?.[channel?.channel_name]?.find(
             (c) => c?.platform_name === channel?.name
           )?.ad_sets[adSetIndex]?.size || ""
-      : body === "budget_size"
-      ? campaignFormData?.channel_mix
-          ?.find((ch) => ch?.funnel_stage === stage.name)
-          ?.[channel?.channel_name]?.find(
-            (c) => c?.platform_name === channel?.name
-          )?.ad_sets[adSetIndex]?.budget?.fixed_value || ""
-      : campaignFormData?.channel_mix
-          ?.find((ch) => ch?.funnel_stage === stage.name)
+        : body === "budget_size"
+          ? campaignFormData?.channel_mix
+            ?.find((ch) => ch?.funnel_stage === stage.name)
+            ?.[channel?.channel_name]?.find(
+              (c) => c?.platform_name === channel?.name
+            )?.ad_sets[adSetIndex]?.budget?.fixed_value || ""
+          : campaignFormData?.channel_mix
+            ?.find((ch) => ch?.funnel_stage === stage.name)
           [channel?.channel_name]?.find(
             (c) => c?.platform_name === channel?.name
           )?.ad_sets[adSetIndex]?.kpi?.[body] || "";
-  
-      return rawValue.toString()
-    }
-  
-    const formatValueByType = (value: any, type: any): string => {
-      if (value === null || value === undefined || value === "" || isNaN(value)) return "-"
-  
-      const numValue = Number.parseFloat(value)
-  
-      switch (type) {
-        case "percent":
-          return `${numValue.toFixed(1)}%` // 1 decimal place for percent
-        case "currency":
-          return `${numValue.toFixed(2)}` // 2 decimal places for currency
-        case "seconds":
-          return `${numValue.toFixed(2)}s`
-        case "number":
-          return numValue.toFixed(0)
-        default:
-          return numValue.toFixed(0) // No decimal places for other types
-      }
-    }
-  
-    // Format display value with commas for better readability
-    const formatDisplayValue = (value: string): string => {
-      if (!value || isNaN(Number.parseFloat(value.toString().replace(/,/g, "")))) {
-        return value
-      }
-  
-      const numericValue = Number.parseFloat(value.toString().replace(/,/g, ""))
-  
-      if (isPercentType) {
-        if (!value.toString().includes("%")) {
-          if (numericValue < 1) {
-            return `${formatNumber(Number.parseFloat((numericValue * 100).toFixed(1)))}%` // 1 decimal place
-          } else {
-            return `${formatNumber(Number.parseFloat(numericValue.toFixed(1)))}%` // 1 decimal place
-          }
-        }
-      } else if (isCurrencyType) {
-        if (!value.toString().includes(`${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}`)) {
-          return `${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}${formatNumber(
-            Number.parseFloat(numericValue.toFixed(2)), // 2 decimal places
-          )}`
-        }
-      } else if (isSecondsType) {
-        if (!value.toString().includes("secs")) {
-          return `${formatNumber(numericValue.toFixed(1))}secs`
-        }
-      } else if (isCPM) {
-        // For CPM, preserve decimal places (2 max)
-        return formatNumber(Number.parseFloat(numericValue.toFixed(2)))
-      } else {
-        // For other fields, round to whole numbers
-        if(body !== "reach"  && body !== "video_views") {
-          // For other fields, round to whole numbers
-          return formatNumber(Math.round(numericValue))
-        }
-        return formatNumber(Math.round(numericValue))
 
-      }
-  
+    return rawValue.toString()
+  }
+
+  const formatValueByType = (value: any, type: any): string => {
+    if (value === null || value === undefined || value === "" || isNaN(value)) return "-"
+
+    const numValue = Number.parseFloat(value)
+
+    switch (type) {
+      case "percent":
+        return `${numValue.toFixed(1)}%` // 1 decimal place for percent
+      case "currency":
+        return `${numValue.toFixed(2)}` // 2 decimal places for currency
+      case "seconds":
+        return `${numValue.toFixed(2)}s`
+      case "number":
+        return numValue.toFixed(0)
+      default:
+        return numValue.toFixed(0) // No decimal places for other types
+    }
+  }
+
+  // Format display value with commas for better readability
+  const formatDisplayValue = (value: string): string => {
+    if (!value || isNaN(Number.parseFloat(value.toString().replace(/,/g, "")))) {
       return value
     }
-  
-    // Validate input based on cell type
-    const validateInput = (value: string): boolean => {
-      // Always allow empty input
-      if (value === "") return true
-  
-      // Remove formatting characters for validation
-      const cleanValue = value.replace(/[,$%]/g, "").replace(/secs?/g, "")
-  
-      if (isPercentType || isCurrencyType || isCPM) {
-        // For percent, currency, and CPM: allow decimal input with restrictions
-        if (isPercentType) {
-          // Percent: Allow up to 1 decimal place
-          const regex = /^[0-9]*\.?[0-9]{0,1}$/
-          return regex.test(cleanValue)
+
+    const numericValue = Number.parseFloat(value.toString().replace(/,/g, ""))
+
+    if (isPercentType) {
+      if (!value.toString().includes("%")) {
+        if (numericValue < 1) {
+          return `${formatNumber(Number.parseFloat((numericValue * 100).toFixed(1)))}%` // 1 decimal place
         } else {
-          // Currency and CPM: Allow up to 2 decimal places
-          const regex = /^[0-9]*\.?[0-9]{0,2}$/
-          return regex.test(cleanValue)
+          return `${formatNumber(Number.parseFloat(numericValue.toFixed(1)))}%` // 1 decimal place
         }
+      }
+    } else if (isCurrencyType) {
+      if (!value.toString().includes(`${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}`)) {
+        return `${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}${formatNumber(
+          Number.parseFloat(numericValue.toFixed(2)), // 2 decimal places
+        )}`
+      }
+    } else if (isSecondsType) {
+      if (!value.toString().includes("secs")) {
+        return `${formatNumber(numericValue.toFixed(1))}secs`
+      }
+    } else if (isCPM) {
+      // For CPM, preserve decimal places (2 max)
+      return formatNumber(Number.parseFloat(numericValue.toFixed(2)))
+    } else {
+      // For other fields, round to whole numbers
+      if (body !== "reach" && body !== "video_views") {
+        // For other fields, round to whole numbers
+        return formatNumber(Math.round(numericValue))
+      }
+      return formatNumber(Math.round(numericValue))
+
+    }
+
+    return value
+  }
+
+  // Validate input based on cell type
+  const validateInput = (value: string): boolean => {
+    // Always allow empty input
+    if (value === "") return true
+
+    // Remove formatting characters for validation
+    const cleanValue = value.replace(/[,$%]/g, "").replace(/secs?/g, "")
+
+    if (isPercentType || isCurrencyType || isCPM) {
+      // For percent, currency, and CPM: allow decimal input with restrictions
+      if (isPercentType) {
+        // Percent: Allow up to 1 decimal place
+        const regex = /^[0-9]*\.?[0-9]{0,1}$/
+        return regex.test(cleanValue)
       } else {
-        // For other types: only allow whole numbers
-        const regex = /^[0-9]*$/
+        // Currency and CPM: Allow up to 2 decimal places
+        const regex = /^[0-9]*\.?[0-9]{0,2}$/
         return regex.test(cleanValue)
       }
+    } else {
+      // For other types: only allow whole numbers
+      const regex = /^[0-9]*$/
+      return regex.test(cleanValue)
     }
-  
-    // Debounce function
-    const debounce = (func: Function, wait: number) => {
-      let timeout: NodeJS.Timeout
-      return function executedFunction(...args: any[]) {
-        const later = () => {
-          clearTimeout(timeout)
-          func(...args)
-        }
+  }
+
+  // Debounce function
+  const debounce = (func: Function, wait: number) => {
+    let timeout: NodeJS.Timeout
+    return function executedFunction(...args: any[]) {
+      const later = () => {
         clearTimeout(timeout)
-        timeout = setTimeout(later, wait)
+        func(...args)
       }
+      clearTimeout(timeout)
+      timeout = setTimeout(later, wait)
     }
-  
-    // Format value based on cell type before saving
-    const formatValueForSave = (value: string): string => {
-      if (value === "") return ""
-  
-      // Remove formatting characters
-      let cleanValue = value.replace(/[,$%]/g, "").replace(/secs?/g, "")
-  
-      // Handle decimal format based on type
-      if (isPercentType || isCurrencyType || isCPM) {
-        const parts = cleanValue.split(".")
-        if (parts.length > 2) {
-          // More than one decimal point - keep only the first one
-          cleanValue = parts[0] + "." + parts.slice(1).join("")
+  }
+
+  // Format value based on cell type before saving
+  const formatValueForSave = (value: string): string => {
+    if (value === "") return ""
+
+    // Remove formatting characters
+    let cleanValue = value.replace(/[,$%]/g, "").replace(/secs?/g, "")
+
+    // Handle decimal format based on type
+    if (isPercentType || isCurrencyType || isCPM) {
+      const parts = cleanValue.split(".")
+      if (parts.length > 2) {
+        // More than one decimal point - keep only the first one
+        cleanValue = parts[0] + "." + parts.slice(1).join("")
+      }
+
+      // Limit decimal places
+      if (parts.length === 2) {
+        const decimalPart = parts[1]
+        if (isPercentType && decimalPart.length > 1) {
+          // Limit percent to 1 decimal place
+          cleanValue = parts[0] + "." + decimalPart.substring(0, 1)
+        } else if ((isCurrencyType || isCPM) && decimalPart.length > 2) {
+          // Limit currency and CPM to 2 decimal places
+          cleanValue = parts[0] + "." + decimalPart.substring(0, 2)
         }
-  
-        // Limit decimal places
-        if (parts.length === 2) {
-          const decimalPart = parts[1]
-          if (isPercentType && decimalPart.length > 1) {
-            // Limit percent to 1 decimal place
-            cleanValue = parts[0] + "." + decimalPart.substring(0, 1)
-          } else if ((isCurrencyType || isCPM) && decimalPart.length > 2) {
-            // Limit currency and CPM to 2 decimal places
-            cleanValue = parts[0] + "." + decimalPart.substring(0, 2)
-          }
-        }
-      } else {
-        // For other types, remove any decimal part
-        cleanValue = cleanValue.split(".")[0]
       }
-  
-      return cleanValue
+    } else {
+      // For other types, remove any decimal part
+      cleanValue = cleanValue.split(".")[0]
     }
-  
-    // Validation and save function
-    const validateAndSave = (value: string) => {
-      if (value === "") {
-        handleEditInfo(stage.name, channel?.channel_name, channel?.name, body, "",
-          adSetIndex, "")
-        return
-      }
-  
-      // Format value based on cell type
-      const formattedValue = formatValueForSave(value)
-  
-      // Validate it's a valid number
-      if (formattedValue && !isNaN(Number(formattedValue))) {
-        handleEditInfo(stage.name, channel?.channel_name, channel?.name, body, formattedValue, adSetIndex, "")
-      } else if (formattedValue === "") {
-        handleEditInfo(stage.name, channel?.channel_name, channel?.name, body, formattedValue, adSetIndex, "")
-      }
+
+    return cleanValue
+  }
+
+  // Validation and save function
+  const validateAndSave = (value: string) => {
+    if (value === "") {
+      handleEditInfo(stage.name, channel?.channel_name, channel?.name, body, "",
+        adSetIndex, "")
+      return
     }
-  
-    // Debounced validation and save function
-    const debouncedSave = useCallback(
-      debounce((value: string) => {
-        validateAndSave(value)
-        setIsTyping(false)
-      }, 600),
-      [stage.name, channel?.channel_name, channel?.name, body, adSetIndex],
-    )
-  
-    // Get the raw value from the form data
-    const kpiValue = getRawValue()
-    const displayValue = formatDisplayValue(kpiValue)
-  
-    // Initialize input value on mount and update when external data changes
-    useEffect(() => {
-      if (!isTyping && !isFocused) {
-        setInputValue(kpiValue)
-      }
-    }, [kpiValue, isTyping, isFocused])
+
+    // Format value based on cell type
+    const formattedValue = formatValueForSave(value)
+
+    // Validate it's a valid number
+    if (formattedValue && !isNaN(Number(formattedValue))) {
+      handleEditInfo(stage.name, channel?.channel_name, channel?.name, body, formattedValue, adSetIndex, "")
+    } else if (formattedValue === "") {
+      handleEditInfo(stage.name, channel?.channel_name, channel?.name, body, formattedValue, adSetIndex, "")
+    }
+  }
+
+  // Debounced validation and save function
+  const debouncedSave = useCallback(
+    debounce((value: string) => {
+      validateAndSave(value)
+      setIsTyping(false)
+    }, 600),
+    [stage.name, channel?.channel_name, channel?.name, body, adSetIndex],
+  )
+
+  // Get the raw value from the form data
+  const kpiValue = getRawValue()
+  const displayValue = formatDisplayValue(kpiValue)
+
+  // Initialize input value on mount and update when external data changes
+  useEffect(() => {
+    if (!isTyping && !isFocused) {
+      setInputValue(kpiValue)
+    }
+  }, [kpiValue, isTyping, isFocused])
 
   if (calculatedFields.includes(body)) {
     return (
@@ -428,18 +424,18 @@ export const AdSetCellRenderer = ({
             {(() => {
               const value =
                 campaignFormData?.goal_level === "Adset level"
-                  ? channel?.kpi?.[body]
+                  ? formatNumber(adSet?.kpi?.[body])
                   : getCalculatedValue(body);
+
               return value && value !== "-"
-                ? `${
-                    isCurrencyType
-                      ? `${getCurrencySymbol(
-                          campaignFormData?.campaign_budget?.currency
-                        )}`
-                      : isSecondsType
-                      ? "secs"
-                      : ""
-                  }${(body == "reach" ||  body !== "video_views" || body !== "impressions") ? value : formatNumber(Number(value))}`
+                ? `${isCurrencyType
+                  ? `${getCurrencySymbol(
+                    campaignFormData?.campaign_budget?.currency
+                  )}`
+                  : isSecondsType
+                    ? "secs"
+                    : ""
+                }${(body == "reach" || body !== "video_views" || body !== "impressions") ? value : formatNumber(Number(value))}`
                 : "-";
             })()}
           </p>
@@ -453,7 +449,7 @@ export const AdSetCellRenderer = ({
   }
 
   // Handle input fields and static values
-  
+
   if (!showInput) {
     const value = channel?.[body];
     if (exemptFields.includes(body)) {
@@ -471,7 +467,7 @@ export const AdSetCellRenderer = ({
         <p className="text-gray-300 font-semibold">NR</p>
       ) : (
         <input
-        value={isFocused || isTyping ? inputValue : displayValue}
+          value={isFocused || isTyping ? inputValue : displayValue}
           onChange={(e) => {
             const newValue = e.target.value
 
@@ -499,18 +495,17 @@ export const AdSetCellRenderer = ({
           disabled={
             (body === "audience_size" &&
               (channel?.ad_sets?.length > 1 ||
-                adSet?.extra_audiences?.length > 0)) || isNR 
+                adSet?.extra_audiences?.length > 0)) || isNR
           }
-          className={`bg-slate-100 hover:bg-white border-none outline-none max-w-[90px] p-1 ${
-            isNR ? "text-gray-400" : ""
-          }`}
-          // placeholder={
-          //   body === "budget_size"
-          //     ? "BUDGET"
-          //     : body
-          //     ? body?.toUpperCase()
-          //     : "Insert value"
-          // }
+          className={`bg-slate-100 hover:bg-white border-none outline-none max-w-[90px] p-1 ${isNR ? "text-gray-400" : ""
+            }`}
+        // placeholder={
+        //   body === "budget_size"
+        //     ? "BUDGET"
+        //     : body
+        //     ? body?.toUpperCase()
+        //     : "Insert value"
+        // }
         />
       )}
       <Ban
