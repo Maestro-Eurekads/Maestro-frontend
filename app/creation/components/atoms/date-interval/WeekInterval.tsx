@@ -4,6 +4,7 @@ import { useComments } from "app/utils/CommentProvider";
 import moment from "moment";
 import { useCallback, useMemo } from "react";
 import { useDateRange } from "src/date-range-context";
+import { format } from "date-fns";
 
 const WeekInterval = ({
   weeksCount,
@@ -113,6 +114,37 @@ const WeekInterval = ({
   // Create grid template columns with individual week widths
   const gridTemplateColumns = weekWidths.map((width) => `${width}px`).join(" ");
 
+  // Calculate year headers
+  const yearHeaders = useMemo(() => {
+    const headers: Array<{ year: string; span: number }> = [];
+    let currentYear: string | null = null;
+    let currentSpan = 0;
+
+    datesByWeek.forEach((week) => {
+      if (week && week.length > 0) {
+        const weekDate = moment(week[0]).toDate();
+        const year = format(weekDate, "yyyy");
+
+        if (currentYear === null) {
+          currentYear = year;
+          currentSpan = 1;
+        } else if (currentYear === year) {
+          currentSpan += 1;
+        } else {
+          headers.push({ year: currentYear, span: currentSpan });
+          currentYear = year;
+          currentSpan = 1;
+        }
+      }
+    });
+
+    if (currentYear !== null) {
+      headers.push({ year: currentYear, span: currentSpan });
+    }
+
+    return headers;
+  }, [datesByWeek]);
+
   // Create background images and positions for week end lines
   const backgroundImages = weekEndPositions
     .map(
@@ -130,8 +162,42 @@ const WeekInterval = ({
 
   return (
     <div
-      className={isInfiniteTimeline ? "min-w-max border-y" : "w-full border-y"}
+      className={isInfiniteTimeline ? "min-w-max border-y relative" : "w-full border-y relative"}
     >
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: gridTemplateColumns,
+        }}
+        className="border-b border-blue-200"
+      >
+        {yearHeaders.map((header, idx) => (
+          <div
+            key={`year-${idx}`}
+            style={{
+              gridColumn: `span ${header.span}`,
+            }}
+            className="relative h-full"
+          >
+            <div
+              style={{
+                position: "sticky",
+                left: 0,
+                width: "fit-content",
+                backgroundColor: "white",
+                paddingRight: "12px",
+                zIndex: 10,
+              }}
+              className="py-2 px-3 border-r border-blue-200/50 h-full flex items-center"
+            >
+              <span className="font-[600] text-[16px] text-[rgba(0,0,0,0.7)]">
+                {header.year}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
       <div
         style={{
           display: "grid",
