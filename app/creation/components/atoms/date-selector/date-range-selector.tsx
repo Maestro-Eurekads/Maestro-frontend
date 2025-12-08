@@ -9,7 +9,7 @@ import { useCampaigns } from "app/utils/CampaignsContext";
 import { ca } from "date-fns/locale";
 import { mediaTypes } from "components/data";
 
-const DateRangeSelector = () => {
+const DateRangeSelector = ({ viewOnly = false }: { viewOnly?: boolean  }) => {
   const [isShowDateRange, setIsShowDateRange] = useState(false);
   const { range, setRange } = useDateRange();
   const { campaignFormData, setCampaignFormData } = useCampaigns();
@@ -47,10 +47,13 @@ const DateRangeSelector = () => {
           </span>
         </div>
         {isShowDateRange && (
-            <div className="absolute z-50 right-0">
+            <div className={`absolute z-50 right-0 ${viewOnly ? "viewOnlyCalendar" : ""}`}>
+              
               <DateRange
-              editableDateInputs={true}
+              editableDateInputs={!viewOnly}
               onChange={(item) => {
+                if (viewOnly) return; 
+                
                 setCampaignFormData((prev) => {
                 const updatedChannels = prev.channel_mix.map((channel) => {
                   const updatedMediaTypes = mediaTypes.reduce((acc, mediaType) => {

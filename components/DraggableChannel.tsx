@@ -311,7 +311,11 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         }
       });
 
-      const allStartDates = campaignFormData?.channel_mix
+      const updatedChannelMixArray = campaignFormData?.channel_mix?.map((ch) =>
+        ch.funnel_stage === description ? updatedChannelMix : ch
+      );
+
+      const allStartDates = updatedChannelMixArray
         ?.map(
           (ch) =>
             ch?.funnel_stage_timeline_start_date &&
@@ -319,7 +323,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         )
         .filter((date) => date);
 
-      const allEndDates = campaignFormData?.channel_mix
+      const allEndDates = updatedChannelMixArray
         ?.map(
           (ch) =>
             ch?.funnel_stage_timeline_end_date &&
@@ -332,13 +336,9 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
       draftCampaignFormRef.current = {
         ...campaignFormData,
-        channel_mix: campaignFormData?.channel_mix?.map((ch) =>
-          ch.funnel_stage === description ? updatedChannelMix : ch
-        ),
-        ...(viewType === "Year" && {
+        channel_mix: updatedChannelMixArray,
           campaign_timeline_start_date: minStartDate,
           campaign_timeline_end_date: maxEndDate,
-        }),
       };
       setCampaignFormData(draftCampaignFormRef.current);
     }
@@ -458,7 +458,11 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         }
       });
 
-      const allStartDates = campaignFormData?.channel_mix
+      const updatedChannelMixArray = campaignFormData?.channel_mix?.map((ch) =>
+        ch.funnel_stage === description ? updatedChannelMix : ch
+      );
+
+      const allStartDates = updatedChannelMixArray
         ?.map(
           (ch) =>
             ch?.funnel_stage_timeline_start_date &&
@@ -466,7 +470,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         )
         .filter((date) => date);
 
-      const allEndDates = campaignFormData?.channel_mix
+      const allEndDates = updatedChannelMixArray
         ?.map(
           (ch) =>
             ch?.funnel_stage_timeline_end_date &&
@@ -479,13 +483,11 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
       draftCampaignFormRef.current = {
         ...campaignFormData,
-        channel_mix: campaignFormData?.channel_mix?.map((ch) =>
-          ch.funnel_stage === description ? updatedChannelMix : ch
-        ),
-        ...(viewType === "Year" && {
+        channel_mix: updatedChannelMixArray,
+       
           campaign_timeline_start_date: minStartDate,
           campaign_timeline_end_date: maxEndDate,
-        }),
+        
       };
       setCampaignFormData(draftCampaignFormRef.current);
     }

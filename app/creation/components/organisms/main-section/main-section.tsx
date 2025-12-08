@@ -50,7 +50,6 @@ const MainSection = ({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isExtendingRef = useRef(false);
   const hasScrolledToInitial = useRef(false);
-  const prevCampaignId = useRef<string | null>(null);
   const prevViewType = useRef<string | null>(null);
 
   const getWidthForView = useCallback((viewType: string) => {
@@ -149,14 +148,6 @@ const MainSection = ({
   ]);
 
   useEffect(() => {
-    const campaignId = campaignFormData?.campaign_timeline_start_date;
-    if (campaignId && campaignId !== prevCampaignId.current) {
-      hasScrolledToInitial.current = false;
-      prevCampaignId.current = campaignId;
-    }
-  }, [campaignFormData?.campaign_timeline_start_date]);
-
-  useEffect(() => {
     if (hasScrolledToInitial.current || !timelineStart || !rrange?.length) {
       return;
     }
@@ -168,14 +159,16 @@ const MainSection = ({
     }, 150);
 
     return () => clearTimeout(timer);
-  }, [timelineStart, rrange?.length, scrollToFocusDate]);
+  }, [timelineStart, rrange?.length]);
 
   useEffect(() => {
     if (prevViewType.current !== null && prevViewType.current !== range) {
-      setTimeout(scrollToFocusDate, 50);
+      setTimeout(() => {
+        scrollToFocusDate();
+      }, 50);
     }
     prevViewType.current = range;
-  }, [range, scrollToFocusDate]);
+  }, [range]);
 
   const handleScroll = useCallback(() => {
     if (

@@ -205,78 +205,56 @@ const ResizableChannels = ({
   ) => {
     if (!dateList || dateList.length === 0) return;
 
-    let startDateValue: Date;
-    let endDateValue: Date;
-    let formattedStartDate: string;
-    let formattedEndDate: string;
+    const gridContainer = document.querySelector(
+      ".grid-container"
+    ) as HTMLElement;
+    if (!gridContainer) return;
+    const containerRect = gridContainer.getBoundingClientRect();
 
-    if (viewType === "Year") {
-      const timelineStart = startOfYear(dateList[0]);
-      const timelineEnd = endOfYear(dateList[dateList.length - 1]);
-      const allMonths = eachMonthOfInterval({
-        start: timelineStart,
-        end: timelineEnd,
-      });
+    const startDateValue = pixelToDateUtil({
+      dateList,
+      viewType,
+      pixel: startPixel,
+      containerWidth: containerRect.width,
+      dailyWidth,
+    });
+    console.log('startDateValue', startDateValue)
 
-      const startIdx = Math.min(
-        allMonths.length - 1,
-        Math.max(0, Math.floor(startPixel / dailyWidth))
-      );
-      const endIdx = Math.min(
-        allMonths.length - 1,
-        Math.max(0, Math.floor(endPixel / dailyWidth))
-      );
+    const endDateValue = pixelToDateUtil({
+      dateList,
+      viewType,
+      pixel: endPixel,
+      containerWidth: containerRect.width,
+      fieldName: "endDate",
+      dailyWidth,
+    });
 
-      startDateValue = allMonths[startIdx] || startDate;
-      endDateValue = allMonths[endIdx] || endDate;
-      formattedStartDate = format(startDateValue, "MMM yyyy");
-      formattedEndDate = format(endDateValue, "MMM yyyy");
-    } else if (viewType === "Month") {
-      const allWeeks = eachWeekOfInterval(
-        { start: dateList[0], end: dateList[dateList.length - 1] },
-        { weekStartsOn: 1 }
-      );
+    const formattedStartDate =
+      viewType === "Year"
+        ? startDateValue.toLocaleDateString("en-US", {
+            month: "short",
+            year: "numeric",
+          })
+        : startDateValue.toLocaleDateString("en-US", {
+            month: "short",
+            day: "2-digit",
+            year: "numeric",
+          });
 
-      const startIdx = Math.min(
-        allWeeks.length - 1,
-        Math.max(0, Math.floor(startPixel / dailyWidth))
-      );
-      const endIdx = Math.min(
-        allWeeks.length - 1,
-        Math.max(0, Math.floor(endPixel / dailyWidth))
-      );
-
-      startDateValue = allWeeks[startIdx] || startDate;
-      endDateValue =
-        endOfWeek(allWeeks[endIdx], { weekStartsOn: 1 }) || endDate;
-      formattedStartDate = format(startDateValue, "MMM d");
-      formattedEndDate = format(endDateValue, "MMM d");
-    } else {
-      const totalDays = dateList.length - 1;
-      const startIdx = Math.min(
-        totalDays,
-        Math.max(0, Math.floor(startPixel / dailyWidth))
-      );
-      const endIdx = Math.min(
-        totalDays,
-        Math.max(0, Math.floor(endPixel / dailyWidth))
-      );
-
-      startDateValue = dateList[startIdx] || startDate;
-      endDateValue = dateList[endIdx] || endDate;
-      formattedStartDate = format(startDateValue, "MMM dd");
-      formattedEndDate = format(endDateValue, "MMM dd");
-    }
+    const formattedEndDate =
+      viewType === "Year"
+        ? endDateValue.toLocaleDateString("en-US", {
+            month: "short",
+            year: "numeric",
+          })
+        : endDateValue.toLocaleDateString("en-US", {
+            month: "short",
+            day: "2-digit",
+            year: "numeric",
+          });
 
     const channelName = channels[index]?.name || "Channel";
-    const containerRect = document
-      .querySelector(
-        `.cont-${parentId?.replaceAll(" ", "_")}-${channelName
-          ?.replaceAll(" ", "_")
-          ?.replace("(", "")
-          ?.replace(")", "")}`
-      )
-      ?.getBoundingClientRect();
+  
 
     const tooltipX = mouseX - containerRect.left;
     const tooltipY = containerRect.top - 50;
@@ -307,7 +285,7 @@ const ResizableChannels = ({
       index,
     };
 
-    const startPixel = channelState[index].left - parentLeft;
+    const startPixel = channelState[index].left;
     const endPixel = startPixel + channelState[index].width;
     updateTooltipWithDates(startPixel, endPixel, index, e.clientX, "resize");
 
@@ -419,10 +397,9 @@ const ResizableChannels = ({
       )
     );
 
-    const relativeStart = newLeft - parentLeft;
     updateTooltipWithDates(
-      relativeStart,
-      relativeStart + newWidth,
+      newLeft,
+      newLeft + newWidth,
       index,
       e.clientX,
       "resize"
@@ -483,98 +460,7 @@ const ResizableChannels = ({
     }
   }, [campaignFormData, parentId]);
 
-  const pixelToDate = (
-    pixel,
-    containerWidth,
-    index,
-    fieldName,
-    shouldUpdate = false
-  ) => {
-    let calculatedDate: Date | null = null;
-    if (!dateList || dateList.length === 0) return null;
-    let adjustedPixel = pixel;
-    if (fieldName === "endDate") {
-      adjustedPixel = Math.max(0, pixel - 1);
-    }
-
-    if (viewType === "Year") {
-      const timelineStart = startOfYear(dateList[0]);
-      const timelineEnd = endOfYear(dateList[dateList.length - 1]);
-      const allMonths = eachMonthOfInterval({
-        start: timelineStart,
-        end: timelineEnd,
-      });
-
-      const monthIndex = Math.min(
-        allMonths.length - 1,
-        Math.max(0, Math.floor(adjustedPixel / dailyWidth))
-      );
-
-      if (fieldName === "endDate") {
-        const endMonth = allMonths[monthIndex];
-        const lastDayOfMonth = new Date(
-          endMonth.getFullYear(),
-          endMonth.getMonth() + 1,
-          0
-        );
-        calculatedDate = lastDayOfMonth;
-      } else {
-        calculatedDate = startOfMonth(allMonths[monthIndex]);
-      }
-    } else if (viewType === "Month") {
-      const allWeeks = eachWeekOfInterval(
-        { start: dateList[0], end: dateList[dateList.length - 1] },
-        { weekStartsOn: 1 }
-      );
-
-      const weekIndex = Math.min(
-        allWeeks.length - 1,
-        Math.max(0, Math.floor(adjustedPixel / dailyWidth))
-      );
-
-      if (fieldName === "endDate") {
-        const weekEnd = endOfWeek(allWeeks[weekIndex], { weekStartsOn: 1 });
-        calculatedDate = weekEnd;
-      } else {
-        calculatedDate = startOfWeek(allWeeks[weekIndex], { weekStartsOn: 1 });
-      }
-    } else {
-      const totalDays = dateList.length;
-      const dayIndex = Math.min(
-        totalDays - 1,
-        Math.max(0, Math.floor(adjustedPixel / dailyWidth))
-      );
-      calculatedDate = dateList[dayIndex];
-    }
-
-    if (shouldUpdate && calculatedDate) {
-      const updatedCampaignFormData = { ...campaignFormData };
-
-      const channelMix = updatedCampaignFormData.channel_mix.find(
-        (ch) => ch.funnel_stage === parentId
-      );
-
-      if (channelMix) {
-        const platform = channelMix[channels[index].channelName]?.find(
-          (platform) => platform.platform_name === channels[index].name
-        );
-
-        if (platform) {
-          if (fieldName === "startDate") {
-            platform.campaign_start_date =
-              moment(calculatedDate).format("YYYY-MM-DD");
-          } else {
-            const endDateToUse =
-              endDate && calculatedDate > endDate ? endDate : calculatedDate;
-            platform.campaign_end_date =
-              moment(endDateToUse).format("YYYY-MM-DD");
-          }
-        }
-      }
-    }
-
-    return calculatedDate ? calculatedDate : null;
-  };
+ 
 
   const handleDragStart = (index) => (event) => {
     if (disableDrag) return;
@@ -585,7 +471,7 @@ const ResizableChannels = ({
       startLeft: channelState[index]?.left || parentLeft,
     });
 
-    const startPixel = (channelState[index]?.left || parentLeft) - parentLeft;
+    const startPixel = (channelState[index]?.left || parentLeft);
     const endPixel = startPixel + (channelState[index]?.width || 50);
     updateTooltipWithDates(startPixel, endPixel, index, event.clientX, "drag");
   };
@@ -636,10 +522,9 @@ const ResizableChannels = ({
 
       draggingDataRef.current = { index, startDate, endDate };
 
-      const relativeStart = newLeft - parentLeft;
       updateTooltipWithDates(
-        relativeStart,
-        relativeStart + channelWidth,
+        newLeft,
+        newLeft + channelWidth,
         index,
         event.clientX,
         "drag"
@@ -1076,20 +961,6 @@ const ResizableChannels = ({
           const startPixel = newLeft - parentLeft;
           const endPixel = startPixel - 1 + newWidth;
 
-          const startDate = pixelToDate(
-            startPixel,
-            parentWidth,
-            index,
-            "startDate"
-          );
-
-          const rawEndDate = pixelToDate(
-            endPixel - parentWidth / totalUnits,
-            parentWidth,
-            index,
-            "endDate"
-          );
-
           if (endDate > endDate) {
             const parentEndPixel = parentWidth;
             const maxWidth = parentEndPixel - startPixel + parentLeft;
@@ -1103,26 +974,11 @@ const ResizableChannels = ({
       setDragging((prev) => ({ ...prev, startX: event.clientX }));
     };
 
-    const handleMouseUp = () => {
-      if (dragging) {
-        const { index } = dragging;
-        const state = channelState[index];
-        if (state) {
-          const startPixel = state.left - parentLeft;
-          const endPixel = startPixel + state.width;
-          pixelToDate(startPixel, parentWidth, index, "startDate", true);
-          pixelToDate(endPixel, parentWidth, index, "endDate", true);
-        }
-      }
-      setDragging(null);
-    };
 
     document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
 
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
     };
   }, [dragging, parentWidth, viewType, dateList, dailyWidth]);
 
