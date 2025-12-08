@@ -105,6 +105,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [selectedClient, setSelectedClient] = useState()
   const [agencyData, setAgencyData] = useState(null);
   const [selectedId, setSelectedId] = useState<string>("");
+  const [kpiChanged, setKpiChanged] = useState(false);
 
 
   const reduxClients = useSelector(
@@ -760,7 +761,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       setFC,
       agencyData,
       setAgencyData,
-      updateStatus
+      updateStatus,
+      kpiChanged,
+      setKpiChanged
     }),
     [
       getUserByUserType,
@@ -806,7 +809,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       setFC,
       agencyData,
       setAgencyData,
-      updateStatus
+      updateStatus,
+      kpiChanged,
+      setKpiChanged
     ]
   );
 
