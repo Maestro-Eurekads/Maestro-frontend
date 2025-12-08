@@ -115,6 +115,7 @@ export const CellRenderer = ({
   const [inputValue, setInputValue] = useState("")
   const [isTyping, setIsTyping] = useState(false)
   const [isFocused, setIsFocused] = useState(false)
+  const { setKpiChanged } = useCampaigns()
 
   // Cell type flags
   const isNR = nrCells[channel?.name]?.[body]
@@ -291,6 +292,7 @@ export const CellRenderer = ({
 
   // Validation and save function
   const validateAndSave = (value: string) => {
+    setKpiChanged(true);
     if (value === "") {
       handleEditInfo(stage.name, channel?.channel_name, channel?.name, body, "", "", "")
       return

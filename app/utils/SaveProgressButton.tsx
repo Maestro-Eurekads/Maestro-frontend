@@ -2,6 +2,8 @@
 import Image from "next/image"
 import clsx from "clsx"
 import Continue from "../../public/arrow-back-outline.svg"
+import left_arrow from "../../public/blue_back_arrow.svg";
+
 import { useState, useEffect, useRef, useMemo } from "react"
 import { BiLoader } from "react-icons/bi"
 import { useEditing } from "app/utils/EditingContext"
@@ -80,7 +82,7 @@ const preserveFormatsWithPreviews = (platforms) => {
 	})
 }
 
-const SaveProgressButton = () => {
+const SaveProgressButton = ({ isBackToDashboardButton }: { isBackToDashboardButton?: boolean }) => {
 
 	const { active, setActive, subStep, setSubStep, setChange, change } = useActive()
 	const { midcapEditing } = useEditing()
@@ -123,13 +125,14 @@ const SaveProgressButton = () => {
 		jwt,
 		loadingCampaign,
 		agencyId,
+		kpiChanged, setKpiChanged
 	} = useCampaigns()
 
 	const isInternalApprover = isAdmin || isAgencyApprover || isFinancialApprover
 
 	const hasChanges = useMemo(() => {
 		if (!campaignData || !campaignFormData) return false;
-		return !areObjectsSimilar(campaignFormData, campaignData, ['objective_level']);
+		return kpiChanged || !areObjectsSimilar(campaignFormData, campaignData, ['objective_level']);
 	}, [campaignFormData, campaignData]);
 
 	// --- Persist format selection for active === 4 ---
@@ -326,6 +329,9 @@ const SaveProgressButton = () => {
 	}, [requiredFields, setIsStepZeroValid])
 
 	const cancelSave = () => {
+		if (isBackToDashboardButton) {
+			router.push(`/`)
+		}
 		setShowSave(false)
 	}
 
@@ -333,10 +339,19 @@ const SaveProgressButton = () => {
 		setShowSave(true)
 	}
 
+	const handleBackToDashboard = () => {
+		if (hasChanges || kpiChanged) {
+			setShowSave(true)
+		} else {
+			router.push(`/`)
+		}
+	}
+
 	// Creates a new campaign if cId is not present, otherwise updates existing campaign
 	const handleSavingConfirmation = async () => {
 		if (cId) {
-			handleSave();
+			await handleSave();
+			setKpiChanged(false)
 		} else {
 			setLoading(true);
 			const response = await createCampaign(campaignFormData);
@@ -344,6 +359,9 @@ const SaveProgressButton = () => {
 			setShowSave(false);
 			setActive(1)
 			router.push(`/creation?campaignId=${response?.data?.data?.documentId}`);
+		}
+		if (isBackToDashboardButton) {
+			router.push(`/`)
 		}
 	}
 
@@ -866,11 +884,57 @@ const SaveProgressButton = () => {
 		if (loadingCampaign) return true;
 
 		// If there's a cId (existing campaign), disable if no changes
-		if (cId) return !hasChanges;
+		if (cId) return !kpiChanged && !hasChanges;
 
 		// If no cId (new campaign), always enable
 		return false;
-	}, [loadingCampaign, cId, hasChanges]);
+	}, [loadingCampaign, cId, hasChanges, kpiChanged]);
+
+	if (isBackToDashboardButton) {
+		return (
+			<>
+				<button
+					onClick={handleBackToDashboard}
+					className="font-general-sans font-semibold text-[16px] leading-[22px] text-[#3175FF] flex items-center gap-2"
+				>
+					<Image src={left_arrow} alt="menu" />
+					<p>Back to Dashboard</p>
+				</button>
+
+				{showSave && (
+					<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+						<div className="bg-white rounded-xl shadow-lg w-[400px] p-6 text-center">
+							<h2 className="text-xl font-semibold text-gray-800 mb-4">Confirm Save</h2>
+							<p className="text-gray-700 mb-6">
+								{cId ? "Do you want to save this step progress?" : "Do you want to save your latest progress before leaving?"}
+							</p>
+							<div className="flex justify-center gap-4">
+								<button
+									className="border border-gray-300 text-gray-600 px-4 py-2 rounded hover:bg-gray-100"
+									onClick={cancelSave}
+								>
+									Cancel
+								</button>
+								<button
+									className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+									onClick={handleSavingConfirmation}
+								>
+									{loading ? (
+										<center>
+											<BiLoader className="animate-spin" size={20} />
+										</center>
+									) : (
+										"Save"
+									)}
+								</button>
+							</div>
+						</div>
+					</div>
+				)}
+			</>
+		)
+	}
+
 	return (
 		<div >
 			<Toaster position="bottom-right" />
