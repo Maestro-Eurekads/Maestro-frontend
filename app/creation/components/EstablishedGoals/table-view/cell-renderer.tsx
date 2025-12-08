@@ -377,7 +377,7 @@ export const CellRenderer = ({
   }
 
   // Handle calculated fields
-  if (goalLevel === "Channel level" && calculatedFields.includes(body)) {
+  if (calculatedFields.includes(body)) {
     return (
       <div
         className="flex justify- items-center gap-5 w-fit max-w-[150px] group"
@@ -389,7 +389,7 @@ export const CellRenderer = ({
           <p>
             {(() => {
               const value =
-                campaignFormData?.goal_level === "Adset level" ? channel?.kpi?.[body] : formatNumber(getCalculatedValue(body), body)
+                campaignFormData?.goal_level === "Adset level" ? formatNumber(channel?.kpi?.[body]) : formatNumber(getCalculatedValue(body))
               return value && value !== "-"
                 ? `${isCurrencyType
                   ? `${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}`
