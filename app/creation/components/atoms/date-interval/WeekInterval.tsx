@@ -1,5 +1,4 @@
 "use client";
-import { useCampaigns } from "app/utils/CampaignsContext";
 import { useComments } from "app/utils/CommentProvider";
 import moment from "moment";
 import { useCallback, useMemo } from "react";
@@ -7,22 +6,20 @@ import { useDateRange } from "src/date-range-context";
 import { format } from "date-fns";
 
 const WeekInterval = ({
-  weeksCount,
   funnelData,
   disableDrag,
   range,
   src,
 }: {
-  weeksCount: any;
   funnelData?: any;
   disableDrag?: any;
   range?: any;
   src?: any;
 }) => {
-  const { campaignFormData } = useCampaigns();
   const { range: ddRange, extendedRange, isInfiniteTimeline } = useDateRange();
   const { close } = useComments();
-
+console.log('ddRange' , ddRange)
+console.log('extendedRange' , extendedRange )
   // Use extended range for infinite timeline
   const effectiveRange = isInfiniteTimeline ? extendedRange : ddRange;
 
@@ -106,10 +103,6 @@ const WeekInterval = ({
 
     return positions;
   }, [weekWidths]);
-
-  //console.log("Week End Positions:", weekEndPositions);
-
-  const dailyWidth = calculateDailyWidth();
 
   // Create grid template columns with individual week widths
   const gridTemplateColumns = weekWidths.map((width) => `${width}px`).join(" ");

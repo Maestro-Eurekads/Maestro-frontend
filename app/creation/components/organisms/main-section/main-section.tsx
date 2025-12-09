@@ -73,7 +73,7 @@ const MainSection = ({
       case "Month":
         return 500;
       default:
-        return 500; 
+        return 500;
     }
   }, []);
 
@@ -343,15 +343,7 @@ const MainSection = ({
       case "Day":
         return <DayInterval daysCount={dayDifference + 1} src="campaign" />;
       case "Month":
-        return (
-          <MonthInterval
-            monthsCount={monthDifference === 0 ? 1 : monthDifference + 1}
-            view={view}
-            getDaysInEachMonth={getDaysInEachMonth}
-            funnelData={funnelsData}
-            disableDrag={disableDrag}
-          />
-        );
+        return <MonthInterval disableDrag={disableDrag} />;
       case "Year":
         return (
           <YearInterval
@@ -365,7 +357,6 @@ const MainSection = ({
       default: // Week is default
         return (
           <WeekInterval
-            weeksCount={weekDifference === 0 ? 1 : weekDifference - 1}
             funnelData={funnelsData}
             disableDrag={disableDrag}
           />

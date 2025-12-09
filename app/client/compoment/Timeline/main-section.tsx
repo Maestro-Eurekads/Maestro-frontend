@@ -19,7 +19,15 @@ import DateComponent from "app/creation/components/molecules/date-component/date
 import ResizeableElements from "app/creation/components/molecules/resizeable-elements/resizeable-elements";
 import { useDateRange } from "src/date-context";
 
-const MainSection = ({ hideDate, disableDrag, campaignData }: { hideDate?: boolean, disableDrag?: boolean, campaignData: any }) => {
+const MainSection = ({
+  hideDate,
+  disableDrag,
+  campaignData,
+}: {
+  hideDate?: boolean;
+  disableDrag?: boolean;
+  campaignData: any;
+}) => {
   const { range } = useDateRange();
   const startDates = campaignData?.campaign_timeline_start_date
     ? campaignData?.campaign_timeline_start_date
@@ -33,7 +41,6 @@ const MainSection = ({ hideDate, disableDrag, campaignData }: { hideDate?: boole
   const weekDifference = differenceInCalendarWeeks(endDates, startDates);
   const monthDifference = differenceInCalendarMonths(endDates, startDates);
 
-
   const start = campaignData?.campaign_timeline_start_date
     ? parseISO(campaignData.campaign_timeline_start_date)
     : null;
@@ -44,8 +51,6 @@ const MainSection = ({ hideDate, disableDrag, campaignData }: { hideDate?: boole
   // Calculate positions for different time ranges
   const startDay = differenceInCalendarDays(start, startDates) + 1;
   const endDay = differenceInCalendarDays(end, startDates) + 1;
-
-
 
   const startWeek = differenceInCalendarWeeks(start, startDates) + 1;
   const endWeek = differenceInCalendarWeeks(end, startDates) + 1;
@@ -68,27 +73,24 @@ const MainSection = ({ hideDate, disableDrag, campaignData }: { hideDate?: boole
         return (
           <>
             <DayInterval daysCount={dayDifference + 1} src="campaign" />
-
           </>
         );
       case "Month":
-        return (
-          <>
-            <MonthInterval
-              monthsCount={monthDifference === 0 ? 1 : monthDifference}
-            />
-          </>
-        );
+        return <MonthInterval />;
       default: // Week is default
         return (
           <>
-            <WeekInterval weeksCount={weekDifference} funnelData={funnelsData} disableDrag={disableDrag} />
+            <WeekInterval
+              weeksCount={weekDifference}
+              funnelData={funnelsData}
+              disableDrag={disableDrag}
+            />
           </>
         );
     }
   };
   return (
-    <div  >
+    <div>
       {!hideDate && <DateComponent useDate={true} />}
       <div className="box-border w-full min-h-[519px] bg-white border-b-2 relative">
         <div className="overflow-x-auto w-full">
@@ -100,7 +102,10 @@ const MainSection = ({ hideDate, disableDrag, campaignData }: { hideDate?: boole
                 <div className="absolute left-0 top-18 w-1 bg-orange-500 min-h-screen"></div> */}
               </div>
             </div>
-            <ResizeableElements funnelData={funnelsData} disableDrag={disableDrag} />
+            <ResizeableElements
+              funnelData={funnelsData}
+              disableDrag={disableDrag}
+            />
           </div>
         </div>
       </div>

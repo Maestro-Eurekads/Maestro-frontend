@@ -6,7 +6,6 @@ import { ChevronRight } from "lucide-react";
 import DayInterval from "./DayInterval";
 import DayTimeline from "./DayTimeline";
 import WeekInterval from "./WeekInterval";
-import WeekTimeline from "./WeekTimeline";
 import MonthInterval from "./MonthInterval";
 import MonthTimeline from "./MonthTimeline";
 import { addDays, differenceInDays, eachDayOfInterval, format } from "date-fns";
@@ -21,7 +20,7 @@ interface TimelineContainerProps {
   funnelsData: any[];
   startDate?: any;
   endDate?: any;
-  yearDifference?:any
+  yearDifference?: any;
 }
 
 const TimelineContainer: React.FC<TimelineContainerProps> = ({
@@ -80,7 +79,6 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
       const year = format(date, "yyyy");
       daysInYear[year] = (daysInYear[year] || 0) + 1;
     });
-console.log(daysInYear, "daysInYear");
     return daysInYear;
   }
   // Render the appropriate timeline components based on the range
@@ -94,16 +92,17 @@ console.log(daysInYear, "daysInYear");
               src="dashboard"
               range={dateList}
             />
-            <DayTimeline daysCount={dayDifference} funnels={funnelsData} range={dateList} />
+            <DayTimeline
+              daysCount={dayDifference}
+              funnels={funnelsData}
+              range={dateList}
+            />
           </>
         );
       case "Month":
         return (
           <>
-            <MonthInterval
-              monthsCount={monthDifference}
-              getDaysInEachMonth={getDaysInEachMonth}
-            />
+            <MonthInterval />
             <MonthTimeline
               monthsCount={monthDifference}
               funnels={funnelsData}
@@ -120,18 +119,21 @@ console.log(daysInYear, "daysInYear");
               getDaysInEachYear={getDaysInEachYear}
               funnelData={funnelsData}
             />
-            <YearTimeline range={dateList} funnels={funnelsData}/>
+            <YearTimeline range={dateList} funnels={funnelsData} />
           </>
         );
       default: // Week is default
         return (
           <>
             <WeekInterval
-              weeksCount={weekDifference}
               range={dateList}
               src="dashboard"
             />
-           <DayTimeline daysCount={dayDifference} funnels={funnelsData} range={dateList} />
+            <DayTimeline
+              daysCount={dayDifference}
+              funnels={funnelsData}
+              range={dateList}
+            />
           </>
         );
     }

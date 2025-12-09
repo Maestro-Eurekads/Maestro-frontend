@@ -7,23 +7,14 @@ import { useCampaigns } from "app/utils/CampaignsContext"
 import { useDateRange } from "src/date-range-context"
 
 interface MonthIntervalProps {
-  monthsCount: number
-  view?: boolean
-  getDaysInEachMonth?: any
-  funnelData?: any
   disableDrag?: any
 }
 
 const WEEK_WIDTH_PX = 100
 
 const MonthInterval: React.FC<MonthIntervalProps> = ({
-  monthsCount,
-  view,
-  getDaysInEachMonth,
   disableDrag,
-  funnelData,
 }) => {
-  const { campaignFormData } = useCampaigns()
   const { extendedRange, isInfiniteTimeline } = useDateRange()
 
   const weeks = useMemo(() => {

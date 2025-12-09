@@ -42,7 +42,7 @@ const Dashboard = () => {
     platforms: IPlatform[]
     style?: string
   }
-
+console.log('clientCampaignData' , clientCampaignData)
   const startDates = clientCampaignData
     ?.filter((c) => c?.campaign_timeline_start_date)
     ?.map((ch) => ch?.campaign_timeline_start_date !== null && parseISO(ch?.campaign_timeline_start_date))
@@ -54,10 +54,10 @@ const Dashboard = () => {
   const earliestStartDate = min(startDates)
   const latestEndDate = max(endDates)
 
-  console.log({earliestStartDate, latestEndDate})
   // Calculate the week difference
   const dayDifference = differenceInCalendarDays(latestEndDate, earliestStartDate)
-  console.log("🚀 ~ Dashboard ~ dayDifference:", dayDifference)
+  // console.log('dayDifference' , {earliestStartDate, latestEndDate})
+  // console.log("🚀 ~ Dashboard ~ dayDifference:", dayDifference)
   const weekDifference = differenceInCalendarWeeks(latestEndDate, earliestStartDate)
   // const monthDifference = differenceInCalendarMonths(latestEndDate, earliestStartDate)
   const daysDiff = differenceInDays(latestEndDate, earliestStartDate);
@@ -166,8 +166,6 @@ const Dashboard = () => {
 
   // Helper to get funnel stages for DoughnutChat
   function getActiveFunnels(campaign) {
-    // If you want to support custom funnels, you can add logic here
-    // For now, use channel_mix as the source of funnel stages
     return campaign?.channel_mix?.map((ch) => ({
       id: ch?.funnel_stage,
       name: ch?.funnel_stage,
@@ -184,6 +182,7 @@ const Dashboard = () => {
   // const dataValues = funnelStages.length > 0
   //   ? campaignFormData?.channel_mix?.map((st: any) => st?.stage_budget?.percentage_value || 0)
   //   : [100];
+
 
   return (
     <div className="mt-[24px] ">
