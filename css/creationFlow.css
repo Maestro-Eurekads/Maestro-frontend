@@ -617,6 +617,14 @@ border-radius: 8px;
 
 }
 
+.viewOnlyCalendar .rdrCalendarWrapper .rdrDay {
+	pointer-events: none !important;
+	cursor: default !important;
+  }
+  .viewOnlyCalendar .rdrCalendarWrapper .rdrDayNumber {
+	cursor: default !important;
+  }
+
 
 @media screen and (max-width: 768px) {
 .creation_continer{
