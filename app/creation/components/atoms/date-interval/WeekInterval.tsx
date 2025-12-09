@@ -4,23 +4,27 @@ import { useComments } from "app/utils/CommentProvider";
 import moment from "moment";
 import { useCallback, useMemo } from "react";
 import { useDateRange } from "src/date-range-context";
+import { format } from "date-fns";
 
 const WeekInterval = ({
   weeksCount,
   funnelData,
   disableDrag,
   range,
-  src
+  src,
 }: {
   weeksCount: any;
   funnelData?: any;
   disableDrag?: any;
-  range?:any;
-  src?:any
+  range?: any;
+  src?: any;
 }) => {
   const { campaignFormData } = useCampaigns();
-  const { range:ddRange } = useDateRange();
-  const {close} = useComments()
+  const { range: ddRange, extendedRange, isInfiniteTimeline } = useDateRange();
+  const { close } = useComments();
+
+  // Use extended range for infinite timeline
+  const effectiveRange = isInfiniteTimeline ? extendedRange : ddRange;
 
   const groupDatesByWeek = (dates: Date[]) => {
     const weeks: string[][] = [];
@@ -34,22 +38,37 @@ const WeekInterval = ({
       const isLastDate = index === dates.length - 1;
 
       if (isSixthIndex || isLastDate) {
-      weeks.push([...currentWeek]);
-      currentWeek = [];
+        weeks.push([...currentWeek]);
+        currentWeek = [];
       }
     });
 
     return weeks;
   };
 
-  const datesByWeek = src=== "dashboard" ? range ? groupDatesByWeek(range) : [] : ddRange ? groupDatesByWeek(ddRange) : [];
+  const datesByWeek =
+    src === "dashboard"
+      ? range
+        ? groupDatesByWeek(range)
+        : []
+      : effectiveRange
+      ? groupDatesByWeek(effectiveRange)
+      : [];
 
   const calculateDailyWidth = useCallback(() => {
     const getViewportWidth = () => {
       return window.innerWidth || document.documentElement.clientWidth || 0;
     };
     const screenWidth = getViewportWidth();
-    const contWidth = screenWidth - (disableDrag ? 80 : close ? 0:367);
+    const contWidth = screenWidth - (disableDrag ? 80 : close ? 0 : 367);
+
+    if (isInfiniteTimeline && effectiveRange && effectiveRange.length > 0) {
+      return 50;
+    }
+
+    if (isInfiniteTimeline && effectiveRange && effectiveRange.length > 0) {
+      return 50;
+    }
 
     const totalDays = funnelData?.endDay || 30;
     let dailyWidth = contWidth / totalDays;
@@ -58,7 +77,13 @@ const WeekInterval = ({
     dailyWidth = Math.max(dailyWidth, 50);
 
     return Math.round(dailyWidth);
-  }, [disableDrag, funnelData?.endDay, close]);
+  }, [
+    disableDrag,
+    funnelData?.endDay,
+    close,
+    isInfiniteTimeline,
+    effectiveRange,
+  ]);
 
   // Calculate individual week widths based on actual days in each week
   const weekWidths = useMemo(() => {
@@ -89,32 +114,99 @@ const WeekInterval = ({
   // Create grid template columns with individual week widths
   const gridTemplateColumns = weekWidths.map((width) => `${width}px`).join(" ");
 
+  // Calculate year headers
+  const yearHeaders = useMemo(() => {
+    const headers: Array<{ year: string; span: number }> = [];
+    let currentYear: string | null = null;
+    let currentSpan = 0;
+
+    datesByWeek.forEach((week) => {
+      if (week && week.length > 0) {
+        const weekDate = moment(week[0]).toDate();
+        const year = format(weekDate, "yyyy");
+
+        if (currentYear === null) {
+          currentYear = year;
+          currentSpan = 1;
+        } else if (currentYear === year) {
+          currentSpan += 1;
+        } else {
+          headers.push({ year: currentYear, span: currentSpan });
+          currentYear = year;
+          currentSpan = 1;
+        }
+      }
+    });
+
+    if (currentYear !== null) {
+      headers.push({ year: currentYear, span: currentSpan });
+    }
+
+    return headers;
+  }, [datesByWeek]);
+
   // Create background images and positions for week end lines
-      const backgroundImages = weekEndPositions
-        .map(
-          () =>
-            `linear-gradient(to right, transparent calc(100% - 1px), rgba(0,0,255,0.1) calc(100% - 1px), rgba(0,0,255,0.1) 100%)`
-        )
-        .join(", ");
+  const backgroundImages = weekEndPositions
+    .map(
+      () =>
+        `linear-gradient(to right, transparent calc(100% - 1px), rgba(0,0,255,0.1) calc(100% - 1px), rgba(0,0,255,0.1) 100%)`
+    )
+    .join(", ");
 
-      const backgroundSizes = weekEndPositions
-        .map((position) => `${position}px 100%`)
-        .join(", ");
-      const backgroundPositions = weekEndPositions
-        .map((position) => `${position+1}px 0`)
-        .join(", ");
+  const backgroundSizes = weekEndPositions
+    .map((position) => `${position}px 100%`)
+    .join(", ");
+  const backgroundPositions = weekEndPositions
+    .map((position) => `${position + 1}px 0`)
+    .join(", ");
 
-      return (
-        <div className="w-full border-y">
+  return (
+    <div
+      className={isInfiniteTimeline ? "min-w-max border-y relative" : "w-full border-y relative"}
+    >
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: gridTemplateColumns,
+        }}
+        className="border-b border-blue-200"
+      >
+        {yearHeaders.map((header, idx) => (
           <div
+            key={`year-${idx}`}
             style={{
-              display: "grid",
-              gridTemplateColumns: gridTemplateColumns,
-              backgroundImage: backgroundImages,
-              // backgroundRepeat: "no-repeat",
-              backgroundSize: backgroundSizes,
-              backgroundPosition: backgroundPositions,
+              gridColumn: `span ${header.span}`,
             }}
+            className="relative h-full"
+          >
+            <div
+              style={{
+                position: "sticky",
+                left: 0,
+                width: "fit-content",
+                backgroundColor: "white",
+                paddingRight: "12px",
+                zIndex: 10,
+              }}
+              className="py-2 px-3 border-r border-blue-200/50 h-full flex items-center"
+            >
+              <span className="font-[600] text-[16px] text-[rgba(0,0,0,0.7)]">
+                {header.year}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: gridTemplateColumns,
+          backgroundImage: backgroundImages,
+          // backgroundRepeat: "no-repeat",
+          backgroundSize: backgroundSizes,
+          backgroundPosition: backgroundPositions,
+        }}
       >
         {datesByWeek.map((week, i) => (
           <div
@@ -126,23 +218,27 @@ const WeekInterval = ({
           >
             {/* Week Label */}
             <div>
-              <div className="font-[500] text-[13px]">
+              <div className="font-[500] text-[13px] flex gap-2 items-center">
                 {datesByWeek[i] && (
                   <div className="flex flex-row gap-2 items-center justify-center">
-                    <p>
-                      {moment(datesByWeek[i][0]).format("DD")} -{" "}
-                      {moment(datesByWeek[i][datesByWeek[i].length - 1]).format(
-                        "DD"
-                      )}
-                    </p>
+                    <p>{moment(datesByWeek[i][0]).format("DD")}</p>
+                    <span className="text-blue-500">
+                      {moment(datesByWeek[i][0]).format("MMM")}
+                    </span>
                   </div>
                 )}
+                -
                 {datesByWeek[i] && (
-                  <p className="text-[rgba(0,0,255,0.5)]">
-                    {moment(datesByWeek[i][0]).format("MMM")} -{" "}
-                    {moment(datesByWeek[i][datesByWeek[i].length - 1]).format(
-                      "MMM"
-                    )}
+                  <p className="flex items-center gap-1">
+                    {`${moment(
+                      datesByWeek[i][datesByWeek[i].length - 1]
+                    ).format("DD")}`}
+
+                    <span className="text-blue-500">
+                      {moment(datesByWeek[i][datesByWeek[i].length - 1]).format(
+                        "MMM"
+                      )}
+                    </span>
                   </p>
                 )}
               </div>

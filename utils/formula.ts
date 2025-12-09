@@ -87,16 +87,16 @@ export const calculatePurchases: FormulaFunction = (pinfo, pr) => {
   return pinfo * pr;
 };
 
-export const calculateCPP:FormulaFunction = (budg, purchases)=>{
-    return budg / purchases
+export const calculateCPP: FormulaFunction = (budg, purchases) => {
+  return budg / purchases
 }
 
-export const calculateAdReturn: FormulaFunction=(revenue, budget)=>{
+export const calculateAdReturn: FormulaFunction = (revenue, budget) => {
   return revenue / budget
 }
 
-export const calculateCTR:FormulaFunction = (linkClicks, impression) => {
-return (linkClicks / impression);
+export const calculateCTR: FormulaFunction = (linkClicks, impression) => {
+  return (linkClicks / impression);
 }
 
 

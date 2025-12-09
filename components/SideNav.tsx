@@ -22,13 +22,18 @@ import { useAppDispatch } from "store/useStore";
 import { reset } from "features/Comment/commentSlice";
 import Skeleton from "react-loading-skeleton";
 import BackConfirmModal from "./BackConfirmModal";
+import { areObjectsSimilar } from "app/utils/similarityCheck";
+import SaveProgressButton from "app/utils/SaveProgressButton";
+
 
 const SideNav: React.FC = () => {
   const { setClose, close, setViewcommentsId, setOpportunities } = useComments();
   const router = useRouter();
   const { setActive, setSubStep, active, subStep } = useActive();
   const dispatch = useAppDispatch();
-  const { campaignData, setCampaignData, loadingCampaign } = useCampaigns();
+  const { campaignData, setCampaignData, loadingCampaign,
+    cId, campaignFormData, createCampaign,
+    updateCampaign, } = useCampaigns();
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
@@ -37,17 +42,21 @@ const SideNav: React.FC = () => {
   }, [active, setClose, subStep]);
 
 
-
   const handleBackClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dispatch(reset());
-    setOpportunities([]);
-    setViewcommentsId("");
+    const areSimilar = areObjectsSimilar(campaignFormData, campaignData, ['objective_level']);
+    areSimilar ? router.push('/') : setShowModal(true);
+
     setCampaignData(null);
-    // setActive(0);
-    // setSubStep(0);
-    router.push("/");
+    setCampaignData(null);
+    // e.preventDefault();
+    // e.stopPropagation();
+    // dispatch(reset());
+    // setOpportunities([]);
+    // setViewcommentsId("");
+    // setCampaignData(null);
+    // // setActive(0);
+    // // setSubStep(0);
+    // router.push("/");
   };
 
 
@@ -63,27 +72,32 @@ const SideNav: React.FC = () => {
   //   }
   // };
 
-  // const handleConfirmSave = () => {
-  //   handleSave();  
-  //   setShowModal(false); 
-  // };
+  const handleConfirmSave = () => {
+    if (cId) {
+      updateCampaign(campaignFormData);
+    } else {
+      createCampaign(campaignFormData);
+    }
+    setShowModal(false);
+    router.push("/");
+  };
 
-  // const handleCancel = () => {
-  //   setShowModal(false); 
-  //   navigateBack();  
-  // };
+  const handleCancel = () => {
+    setShowModal(false);
+    router.push("/");
+  };
 
   // const handleSave = () => { 
   //   setChange(false);
   // };
 
-  const navigateBack = () => {
-    dispatch(reset());
-    setOpportunities([]);
-    setViewcommentsId("");
-    setCampaignData(null);
-    router.push("/");
-  };
+  // const navigateBack = () => {
+  //   dispatch(reset());
+  //   setOpportunities([]);
+  //   setViewcommentsId("");
+  //   setCampaignData(null);
+  //   router.push("/");
+  // };
 
   const steps = useMemo(
     () => [
@@ -204,13 +218,14 @@ const SideNav: React.FC = () => {
         </div>
         {!close && (
           <div className="flex flex-col items-start mb-8">
-            <button
+            <SaveProgressButton isBackToDashboardButton={true} />
+            {/* <button
               onClick={handleBackClick}
               className="font-general-sans font-semibold text-[16px] leading-[22px] text-[#3175FF] flex items-center gap-2"
             >
               <Image src={left_arrow} alt="menu" />
               <p>Back to Dashboard</p>
-            </button>
+            </button> */}
             {loadingCampaign ? (
               // Minimize skeleton visibility with a timeout
               <div className="opacity.cas(0).delay(200ms).duration(300ms)">

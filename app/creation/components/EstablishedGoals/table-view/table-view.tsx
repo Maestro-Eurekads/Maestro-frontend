@@ -171,7 +171,7 @@ const TableView = () => {
         table_headers: {
           ...prev.table_headers,
           [currentEditingStage]: Array.from(
-            new Set([...(prev.table_headers[currentEditingStage] || []), ...selectedMetrics.map((m) => m.obj)]),
+            new Set([...(prev.table_headers?.[currentEditingStage] || []), ...selectedMetrics.map((m) => m.obj)]),
           ),
         },
         selected_metrics: {
@@ -329,11 +329,9 @@ const TableView = () => {
   // }, [JSON.stringify(campaignFormData?.channel_mix)])
 
   const handleEditInfo = (stageName, channelName, platformName, fieldName, value, adSetIndex, extraAdSetindex) => {
-    setChange(true)
     setCampaignFormData((prevData) => {
       const updatedData = { ...prevData }
       const channelMix = updatedData.channel_mix?.find((ch) => ch.funnel_stage === stageName)
-
       if (channelMix) {
         const platform = channelMix[channelName]?.find((platform) => platform.platform_name === platformName)
 
@@ -382,10 +380,8 @@ const TableView = () => {
               platform.ad_sets[adSetIndex]["kpi"] = platform.ad_sets[adSetIndex]["kpi"] || {}
               platform.ad_sets[adSetIndex]["kpi"][fieldName] = Number(value)
             } else {
-              if (campaignFormData?.goal_level !== "Adset level") {
-                platform["kpi"] = platform["kpi"] || {}
-                platform["kpi"][fieldName] = Number(value)
-              }
+              platform["kpi"] = platform["kpi"] || {}
+              platform["kpi"][fieldName] = Number(value)
             }
           }
         }
@@ -400,7 +396,7 @@ const TableView = () => {
   // const allObjectives = useMemo(() => Object.keys(tableHeaders), []);
 
   const objectivesForStage = useMemo(() => {
-    return currentEditingStage ? campaignFormData?.table_headers[currentEditingStage] || [] : []
+    return currentEditingStage ? campaignFormData?.table_headers?.[currentEditingStage] || [] : []
   }, [campaignFormData, currentEditingStage])
 
   const existingHeaderNames = useMemo(() => {

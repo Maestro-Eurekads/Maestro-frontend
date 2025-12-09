@@ -6,16 +6,18 @@ import DateRangeSelector from "../../atoms/date-selector/date-range-selector";
 const DateComponent = ({
   useDate,
   hideRange,
+  viewOnly = false,
 }: {
   useDate: boolean;
   hideRange?: boolean;
+  viewOnly?: boolean;
 }) => {
   return (
     <div className="flex flex-col gap-4 ">
       {useDate && (
         <div className="creation_continer flex gap-4 items-center w-full justify-end">
           <Range />
-          {!hideRange && <DateRangeSelector />}
+          {!hideRange && <DateRangeSelector viewOnly={viewOnly} />}
         </div>
       )}
     </div>

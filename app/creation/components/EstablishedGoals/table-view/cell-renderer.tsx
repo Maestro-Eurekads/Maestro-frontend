@@ -115,6 +115,7 @@ export const CellRenderer = ({
   const [inputValue, setInputValue] = useState("")
   const [isTyping, setIsTyping] = useState(false)
   const [isFocused, setIsFocused] = useState(false)
+  const { setKpiChanged } = useCampaigns()
 
   // Cell type flags
   const isNR = nrCells[channel?.name]?.[body]
@@ -123,10 +124,11 @@ export const CellRenderer = ({
   const isCurrencyType = cellType === "currency"
   const isSecondsType = cellType === "seconds"
   const isCPM = body === "cpm"
+  const isFrequency = body === "frequency"
   const showInput = tableHeaders[bodyIndex]?.showInput
 
   // Helper functions
-  const formatNumber = (num: number | string): string => {
+  const formatNumber = (num: number | string, field?: string): string => {
     if (isNaN(Number(num)) || num === null || num === undefined) return "-"
     return new Intl.NumberFormat("en-US").format(Number(num))
   }
@@ -140,11 +142,11 @@ export const CellRenderer = ({
     const rawValue =
       body === "budget_size"
         ? campaignFormData?.channel_mix
-            ?.find((ch) => ch?.funnel_stage === stage.name)
-            ?.[channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)?.budget?.fixed_value || ""
+          ?.find((ch) => ch?.funnel_stage === stage.name)
+          ?.[channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)?.budget?.fixed_value || ""
         : campaignFormData?.channel_mix
-            ?.find((ch) => ch?.funnel_stage === stage.name)
-            ?.[channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)?.kpi?.[body] || ""
+          ?.find((ch) => ch?.funnel_stage === stage.name)
+          ?.[channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)?.kpi?.[body] || ""
 
     return rawValue.toString()
   }
@@ -175,7 +177,6 @@ export const CellRenderer = ({
     }
 
     const numericValue = Number.parseFloat(value.toString().replace(/,/g, ""))
-
     if (isPercentType) {
       if (!value.toString().includes("%")) {
         if (numericValue < 1) {
@@ -197,8 +198,11 @@ export const CellRenderer = ({
     } else if (isCPM) {
       // For CPM, preserve decimal places (2 max)
       return formatNumber(Number.parseFloat(numericValue.toFixed(2)))
+    } else if (isFrequency) {
+      // For Frequency, preserve decimal places (1 max)
+      return formatNumber(Number.parseFloat(numericValue.toFixed(1)))
     } else {
-      if(body !== "reach"  && body !== "video_views" && body !== "impressions") {
+      if (body !== "reach" && body !== "video_views" && body !== "impressions") {
         // For other fields, round to whole numbers
         return formatNumber(Math.floor(numericValue).toFixed(0))
       }
@@ -214,6 +218,12 @@ export const CellRenderer = ({
 
     // Remove formatting characters for validation
     const cleanValue = value.replace(/[,$%]/g, "").replace(/secs?/g, "")
+
+    if (isFrequency) {
+      // Frequency: Allow up to 1 decimal places
+      const regex = /^[0-9]*\.?[0-9]{0,1}$/
+      return regex.test(cleanValue)
+    }
 
     if (isPercentType || isCurrencyType || isCPM) {
       // For percent, currency, and CPM: allow decimal input with restrictions
@@ -254,7 +264,7 @@ export const CellRenderer = ({
     let cleanValue = value.replace(/[,$%]/g, "").replace(/secs?/g, "")
 
     // Handle decimal format based on type
-    if (isPercentType || isCurrencyType || isCPM) {
+    if (isPercentType || isCurrencyType || isCPM || isFrequency) {
       const parts = cleanValue.split(".")
       if (parts.length > 2) {
         // More than one decimal point - keep only the first one
@@ -282,6 +292,7 @@ export const CellRenderer = ({
 
   // Validation and save function
   const validateAndSave = (value: string) => {
+    setKpiChanged(true);
     if (value === "") {
       handleEditInfo(stage.name, channel?.channel_name, channel?.name, body, "", "", "")
       return
@@ -366,7 +377,7 @@ export const CellRenderer = ({
   }
 
   // Handle calculated fields
-  if (goalLevel === "Channel level" &&calculatedFields.includes(body)) {
+  if (calculatedFields.includes(body)) {
     return (
       <div
         className="flex justify- items-center gap-5 w-fit max-w-[150px] group"
@@ -378,15 +389,14 @@ export const CellRenderer = ({
           <p>
             {(() => {
               const value =
-                campaignFormData?.goal_level === "Adset level" ? channel?.kpi?.[body] : getCalculatedValue(body)
+                campaignFormData?.goal_level === "Adset level" ? formatNumber(channel?.kpi?.[body]) : formatNumber(getCalculatedValue(body))
               return value && value !== "-"
-                ? `${
-                    isCurrencyType
-                      ? `${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}`
-                      : isSecondsType
-                        ? "secs"
-                        : ""
-                  }${(body == "reach" ||  body == "video_views" || body == "impressions") ? value : formatNumber(Number(value))}`
+                ? `${isCurrencyType
+                  ? `${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}`
+                  : isSecondsType
+                    ? "secs"
+                    : ""
+                }${(body == "reach" || body == "video_views" || body == "impressions") ? value : value}`
                 : "-"
             })()}
           </p>
@@ -398,7 +408,7 @@ export const CellRenderer = ({
 
   // Handle input fields and static values
   if (!showInput) {
-    const value = goalLevel === "Channel level" ? channel?.[body] : cellType === "number" ? channel?.kpi?.[body] ? Number(channel?.kpi?.[body]).toFixed(0): "":(channel?.kpi?.[body])
+    const value = goalLevel === "Channel level" ? channel?.[body] : cellType === "number" ? channel?.kpi?.[body] ? formatNumber(channel?.kpi?.[body], body) : "" : (channel?.kpi?.[body])
     if (exemptFields.includes(body)) {
       return value === "Invalid date" ? "-" : value
     }
@@ -406,7 +416,7 @@ export const CellRenderer = ({
       "-"
     ) : (
       <div className="flex justify-center items-center gap-5 w-fit">
-        <p>{cellType === "number" ? formatNumber(Number.parseFloat(value)?.toFixed(0)) :formatNumber(Number.parseFloat(value)?.toFixed(2))}</p>
+        <p>{cellType === "number" ? value : formatNumber(Number.parseFloat(value)?.toFixed(2))}</p>
         <Ban size={10} className="hidden group-hover:block shrink-0 cursor-pointer" />
       </div>
     )
@@ -444,9 +454,9 @@ export const CellRenderer = ({
             setIsTyping(false)
             setIsFocused(false)
           }}
-          disabled={isNR || goalLevel === "Adset level"}
+          disabled={isNR}
           className={`bg-slate-100 hover:bg-white border-none outline-none max-w-[90px] p-1 ${isNR ? "text-gray-400" : ""}`}
-          // placeholder={body === "budget_size" ? "BUDGET" : body ? body?.toUpperCase() : "Insert value"}
+        // placeholder={body === "budget_size" ? "BUDGET" : body ? body?.toUpperCase() : "Insert value"}
         />
       )}
       <Ban
