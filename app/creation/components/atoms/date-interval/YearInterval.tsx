@@ -7,40 +7,43 @@ import { useCampaigns } from "app/utils/CampaignsContext";
 import { useDateRange } from "src/date-range-context";
 
 interface YearIntervalProps {
-  yearsCount?: number;
-  view?: boolean;
-  getDaysInEachYear?: any;
-  funnelData?: any;
-  disableDrag?: any;
+  range?: any;
+  isInfiniteTimeline?: boolean;
 }
 
 const MONTH_WIDTH_PX = 80;
 
 const YearInterval: React.FC<YearIntervalProps> = ({
-  yearsCount,
-  view,
-  getDaysInEachYear,
-  disableDrag,
-  funnelData,
+  range,
+  isInfiniteTimeline = true,
 }) => {
   const { campaignFormData } = useCampaigns();
-  const { extendedRange, isInfiniteTimeline } = useDateRange();
-  
-  const [monthsByYear, setMonthsByYear] = useState<Record<string, string[]>>({});
+  const { extendedRange } = useDateRange();
+  const effectiveRange = isInfiniteTimeline ? extendedRange : range;
+  const [monthsByYear, setMonthsByYear] = useState<Record<string, string[]>>(
+    {}
+  );
 
   useEffect(() => {
     let months: Date[] = [];
-    
-    if (isInfiniteTimeline && extendedRange && extendedRange.length > 0) {
-      const startDate = startOfYear(extendedRange[0]);
-      const endDate = endOfYear(extendedRange[extendedRange.length - 1]);
+
+    if (isInfiniteTimeline && effectiveRange && effectiveRange.length > 0) {
+      const startDate = startOfYear(effectiveRange[0]);
+      const endDate = endOfYear(effectiveRange[effectiveRange.length - 1]);
       months = eachMonthOfInterval({ start: startDate, end: endDate });
-    } else if (campaignFormData?.campaign_timeline_start_date && campaignFormData?.campaign_timeline_end_date) {
-      const startDate = startOfYear(new Date(campaignFormData.campaign_timeline_start_date));
-      const endDate = endOfYear(new Date(campaignFormData.campaign_timeline_end_date));
+    } else if (
+      campaignFormData?.campaign_timeline_start_date &&
+      campaignFormData?.campaign_timeline_end_date
+    ) {
+      const startDate = startOfYear(
+        new Date(campaignFormData.campaign_timeline_start_date)
+      );
+      const endDate = endOfYear(
+        new Date(campaignFormData.campaign_timeline_end_date)
+      );
       months = eachMonthOfInterval({ start: startDate, end: endDate });
     }
-    
+
     const grouped: Record<string, string[]> = {};
     months.forEach((month) => {
       const year = format(month, "yyyy");
@@ -50,35 +53,28 @@ const YearInterval: React.FC<YearIntervalProps> = ({
       }
       grouped[year].push(monthName);
     });
-    
-    setMonthsByYear(grouped);
-  }, [campaignFormData, extendedRange, isInfiniteTimeline]);
 
-  const sortedYears = useMemo(() => Object.keys(monthsByYear).sort(), [monthsByYear]);
-  
-  const totalMonths = useMemo(() => 
-    sortedYears.reduce((acc, year) => acc + monthsByYear[year].length, 0),
+    setMonthsByYear(grouped);
+  }, [campaignFormData, effectiveRange, isInfiniteTimeline]);
+
+  const sortedYears = useMemo(
+    () => Object.keys(monthsByYear).sort(),
+    [monthsByYear]
+  );
+
+  const totalMonths = useMemo(
+    () => sortedYears.reduce((acc, year) => acc + monthsByYear[year].length, 0),
     [sortedYears, monthsByYear]
   );
 
-  const calculateContainerWidth = useCallback(() => {
-    if (typeof window === 'undefined') return 1000;
-    const screenWidth = window.innerWidth || document.documentElement.clientWidth || 0;
-    return screenWidth - (disableDrag ? 80 : 367);
-  }, [disableDrag]);
-
-  const gridTemplateColumns = useMemo(() => {
-    if (isInfiniteTimeline) {
-      return `repeat(${totalMonths}, ${MONTH_WIDTH_PX}px)`;
-    } else {
-      const contWidth = calculateContainerWidth();
-      const monthWidth = Math.max(contWidth / totalMonths, 60);
-      return `repeat(${totalMonths}, ${monthWidth}px)`;
-    }
-  }, [totalMonths, isInfiniteTimeline, calculateContainerWidth]);
+  const gridTemplateColumns = `repeat(${totalMonths}, ${MONTH_WIDTH_PX}px)`;
 
   const allMonths = useMemo(() => {
-    const result: Array<{ month: string; year: string; isFirstOfYear: boolean }> = [];
+    const result: Array<{
+      month: string;
+      year: string;
+      isFirstOfYear: boolean;
+    }> = [];
     sortedYears.forEach((year) => {
       monthsByYear[year].forEach((month, idx) => {
         result.push({
@@ -92,9 +88,10 @@ const YearInterval: React.FC<YearIntervalProps> = ({
   }, [sortedYears, monthsByYear]);
 
   const yearHeaders = useMemo(() => {
-    const headers: Array<{ year: string; span: number; startIndex: number }> = [];
+    const headers: Array<{ year: string; span: number; startIndex: number }> =
+      [];
     let currentIndex = 0;
-    
+
     sortedYears.forEach((year) => {
       const monthCount = monthsByYear[year].length;
       headers.push({
@@ -104,18 +101,23 @@ const YearInterval: React.FC<YearIntervalProps> = ({
       });
       currentIndex += monthCount;
     });
-    
+
     return headers;
   }, [sortedYears, monthsByYear]);
 
-  const monthWidth = isInfiniteTimeline ? MONTH_WIDTH_PX : Math.max(calculateContainerWidth() / totalMonths, 60);
-
   return (
-    <div className={isInfiniteTimeline ? "min-w-max border-y relative" : "w-full border-y relative"}>
+    <div
+      className={
+        isInfiniteTimeline
+          ? "min-w-max border-y relative"
+          : "w-full border-y relative"
+      }
+    >
       <div
         style={{
           display: "grid",
           gridTemplateColumns,
+        
         }}
         className="border-b border-blue-200"
       >
@@ -151,16 +153,13 @@ const YearInterval: React.FC<YearIntervalProps> = ({
           display: "grid",
           gridTemplateColumns,
           backgroundImage: `linear-gradient(to right, rgba(0,0,255,0.1) 1px, transparent 1px)`,
-          backgroundSize: `${monthWidth}px 100%`,
+          backgroundSize: `${MONTH_WIDTH_PX}px 100%`,
         }}
       >
         {allMonths.map((item, i) => (
           <div
             key={`${item.year}-${item.month}-${i}`}
-            className="flex flex-col items-center justify-center relative py-3 border-r border-blue-200 last:border-r-0"
-            style={{
-              borderLeft: item.isFirstOfYear && i > 0 ? "2px solid rgba(0,0,255,0.3)" : "none",
-            }}
+            className="flex flex-col items-center justify-center relative py-3 last:border-r-0"
           >
             <span className="font-[500] text-[13px] text-[rgba(0,0,0,0.5)]">
               {item.month}

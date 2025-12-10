@@ -82,11 +82,11 @@ const ResizeableElements = ({
   const { funnelWidths } = useFunnelContext();
   const { close } = useComments();
   const [openChannels, setOpenChannels] = useState<Record<string, boolean>>({});
-  const { range, extendedRange, isInfiniteTimeline } = useDateRange();
+  const { range, extendedRange } = useDateRange();
   const { range: rrange } = useRange();
   const { campaignFormData, loadingCampaign } = useCampaigns();
   
-  const gridRange = isInfiniteTimeline ? extendedRange : range;
+  const gridRange = extendedRange
   const [channelWidths, setChannelWidths] = useState<Record<string, number>>(
     {}
   );
@@ -218,7 +218,6 @@ const ResizeableElements = ({
 
       let dailyWidth: number;
 
-      if (isInfiniteTimeline) {
         if (viewType === "Day" || viewType === "Week") {
           dailyWidth = 50;
         } else if (viewType === "Year") {
@@ -228,23 +227,7 @@ const ResizeableElements = ({
         } else {
           dailyWidth = 50;
         }
-      } else {
-        if (viewType === "Day" || viewType === "Week") {
-          const endPeriod = funnelData?.endDay || 1;
-          dailyWidth = contWidth / endPeriod;
-          dailyWidth = dailyWidth < 50 ? 50 : dailyWidth;
-        } else if (viewType === "Year") {
-          const monthWidth = contWidth / 12;
-          dailyWidth = Math.max(monthWidth, 60);
-        } else if (viewType === "Month") {
-          const totalWeeks = gridRange ? Math.ceil(gridRange.length / 7) : 4;
-          dailyWidth = Math.max(contWidth / totalWeeks, 60);
-        } else {
-          const totalDays = totalDaysInRange || funnelData?.endDay || 30;
-          dailyWidth = contWidth / totalDays;
-          dailyWidth = Math.max(dailyWidth, 10);
-        }
-      }
+    
 
       setDailyWidthByView((prev) => ({
         ...prev,
@@ -253,7 +236,7 @@ const ResizeableElements = ({
 
       return Math.round(dailyWidth);
     },
-    [disableDrag, funnelData?.endDay, funnelData?.endMonth, close, isInfiniteTimeline]
+    [disableDrag, funnelData?.endDay, funnelData?.endMonth, close]
   );
 
   useEffect(() => {
@@ -346,7 +329,7 @@ const ResizeableElements = ({
   const generateGridColumns = useCallback(() => {
     const dailyWidth = dailyWidthByView[rrange] || 50;
     
-    const totalDaysForGrid = isInfiniteTimeline && gridRange?.length > 0 
+    const totalDaysForGrid = gridRange?.length > 0 
       ? gridRange.length 
       : (funnelData?.endDay || 1);
 
@@ -367,13 +350,12 @@ const ResizeableElements = ({
     rrange,
     dailyWidthByView,
     funnelData?.endDay,
-    isInfiniteTimeline,
     gridRange,
     getWeeksInRange,
   ]);
 
   const getGridColumnEnd = useCallback(() => {
-    const totalDaysForGrid = isInfiniteTimeline && gridRange?.length > 0 
+    const totalDaysForGrid =  gridRange?.length > 0 
       ? gridRange.length 
       : (funnelData?.endDay || 1);
       
@@ -392,7 +374,7 @@ const ResizeableElements = ({
     } else {
       return totalDaysForGrid;
     }
-  }, [rrange, funnelData?.endDay, funnelData?.endWeek, daysInEachMonth, isInfiniteTimeline, gridRange, getWeeksInRange]);
+  }, [rrange, funnelData?.endDay, funnelData?.endWeek, daysInEachMonth, gridRange, getWeeksInRange]);
 
   const getDailyWidth = useCallback(
     (viewType?: string): number => {
@@ -510,7 +492,6 @@ const ResizeableElements = ({
     range,
     getDailyWidth,
     close,
-    isInfiniteTimeline,
     gridRange,
     getWeeksInRange,
   ]);
@@ -538,7 +519,7 @@ const ResizeableElements = ({
 
   return (
     <div
-      className={isInfiniteTimeline ? `min-w-max min-h-[494px] relative pb-5 grid-container` : `w-full min-h-[494px] relative pb-5 grid-container`}
+      className={`min-w-max min-h-[494px] relative pb-5 grid-container`}
       ref={gridRef}
       style={generateBackground()}
     >

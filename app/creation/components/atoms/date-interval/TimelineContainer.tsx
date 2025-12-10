@@ -60,27 +60,8 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
     end: addDays(endDate, 0),
   });
 
-  function getDaysInEachMonth(): Record<string, number> {
-    const daysInMonth: Record<string, number> = {};
+  console.log('dateList',dateList)
 
-    dateList?.forEach((date) => {
-      const monthYear = format(date, "MMMM yyyy"); // Include year to differentiate months across years
-      daysInMonth[monthYear] = (daysInMonth[monthYear] || 0) + 1;
-    });
-
-    // console.log("daysInMonth", daysInMonth);
-
-    return daysInMonth;
-  }
-  function getDaysInEachYear(): Record<string, number> {
-    const daysInYear: Record<string, number> = {};
-
-    dateList?.forEach((date) => {
-      const year = format(date, "yyyy");
-      daysInYear[year] = (daysInYear[year] || 0) + 1;
-    });
-    return daysInYear;
-  }
   // Render the appropriate timeline components based on the range
   const renderTimeline = () => {
     switch (range) {
@@ -88,7 +69,7 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
         return (
           <>
             <DayInterval
-              daysCount={dayDifference}
+              isInfiniteTimeline={false}
               src="dashboard"
               range={dateList}
             />
@@ -102,7 +83,10 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
       case "Month":
         return (
           <>
-            <MonthInterval />
+            <MonthInterval
+              range={dateList}
+              isInfiniteTimeline={false}
+            />
             <MonthTimeline
               monthsCount={monthDifference}
               funnels={funnelsData}
@@ -114,10 +98,8 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
         return (
           <>
             <YearInterval
-              yearsCount={yearDifference === 0 ? 1 : yearDifference + 1}
-              // view={view}
-              getDaysInEachYear={getDaysInEachYear}
-              funnelData={funnelsData}
+              isInfiniteTimeline={false}
+              range={dateList}
             />
             <YearTimeline range={dateList} funnels={funnelsData} />
           </>
@@ -128,6 +110,7 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
             <WeekInterval
               range={dateList}
               src="dashboard"
+              isInfiniteTimeline={false}
             />
             <DayTimeline
               daysCount={dayDifference}

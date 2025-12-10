@@ -1,17 +1,23 @@
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { getPlatformIcon, mediaTypes, platformStyles } from "components/data";
-import { differenceInMonths, eachMonthOfInterval, endOfYear, format, startOfYear } from "date-fns";
+import {
+  differenceInMonths,
+  eachMonthOfInterval,
+  endOfYear,
+  format,
+  startOfYear,
+} from "date-fns";
 import Image from "next/image";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { BsFillMegaphoneFill } from "react-icons/bs";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 import { TbCreditCardFilled, TbZoomFilled } from "react-icons/tb";
+const COLUMN_WIDTH = 80;
 
 function YearTimeline({ range, funnels }) {
   const [expanded, setExpanded] = useState({});
   const [openSections, setOpenSections] = useState({});
-  const { campaignFormData, clientCampaignData } = useCampaigns();
-  const monthWidth = 120; // Fixed width for each month in pixels
+  const { clientCampaignData } = useCampaigns();
   // Function to toggle campaign dropdown
   const toggleShow = (index) => {
     setExpanded((prev) => ({ ...prev, [index]: !prev[index] }));
@@ -26,9 +32,8 @@ function YearTimeline({ range, funnels }) {
   };
 
   const calculateGridColumns = (start: Date, end: Date) => {
-    const formattedStart = new Date(start)
-    const formattedEnd = new Date(end)
-    console.log({start, end})
+    const formattedStart = new Date(start);
+    const formattedEnd = new Date(end);
     const startOfTimeline = startOfYear(formattedStart);
     const endOfTimeline = endOfYear(formattedEnd);
 
@@ -78,83 +83,40 @@ function YearTimeline({ range, funnels }) {
       });
     return platforms;
   }
-  const calcDailyWidth = () => {
-    const getViewportWidth = () => {
-      return window.innerWidth || document.documentElement.clientWidth || 0;
-    };
-    const screenWidth = getViewportWidth();
-    const contWidth = screenWidth;
-    let dailyWidth: number;
-    const monthWidth = contWidth / 12;
-    dailyWidth = Math.max(monthWidth, 60); // Minimum 60px per month
-    return Math.round(dailyWidth);
-  };
 
-  const generateGridColumns = useCallback(() => {
-    const dailyWidth = calcDailyWidth();
-    const startDate = startOfYear(range[0]);
-    const endDate = endOfYear(range[range.length - 1]);
-    const months = eachMonthOfInterval({ start: startDate, end: endDate });
-    return `repeat(${months.length}, ${dailyWidth}px)`;
-  }, [funnels?.endDay]);
-
-  const generateYearMonths = useCallback(() => {
+  const generateYearMonthsCount = useMemo(() => {
     if (!range || range.length === 0) return [];
 
     const startDate = startOfYear(range[0]); // Force start to Jan 1
     const endDate = endOfYear(range[range.length - 1]); // Force end to Dec 31
 
-    const months = eachMonthOfInterval({ start: startDate, end: endDate });
-    return months.map((month) => format(month, "MMMM yyyy"));
+    return eachMonthOfInterval({ start: startDate, end: endDate }).length;
   }, [range]);
-
-  const getGridColumnEnd = () => {
-    const startDate = startOfYear(range[0]);
-    const endDate = endOfYear(range[range.length - 1]);
-    const months = eachMonthOfInterval({ start: startDate, end: endDate });
-    return months.length; // 12 months
-  };
 
   return (
     <div>
       <div
-        className="sticky top-0 z-10 bg-transparent border-b mb-0 border-l"
-        style={{
-          display: "grid",
-          gridTemplateColumns: generateGridColumns(),
-          gap: "0px",
-        }}
-      >
-        {generateYearMonths().map((monthLabel, index) => (
-          <div
-            key={index}
-            className="text-center text-sm font-medium py-2 border-r border-gray-200"
-          >
-            <p className="text-blue-500">{monthLabel?.split(" ")[0]}</p>
-            <p>{monthLabel?.split(" ")[1]}</p>
-          </div>
-        ))}
-      </div>
-      <div
         className="w-full min-h-auto relative pb-5"
         style={{
           backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
-          backgroundSize: `calc(${calcDailyWidth()}px) 100%`,
+          backgroundSize: `${COLUMN_WIDTH}px 100%`,
         }}
       >
         {funnels?.map(
-          ({ label, budget, stages, endMonth, startMonth, startDate, endDate }, index) => {
+          (
+            { label, budget, stages, endMonth, startMonth, startDate, endDate },
+            index
+          ) => {
             const { gridStartColumn, gridEndColumn } = calculateGridColumns(
               startDate,
               endDate
             );
-            console.log({gridStartColumn, gridEndColumn})
             return (
               <div
                 key={index}
                 style={{
                   display: "grid",
-                  gridTemplateColumns: `repeat(${generateYearMonths()?.length}, ${calcDailyWidth()}px)`,
+                  gridTemplateColumns: `repeat(${generateYearMonthsCount}, ${COLUMN_WIDTH}px)`,
                 }}
               >
                 <div
@@ -211,7 +173,7 @@ function YearTimeline({ range, funnels }) {
                               display: "grid",
                               gridTemplateColumns: `repeat(${
                                 endMonth + 1 - startMonth
-                              }, ${calcDailyWidth()})`,
+                              }, ${COLUMN_WIDTH})`,
                             }}
                           >
                             <div
@@ -267,7 +229,7 @@ function YearTimeline({ range, funnels }) {
                                           display: "grid",
                                           gridTemplateColumns: `repeat(${
                                             endMonth + 1 - startMonth + 1 - 2
-                                          }, ${calcDailyWidth()})`,
+                                          }, ${COLUMN_WIDTH})`,
                                         }}
                                       >
                                         <div

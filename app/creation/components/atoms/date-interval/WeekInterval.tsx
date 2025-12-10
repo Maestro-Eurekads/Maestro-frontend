@@ -10,18 +10,17 @@ const WeekInterval = ({
   disableDrag,
   range,
   src,
+  isInfiniteTimeline = true,
 }: {
   funnelData?: any;
   disableDrag?: any;
   range?: any;
   src?: any;
+  isInfiniteTimeline?: boolean;
 }) => {
-  const { range: ddRange, extendedRange, isInfiniteTimeline } = useDateRange();
+  const { extendedRange } = useDateRange();
   const { close } = useComments();
-console.log('ddRange' , ddRange)
-console.log('extendedRange' , extendedRange )
-  // Use extended range for infinite timeline
-  const effectiveRange = isInfiniteTimeline ? extendedRange : ddRange;
+  const effectiveRange = isInfiniteTimeline ? extendedRange : range;
 
   const groupDatesByWeek = (dates: Date[]) => {
     const weeks: string[][] = [];
@@ -58,10 +57,6 @@ console.log('extendedRange' , extendedRange )
     };
     const screenWidth = getViewportWidth();
     const contWidth = screenWidth - (disableDrag ? 80 : close ? 0 : 367);
-
-    if (isInfiniteTimeline && effectiveRange && effectiveRange.length > 0) {
-      return 50;
-    }
 
     if (isInfiniteTimeline && effectiveRange && effectiveRange.length > 0) {
       return 50;
@@ -155,7 +150,11 @@ console.log('extendedRange' , extendedRange )
 
   return (
     <div
-      className={isInfiniteTimeline ? "min-w-max border-y relative" : "w-full border-y relative"}
+      className={
+        isInfiniteTimeline
+          ? "min-w-max border-y relative"
+          : "w-full border-y relative"
+      }
     >
       <div
         style={{

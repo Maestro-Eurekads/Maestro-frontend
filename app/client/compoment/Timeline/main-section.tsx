@@ -1,17 +1,10 @@
-import { useCampaigns } from "app/utils/CampaignsContext";
 
 import {
   differenceInCalendarDays,
   differenceInCalendarMonths,
   differenceInCalendarWeeks,
-  differenceInDays,
-  eachDayOfInterval,
-  format,
-  max,
-  min,
   parseISO,
 } from "date-fns";
-import { getCurrencySymbol } from "components/data";
 import MonthInterval from "app/creation/components/atoms/date-interval/MonthInterval";
 import DayInterval from "app/creation/components/atoms/date-interval/DayInterval";
 import WeekInterval from "app/creation/components/atoms/date-interval/WeekInterval";
@@ -37,9 +30,6 @@ const MainSection = ({
     ? campaignData?.campaign_timeline_end_date
     : null;
 
-  const dayDifference = differenceInCalendarDays(endDates, startDates);
-  const weekDifference = differenceInCalendarWeeks(endDates, startDates);
-  const monthDifference = differenceInCalendarMonths(endDates, startDates);
 
   const start = campaignData?.campaign_timeline_start_date
     ? parseISO(campaignData.campaign_timeline_start_date)
@@ -72,7 +62,7 @@ const MainSection = ({
       case "Day":
         return (
           <>
-            <DayInterval daysCount={dayDifference + 1} src="campaign" />
+            <DayInterval src="campaign" />
           </>
         );
       case "Month":
@@ -80,11 +70,7 @@ const MainSection = ({
       default: // Week is default
         return (
           <>
-            <WeekInterval
-              weeksCount={weekDifference}
-              funnelData={funnelsData}
-              disableDrag={disableDrag}
-            />
+            <WeekInterval funnelData={funnelsData} disableDrag={disableDrag} />
           </>
         );
     }

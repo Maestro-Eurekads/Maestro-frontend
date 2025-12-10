@@ -22,7 +22,7 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
   const [expanded, setExpanded] = useState({});
   const [openSections, setOpenSections] = useState({});
   const { campaignFormData, clientCampaignData } = useCampaigns();
-  const monthWidth = 120; // Fixed width for each month in pixels
+  const WEEK_WIDTH_PX = 100
   // Function to toggle campaign dropdown
   const toggleShow = (index) => {
     setExpanded((prev) => ({ ...prev, [index]: !prev[index] }));
@@ -94,7 +94,7 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
       className="w-full min-h-[494px] relative pb-5"
       style={{
         backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
-        backgroundSize: `calc(250px) 100%`,
+        backgroundSize: `${WEEK_WIDTH_PX}px 100%`,
       }}
     >
       {funnels?.map(
@@ -107,7 +107,7 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
               key={index}
               style={{
                 display: "grid",
-                gridTemplateColumns: `repeat(${monthsCount}, 250px)`,
+                gridTemplateColumns: `repeat(${monthsCount}, ${WEEK_WIDTH_PX}px)`,
               }}
             >
               <div
@@ -155,7 +155,7 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                     className="py-2"
                     style={{
                       backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
-                      backgroundSize: `calc(250px) 100%`,
+                      backgroundSize: `${WEEK_WIDTH_PX}px 100%`,
                     }}
                   >
                     {stages?.map(

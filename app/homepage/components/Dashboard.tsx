@@ -120,7 +120,6 @@ console.log('clientCampaignData' , clientCampaignData)
   })
 
   const processedCampaigns = processCampaignData(clientCampaignData, platformIcons)
-
   function extractPlatforms(data) {
     const platforms = []
     data?.channel_mix?.length > 0 &&
@@ -198,10 +197,10 @@ console.log('clientCampaignData' , clientCampaignData)
         dayDifference={dayDifference}
         weekDifference={weekDifference}
         monthDifference={Math.round(monthDifference)}
+        yearDifference={yearDifference}
         funnelsData={funnelsData}
         startDate={earliestStartDate}
         endDate={latestEndDate}
-        yearDifference={yearDifference}
       />
       {processedCampaigns?.map((campaign, index) => {
         const channelD = extractPlatforms(campaign)

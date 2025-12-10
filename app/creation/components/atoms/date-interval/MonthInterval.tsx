@@ -8,20 +8,24 @@ import { useDateRange } from "src/date-range-context"
 
 interface MonthIntervalProps {
   disableDrag?: any
+  range?: any
+  isInfiniteTimeline?: boolean
 }
 
 const WEEK_WIDTH_PX = 100
 
 const MonthInterval: React.FC<MonthIntervalProps> = ({
   disableDrag,
+  range,
+  isInfiniteTimeline = true
 }) => {
-  const { extendedRange, isInfiniteTimeline } = useDateRange()
-
+  const { extendedRange } = useDateRange()
+  const effectiveRange = isInfiniteTimeline ? extendedRange : range;
   const weeks = useMemo(() => {
-    if (!extendedRange || extendedRange.length === 0) return []
+    if (!effectiveRange || effectiveRange.length === 0) return []
     
-    const startDate = extendedRange[0]
-    const endDate = extendedRange[extendedRange.length - 1]
+    const startDate = effectiveRange[0]
+    const endDate = effectiveRange[effectiveRange.length - 1]
     
     const allWeeks = eachWeekOfInterval(
       { start: startDate, end: endDate },
@@ -39,7 +43,7 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
         monthYear: format(weekStart, "MMMM yyyy"),
       }
     })
-  }, [extendedRange])
+  }, [effectiveRange])
 
   const weeksByMonth = useMemo(() => {
     const grouped: Record<string, typeof weeks> = {}
@@ -96,15 +100,8 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
     return screenWidth - (disableDrag ? 80 : 367)
   }, [disableDrag])
 
-  const weekWidth = isInfiniteTimeline ? WEEK_WIDTH_PX : Math.max(calculateContainerWidth() / totalWeeks, 60)
 
-  const gridTemplateColumns = useMemo(() => {
-    if (isInfiniteTimeline) {
-      return `repeat(${totalWeeks}, ${WEEK_WIDTH_PX}px)`
-    } else {
-      return `repeat(${totalWeeks}, ${weekWidth}px)`
-    }
-  }, [totalWeeks, isInfiniteTimeline, weekWidth])
+  const gridTemplateColumns = `repeat(${totalWeeks}, ${WEEK_WIDTH_PX}px)`
 
   const allWeeksFlat = useMemo(() => {
     const result: Array<{
@@ -168,16 +165,14 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
           display: "grid",
           gridTemplateColumns,
           backgroundImage: `linear-gradient(to right, rgba(0,0,255,0.1) 1px, transparent 1px)`,
-          backgroundSize: `${weekWidth}px 100%`,
+          backgroundSize: `${WEEK_WIDTH_PX}px 100%`,
         }}
       >
         {allWeeksFlat.map((item, i) => (
           <div
             key={`week-${i}`}
-            className="flex flex-col items-center justify-center relative py-2 border-r border-blue-200 last:border-r-0"
-            style={{
-              borderLeft: item.isFirstOfMonth && i > 0 ? "2px solid rgba(0,0,255,0.3)" : "none",
-            }}
+            className="flex flex-col items-center justify-center relative py-2 last:border-r-0"
+         
           >
             {item.isFirstOfMonth && (
               <span className="font-[600] text-[12px] text-[rgba(0,0,0,0.7)] mb-1">

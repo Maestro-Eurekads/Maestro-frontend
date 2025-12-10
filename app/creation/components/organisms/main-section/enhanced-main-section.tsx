@@ -182,44 +182,19 @@ const EnhancedMainSectionContent = ({
   const renderTimeline = () => {
     switch (range) {
       case "Day":
-        return (
-          <>
-            <DayInterval
-              daysCount={isExpanded ? expandedRange.length : dayDifference + 1}
-              src="campaign"
-              range={currentRange}
-            />
-          </>
-        );
+        return <DayInterval src="campaign" range={currentRange} />;
       case "Month":
-        return (
-          <>
-            <MonthInterval />
-          </>
-        );
+        return <MonthInterval />;
       case "Year":
-        return (
-          <>
-            <YearInterval
-              yearsCount={yearDifference === 0 ? 1 : yearDifference + 1}
-              view={view}
-              getDaysInEachYear={getDaysInEachYear}
-              funnelData={funnelsData}
-              disableDrag={disableDrag}
-            />
-          </>
-        );
+        return <YearInterval />;
       default: // Week is default
         return (
-          <>
-            <WeekInterval
-              weeksCount={weekDifference === 0 ? 1 : weekDifference - 1}
-              funnelData={funnelsData}
-              disableDrag={disableDrag}
-              range={currentRange}
-              src="campaign"
-            />
-          </>
+          <WeekInterval
+            funnelData={funnelsData}
+            disableDrag={disableDrag}
+            range={currentRange}
+            src="campaign"
+          />
         );
     }
   };
