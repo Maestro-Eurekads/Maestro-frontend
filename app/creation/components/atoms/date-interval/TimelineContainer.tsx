@@ -1,16 +1,37 @@
 "use client";
 
 import type React from "react";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import { ChevronRight } from "lucide-react";
 import DayInterval from "./DayInterval";
 import DayTimeline from "./DayTimeline";
 import WeekInterval from "./WeekInterval";
 import MonthInterval from "./MonthInterval";
 import MonthTimeline from "./MonthTimeline";
-import { addDays, differenceInDays, eachDayOfInterval, format } from "date-fns";
+import {
+  eachDayOfInterval,
+  eachWeekOfInterval,
+  eachMonthOfInterval,
+  startOfYear,
+  endOfYear,
+  subMonths,
+  addMonths,
+  subDays,
+  addDays,
+  subWeeks,
+  addWeeks,
+  differenceInMonths,
+} from "date-fns";
 import YearInterval from "./YearInterval";
 import YearTimeline from "./YearTimeline";
+
+// Column widths for each view type
+const COLUMN_WIDTHS = {
+  Day: 50,
+  Week: 50,
+  Month: 100, // Week columns in Month view
+  Year: 80, // Month columns in Year view
+};
 
 interface TimelineContainerProps {
   range: string;
@@ -36,7 +57,9 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
 
-  // Check if we need to show the scroll indicator
+  const viewportWidth =
+    typeof window !== "undefined" ? window.innerWidth - 100 : 1200;
+
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -51,18 +74,95 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
     return () => window.removeEventListener("resize", checkScroll);
   }, [range, dayDifference, weekDifference, monthDifference]);
 
-  const differenceInDays = Math.ceil(
-    (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
-  );
+  const getRequiredColumns = (columnWidth: number) => {
+    return Math.ceil(viewportWidth / columnWidth) + 1;
+  };
 
-  const dateList = eachDayOfInterval({
-    start: startDate,
-    end: addDays(endDate, 0),
-  });
+  const { bufferedStartDate, bufferedEndDate, dateList } = useMemo(() => {
+    const originalDateList = eachDayOfInterval({
+      start: startDate,
+      end: endDate,
+    });
 
-  console.log('dateList',dateList)
+    let buffStart = startDate;
+    let buffEnd = endDate;
 
-  // Render the appropriate timeline components based on the range
+    if (range === "Year") {
+      const columnWidth = COLUMN_WIDTHS.Year;
+      const requiredColumns = getRequiredColumns(columnWidth);
+
+      const yearStart = startOfYear(startDate);
+      const yearEnd = endOfYear(endDate);
+      const currentMonths = eachMonthOfInterval({
+        start: yearStart,
+        end: yearEnd,
+      });
+
+      if (currentMonths.length < requiredColumns) {
+        const monthsToAdd = Math.ceil(
+          (requiredColumns - currentMonths.length) / 2
+        );
+        buffStart = subMonths(startDate, monthsToAdd);
+        buffEnd = addMonths(endDate, monthsToAdd);
+      }
+    } else if (range === "Month") {
+      const columnWidth = COLUMN_WIDTHS.Month;
+      const requiredColumns = getRequiredColumns(columnWidth);
+
+      const currentWeeks = eachWeekOfInterval(
+        { start: startDate, end: endDate },
+        { weekStartsOn: 1 }
+      );
+
+      if (currentWeeks.length < requiredColumns) {
+        const weeksToAdd = Math.ceil(
+          (requiredColumns - currentWeeks.length) / 2
+        );
+        buffStart = subWeeks(startDate, weeksToAdd);
+        buffEnd = addWeeks(endDate, weeksToAdd);
+      }
+    } else {
+      const columnWidth = COLUMN_WIDTHS.Day;
+      const requiredColumns = getRequiredColumns(columnWidth);
+
+      if (originalDateList.length < requiredColumns) {
+        const daysToAdd = Math.ceil(
+          (requiredColumns - originalDateList.length) / 2
+        );
+        buffStart = subDays(startDate, daysToAdd);
+        buffEnd = addDays(endDate, daysToAdd);
+      }
+    }
+
+    return {
+      bufferedStartDate: buffStart,
+      bufferedEndDate: buffEnd,
+      dateList: originalDateList,
+    };
+  }, [startDate, endDate, range, viewportWidth]);
+
+  const bufferedDateList = useMemo(() => {
+    return eachDayOfInterval({
+      start: bufferedStartDate,
+      end: bufferedEndDate,
+    });
+  }, [bufferedStartDate, bufferedEndDate]);
+
+  const totalDays = bufferedDateList.length;
+
+  const totalWeeks = useMemo(() => {
+    return eachWeekOfInterval(
+      { start: bufferedStartDate, end: bufferedEndDate },
+      { weekStartsOn: 1 }
+    ).length;
+  }, [bufferedStartDate, bufferedEndDate]);
+
+  const totalMonths = useMemo(() => {
+    const yearStart = startOfYear(bufferedStartDate);
+    const yearEnd = endOfYear(bufferedEndDate);
+    return eachMonthOfInterval({ start: yearStart, end: yearEnd }).length;
+  }, [bufferedStartDate, bufferedEndDate]);
+
   const renderTimeline = () => {
     switch (range) {
       case "Day":
@@ -71,12 +171,12 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
             <DayInterval
               isInfiniteTimeline={false}
               src="dashboard"
-              range={dateList}
+              range={bufferedDateList}
             />
             <DayTimeline
-              daysCount={dayDifference}
+              daysCount={totalDays}
               funnels={funnelsData}
-              range={dateList}
+              range={bufferedDateList}
             />
           </>
         );
@@ -84,38 +184,35 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
         return (
           <>
             <MonthInterval
-              range={dateList}
+              range={bufferedDateList}
               isInfiniteTimeline={false}
             />
             <MonthTimeline
-              monthsCount={monthDifference}
+              weeksCount={totalWeeks}
               funnels={funnelsData}
-              range={dateList}
+              range={bufferedDateList}
             />
           </>
         );
       case "Year":
         return (
           <>
-            <YearInterval
-              isInfiniteTimeline={false}
-              range={dateList}
-            />
-            <YearTimeline range={dateList} funnels={funnelsData} />
+            <YearInterval isInfiniteTimeline={false} range={bufferedDateList} />
+            <YearTimeline range={bufferedDateList} funnels={funnelsData} />
           </>
         );
       default: // Week is default
         return (
           <>
             <WeekInterval
-              range={dateList}
+              range={bufferedDateList}
               src="dashboard"
               isInfiniteTimeline={false}
             />
             <DayTimeline
-              daysCount={dayDifference}
+              daysCount={totalDays}
               funnels={funnelsData}
-              range={dateList}
+              range={bufferedDateList}
             />
           </>
         );

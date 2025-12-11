@@ -27,7 +27,7 @@ const YearInterval: React.FC<YearIntervalProps> = ({
   useEffect(() => {
     let months: Date[] = [];
 
-    if (isInfiniteTimeline && effectiveRange && effectiveRange.length > 0) {
+    if (effectiveRange && effectiveRange.length > 0) {
       const startDate = startOfYear(effectiveRange[0]);
       const endDate = endOfYear(effectiveRange[effectiveRange.length - 1]);
       months = eachMonthOfInterval({ start: startDate, end: endDate });
@@ -117,7 +117,6 @@ const YearInterval: React.FC<YearIntervalProps> = ({
         style={{
           display: "grid",
           gridTemplateColumns,
-        
         }}
         className="border-b border-blue-200"
       >
