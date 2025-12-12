@@ -4,9 +4,7 @@ import { isEqual, parseISO } from "date-fns";
 import Image from "next/image";
 import type React from "react";
 import { useState } from "react";
-import { BsFillMegaphoneFill } from "react-icons/bs";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
-import { TbCreditCardFilled, TbZoomFilled } from "react-icons/tb";
 
 interface DayTimelineProps {
   daysCount: number;
@@ -125,7 +123,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
             }}
           >
             <div
-              className="flex flex-col min-h-[69px] bg-white border border-[rgba(0,0,0,0.1)] mt-6 shadow-sm rounded-[10px]  justify-between"
+              className="flex flex-col min-h-14 bg-white border border-[rgba(0,0,0,0.1)] mt-6 shadow-sm rounded-[10px] justify-between"
               style={{
                 gridColumnStart: startDay,
                 gridColumnEnd: endDay + 1,
@@ -134,15 +132,15 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
               <div
                 className={`${
                   expanded[index]
-                    ? 'border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] flex justify-between items-center p-4    h-[77px] bg-[#F9FAFB]  "'
-                    : "flex justify-between items-center p-4"
-                } `}
+                    ? "border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] flex justify-between items-center p-4 h-14 bg-[#F9FAFB]"
+                    : "flex justify-between items-center p-2"
+                }`}
               >
                 <div>
-                  <h3 className="text-[#061237] font-semibold text-[16px] leading-[22px]  ">
+                  <h3 className="text-[#061237] font-semibold text-sm">
                     {label}
                   </h3>
-                  <p className="text-[#061237] font-medium text-[14px]">
+                  <p className="text-[#061237] font-medium text-sm">
                     {/* 250,000 € */}
                     {budget?.startsWith("null") ||
                     budget?.startsWith("undefined")
@@ -200,7 +198,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                         >
                           <div
                             onClick={() => toggleOpen(index, name)}
-                            className={`mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${
+                            className={`mt-5 w-full flex items-center rounded-[10px] h-12.5 text-sm font-[500] p-2 text-center ${
                               name === "Awareness"
                                 ? "bg-[#3175FF]"
                                 : name === "Consideration"
@@ -215,21 +213,12 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                             }}
                           >
                             <div className="flex items-center justify-center gap-3 flex-1">
-                              {/* <span>
-                              {name === "Awareness" ? (
-                                <BsFillMegaphoneFill />
-                              ) : name === "Consideration" ? (
-                                <TbZoomFilled />
-                              ) : (
-                                <TbCreditCardFilled />
-                              )}
-                            </span> */}
                               <span>{name}</span>
                               <span>
                                 <FiChevronDown size={15} />
                               </span>
                             </div>
-                            <button className="justify-self-end px-3 py-[10px] text-[16px] font-[500] bg-white/25 rounded-[5px]">
+                            <button className="justify-self-end px-3 py-2 text-sm font-[500] bg-white/25 rounded-[5px]">
                               {budget?.startsWith("null") ||
                               budget?.startsWith("undefined")
                                 ? 0
@@ -270,7 +259,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                                         }}
                                       >
                                         <div
-                                          className={`py-1 text-[15px] font-[500] border my-5 w-full rounded-[10px] flex items-center justify-between`}
+                                          className="py-1 text-[15px] font-[500] border my-5 w-full rounded-[10px] flex items-center justify-between"
                                           style={{
                                             gridColumnStart: startDateIndex
                                               ? startDateIndex
@@ -280,7 +269,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                                           }}
                                         >
                                           <div />
-                                          <span className="flex items-center gap-3 pl-0 ml-14">
+                                          <span className="flex items-center gap-3">
                                             <Image
                                               src={icon}
                                               alt={platform_name}

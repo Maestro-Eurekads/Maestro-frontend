@@ -116,7 +116,7 @@ function YearTimeline({ range, funnels }: YearTimelineProps) {
                 }}
               >
                 <div
-                  className="flex flex-col min-h-[69px] bg-transparent border border-[rgba(0,0,0,0.1)] mt-6 shadow-sm rounded-[10px] justify-between"
+                  className="flex flex-col min-h-14 bg-white border border-[rgba(0,0,0,0.1)] mt-6 shadow-sm rounded-[10px] justify-between"
                   style={{
                     gridColumnStart: startMonthIndex,
                     gridColumnEnd: endMonthIndex + 1,
@@ -125,15 +125,15 @@ function YearTimeline({ range, funnels }: YearTimelineProps) {
                   <div
                     className={`${
                       expanded[index]
-                        ? "border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] flex justify-between items-center p-4 h-[77px] bg-[#F9FAFB]"
-                        : "flex justify-between items-center p-4"
+                        ? "border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] flex justify-between items-center p-4 h-14 bg-[#F9FAFB]"
+                        : "flex justify-between items-center p-2"
                     }`}
                   >
                     <div>
-                      <h3 className="text-[#061237] font-semibold text-[16px] leading-[22px]">
+                      <h3 className="text-[#061237] font-semibold text-sm">
                         {label}
                       </h3>
-                      <p className="text-[#061237] font-medium text-[14px]">
+                      <p className="text-[#061237] font-medium text-sm">
                         {budget?.startsWith("null") ||
                         budget?.startsWith("undefined")
                           ? 0
@@ -154,7 +154,13 @@ function YearTimeline({ range, funnels }: YearTimelineProps) {
                   </div>
 
                   {expanded[index] && (
-                    <div className="py-4">
+                    <div
+                      className="py-2"
+                      style={{
+                        backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
+                        backgroundSize: `${COLUMN_WIDTH}px 100%`,
+                      }}
+                    >
                       {stages?.map(
                         (
                           {
@@ -183,7 +189,7 @@ function YearTimeline({ range, funnels }: YearTimelineProps) {
                             >
                               <div
                                 onClick={() => toggleOpen(index, name)}
-                                className={`mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${
+                                className={`mt-5 w-full flex items-center rounded-[10px] h-12.5 text-sm font-[500] p-2 text-center ${
                                   name === "Awareness"
                                     ? "bg-[#3175FF]"
                                     : name === "Consideration"
@@ -209,7 +215,7 @@ function YearTimeline({ range, funnels }: YearTimelineProps) {
                                     <FiChevronDown size={15} />
                                   </span>
                                 </div>
-                                <button className="justify-self-end py-[10px] text-[16px] font-[500] bg-white/25 rounded-[5px]">
+                                <button className="justify-self-end px-3 py-2 text-sm font-[500] bg-white/25 rounded-[5px]">
                                   {stageBudget?.startsWith("null") ||
                                   stageBudget?.startsWith("undefined")
                                     ? 0
@@ -271,7 +277,7 @@ function YearTimeline({ range, funnels }: YearTimelineProps) {
                                               }}
                                             >
                                               <div />
-                                              <span className="flex items-center gap-3 pl-3 ml-14">
+                                              <span className="flex items-center gap-3">
                                                 <Image
                                                   src={icon}
                                                   alt={platform_name}
