@@ -64,6 +64,58 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
     })
   }, [weeksByMonth])
 
+  const monthHeaderPositions = useMemo(() => {
+    const positions: Array<{
+      monthName: string
+      monthYear: string
+      startWeekIndex: number
+      startDayOffset: number 
+      endWeekIndex: number
+      endDayOffset: number
+    }> = []
+
+    sortedMonths.forEach((monthYear) => {
+      const [monthName, year] = monthYear.split(" ")
+      const monthWeeks = weeksByMonth[monthYear]
+      if (!monthWeeks || monthWeeks.length === 0) return
+
+      const monthNames = ["January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"]
+      const monthIndex = monthNames.indexOf(monthName)
+      if (monthIndex === -1) return
+
+      const yearNum = parseInt(year)
+      const firstDayOfMonth = new Date(yearNum, monthIndex, 1)
+      
+      const weekIndex = weeks.findIndex(week => {
+        return week.start <= firstDayOfMonth && week.end >= firstDayOfMonth
+      })
+
+      if (weekIndex >= 0) {
+        const dayOfWeek = (firstDayOfMonth.getDay() + 6) % 7 
+        const lastDayOfMonth = new Date(yearNum, monthIndex + 1, 0)
+        const endWeekIndex = weeks.findIndex(week => {
+          return week.start <= lastDayOfMonth && week.end >= lastDayOfMonth
+        })
+
+        const endDayOfWeek = endWeekIndex >= 0 
+          ? (lastDayOfMonth.getDay() + 6) % 7
+          : 6
+
+        positions.push({
+          monthName,
+          monthYear,
+          startWeekIndex: weekIndex,
+          startDayOffset: dayOfWeek,
+          endWeekIndex: endWeekIndex >= 0 ? endWeekIndex : weeks.length - 1,
+          endDayOffset: endDayOfWeek,
+        })
+      }
+    })
+
+    return positions
+  }, [sortedMonths, weeksByMonth, weeks])
+
   const yearHeaders = useMemo(() => {
     const headers: Array<{ year: string; span: number }> = []
     let currentYear: string | null = null
@@ -124,6 +176,20 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
     return result
   }, [sortedMonths, weeksByMonth])
 
+  const monthHeaders = useMemo(() => {
+    return monthHeaderPositions.map((pos) => {
+      const span = pos.endWeekIndex - pos.startWeekIndex + 1
+      return {
+        monthName: pos.monthName,
+        span,
+        startWeekIndex: pos.startWeekIndex,
+        startDayOffset: pos.startDayOffset,
+        endWeekIndex: pos.endWeekIndex,
+        endDayOffset: pos.endDayOffset,
+      }
+    })
+  }, [monthHeaderPositions])
+
   return (
     <div className={isInfiniteTimeline ? "min-w-max border-y relative" : "w-full border-y relative"}>
       <div
@@ -164,6 +230,54 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
         style={{
           display: "grid",
           gridTemplateColumns,
+          position: "relative",
+        }}
+        className="border-b border-blue-200 pb-8"
+      >
+        {monthHeaders.map((header, idx) => {
+          const dayWidth = WEEK_WIDTH_PX / 7
+          const leftOffset = header.startDayOffset * dayWidth
+          
+          const daysToTrimFromEnd = 7 - header.endDayOffset - 1
+          const rightOffset = daysToTrimFromEnd * dayWidth
+          
+          const totalWeeksWidth = header.span * WEEK_WIDTH_PX
+          const actualWidth = totalWeeksWidth - leftOffset - rightOffset
+          
+          return (
+            <div
+              key={`month-${idx}`}
+              style={{
+                gridColumnStart: header.startWeekIndex + 1,
+                gridColumnEnd: header.endWeekIndex + 2,
+                position: "relative",
+              }}
+              className="h-full"
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  left: `${leftOffset}px`,
+                  width: `${actualWidth}px`,
+                  height: "100%",
+                }}
+                className="border-r border-blue-200/50 bg-white"
+              >
+                <div className="py-4 px-3 h-full flex items-center border-r">
+                  <span className="font-[600] text-[14px] text-[rgba(0,0,0,0.7)]">
+                    {header.monthName}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns,
           backgroundImage: `linear-gradient(to right, rgba(0,0,255,0.1) 1px, transparent 1px)`,
           backgroundSize: `${WEEK_WIDTH_PX}px 100%`,
         }}
@@ -172,13 +286,7 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
           <div
             key={`week-${i}`}
             className="flex flex-col items-center justify-center relative py-2 last:border-r-0"
-         
           >
-            {item.isFirstOfMonth && (
-              <span className="font-[600] text-[12px] text-[rgba(0,0,0,0.7)] mb-1">
-                {item.monthName}
-              </span>
-            )}
             <span className="font-[400] text-[11px] text-[rgba(0,0,0,0.4)]">
               {item.week.label}
             </span>

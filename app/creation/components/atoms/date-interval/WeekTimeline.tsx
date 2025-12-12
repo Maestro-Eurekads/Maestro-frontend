@@ -139,7 +139,7 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
                       >
                         <div
                           onClick={() => toggleOpen(index, section?.name)}
-                          className={`mt-5 w-full flex items-center rounded-[10px] h-12.5 text-sm font-[500] p-2 text-center ${
+                          className={`mt-5 w-full flex items-center rounded-[10px] h-12.5 text-xs font-[500] p-2 text-center ${
                             section?.name === "Awareness"
                               ? "bg-[#3175FF]"
                               : section?.name === "Consideration"
@@ -186,7 +186,7 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
                                   }}
                                 >
                                   <div
-                                    className="py-1 text-[15px] font-[500] border my-5 w-full rounded-[10px] flex items-center justify-between"
+                                    className="py-1 text-xs font-[500] border my-5 w-full rounded-[10px] flex items-center justify-between"
                                     style={{
                                       gridColumnStart: 1,
                                       gridColumnEnd:
