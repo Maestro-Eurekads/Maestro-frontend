@@ -116,44 +116,89 @@ const distinctColorPalette = [
 // Helper to check if a string is a valid hex color
 const isHexColor = (color: string) => /^#[0-9A-Fa-f]{6}$/.test(color)
 
+interface CampaignPhase {
+  name: string;
+  percentage: string;
+  color: string;
+}
+
 const DoughnutChart = ({
   insideText = "0 €",
+  campaignPhases,
+  customFunnels,
+  totalBudget,
+  currency,
 }: {
   insideText?: string
+  campaignPhases?: CampaignPhase[]
+  customFunnels?: Array<{ id: string; name: string; color: string }>
+  totalBudget?: number
+  currency?: string
 }) => {
   const chartRef = useRef(null)
   const { campaignFormData } = useCampaigns()
 
+  // If campaignPhases prop is provided, use it (for Dashboard aggregated view)
+  // Otherwise, use campaignFormData from context (for single campaign view)
+  const useAggregatedData = campaignPhases && campaignPhases.length > 0
+
   // Calculate allocated budget (sum of all stage budgets)
   const allocatedBudget = useMemo(() => {
+    if (useAggregatedData && totalBudget) {
+      return totalBudget
+    }
     return (
       campaignFormData?.channel_mix?.reduce((acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0), 0) ||
       0
     )
-  }, [campaignFormData?.channel_mix])
+  }, [campaignFormData?.channel_mix, useAggregatedData, totalBudget])
 
   // Calculate total fees
   const totalFeesAmount = useMemo(() => {
+    if (useAggregatedData) {
+      return 0 // Dashboard view doesn't include fees in aggregated data
+    }
     const feesArr = campaignFormData?.campaign_budget?.budget_fees
     if (!Array.isArray(feesArr) || feesArr.length === 0) {
       return 0
     }
     const sum = feesArr.reduce((total, fee) => total + Number(fee.value || 0), 0)
     return isNaN(sum) ? 0 : sum
-  }, [campaignFormData])
+  }, [campaignFormData, useAggregatedData])
 
   // FIXED: Simple calculation - Total Spending = Allocated Budget + Fees
   const totalSpending = useMemo(() => {
     return allocatedBudget + totalFeesAmount
   }, [allocatedBudget, totalFeesAmount])
 
-  // Get funnel stages and custom funnels from campaignFormData
-  const funnelStages = campaignFormData?.funnel_stages || []
-  const customFunnels = campaignFormData?.custom_funnels || []
+  // Get funnel stages and custom funnels
+  const funnelStages = useAggregatedData 
+    ? (campaignPhases?.map(p => p.name) || [])
+    : (campaignFormData?.funnel_stages || [])
+  
+  const customFunnelsData = useAggregatedData
+    ? (customFunnels || [])
+    : (campaignFormData?.custom_funnels || [])
 
   // Map selected funnel stages to their funnel objects, maintaining order
   const selectedFunnels = funnelStages
-    .map((stage: string) => customFunnels.find((funnel: any) => funnel.name === stage))
+    .map((stage: string) => {
+      if (useAggregatedData) {
+        // For aggregated data, get color from campaignPhases
+        const phase = campaignPhases?.find(p => p.name === stage)
+        if (phase) {
+          return {
+            id: stage,
+            name: stage,
+            color: phase.color,
+          }
+        }
+        // Fallback to customFunnels if phase not found
+        return customFunnelsData.find((funnel: any) => funnel.name === stage)
+      } else {
+        return customFunnelsData.find((funnel: any) => funnel.name === stage)
+      }
+    })
     .filter((funnel): funnel is { id: string; name: string; color: string } => funnel !== undefined)
 
   // Map labels for the chart
@@ -192,14 +237,19 @@ const DoughnutChart = ({
   const colors = getUniqueColors(selectedFunnels)
 
   // Calculate the display text for total spending
-  const currency = campaignFormData?.campaign_budget?.currency || "EUR"
-  const totalSpendingText = `${getCurrencySymbol(currency)}${totalSpending.toLocaleString()}`
+  const displayCurrency = currency || campaignFormData?.campaign_budget?.currency || "EUR"
+  const totalSpendingText = `${getCurrencySymbol(displayCurrency)}${totalSpending.toLocaleString()}`
 
   // Generate data values for the chart with proper percentage calculations
   const dataValues = (() => {
+    if (useAggregatedData && campaignPhases) {
+      // For aggregated data, use percentages directly from campaignPhases
+      return campaignPhases.map((phase) => parseFloat(phase.percentage) || 0)
+    }
+
     if (funnelStages.length === 0) return [100]
 
-    // Get stage budgets from channel_mix
+    // Get stage budgets from channel_mix (for single campaign view)
     const stageBudgets = funnelStages.map((stageName) => {
       const stageData = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stageName)
       return {
@@ -280,11 +330,17 @@ const DoughnutChart = ({
           label: (context: any) => {
             const label = context.label || ""
             const percentage = context.parsed || 0
-            // Get the corresponding stage budget amount
+            
+            if (useAggregatedData && totalBudget) {
+              // For aggregated data, calculate amount from percentage
+              const amount = (percentage / 100) * totalBudget
+              return `${label}: ${percentage.toFixed(1)}% (${getCurrencySymbol(displayCurrency)}${Math.round(amount).toLocaleString()})`
+            }
+            
+            // Get the corresponding stage budget amount (for single campaign view)
             const stageData = campaignFormData?.channel_mix?.find((st: any) => st?.funnel_stage === label)
             const amount = Number(stageData?.stage_budget?.fixed_value) || 0
-            const currency = campaignFormData?.campaign_budget?.currency || "EUR"
-            return `${label}: ${percentage.toFixed(1)}% (${getCurrencySymbol(currency)}${amount.toLocaleString()})`
+            return `${label}: ${percentage.toFixed(1)}% (${getCurrencySymbol(displayCurrency)}${amount.toLocaleString()})`
           },
         },
       },

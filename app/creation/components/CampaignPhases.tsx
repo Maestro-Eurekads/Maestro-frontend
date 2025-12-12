@@ -4,14 +4,20 @@ import { useCampaigns } from "../../utils/CampaignsContext";
 // Helper to check if a string is a valid hex color
 const isHexColor = (color: string) => /^#[0-9A-Fa-f]{6}$/.test(color);
 
-const CampaignPhases = ({ campaignPhases }) => {
+const CampaignPhases = ({ campaignPhases, customFunnels }) => {
   const { campaignFormData } = useCampaigns();
+
+  // Use customFunnels prop if provided (for Dashboard), otherwise use context
+  const funnelsData = customFunnels || campaignFormData?.custom_funnels || []
 
   // Map campaignPhases to include the color from custom_funnels
   const phasesWithColors = campaignPhases?.map((phase) => {
-    const funnel = campaignFormData?.custom_funnels?.find(
-      (f) => f.name === phase.name
-    );
+    // First check if phase already has a color (from aggregated data)
+    if (phase.color) {
+      return phase
+    }
+    // Otherwise, look it up in custom_funnels
+    const funnel = funnelsData.find((f) => f.name === phase.name)
     return {
       ...phase,
       color: funnel?.color || "bg-gray-500", // Fallback to gray if no color is found
