@@ -54,7 +54,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
           "in_game",
           "mobile",
         ].forEach((channelType) => {
-          stage[channelType].forEach((platform) => {
+          stage[channelType]?.forEach((platform) => {
             const platformName = platform.platform_name;
             const platformBudget = parseFloat(
               platform.budget?.fixed_value || 0
@@ -89,22 +89,40 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
     if (!start || !end || !range?.length)
       return { startDateIndex: 1, endDateIndex: 1 };
 
-    const formattedStart = parseISO(start);
-    const formattedEnd = parseISO(end);
+    try {
+      // Handle both string and Date objects
+      const formattedStart = typeof start === "string" 
+        ? parseISO(start) 
+        : start instanceof Date 
+        ? start 
+        : new Date(start);
+      const formattedEnd = typeof end === "string" 
+        ? parseISO(end) 
+        : end instanceof Date 
+        ? end 
+        : new Date(end);
 
-    const startDateIndex = range?.findIndex((date) =>
-      isEqual(date, formattedStart)
-    );
-    const endDateIndex = range?.findIndex((date) =>
-      isEqual(date, formattedEnd)
-    );
+      // Check if dates are valid
+      if (isNaN(formattedStart.getTime()) || isNaN(formattedEnd.getTime())) {
+        return { startDateIndex: 1, endDateIndex: 1 };
+      }
 
-    return {
-      startDateIndex: startDateIndex >= 0 ? startDateIndex + 1 : 1,
-      endDateIndex: endDateIndex >= 0 ? endDateIndex + 1 : 1,
-    };
+      const startDateIndex = range?.findIndex((date) =>
+        isEqual(date, formattedStart)
+      );
+      const endDateIndex = range?.findIndex((date) =>
+        isEqual(date, formattedEnd)
+      );
+
+      return {
+        startDateIndex: startDateIndex >= 0 ? startDateIndex + 1 : 1,
+        endDateIndex: endDateIndex >= 0 ? endDateIndex + 1 : 1,
+      };
+    } catch (error) {
+      // Fallback to safe defaults if date parsing fails
+      return { startDateIndex: 1, endDateIndex: 1 };
+    }
   };
-
   return (
     <div
       className="w-full min-h-[519px] pb-10"
@@ -113,7 +131,16 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
         backgroundSize: `calc(50px) 100%`,
       }}
     >
-      {funnels?.map(({ startDay, endDay, label, budget, stages }, index) => {
+      {funnels?.map(({ startDay, endDay, label, budget, stages, startDate, endDate, campaignData }, index) => {
+        // Calculate date-based positions if dates are available, otherwise use day indices
+        const campaignStartIndex = startDate && range?.length
+          ? calculateGridColumns(startDate, startDate).startDateIndex
+          : startDay || 1;
+        const campaignEndIndex = endDate && range?.length
+          ? calculateGridColumns(endDate, endDate).endDateIndex
+          : endDay || daysCount;
+        const campaignSpan = campaignEndIndex - campaignStartIndex + 1;
+
         return (
           <div
             key={index}
@@ -125,8 +152,8 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
             <div
               className="flex flex-col min-h-14 bg-white border border-[rgba(0,0,0,0.1)] mt-6 shadow-sm rounded-[10px] justify-between"
               style={{
-                gridColumnStart: startDay,
-                gridColumnEnd: endDay + 1,
+                gridColumnStart: campaignStartIndex,
+                gridColumnEnd: campaignEndIndex + 1,
               }}
             >
               <div
@@ -174,26 +201,33 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                     (
                       {
                         name,
-                        startDay: start,
-                        endDay: end,
-                        startWeek,
-                        endWeek,
-                        startMonth,
-                        endMonth,
-                        budget,
+                        startDay: stageStartDay,
+                        endDay: stageEndDay,
+                        startDate: stageStart,
+                        endDate: stageEnd,
+                        budget: stageBudget,
                       },
                       zIndex
                     ) => {
                       const channels = extractPlatforms(
-                        clientCampaignData[index]
+                        campaignData || clientCampaignData[index]
                       );
+                      console.log('channels', channels);
+                      
+                      // Calculate stage positions based on dates if available
+                      const stageStartIndex = stageStart && range?.length
+                        ? calculateGridColumns(stageStart, stageStart).startDateIndex
+                        : stageStartDay || 1;
+                      const stageEndIndex = stageEnd && range?.length
+                        ? calculateGridColumns(stageEnd, stageEnd).endDateIndex
+                        : stageEndDay || campaignEndIndex;
 
                       return (
                         <div
                           key={name}
                           style={{
                             display: "grid",
-                            gridTemplateColumns: `repeat(${daysCount}, 50px)`,
+                            gridTemplateColumns: `repeat(${campaignSpan}, 50px)`,
                           }}
                         >
                           <div
@@ -208,8 +242,14 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                                 : "bg-[#F05406]"
                             } text-white`}
                             style={{
-                              gridColumnStart: start ? start : 1,
-                              gridColumnEnd: end + 1,
+                              gridColumnStart: Math.max(
+                                1,
+                                stageStartIndex - campaignStartIndex + 1
+                              ),
+                              gridColumnEnd: Math.min(
+                                campaignSpan + 1,
+                                stageEndIndex - campaignStartIndex + 2
+                              ),
                             }}
                           >
                             <div className="flex items-center justify-center gap-3 flex-1">
@@ -219,12 +259,12 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                               </span>
                             </div>
                             <button className="justify-self-end px-3 py-2 text-sm font-[500] bg-white/25 rounded-[5px]">
-                              {budget?.startsWith("null") ||
-                              budget?.startsWith("undefined")
+                              {stageBudget?.startsWith("null") ||
+                              stageBudget?.startsWith("undefined")
                                 ? 0
                                 : `${Number(
-                                    budget.replace(/[^\d.-]/g, "")
-                                  ).toLocaleString()} ${budget
+                                    stageBudget.replace(/[^\d.-]/g, "")
+                                  ).toLocaleString()} ${stageBudget
                                     .replace(/[\d\s.,-]/g, "")
                                     .trim()}`}
                             </button>
@@ -233,12 +273,12 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                           {openSections[`${index}-${name}`] && (
                             <div
                               style={{
-                                gridColumnStart: startDay,
-                                gridColumnEnd: endDay + 1 - startDay + 1,
+                                gridColumnStart: 1,
+                                gridColumnEnd: campaignSpan + 1,
                               }}
                             >
                               {channels
-                                ?.filter((ch) => ch?.stageName === name)
+                                ?.filter((ch) => ch?.stageName === name && ch?.startDate && ch?.endDate)
                                 ?.map(
                                   ({
                                     platform_name,
@@ -248,23 +288,27 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                                     startDate,
                                     endDate,
                                   }) => {
-                                    const { startDateIndex, endDateIndex } =
+                                    const { startDateIndex: platStartIndex, endDateIndex: platEndIndex } =
                                       calculateGridColumns(startDate, endDate);
                                     return (
                                       <div
                                         key={platform_name}
                                         style={{
                                           display: "grid",
-                                          gridTemplateColumns: `repeat(${daysCount}, 50px)`,
+                                          gridTemplateColumns: `repeat(${campaignSpan}, 50px)`,
                                         }}
                                       >
                                         <div
                                           className="py-1 text-[15px] font-[500] border my-5 w-full rounded-[10px] flex items-center justify-between"
                                           style={{
-                                            gridColumnStart: startDateIndex
-                                              ? startDateIndex
-                                              : 1,
-                                            gridColumnEnd: endDateIndex + 1,
+                                            gridColumnStart: Math.max(
+                                              1,
+                                              platStartIndex - campaignStartIndex + 1
+                                            ),
+                                            gridColumnEnd: Math.min(
+                                              campaignSpan + 1,
+                                              platEndIndex - campaignStartIndex + 2
+                                            ),
                                             backgroundColor: bg,
                                           }}
                                         >

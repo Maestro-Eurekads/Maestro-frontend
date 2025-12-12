@@ -209,7 +209,7 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
               src="dashboard"
               isInfiniteTimeline={false}
             />
-            <DayTimeline
+              <DayTimeline  
               daysCount={totalDays}
               funnels={funnelsData}
               range={bufferedDateList}

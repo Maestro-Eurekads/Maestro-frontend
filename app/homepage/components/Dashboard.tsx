@@ -91,6 +91,7 @@ console.log('clientCampaignData' , clientCampaignData)
       startDate: ch?.campaign_timeline_start_date,
       endDate: ch?.campaign_timeline_end_date,
       label: ch?.media_plan_details?.plan_name,
+      campaignData: ch,
       stages: ch?.channel_mix?.map((d) => {
         const start = d?.funnel_stage_timeline_start_date ? parseISO(d.funnel_stage_timeline_start_date) : null
         const end = d?.funnel_stage_timeline_end_date ? parseISO(d.funnel_stage_timeline_end_date) : null
