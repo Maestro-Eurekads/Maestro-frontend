@@ -642,7 +642,8 @@ const SaveProgressButton = ({ isBackToDashboardButton }: { isBackToDashboardButt
 
 				// Update or Create
 				if (cId && campaignData) {
-					await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`, payload, config)
+					// await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`, payload, config)
+					await updateCampaignData(payload.data)
 					setChange(false)
 					setAlert({ variant: "success", message: "Campaign updated successfully!", position: "bottom-right" })
 				} else {

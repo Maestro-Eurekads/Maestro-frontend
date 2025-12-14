@@ -188,7 +188,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         if (!data) return;
         // const obj = await extractObjectives(campaignFormData);
         // const sMetrics = await getFilteredMetrics(obj)
-        setCampaignData(data);
+        setCampaignData({ ...data, campaign_budget: { ...data?.campaign_budget, value: data?.campaign_budget?.currency } });
         setHeaderData(data?.table_headers || {});
         setCampaignFormData({ ...data, campaign_budget: { ...data?.campaign_budget, value: data?.campaign_budget?.currency } });
         // setCampaignFormData((prev) => ({
