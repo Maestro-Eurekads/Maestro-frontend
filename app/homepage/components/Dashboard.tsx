@@ -296,17 +296,17 @@ const Dashboard = () => {
       <div className="flex items-center gap-3 px-[72px] flex-wrap ">
         <FiltersDropdowns router={undefined} />
       </div>
-      <div className="flex justify-between items-center mb-4 px-4 md:px-10 xl:px-20">
+      <div className="flex justify-end gap-5 items-center mb-4 px-4 md:px-10 xl:px-20">
         <div className="flex items-center gap-3">
           <span className="text-sm text-gray-600">
-            {selectedCount} of {totalCount} plans selected
+            {selectedCount} of {totalCount} media plans selected
           </span>
-          <button
+          <div
             onClick={allSelected ? deselectAll : selectAll}
-            className="px-3 py-1.5 text-sm font-medium rounded-lg border border-[#3175FF] text-[#3175FF] hover:bg-[#3175FF] hover:text-white transition-colors"
+            className="px-3 cursor-pointer py-2.5 w-28 text-center text-sm font-medium rounded-lg bg-[#3175FF] text-white"
           >
             {allSelected ? "Deselect All" : "Select All"}
-          </button>
+          </div>
         </div>
         <Range />
       </div>

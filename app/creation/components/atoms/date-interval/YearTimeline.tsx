@@ -161,7 +161,7 @@ function YearTimeline({
                           {label}
                         </h3>
                         {isSelected && (
-                          <span className="flex items-center justify-center w-4 h-4 bg-[#3175FF] rounded-full">
+                          <span className="flex items-center justify-center w-4 h-4 bg-[#3175FF] rounded-[5px]">
                             <FiCheck size={10} className="text-white" />
                           </span>
                         )}
