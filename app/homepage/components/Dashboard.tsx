@@ -141,7 +141,6 @@ const Dashboard = () => {
     return "#F05406";
   }
 
-  // Channel colors for pie chart
   const CHANNEL_COLORS = [
     "#3175FF",
     "#00A36C",
@@ -153,15 +152,30 @@ const Dashboard = () => {
     "#F39C12",
     "#3498DB",
     "#2ECC71",
-    "#E91E63",
-    "#00BCD4",
-    "#FF5722",
-    "#607D8B",
-    "#795548",
   ];
+  const toPercentages = (
+    budgetMap: Map<string, { budget: number; color: string }>,
+    total: number
+  ): CampaignPhase[] => {
+    const items = Array.from(budgetMap.entries())
+      .map(([name, { budget, color }]) => ({
+        name,
+        percentage: total > 0 ? Math.round((budget / total) * 100) : 0,
+        color,
+      }))
+      .sort((a, b) => b.percentage - a.percentage);
+
+    // Adjust first item to ensure sum = 100%
+    const sum = items.reduce((s, i) => s + i.percentage, 0);
+    if (items.length > 0 && sum !== 100) {
+      items[0].percentage += 100 - sum;
+    }
+
+    return items.map((i) => ({ ...i, percentage: i.percentage.toString() }));
+  };
 
   const aggregatedBudgetData = useMemo(() => {
-    if (!clientCampaignData || clientCampaignData.length === 0) {
+    if (!clientCampaignData?.length) {
       return {
         totalBudget: 0,
         primaryCurrency: "",
@@ -173,176 +187,63 @@ const Dashboard = () => {
       };
     }
 
+    const phaseBudgets = new Map<string, { budget: number; color: string }>();
+    const channelBudgets = new Map<string, { budget: number; color: string }>();
     let totalBudget = 0;
     let primaryCurrency = "";
-    const phaseBudgetMap = new Map<
-      string,
-      { totalBudget: number; color: string }
-    >();
-    const channelBudgetMap = new Map<string, number>();
-    const uniquePhases = new Set<string>();
-
-    // First, collect all unique stages from all campaigns
-    const allStagesSet = new Set<string>();
-    clientCampaignData.forEach((campaign) => {
-      campaign?.funnel_stages?.forEach((stage) => allStagesSet.add(stage));
-      campaign?.channel_mix?.forEach((ch) => {
-        if (ch?.funnel_stage) allStagesSet.add(ch.funnel_stage);
-      });
-    });
-
-    // Initialize all stages with 0 budget
-    allStagesSet.forEach((stageName) => {
-      if (!phaseBudgetMap.has(stageName)) {
-        phaseBudgetMap.set(stageName, {
-          totalBudget: 0,
-          color: getFunnelColor(stageName),
-        });
-        uniquePhases.add(stageName);
-      }
-    });
+    let colorIndex = 0;
 
     clientCampaignData.forEach((campaign) => {
-      // Sum budgets
-      const budgetAmount = parseFloat(campaign?.campaign_budget?.amount || 0);
-      if (budgetAmount > 0) {
-        totalBudget += budgetAmount;
-        if (!primaryCurrency && campaign?.campaign_budget?.currency) {
-          primaryCurrency = campaign?.campaign_budget?.currency;
-        }
+      totalBudget += parseFloat(campaign?.campaign_budget?.amount || 0);
+      if (!primaryCurrency) {
+        primaryCurrency = campaign?.campaign_budget?.currency || "";
       }
 
-      // Aggregate phases by summing platform budgets within each stage
-      campaign?.channel_mix?.forEach((ch) => {
-        const stageName = ch?.funnel_stage;
-        if (stageName) {
-          uniquePhases.add(stageName);
+      campaign?.channel_mix?.forEach((stage) => {
+        const phaseName = stage?.funnel_stage;
+        if (!phaseName) return;
 
-          // Calculate stage budget by summing all platform budgets in this stage
-          let stageBudget = 0;
+        mediaTypes.forEach((type) => {
+          stage[type]?.forEach((platform) => {
+            const budget = parseFloat(platform?.budget?.fixed_value || 0);
+            if (budget <= 0) return;
 
-          // Sum budgets from all platform types in this stage
-          mediaTypes.forEach((channelType) => {
-            ch[channelType]?.forEach((platform) => {
-              const platformBudget = parseFloat(
-                platform?.budget?.fixed_value ||
-                  (platform?.budget?.percentage_value && budgetAmount > 0
-                    ? (parseFloat(platform.budget.percentage_value) / 100) *
-                      budgetAmount
-                    : 0) ||
-                  0
-              );
-              stageBudget += platformBudget;
+            // Aggregate by phase
+            const existing = phaseBudgets.get(phaseName);
+            phaseBudgets.set(phaseName, {
+              budget: (existing?.budget || 0) + budget,
+              color: existing?.color || getFunnelColor(phaseName),
+            });
 
-              // Aggregate by actual platform name (e.g., Facebook, Twitter)
-              const platformName = platform?.platform_name;
-              if (platformName && platformBudget > 0) {
-                const existingBudget = channelBudgetMap.get(platformName) || 0;
-                channelBudgetMap.set(
-                  platformName,
-                  existingBudget + platformBudget
-                );
+            // Aggregate by platform
+            const platformName = platform?.platform_name;
+            if (platformName) {
+              const existingChannel = channelBudgets.get(platformName);
+              if (!existingChannel) {
+                channelBudgets.set(platformName, {
+                  budget,
+                  color: CHANNEL_COLORS[colorIndex++ % CHANNEL_COLORS.length],
+                });
+              } else {
+                existingChannel.budget += budget;
               }
-            });
+            }
           });
-
-          const existing = phaseBudgetMap.get(stageName);
-          if (existing) {
-            existing.totalBudget += stageBudget;
-          } else {
-            phaseBudgetMap.set(stageName, {
-              totalBudget: stageBudget,
-              color: getFunnelColor(stageName),
-            });
-          }
-        }
+        });
       });
     });
 
-    // Convert phase map to array and calculate percentages based on total budget
-    const phasesWithPercentages = Array.from(phaseBudgetMap.entries())
-      .map(([name, data]) => {
-        const rawPercentage =
-          totalBudget > 0 ? (data.totalBudget / totalBudget) * 100 : 0;
-        return {
-          name,
-          percentage: rawPercentage,
-          color: data.color,
-          totalBudget: data.totalBudget,
-        };
-      })
-      .sort((a, b) => b.totalBudget - a.totalBudget);
-
-    // Round percentages and adjust the largest one to ensure sum is 100%
-    const roundedPhases = phasesWithPercentages.map((phase) => ({
-      ...phase,
-      percentage: Math.round(phase.percentage).toString(),
-    }));
-
-    const sumOfRounded = roundedPhases.reduce(
-      (sum, p) => sum + parseFloat(p.percentage),
-      0
-    );
-    const difference = 100 - sumOfRounded;
-
-    if (difference !== 0 && roundedPhases.length > 0) {
-      const currentPercentage = parseFloat(roundedPhases[0].percentage);
-      roundedPhases[0].percentage = (currentPercentage + difference).toString();
-    }
-
-    const aggregatedPhases: CampaignPhase[] = roundedPhases.map(
-      ({ totalBudget, ...phase }) => phase
-    );
-
-    const totalChannelBudget = Array.from(channelBudgetMap.values()).reduce(
-      (sum, budget) => sum + budget,
-      0
-    );
-
-    const channelsWithPercentages = Array.from(channelBudgetMap.entries())
-      .map(([name, budget], index) => {
-        const rawPercentage =
-          totalChannelBudget > 0 ? (budget / totalChannelBudget) * 100 : 0;
-        return {
-          name,
-          percentage: rawPercentage,
-          color: CHANNEL_COLORS[index % CHANNEL_COLORS.length],
-          budget,
-        };
-      })
-      .sort((a, b) => b.budget - a.budget);
-
-    const roundedChannels = channelsWithPercentages.map((ch) => ({
-      ...ch,
-      percentage: Math.round(ch.percentage).toString(),
-    }));
-
-    const channelSumRounded = roundedChannels.reduce(
-      (sum, p) => sum + parseFloat(p.percentage),
-      0
-    );
-    const channelDiff = 100 - channelSumRounded;
-    if (channelDiff !== 0 && roundedChannels.length > 0) {
-      const curr = parseFloat(roundedChannels[0].percentage);
-      roundedChannels[0].percentage = (curr + channelDiff).toString();
-    }
-
-    const channelPhases: CampaignPhase[] = roundedChannels.map(
-      ({ budget, ...ch }) => ch
-    );
-
-    // Collect custom_funnels from all campaigns (use first campaign's as primary)
     const customFunnels =
-      clientCampaignData.find((c) => c?.custom_funnels?.length > 0)
+      clientCampaignData.find((c) => c?.custom_funnels?.length)
         ?.custom_funnels || [];
 
     return {
       totalBudget,
       primaryCurrency,
-      campaignPhases: aggregatedPhases,
-      phasesCount: uniquePhases.size,
-      channelPhases,
-      channelsCount: channelBudgetMap.size,
+      campaignPhases: toPercentages(phaseBudgets, totalBudget),
+      phasesCount: phaseBudgets.size,
+      channelPhases: toPercentages(channelBudgets, totalBudget),
+      channelsCount: channelBudgets.size,
       customFunnels,
     };
   }, [clientCampaignData]);
@@ -368,87 +269,6 @@ const Dashboard = () => {
         startDate={earliestStartDate}
         endDate={latestEndDate}
       />
-
-      {/* Commented out individual campaign cards - now using aggregated overview */}
-      {/* {processedCampaigns?.map((campaign, index) => {
-        const channelD = extractPlatforms(campaign)
-
-        // Prepare insideText for DoughnutChat
-        const insideText = `${campaign?.campaign_budget?.amount || 0} ${campaign?.campaign_budget?.currency ? getCurrencySymbol(campaign?.campaign_budget?.currency) : ""}`
-        // Prepare activeFunnels for DoughnutChat
-        const activeFunnels = getActiveFunnels(campaign)
-
-        // Prepare data values for DoughnutChat
-        const dataValues = getStagePercentages(campaign)
-        // console.log("dataValues---:", campaign)
-        // console.log("campaignFormData---:", campaignFormData)
-        // console.log("clientCampaignData---:", clientCampaignData)
-        return (
-          <div
-            key={index}
-            className="grid grid-cols-1 lg:grid-cols-2 gap-6 xl:gap-12 mt-[60px] w-full px-4 md:px-10 xl:px-20"
-          >
-            {/* Left Card: Budget by Phase */}
-      {/* <div className="bg-[#F9FAFB] rounded-lg p-6 flex flex-col gap-6">
-              <h3 className="font-semibold text-[18px] leading-[24px] text-[#061237]">
-                Your budget by phase for {campaign?.media_plan_details?.plan_name}
-              </h3>
-
-              <div className="flex flex-col sm:flex-row gap-6">
-                <div>
-                  <p className="font-medium text-[15px] text-[rgba(6,18,55,0.8)]">Total budget</p>
-                  <h3 className="font-semibold text-[20px] text-[#061237]">
-                    {campaign?.campaign_budget?.amount} {campaign?.campaign_budget?.currency}
-                  </h3>
-                </div>
-                <div>
-                  <p className="font-medium text-[15px] text-[rgba(6,18,55,0.8)]">Campaign phases</p>
-                  <h3 className="font-semibold text-[20px] text-[#061237]">
-                    {campaign?.channel_mix?.length} phases
-                  </h3>
-                </div>
-              </div>
-
-              <div className="flex flex-col xl:flex-row items-center gap-6 w-full mt-2">
-                {/* Doughnut Chart */}
-      {/* <DashboradDoughnutChat
-                  campaign={campaign}
-                  insideText={insideText}
-                  dataValues={dataValues}
-                />
-                {/* Campaign Phases */}
-      {/* <CampaignPhases
-                  campaignPhases={campaign?.channel_mix?.map((ch) => ({
-                    name: ch?.funnel_stage,
-                    percentage: Number(ch?.stage_budget?.percentage_value || 0)?.toFixed(0),
-                    color: getFunnelColor(ch?.funnel_stage),
-                  }))}
-                />
-              </div>
-            </div>
-
-            {/* Right Card: Budget by Channel */}
-      {/* <div className="bg-[#F9FAFB] rounded-lg p-6 flex flex-col gap-4 min-h-[545px]">
-              <h3 className="font-semibold text-[18px] text-[#061237]">
-                Your budget by channel
-              </h3>
-
-              <div>
-                <p className="font-medium text-[15px] text-[rgba(6,18,55,0.8)]">Channels</p>
-                <h3 className="font-semibold text-[20px] text-[#061237]">
-                  {channelD?.length} channels
-                </h3>
-              </div>
-
-              <ChannelDistributionChatTwo
-                channelData={channelD}
-                currency={getCurrencySymbol(campaign?.campaign_budget?.currency)}
-              />
-            </div>
-          </div>
-
-        )
-      })} 
 
       {/* Aggregated Budget Overview Card */}
       {aggregatedBudgetData.totalBudget > 0 && (
