@@ -15,7 +15,6 @@ import TreeDropdownFilter from "components/TreeDropdownFilter";
 import { convertToSingleNestedStructure } from "utils/convertToSingleNestedStructure";
 import { cleanName, cleanNames } from "components/Options";
 
-
 // Scrollbar CSS
 const scrollbarStyles = `
   .scrollbar-thin::-webkit-scrollbar {
@@ -77,7 +76,6 @@ const Dropdown = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-
   // Measure trigger width on mount and when selectedFilters changes
   useEffect(() => {
     if (triggerRef.current) {
@@ -96,15 +94,17 @@ const Dropdown = ({
     }
   }, [isOpen, triggerWidth]);
 
-
-
-
   return (
-    <div className="relative min-w-[72px]" style={{ width: parentWidth }} ref={dropdownRef}>
+    <div
+      className="relative min-w-[72px]"
+      style={{ width: parentWidth }}
+      ref={dropdownRef}
+    >
       <div
         ref={triggerRef}
-        className={`relative w-full flex items-center gap-3 px-4 py-2 h-[40px] border border-[#EFEFEF] rounded-[10px] cursor-pointer ${isDisabled ? "opacity-60" : ""
-          }`}
+        className={`relative w-full flex items-center gap-3 px-4 py-2 h-[40px] border border-[#EFEFEF] rounded-[10px] cursor-pointer ${
+          isDisabled ? "opacity-60" : ""
+        }`}
         onClick={toggleDropdown}
       >
         <span className="text-gray-600 capitalize truncate">
@@ -121,8 +121,9 @@ const Dropdown = ({
           ref={dropdownContentRef}
         >
           <div
-            className={`max-h-[200px] overflow-y-auto ${label === "Select Plans" ? "scrollbar-thin" : ""
-              }`}
+            className={`max-h-[200px] overflow-y-auto ${
+              label === "Select Plans" ? "scrollbar-thin" : ""
+            }`}
           >
             {options?.length > 0 ? (
               options?.map((option) => (
@@ -146,7 +147,6 @@ const Dropdown = ({
         </div>
       )}
     </div>
-
   );
 };
 
@@ -173,7 +173,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
     setClientCampaignData,
     allClients,
     jwt,
-    agencyId
+    agencyId,
   } = useCampaigns();
   const { data: session } = useSession();
   // @ts-ignore
@@ -189,7 +189,9 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
     if (!value || value === "") {
       if (label === "year") {
         router.refresh();
-        dispatch(getCreateClient({ userId: !isAdmin ? userType : null, jwt, agencyId }));
+        dispatch(
+          getCreateClient({ userId: !isAdmin ? userType : null, jwt, agencyId })
+        );
         setSelectedFilters((prev) => ({
           ...prev,
           [label]: "",
@@ -221,16 +223,23 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
         });
       });
       setFilters(f);
+
+      const yearOptions = filterOptions["year"];
+      if (yearOptions && !selectedFilters["year"]) {
+        const currentYear = new Date().getFullYear().toString();
+        console.log("yearOptions", yearOptions);
+        if (yearOptions.includes(currentYear)) {
+          setSelectedFilters((prev) => ({ ...prev, year: currentYear }));
+        }
+      }
     }
   }, [filterOptions]);
 
-
-
-
   useEffect(() => {
-    const allEmpty = Object.values(selectedFilters).every((val) => !val)
+    const allEmpty = Object.values(selectedFilters).every((val) => !val);
     const fetchData = async () => {
-      const clientID = localStorage.getItem(userType.toString()) || allClients[0]?.id;
+      const clientID =
+        localStorage.getItem(userType.toString()) || allClients[0]?.id;
 
       if (!clientID) return;
 
@@ -252,7 +261,6 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
 
   const isYearSelected = !!selectedFilters["year"];
 
-
   return (
     <div>
       <Toaster />
@@ -264,12 +272,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
       <div className="flex items-center gap-4 mt-[5px] flex-wrap">
         {filters
           ?.filter(
-            (l) =>
-              ![
-                "Channel",
-                "Phase",
-                "Level_1_name",
-              ].includes(l?.label)
+            (l) => !["Channel", "Phase", "Level_1_name"].includes(l?.label)
           )
           .map(({ label, options, isLevel }) => {
             const lowerLabel = label.toLowerCase();
@@ -281,19 +284,16 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
               if (selected) return selected;
               if (label === "Level_1") {
                 return (
-                  filters.find((f) => f.label === "Level_1_name")?.options[0]?.title ||
-                  label.replace("_", " ")
+                  filters.find((f) => f.label === "Level_1_name")?.options[0]
+                    ?.title || label.replace("_", " ")
                 );
               }
-
 
               return label.replace("_", "");
             };
 
             const displayLabel = getDisplayLabel();
             const nested = convertToSingleNestedStructure(options);
-
-
 
             return (
               <div key={label}>
@@ -309,13 +309,16 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
                       !isYearSelected
                     }
                   />
-
                 ) : (
                   <Dropdown
                     label={cleanName(displayLabel)}
-                    options={options?.map((opt) => opt?.label === "string" ? opt?.label : opt)}
+                    options={options?.map((opt) =>
+                      opt?.label === "string" ? opt?.label : opt
+                    )}
                     selectedFilters={selectedFilters}
-                    handleSelect={(key, value) => handleSelect(lowerLabel, value)}
+                    handleSelect={(key, value) =>
+                      handleSelect(lowerLabel, value)
+                    }
                     isDisabled={
                       (lowerLabel === "quarter" || lowerLabel === "month") &&
                       !isYearSelected
@@ -330,11 +333,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
                     <p className="h-[20px] text-[15px] leading-[20px] font-medium text-[#3175FF]">
                       {cleanName(selected)}
                     </p>
-                    <BiX
-                      color="#3175FF"
-                      size={20}
-                      className="cursor-pointer"
-                    />
+                    <BiX color="#3175FF" size={20} className="cursor-pointer" />
                   </div>
                 )}
               </div>
