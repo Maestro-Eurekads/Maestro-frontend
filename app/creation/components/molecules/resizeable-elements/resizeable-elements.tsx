@@ -85,8 +85,7 @@ const ResizeableElements = ({
   const { range, extendedRange } = useDateRange();
   const { range: rrange } = useRange();
   const { campaignFormData, loadingCampaign } = useCampaigns();
-  
-  const gridRange = extendedRange
+  const gridRange = extendedRange;
   const [channelWidths, setChannelWidths] = useState<Record<string, number>>(
     {}
   );
@@ -125,7 +124,6 @@ const ResizeableElements = ({
   const updateChannelPosition = (channelId: string, left: number) => {
     setChannelPositions((prev) => ({ ...prev, [channelId]: left }));
   };
-
 
   const generateYearMonths = useCallback(() => {
     if (!gridRange || gridRange.length === 0) return [];
@@ -210,24 +208,17 @@ const ResizeableElements = ({
       endMonth: number,
       totalDaysInRange: number
     ) => {
-      const getViewportWidth = () => {
-        return window.innerWidth || document.documentElement.clientWidth || 0;
-      };
-      const screenWidth = getViewportWidth();
-      const contWidth = screenWidth - (disableDrag ? 80 : close ? 0 : 367);
-
       let dailyWidth: number;
 
-        if (viewType === "Day" || viewType === "Week") {
-          dailyWidth = 50;
-        } else if (viewType === "Year") {
-          dailyWidth = 80;
-        } else if (viewType === "Month") {
-          dailyWidth = 100;
-        } else {
-          dailyWidth = 50;
-        }
-    
+      if (viewType === "Day" || viewType === "Week") {
+        dailyWidth = 50;
+      } else if (viewType === "Year") {
+        dailyWidth = 80;
+      } else if (viewType === "Month") {
+        dailyWidth = 100;
+      } else {
+        dailyWidth = 50;
+      }
 
       setDailyWidthByView((prev) => ({
         ...prev,
@@ -242,7 +233,8 @@ const ResizeableElements = ({
   useEffect(() => {
     if (!rrange || !gridRef?.current) return;
 
-    const effectiveRange = gridRange && gridRange.length > 0 ? gridRange : range;
+    const effectiveRange =
+      gridRange && gridRange.length > 0 ? gridRange : range;
     if (!effectiveRange || effectiveRange.length === 0) return;
 
     const result = getDaysInEachMonth(effectiveRange);
@@ -323,15 +315,17 @@ const ResizeableElements = ({
     if (!gridRange || gridRange.length === 0) return [];
     const startDate = gridRange[0];
     const endDate = gridRange[gridRange.length - 1];
-    return eachWeekOfInterval({ start: startDate, end: endDate }, { weekStartsOn: 1 });
+    return eachWeekOfInterval(
+      { start: startDate, end: endDate },
+      { weekStartsOn: 1 }
+    );
   }, [gridRange]);
 
   const generateGridColumns = useCallback(() => {
     const dailyWidth = dailyWidthByView[rrange] || 50;
-    
-    const totalDaysForGrid = gridRange?.length > 0 
-      ? gridRange.length 
-      : (funnelData?.endDay || 1);
+
+    const totalDaysForGrid =
+      gridRange?.length > 0 ? gridRange.length : funnelData?.endDay || 1;
 
     if (rrange === "Day" || rrange === "Week") {
       return `repeat(${totalDaysForGrid}, ${dailyWidth}px)`;
@@ -355,10 +349,9 @@ const ResizeableElements = ({
   ]);
 
   const getGridColumnEnd = useCallback(() => {
-    const totalDaysForGrid =  gridRange?.length > 0 
-      ? gridRange.length 
-      : (funnelData?.endDay || 1);
-      
+    const totalDaysForGrid =
+      gridRange?.length > 0 ? gridRange.length : funnelData?.endDay || 1;
+
     if (rrange === "Day") {
       return totalDaysForGrid;
     } else if (rrange === "Week") {
@@ -374,7 +367,14 @@ const ResizeableElements = ({
     } else {
       return totalDaysForGrid;
     }
-  }, [rrange, funnelData?.endDay, funnelData?.endWeek, daysInEachMonth, gridRange, getWeeksInRange]);
+  }, [
+    rrange,
+    funnelData?.endDay,
+    funnelData?.endWeek,
+    daysInEachMonth,
+    gridRange,
+    getWeeksInRange,
+  ]);
 
   const getDailyWidth = useCallback(
     (viewType?: string): number => {
@@ -389,66 +389,72 @@ const ResizeableElements = ({
     const initialWidths: Record<string, number> = {};
     const initialPositions: Record<string, number> = {};
 
-
     campaignFormData.funnel_stages.forEach((stageName) => {
       const stage = campaignFormData?.channel_mix?.find(
         (s) => s?.funnel_stage === stageName
       );
 
       if (stageName && stage) {
-        const stageStartDate =
-          (stage?.funnel_stage_timeline_start_date
-            ? parseISO(stage?.funnel_stage_timeline_start_date)
-            : null);
+        const stageStartDate = stage?.funnel_stage_timeline_start_date
+          ? parseISO(stage?.funnel_stage_timeline_start_date)
+          : null;
 
-        const stageEndDate =
-          (stage?.funnel_stage_timeline_end_date
-            ? parseISO(stage?.funnel_stage_timeline_end_date)
-            : null);
+        const stageEndDate = stage?.funnel_stage_timeline_end_date
+          ? parseISO(stage?.funnel_stage_timeline_end_date)
+          : null;
 
         if (rrange === "Year" && stageStartDate && stageEndDate) {
           const monthWidth = getDailyWidth("Year");
           const timelineStart = startOfYear(gridRange[0]);
-          const allMonths = eachMonthOfInterval({ 
-            start: timelineStart, 
-            end: endOfYear(gridRange[gridRange.length - 1]) 
+          const allMonths = eachMonthOfInterval({
+            start: timelineStart,
+            end: endOfYear(gridRange[gridRange.length - 1]),
           });
-          
-          const startMonthIndex = allMonths.findIndex(m => 
-            format(m, "yyyy-MM") === format(stageStartDate, "yyyy-MM")
+
+          const startMonthIndex = allMonths.findIndex(
+            (m) => format(m, "yyyy-MM") === format(stageStartDate, "yyyy-MM")
           );
-          const endMonthIndex = allMonths.findIndex(m => 
-            format(m, "yyyy-MM") === format(stageEndDate, "yyyy-MM")
+          const endMonthIndex = allMonths.findIndex(
+            (m) => format(m, "yyyy-MM") === format(stageEndDate, "yyyy-MM")
           );
-          
-          const position = startMonthIndex >= 0 ? startMonthIndex * monthWidth : 0;
-          const monthsSpanned = endMonthIndex >= startMonthIndex ? endMonthIndex - startMonthIndex + 1 : 1;
-          
+
+          const position =
+            startMonthIndex >= 0 ? startMonthIndex * monthWidth : 0;
+          const monthsSpanned =
+            endMonthIndex >= startMonthIndex
+              ? endMonthIndex - startMonthIndex + 1
+              : 1;
+
           initialPositions[stageName] = position;
           initialWidths[stageName] = monthsSpanned * monthWidth;
         } else if (rrange === "Month" && stageStartDate && stageEndDate) {
           const weekWidth = getDailyWidth("Month");
           const allWeeks = getWeeksInRange();
-          
-          const startWeekIndex = allWeeks.findIndex(weekStart => {
+
+          const startWeekIndex = allWeeks.findIndex((weekStart) => {
             const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
             return stageStartDate >= weekStart && stageStartDate <= weekEnd;
           });
-          const endWeekIndex = allWeeks.findIndex(weekStart => {
+          const endWeekIndex = allWeeks.findIndex((weekStart) => {
             const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
             return stageEndDate >= weekStart && stageEndDate <= weekEnd;
           });
-          
+
           const position = startWeekIndex >= 0 ? startWeekIndex * weekWidth : 0;
-          const weeksSpanned = endWeekIndex >= startWeekIndex ? endWeekIndex - startWeekIndex + 1 : 1;
-          
+          const weeksSpanned =
+            endWeekIndex >= startWeekIndex
+              ? endWeekIndex - startWeekIndex + 1
+              : 1;
+
           initialPositions[stageName] = position;
           initialWidths[stageName] = weeksSpanned * weekWidth;
         } else {
-          const effectiveRange = gridRange && gridRange.length > 0 ? gridRange : range;
+          const effectiveRange =
+            gridRange && gridRange.length > 0 ? gridRange : range;
           const startDateIndex = stageStartDate
-            ? effectiveRange?.findIndex((date) => isEqual(date, stageStartDate)) *
-              getDailyWidth()
+            ? effectiveRange?.findIndex((date) =>
+                isEqual(date, stageStartDate)
+              ) * getDailyWidth()
             : 0;
 
           const daysBetween =
@@ -470,9 +476,10 @@ const ResizeableElements = ({
 
           const dailyWidth = getDailyWidth();
 
-          initialWidths[stageName] = daysBetween > 0
-            ? dailyWidth * daysBetween
-            : dailyWidth * daysFromStart;
+          initialWidths[stageName] =
+            daysBetween > 0
+              ? dailyWidth * daysBetween
+              : dailyWidth * daysFromStart;
 
           initialPositions[stageName] = startDateIndex;
         }
@@ -498,7 +505,7 @@ const ResizeableElements = ({
 
   const generateBackground = useCallback(() => {
     const dailyWidth = getDailyWidth();
-    
+
     if (rrange === "Year") {
       return {
         backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
@@ -555,7 +562,6 @@ const ResizeableElements = ({
 
           const currentChannelWidth = channelWidths[stage?.name] || 350;
           const currentChannelPosition = channelPositions[stage?.name] || 0;
-       
 
           return (
             <div

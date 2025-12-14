@@ -13,12 +13,11 @@ import {
   format,
   isSameWeek,
   parseISO,
-  startOfYear,
 } from "date-fns";
 import DayInterval from "../../atoms/date-interval/DayInterval";
 import MonthInterval from "../../atoms/date-interval/MonthInterval";
 import WeekInterval from "../../atoms/date-interval/WeekInterval";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import AddNewChennelsModel from "components/Modals/AddNewChennelsModel";
 import { useDateRange as useRange } from "src/date-range-context";
 import YearInterval from "../../atoms/date-interval/YearInterval";
@@ -41,7 +40,7 @@ const MainSection = ({
     extendTimelineAfter,
     timelineStart,
   } = useRange();
-  const { range } = useDateRange();
+  const { range, setRange } = useDateRange();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedStage, setSelectedStage] = useState("");
   const { active, subStep } = useActive();
@@ -110,8 +109,7 @@ const MainSection = ({
       const unitWidth = getWidthForView(viewType);
 
       if (viewType === "Year") {
-        const yearStart = startOfYear(tlStart);
-        const months = differenceInCalendarMonths(focusDate, yearStart);
+        const months = differenceInCalendarMonths(focusDate, tlStart);
         return Math.max(0, months * unitWidth - 150);
       }
 
@@ -237,15 +235,19 @@ const MainSection = ({
     : null;
 
   const dayDifference = differenceInCalendarDays(endDates, startDates);
-  const weekDifference =
-    startDates && endDates
-      ? eachWeekOfInterval(
-          { start: new Date(startDates), end: new Date(endDates) },
-          { weekStartsOn: 1 } // Optional: set Monday as start of week (0 = Sunday)
-        ).length
-      : 0;
-  const monthDifference = differenceInCalendarMonths(endDates, startDates);
-  const yearDifference = differenceInCalendarYears(endDates, startDates);
+
+  useEffect(() => {
+    if (!startDates || !endDates) return;
+    if (dayDifference <= 31) {
+      setRange("Day");
+    } else if (dayDifference <= 90) {
+      setRange("Week");
+    } else if (dayDifference <= 200) {
+      setRange("Month");
+    } else {
+      setRange("Year");
+    }
+  }, []);
 
   const isValidDateFormat = (date: string) => /^\d{4}-\d{2}-\d{2}$/.test(date);
 
@@ -302,17 +304,6 @@ const MainSection = ({
     endYear,
   };
 
-  function getDaysInEachMonth(): Record<string, number> {
-    const daysInMonth: Record<string, number> = {};
-
-    rrange?.forEach((date) => {
-      const monthYear = format(date, "MMMM yyyy"); // Include year to differentiate months across years
-      daysInMonth[monthYear] = (daysInMonth[monthYear] || 0) + 1;
-    });
-
-    return daysInMonth;
-  }
-
   useEffect(() => {
     if (active === 7) {
       if (subStep === 1) {
@@ -320,18 +311,6 @@ const MainSection = ({
       }
     }
   }, [active, subStep, close]);
-
-  function getDaysInEachYear(): Record<string, number> {
-    const daysInYear: Record<string, number> = {};
-
-    rrange?.forEach((date) => {
-      const year = format(date, "yyyy");
-      daysInYear[year] = (daysInYear[year] || 0) + 1;
-    });
-
-    return daysInYear;
-  }
-
   const renderTimeline = () => {
     switch (range) {
       case "Day":

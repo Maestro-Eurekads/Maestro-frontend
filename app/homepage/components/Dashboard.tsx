@@ -23,12 +23,16 @@ import BudgetOverviewCard, {
 
 const Dashboard = () => {
   const { clientCampaignData, loading } = useCampaigns();
-  const { range } = useDateRange();
+  const { range, setRange } = useDateRange();
+  const stringifiedClientCampaignData = JSON.stringify(clientCampaignData);
 
-  const visibleCampaigns =
-    clientCampaignData?.filter(
-      (c) => c?.campaign_timeline_start_date && c?.campaign_timeline_end_date
-    ) || [];
+  const visibleCampaigns = useMemo(() => {
+    return (
+      clientCampaignData?.filter(
+        (c) => c?.campaign_timeline_start_date && c?.campaign_timeline_end_date
+      ) || []
+    );
+  }, [stringifiedClientCampaignData]);
 
   const [selectedPlanIds, setSelectedPlanIds] = useState<Set<number>>(
     new Set()
@@ -40,7 +44,7 @@ const Dashboard = () => {
       visibleCampaigns.forEach((c) => allIds.add(c.id));
       setSelectedPlanIds(allIds);
     }
-  }, [clientCampaignData]);
+  }, [stringifiedClientCampaignData]);
 
   const togglePlanSelection = (id: number) => {
     setSelectedPlanIds((prev) => {
@@ -66,41 +70,48 @@ const Dashboard = () => {
     visibleCampaigns.length > 0 &&
     selectedPlanIds.size === visibleCampaigns.length;
 
-  const startDates = clientCampaignData
-    ?.filter((c) => c?.campaign_timeline_start_date)
-    ?.map(
-      (ch) =>
-        ch?.campaign_timeline_start_date !== null &&
-        parseISO(ch?.campaign_timeline_start_date)
-    );
-  const endDates = clientCampaignData
-    ?.filter((c) => c?.campaign_timeline_end_date)
-    ?.map(
-      (ch) =>
-        ch?.campaign_timeline_end_date !== null &&
-        parseISO(ch?.campaign_timeline_end_date)
-    );
+  const { earliestStartDate, latestEndDate } = useMemo(() => {
+    const startDates = clientCampaignData
+      ?.filter((c) => c?.campaign_timeline_start_date)
+      ?.map((ch) => parseISO(ch.campaign_timeline_start_date));
+    const endDates = clientCampaignData
+      ?.filter((c) => c?.campaign_timeline_end_date)
+      ?.map((ch) => parseISO(ch.campaign_timeline_end_date));
+    return {
+      earliestStartDate: min(startDates),
+      latestEndDate: max(endDates),
+    };
+  }, [stringifiedClientCampaignData]);
 
-  const earliestStartDate = min(startDates);
-  const latestEndDate = max(endDates);
-
-  const dayDifference = differenceInCalendarDays(
-    latestEndDate,
-    earliestStartDate
+  const dayDifference = useMemo(
+    () => differenceInCalendarDays(latestEndDate, earliestStartDate),
+    [latestEndDate, earliestStartDate]
+  );
+  const weekDifference = useMemo(
+    () => differenceInCalendarWeeks(latestEndDate, earliestStartDate),
+    [latestEndDate, earliestStartDate]
+  );
+  const monthDifference = useMemo(
+    () => differenceInCalendarMonths(latestEndDate, earliestStartDate),
+    [latestEndDate, earliestStartDate]
+  );
+  const yearDifference = useMemo(
+    () => differenceInCalendarYears(latestEndDate, earliestStartDate),
+    [latestEndDate, earliestStartDate]
   );
 
-  const weekDifference = differenceInCalendarWeeks(
-    latestEndDate,
-    earliestStartDate
-  );
-  const monthDifference = differenceInCalendarMonths(
-    latestEndDate,
-    earliestStartDate
-  );
-  const yearDifference = differenceInCalendarYears(
-    latestEndDate,
-    earliestStartDate
-  );
+  useEffect(() => {
+    if (!earliestStartDate || !latestEndDate) return;
+    if (dayDifference <= 31) {
+      setRange("Day");
+    } else if (dayDifference <= 90) {
+      setRange("Week");
+    } else if (dayDifference <= 200) {
+      setRange("Month");
+    } else {
+      setRange("Year");
+    }
+  }, [earliestStartDate, latestEndDate, dayDifference]);
 
   const funnelsData = visibleCampaigns?.map((ch) => {
     const start = ch?.campaign_timeline_start_date

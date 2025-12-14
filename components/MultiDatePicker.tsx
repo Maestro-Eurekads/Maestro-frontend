@@ -1,6 +1,6 @@
 //@ts-nocheck
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import left from "../public/left.svg";
 import right from "../public/right.svg";
@@ -20,34 +20,46 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
 }) => {
   const weekdays = ["M", "T", "W", "Th", "F", "S", "S"];
   const { selectedDates, setSelectedDates } = useSelectedDates();
-  const [monthOffset, setMonthOffset] = useState(0);
   const { setCampaignFormData, campaignFormData } = useCampaigns();
-  
+
+  const getInitialViewDate = () => {
+    if (campaignFormData?.campaign_timeline_start_date) {
+      return new Date(campaignFormData.campaign_timeline_start_date);
+    }
+    return new Date();
+  };
+
+  const [viewDate, setViewDate] = useState(getInitialViewDate);
+  const hasInitialized = useRef(false);
+
+  useEffect(() => {
+    if (hasInitialized.current) return;
+    if (campaignFormData?.campaign_timeline_start_date) {
+      setViewDate(new Date(campaignFormData.campaign_timeline_start_date));
+      hasInitialized.current = true;
+    }
+  }, [campaignFormData?.campaign_timeline_start_date]);
+
+  const goToPrevMonth = () => {
+    setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  };
+
+  const goToNextMonth = () => {
+    setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  };
 
   const getMonthData = (offset: number) => {
-    let baseDate;
-    
-    if (campaignFormData?.campaign_timeline_start_date) {
-      const campaignStart = new Date(campaignFormData.campaign_timeline_start_date);
-      baseDate = new Date(
-        campaignStart.getFullYear(),
-        campaignStart.getMonth() + offset, 
-        1
-      );
-    } else {
-      const today = new Date();
-      baseDate = new Date(
-        today.getFullYear(),
-        today.getMonth() + offset,
-        1
-      );
-    }
-    
+    const baseDate = new Date(
+      viewDate.getFullYear(),
+      viewDate.getMonth() + offset,
+      1
+    );
+
     const year = baseDate.getFullYear();
     const month = baseDate.getMonth();
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-  
+
     return {
       name: baseDate.toLocaleString("default", {
         month: "long",
@@ -63,7 +75,8 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
     selectedDates.from ||
     parseApiDate(campaignFormData?.campaign_timeline_start_date);
   const toDate =
-    selectedDates.to || parseApiDate(campaignFormData?.campaign_timeline_end_date);
+    selectedDates.to ||
+    parseApiDate(campaignFormData?.campaign_timeline_end_date);
 
   const isPastDate = (day: number, monthIndex: number, year: number) => {
     const today = new Date();
@@ -74,12 +87,14 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
   };
   const handleDateClick = (day: number, monthIndex: number, year: number) => {
     const newDate = { day, month: monthIndex, year };
-  
+
     if (!selectedDates.from || (selectedDates.from && selectedDates.to)) {
-      const startDateStr = `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      const startDateStr = `${year}-${String(monthIndex + 1).padStart(
+        2,
+        "0"
+      )}-${String(day).padStart(2, "0")}`;
       setSelectedDates({ from: newDate, to: null });
       resetNestedDates(startDateStr, null);
-      
     } else if (selectedDates.from) {
       const from = new Date(
         selectedDates.from.year,
@@ -87,22 +102,33 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
         selectedDates.from.day
       );
       const to = new Date(year, monthIndex, day);
-      
+
       if (to > from) {
-        const startDateStr = `${selectedDates.from.year}-${String(selectedDates.from.month + 1).padStart(2, "0")}-${String(selectedDates.from.day).padStart(2, "0")}`;
-        const endDateStr = `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-        
+        const startDateStr = `${selectedDates.from.year}-${String(
+          selectedDates.from.month + 1
+        ).padStart(2, "0")}-${String(selectedDates.from.day).padStart(2, "0")}`;
+        const endDateStr = `${year}-${String(monthIndex + 1).padStart(
+          2,
+          "0"
+        )}-${String(day).padStart(2, "0")}`;
+
         setSelectedDates((prev) => ({ ...prev, to: newDate }));
         resetNestedDates(startDateStr, endDateStr);
       } else {
-        const startDateStr = `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        const startDateStr = `${year}-${String(monthIndex + 1).padStart(
+          2,
+          "0"
+        )}-${String(day).padStart(2, "0")}`;
         setSelectedDates({ from: newDate, to: null });
         resetNestedDates(startDateStr, null);
       }
     }
   };
 
-  const resetNestedDates = (startDate: string | null, endDate: string | null) => {
+  const resetNestedDates = (
+    startDate: string | null,
+    endDate: string | null
+  ) => {
     setCampaignFormData((prev: any) => {
       const updatedChannels = prev.channel_mix?.map((channel: any) => {
         const updatedMediaTypes = Object.keys(channel).reduce(
@@ -145,20 +171,43 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
     }));
   };
 
-  const months = [getMonthData(monthOffset), getMonthData(monthOffset + 1)];
+  const months = [getMonthData(0), getMonthData(1)];
 
   useEffect(() => {
-    const startDate = parseApiDate(campaignFormData?.campaign_timeline_start_date);
-    const endDate = parseApiDate(campaignFormData?.campaign_timeline_end_date);
+    const startDateStr = campaignFormData?.campaign_timeline_start_date;
+    const endDateStr = campaignFormData?.campaign_timeline_end_date;
+
+    if (!startDateStr || !endDateStr) return;
+
+    const startDate = parseApiDate(startDateStr);
+    const endDate = parseApiDate(endDateStr);
 
     if (startDate && endDate) {
-      setSelectedDates({
-        from: { ...startDate, year: new Date(campaignFormData.campaign_timeline_start_date).getFullYear() },
-        to: { ...endDate, year: new Date(campaignFormData.campaign_timeline_end_date).getFullYear() },
+      setSelectedDates((prev) => {
+        const newFrom = {
+          ...startDate,
+          year: new Date(startDateStr).getFullYear(),
+        };
+        const newTo = { ...endDate, year: new Date(endDateStr).getFullYear() };
+
+        if (
+          prev.from?.day === newFrom.day &&
+          prev.from?.month === newFrom.month &&
+          prev.from?.year === newFrom.year &&
+          prev.to?.day === newTo.day &&
+          prev.to?.month === newTo.month &&
+          prev.to?.year === newTo.year
+        ) {
+          return prev;
+        }
+
+        return { from: newFrom, to: newTo };
       });
     }
-  }, [campaignFormData]);
-
+  }, [
+    campaignFormData?.campaign_timeline_start_date,
+    campaignFormData?.campaign_timeline_end_date,
+  ]);
 
   const isInRange = (day: number, monthIndex: number, year: number) => {
     if (!fromDate || !toDate) return false;
@@ -174,21 +223,13 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
     >
       {/* Navigation */}
       <div className="flex justify-between w-full">
-        <button
-          className={`flex items-center gap-3 `}
-          onClick={() => setMonthOffset(monthOffset - 1)}
-        // disabled={!isEditing}
-        >
+        <button className="flex items-center gap-3" onClick={goToPrevMonth}>
           <Image src={left} alt="left" />
           <h6 className="font-semibold text-[16px] text-[#061237]">
             {months[0].name}
           </h6>
         </button>
-        <button
-          className={`flex items-center gap-3 `}
-          onClick={() => setMonthOffset(monthOffset + 1)}
-        // disabled={!isEditing}
-        >
+        <button className="flex items-center gap-3" onClick={goToNextMonth}>
           <h6 className="font-semibold text-[16px] text-[#061237]">
             {months[1].name}
           </h6>
@@ -201,8 +242,9 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
         {months.map((month, monthIndex) => (
           <div
             key={monthIndex}
-            className={`w-1/2 p-2 ${monthIndex === 1 ? "border-l border-gray-200" : ""
-              }`}
+            className={`w-1/2 p-2 ${
+              monthIndex === 1 ? "border-l border-gray-200" : ""
+            }`}
           >
             {/* Weekdays */}
             <div className="grid grid-cols-7 gap-2 text-center font-semibold text-gray-700">
@@ -261,8 +303,8 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
             <button className="reset_dates_move">
               {fromDate
                 ? `${String(fromDate.day).padStart(2, "0")}-${String(
-                  fromDate.month + 1
-                ).padStart(2, "0")}-${fromDate.year}`
+                    fromDate.month + 1
+                  ).padStart(2, "0")}-${fromDate.year}`
                 : "Select date"}
             </button>
           </div>
@@ -272,8 +314,8 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
             <button className="reset_dates_move">
               {toDate
                 ? `${String(toDate.day).padStart(2, "0")}-${String(
-                  toDate.month + 1
-                ).padStart(2, "0")}-${toDate.year}`
+                    toDate.month + 1
+                  ).padStart(2, "0")}-${toDate.year}`
                 : "Select date"}
             </button>
           </div>
@@ -282,7 +324,7 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
           type="button"
           className={`reset_dates `}
           onClick={resetDates}
-        // disabled={!isEditing}
+          // disabled={!isEditing}
         >
           Reset dates
         </button>
