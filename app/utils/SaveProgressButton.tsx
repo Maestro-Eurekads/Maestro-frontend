@@ -601,44 +601,6 @@ const SaveProgressButton = ({ isBackToDashboardButton }: { isBackToDashboardButt
 		const handleStepZero = async () => {
 			setLoading(true)
 			try {
-				let hasError = false
-				// Validation function
-				const getFieldValue = (field: any): boolean => {
-					if (Array.isArray(field)) return field.length > 0
-					if (typeof field === "object" && field !== null) return Object.keys(field).length > 0
-					return Boolean(field)
-				}
-
-				// Error collector
-				const errors: string[] = []
-
-				// Check each field, and if invalid, set flag and trigger alert
-				if (!getFieldValue(campaignFormData?.media_plan)) {
-					errors.push("Media plan name is required.")
-					hasError = true
-				}
-
-				if (!getFieldValue(campaignFormData?.budget_details_currency?.id)) {
-					errors.push("Currency is required.")
-					hasError = true
-				}
-
-				if (!isStepZeroValid) {
-					errors.push("Please complete all required fields before proceeding.")
-					hasError = true
-				}
-
-				if (hasError) {
-					setAlert({
-						variant: "error",
-						message: errors.join(" "),
-						position: "bottom-right",
-					})
-					setValidateStep(true)
-					setLoading(false)
-					return
-				}
-
 				// Clean and store form
 				const cleanedFormData = {
 					...campaignFormData,
@@ -648,26 +610,25 @@ const SaveProgressButton = ({ isBackToDashboardButton }: { isBackToDashboardButt
 
 				setCampaignFormData(cleanedFormData)
 				localStorage.setItem("campaignFormData", JSON.stringify(cleanedFormData))
-				console.log('YOOOO')
 				const payload = {
 					data: {
 						campaign_builder: loggedInUser?.id,
-						client: campaignFormData?.client_selection?.id,
+						// client: campaignFormData?.client_selection?.id,
 						client_selection: {
 							client: campaignFormData?.client_selection?.value,
-							level_1: campaignFormData?.level_1,
-						},
-						media_plan_details: {
-							plan_name: campaignFormData?.media_plan,
-							internal_approver: (campaignFormData?.internal_approver || []).map((item: any) => Number(item.id)),
-							client_approver: (campaignFormData?.client_approver || []).map((item: any) => Number(item.id)),
-						},
-						budget_details: {
-							currency: campaignFormData?.budget_details_currency?.id || "EUR",
-							value: campaignFormData?.country_details?.id,
+							level_1: campaignFormData?.client_selection?.level_1,
 						},
 						campaign_budget: {
-							currency: campaignFormData?.budget_details_currency?.id || "EUR",
+							currency: campaignFormData?.campaign_budget?.currency || campaignFormData?.budget_details?.currency || "EUR",
+						},
+						media_plan_details: {
+							plan_name: campaignFormData?.media_plan_details?.plan_name,
+							internal_approver: (campaignFormData?.media_plan_details?.internal_approver || []).map((item: any) => Number(item.id)),
+							client_approver: (campaignFormData?.media_plan_details?.client_approver || []).map((item: any) => Number(item.id)),
+						},
+						budget_details: {
+							currency: campaignFormData?.campaign_budget?.currency || campaignFormData?.budget_details?.currency || "EUR",
+							value: campaignFormData?.country_details?.value || campaignFormData?.budget_details?.value,
 						},
 						agency_profile: agencyId,
 					},

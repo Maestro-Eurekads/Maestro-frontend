@@ -27,7 +27,7 @@ const CreationFlow = ({ steps }) => {
   return (
     <div id="Sidenavbar">
       {steps.map((step, index) => {
-        const stepNumber = index + 1;
+        const stepNumber = index;
         const isActive = active === stepNumber;
         const isCompleted = active > stepNumber;
         const stepColor = isActive
