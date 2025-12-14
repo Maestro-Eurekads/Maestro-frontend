@@ -49,6 +49,7 @@ const MainSection = ({
   const isExtendingRef = useRef(false);
   const hasScrolledToInitial = useRef(false);
   const prevViewType = useRef<string | null>(null);
+  const isDraggingRef = useRef(false);
 
   const getWidthForView = useCallback((viewType: string) => {
     switch (viewType) {
@@ -168,13 +169,20 @@ const MainSection = ({
   }, [range]);
 
   const handleScroll = useCallback(() => {
-    if (!scrollContainerRef.current || isExtendingRef.current) {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    if (isDraggingRef.current) {
       return;
     }
 
-    const container = scrollContainerRef.current;
     const { scrollLeft, scrollWidth, clientWidth } = container;
     const trigger = getScrollTriggerDistance(range);
+    const distanceToEnd = scrollWidth - scrollLeft - clientWidth;
+
+    if (isExtendingRef.current) {
+      return;
+    }
 
     if (scrollLeft < trigger) {
       isExtendingRef.current = true;
@@ -194,7 +202,7 @@ const MainSection = ({
       return;
     }
 
-    if (scrollWidth - scrollLeft - clientWidth < trigger) {
+    if (distanceToEnd < trigger) {
       isExtendingRef.current = true;
       extendTimelineAfter();
 
@@ -225,6 +233,29 @@ const MainSection = ({
       clearTimeout(scrollTimeout);
     };
   }, [handleScroll]);
+
+  useEffect(() => {
+    const handleMouseDown = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const draggableElement = target.closest("[class*='cont-']");
+      if (draggableElement && !target.closest("button")) {
+        isDraggingRef.current = true;
+      }
+    };
+
+    const handleMouseUp = () => {
+      setTimeout(() => {
+        isDraggingRef.current = false;
+      }, 50);
+    };
+
+    document.addEventListener("mousedown", handleMouseDown);
+    document.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      document.removeEventListener("mousedown", handleMouseDown);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, []);
 
   const startDates = campaignFormData?.campaign_timeline_start_date
     ? campaignFormData?.campaign_timeline_start_date

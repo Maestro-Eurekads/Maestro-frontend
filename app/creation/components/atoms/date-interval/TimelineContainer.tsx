@@ -12,8 +12,7 @@ import {
   eachDayOfInterval,
   eachWeekOfInterval,
   eachMonthOfInterval,
-  startOfYear,
-  endOfYear,
+  startOfMonth,
   subMonths,
   addMonths,
   subDays,
@@ -93,11 +92,9 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
       const columnWidth = COLUMN_WIDTHS.Year;
       const requiredColumns = getRequiredColumns(columnWidth);
 
-      const yearStart = startOfYear(startDate);
-      const yearEnd = endOfYear(endDate);
       const currentMonths = eachMonthOfInterval({
-        start: yearStart,
-        end: yearEnd,
+        start: startOfMonth(startDate),
+        end: endDate,
       });
 
       if (currentMonths.length < requiredColumns) {
@@ -160,9 +157,10 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
   }, [bufferedStartDate, bufferedEndDate]);
 
   const totalMonths = useMemo(() => {
-    const yearStart = startOfYear(bufferedStartDate);
-    const yearEnd = endOfYear(bufferedEndDate);
-    return eachMonthOfInterval({ start: yearStart, end: yearEnd }).length;
+    return eachMonthOfInterval({
+      start: startOfMonth(bufferedStartDate),
+      end: bufferedEndDate,
+    }).length;
   }, [bufferedStartDate, bufferedEndDate]);
 
   const renderTimeline = () => {

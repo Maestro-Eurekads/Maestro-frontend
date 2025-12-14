@@ -1,8 +1,6 @@
 import {
   eachMonthOfInterval,
   eachWeekOfInterval,
-  startOfYear,
-  endOfYear,
   startOfMonth,
   startOfWeek,
   endOfWeek,
@@ -35,11 +33,9 @@ export const pixelToDate = ({
 
   if (viewType === "Year") {
     const monthWidth = dailyWidth || 80;
-    const timelineStart = startOfYear(firstDate);
-    const timelineEnd = endOfYear(lastDate);
     const allMonths = eachMonthOfInterval({
-      start: timelineStart,
-      end: timelineEnd,
+      start: startOfMonth(firstDate),
+      end: lastDate,
     });
 
     const monthIndex = Math.min(
@@ -81,6 +77,3 @@ export const pixelToDate = ({
   const calculatedDate = dateList[dayIndex];
   return calculatedDate;
 };
-
-
-

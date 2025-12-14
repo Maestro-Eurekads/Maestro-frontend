@@ -1,12 +1,6 @@
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { getPlatformIcon, mediaTypes, platformStyles } from "components/data";
-import {
-  eachMonthOfInterval,
-  endOfYear,
-  format,
-  parseISO,
-  startOfYear,
-} from "date-fns";
+import { eachMonthOfInterval, format, parseISO, startOfMonth } from "date-fns";
 import Image from "next/image";
 import React, { useMemo, useState } from "react";
 import { FiChevronDown, FiChevronUp, FiCheck } from "react-icons/fi";
@@ -41,9 +35,10 @@ function YearTimeline({
 
   const allMonths = useMemo(() => {
     if (!range || range.length === 0) return [];
-    const startDate = startOfYear(range[0]);
-    const endDate = endOfYear(range[range.length - 1]);
-    return eachMonthOfInterval({ start: startDate, end: endDate });
+    return eachMonthOfInterval({
+      start: startOfMonth(range[0]),
+      end: range[range.length - 1],
+    });
   }, [range]);
 
   const totalMonths = allMonths.length;

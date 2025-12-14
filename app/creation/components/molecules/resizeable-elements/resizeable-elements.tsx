@@ -20,10 +20,9 @@ import {
   isEqual,
   parseISO,
   endOfMonth,
+  startOfMonth,
   eachMonthOfInterval,
   differenceInDays,
-  startOfYear,
-  endOfYear,
   startOfWeek,
   endOfWeek,
   differenceInWeeks,
@@ -128,10 +127,10 @@ const ResizeableElements = ({
   const generateYearMonths = useCallback(() => {
     if (!gridRange || gridRange.length === 0) return [];
 
-    const startDate = startOfYear(gridRange[0]);
-    const endDate = endOfYear(gridRange[gridRange.length - 1]);
-
-    const months = eachMonthOfInterval({ start: startDate, end: endDate });
+    const months = eachMonthOfInterval({
+      start: startOfMonth(gridRange[0]),
+      end: gridRange[gridRange.length - 1],
+    });
     return months.map((month) => format(month, "MMMM yyyy"));
   }, [gridRange]);
 
@@ -330,9 +329,10 @@ const ResizeableElements = ({
     if (rrange === "Day" || rrange === "Week") {
       return `repeat(${totalDaysForGrid}, ${dailyWidth}px)`;
     } else if (rrange === "Year") {
-      const startDate = startOfYear(gridRange[0]);
-      const endDate = endOfYear(gridRange[gridRange.length - 1]);
-      const months = eachMonthOfInterval({ start: startDate, end: endDate });
+      const months = eachMonthOfInterval({
+        start: startOfMonth(gridRange[0]),
+        end: gridRange[gridRange.length - 1],
+      });
       return `repeat(${months.length}, ${dailyWidth}px)`;
     } else if (rrange === "Month") {
       const weeks = getWeeksInRange();
@@ -357,9 +357,10 @@ const ResizeableElements = ({
     } else if (rrange === "Week") {
       return totalDaysForGrid;
     } else if (rrange === "Year") {
-      const startDate = startOfYear(gridRange[0]);
-      const endDate = endOfYear(gridRange[gridRange.length - 1]);
-      const months = eachMonthOfInterval({ start: startDate, end: endDate });
+      const months = eachMonthOfInterval({
+        start: startOfMonth(gridRange[0]),
+        end: gridRange[gridRange.length - 1],
+      });
       return months.length;
     } else if (rrange === "Month") {
       const weeks = getWeeksInRange();
@@ -405,10 +406,9 @@ const ResizeableElements = ({
 
         if (rrange === "Year" && stageStartDate && stageEndDate) {
           const monthWidth = getDailyWidth("Year");
-          const timelineStart = startOfYear(gridRange[0]);
           const allMonths = eachMonthOfInterval({
-            start: timelineStart,
-            end: endOfYear(gridRange[gridRange.length - 1]),
+            start: startOfMonth(gridRange[0]),
+            end: gridRange[gridRange.length - 1],
           });
 
           const startMonthIndex = allMonths.findIndex(

@@ -13,8 +13,6 @@ import {
   isEqual,
   parseISO,
   format,
-  startOfYear,
-  endOfYear,
   startOfMonth,
   startOfWeek,
   endOfWeek,
@@ -120,7 +118,6 @@ const ResizableChannels = ({
     }))
   );
 
-  const [dragging, setDragging] = useState(null);
   const [draggingPosition, setDraggingPosition] = useState(null);
 
   const [tooltip, setTooltip] = useState<TooltipState>({
@@ -218,7 +215,6 @@ const ResizableChannels = ({
       containerWidth: containerRect.width,
       dailyWidth,
     });
-    console.log('startDateValue', startDateValue)
 
     const endDateValue = pixelToDateUtil({
       dateList,
@@ -254,7 +250,6 @@ const ResizableChannels = ({
           });
 
     const channelName = channels[index]?.name || "Channel";
-  
 
     const tooltipX = mouseX - containerRect.left;
     const tooltipY = containerRect.top - 50;
@@ -460,8 +455,6 @@ const ResizableChannels = ({
     }
   }, [campaignFormData, parentId]);
 
- 
-
   const handleDragStart = (index) => (event) => {
     if (disableDrag) return;
     event.preventDefault();
@@ -471,7 +464,7 @@ const ResizableChannels = ({
       startLeft: channelState[index]?.left || parentLeft,
     });
 
-    const startPixel = (channelState[index]?.left || parentLeft);
+    const startPixel = channelState[index]?.left || parentLeft;
     const endPixel = startPixel + (channelState[index]?.width || 50);
     updateTooltipWithDates(startPixel, endPixel, index, event.clientX, "drag");
   };
@@ -578,7 +571,6 @@ const ResizableChannels = ({
 
       isDraggingRef.current = false;
       setDraggingPosition(null);
-      setDragging(null);
     };
 
     document.addEventListener("mousemove", handleDragMove);
@@ -691,6 +683,7 @@ const ResizableChannels = ({
     const deltaLeft = parentLeft - prevLeft;
     const widthChanged = prevWidth !== parentWidth;
 
+
     if (widthChanged) {
       hasInitializedRef.current = false;
     } else if (deltaLeft !== 0) {
@@ -770,11 +763,9 @@ const ResizableChannels = ({
         let width = parentWidth;
 
         if (viewType === "Year" && dateList && dateList.length > 0) {
-          const timelineStart = startOfYear(dateList[0]);
-          const timelineEnd = endOfYear(dateList[dateList.length - 1]);
           const allMonths = eachMonthOfInterval({
-            start: timelineStart,
-            end: timelineEnd,
+            start: startOfMonth(dateList[0]),
+            end: dateList[dateList.length - 1],
           });
 
           const startMonthIndex = adjustedStageStartDate
@@ -896,91 +887,6 @@ const ResizableChannels = ({
     startDate,
     endDate,
   ]);
-
-  useEffect(() => {
-    if (!dragging) return;
-
-    let totalUnits = dateList.length - 1;
-    if (viewType === "Year" && dateList && dateList.length > 0) {
-      const timelineStart = startOfYear(dateList[0]);
-      const timelineEnd = endOfYear(dateList[dateList.length - 1]);
-      const allMonths = eachMonthOfInterval({
-        start: timelineStart,
-        end: timelineEnd,
-      });
-      totalUnits = allMonths.length - 1;
-    } else if (viewType === "Month" && dateList && dateList.length > 0) {
-      const allWeeks = eachWeekOfInterval(
-        { start: dateList[0], end: dateList[dateList.length - 1] },
-        { weekStartsOn: 1 }
-      );
-      totalUnits = allWeeks.length - 1;
-    }
-
-    const handleMouseMove = (event) => {
-      event.preventDefault();
-      const { index, direction, startX } = dragging;
-      const deltaX = event.clientX - startX;
-      setChannelState((prev) =>
-        prev.map((state, i) => {
-          if (i !== index) return state;
-
-          let newWidth,
-            newLeft = state.left;
-
-          if (direction === "left") {
-            newWidth = Math.max(
-              50,
-              Math.min(
-                state.width - deltaX,
-                parentWidth - (state.left - parentLeft)
-              )
-            );
-            newLeft = state.left + deltaX;
-
-            newLeft = Math.max(
-              parentLeft,
-              Math.min(newLeft, parentLeft + parentWidth - newWidth)
-            );
-
-            newWidth = state.left + state.width - newLeft;
-          } else {
-            const rightEdge = state.left + state.width + deltaX;
-            const maxRightEdge = parentLeft + parentWidth;
-            const adjustedRightEdge = Math.min(rightEdge, maxRightEdge);
-
-            newWidth = Math.max(
-              50,
-              Math.min(
-                adjustedRightEdge - state.left,
-                parentWidth - (state.left - parentLeft)
-              )
-            );
-          }
-
-          const startPixel = newLeft - parentLeft;
-          const endPixel = startPixel - 1 + newWidth;
-
-          if (endDate > endDate) {
-            const parentEndPixel = parentWidth;
-            const maxWidth = parentEndPixel - startPixel + parentLeft;
-            newWidth = Math.min(newWidth, maxWidth);
-          }
-
-          return { ...state, left: newLeft, width: newWidth };
-        })
-      );
-
-      setDragging((prev) => ({ ...prev, startX: event.clientX }));
-    };
-
-
-    document.addEventListener("mousemove", handleMouseMove);
-
-    return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-    };
-  }, [dragging, parentWidth, viewType, dateList, dailyWidth]);
 
   return (
     <div

@@ -2,7 +2,7 @@
 
 import type React from "react";
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { eachMonthOfInterval, format, startOfYear, endOfYear } from "date-fns";
+import { eachMonthOfInterval, format, startOfMonth } from "date-fns";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { useDateRange } from "src/date-range-context";
 
@@ -28,20 +28,20 @@ const YearInterval: React.FC<YearIntervalProps> = ({
     let months: Date[] = [];
 
     if (effectiveRange && effectiveRange.length > 0) {
-      const startDate = startOfYear(effectiveRange[0]);
-      const endDate = endOfYear(effectiveRange[effectiveRange.length - 1]);
-      months = eachMonthOfInterval({ start: startDate, end: endDate });
+      months = eachMonthOfInterval({
+        start: startOfMonth(effectiveRange[0]),
+        end: effectiveRange[effectiveRange.length - 1],
+      });
     } else if (
       campaignFormData?.campaign_timeline_start_date &&
       campaignFormData?.campaign_timeline_end_date
     ) {
-      const startDate = startOfYear(
-        new Date(campaignFormData.campaign_timeline_start_date)
-      );
-      const endDate = endOfYear(
-        new Date(campaignFormData.campaign_timeline_end_date)
-      );
-      months = eachMonthOfInterval({ start: startDate, end: endDate });
+      months = eachMonthOfInterval({
+        start: startOfMonth(
+          new Date(campaignFormData.campaign_timeline_start_date)
+        ),
+        end: new Date(campaignFormData.campaign_timeline_end_date),
+      });
     }
 
     const grouped: Record<string, string[]> = {};
