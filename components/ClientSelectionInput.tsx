@@ -19,9 +19,9 @@ const TextInput = ({
         type="text"
         placeholder={label}
         className="dropdown_button_width px-4 py-2 h-[41px] bg-white border-2 border-[#EFEFEF] rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-100 placeholder-[#061237] cursor-text"
-        value={campaignFormData[formId] || ""}
+        value={campaignFormData?.media_plan_details?.[formId] || ""}
         onChange={(e) => {
-          setCampaignFormData((prev) => ({ ...prev, [formId]: e.target.value }));
+          setCampaignFormData((prev) => ({ ...prev, media_plan_details: { ...prev.media_plan_details, [formId]: e.target.value } }));
           setChange(true)
         }}
       />

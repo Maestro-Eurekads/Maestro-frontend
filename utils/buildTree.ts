@@ -1,4 +1,4 @@
-export const buildTree = (data: any) => {
+export const buildTree = (data: any, keepRoot = false) => {
   if (!data || !Array.isArray(data.parameters)) return [];
 
   const buildNode = (param: any, parentPath: string = '') => {
@@ -19,5 +19,17 @@ export const buildTree = (data: any) => {
     return node;
   };
 
-  return data.parameters.map((param) => buildNode(param));
+  const children = data.parameters.map((param) => buildNode(param));
+
+  if (keepRoot) {
+    return [{
+      title: data.title || 'Root',
+      value: 'root',
+      key: 'root',
+      children: children,
+    }];
+  } else {
+    return children;
+
+  }
 };

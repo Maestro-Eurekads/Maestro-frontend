@@ -19,7 +19,7 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({ label, option
 	const { campaignFormData, setCampaignFormData } = useCampaigns();
 	const { setChange } = useActive()
 	// Your selectedItems (full objects) stored in form data at formId key
-	const selectedItems: any[] = campaignFormData?.[formId] || [];
+	const selectedItems: any[] = campaignFormData?.media_plan_details?.[formId] || [];
 
 	// Extract selected IDs from selectedItems for Select value
 	const selectedValues = selectedItems.map(item => item.id);
@@ -46,7 +46,10 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({ label, option
 
 		setCampaignFormData((prev) => ({
 			...prev,
-			[formId]: mappedSelectedItems,
+			media_plan_details: {
+				...prev.media_plan_details,
+				[formId]: mappedSelectedItems,
+			},
 		}));
 	};
 

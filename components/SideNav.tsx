@@ -9,6 +9,7 @@ import { useActive } from "../app/utils/ActiveContext";
 import CreationFlowActive from "./CreationFlowActive";
 import funnel from "../public/ant-design_funnel-plot-filled.svg";
 import channel from "../public/icon-park-solid_web-page.svg";
+import addPlusWhite from "../public/addPlusWhite.svg";
 import devicefill from "../public/device-fill.svg";
 import basket from "../public/bxs_basket.svg";
 import click from "../public/fluent_cursor-click-24-filled.svg";
@@ -101,6 +102,15 @@ const SideNav: React.FC = () => {
 
   const steps = useMemo(
     () => [
+      {
+        vl: "vl",
+        vl_done: "vl_done",
+        vl_active: "vl_active",
+        state_text: "SideBar_Menu_state",
+        sidecircle: "SideBar_Menu_active",
+        title: "Media Plan Details",
+        img: <Image src={addPlusWhite} alt="add" />,
+      },
       {
         vl: "vl",
         vl_done: "vl_done",
