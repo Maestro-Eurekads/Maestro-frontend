@@ -4,18 +4,20 @@ import { isEqual, parseISO } from "date-fns";
 import Image from "next/image";
 import type React from "react";
 import { useState } from "react";
-import { FiChevronDown, FiChevronUp } from "react-icons/fi";
+import { FiChevronDown, FiChevronUp, FiCheck } from "react-icons/fi";
 
 interface DayTimelineProps {
   daysCount: number;
   funnels: any[];
   range?: any;
+  onTogglePlanSelection?: (id: number) => void;
 }
 
 const DayTimeline: React.FC<DayTimelineProps> = ({
   daysCount,
   funnels,
   range,
+  onTogglePlanSelection,
 }) => {
   const dayWidth = 80; // Fixed width for each day in pixels
   const [expanded, setExpanded] = useState({});
@@ -136,6 +138,8 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
       {funnels?.map(
         (
           {
+            id,
+            isSelected,
             startDay,
             endDay,
             label,
@@ -167,11 +171,16 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
               }}
             >
               <div
-                className="flex flex-col min-h-14 bg-white border border-[rgba(0,0,0,0.1)] mt-6 shadow-sm rounded-[10px] justify-between"
+                className={`flex flex-col min-h-14 bg-white mt-6 shadow-sm rounded-[10px] justify-between transition-all cursor-pointer ${
+                  isSelected
+                    ? "border-2 border-[#3175FF] ring-2 ring-[#3175FF]/20"
+                    : "border border-[rgba(0,0,0,0.2)] opacity-50"
+                }`}
                 style={{
                   gridColumnStart: campaignStartIndex,
                   gridColumnEnd: campaignEndIndex + 1,
                 }}
+                onClick={() => onTogglePlanSelection?.(id)}
               >
                 <div
                   className={`flex items-center gap-3 ${
@@ -181,8 +190,11 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                   }`}
                 >
                   <button
-                    className="flex items-center justify-center bg-blue-50  rounded-full min-w-8 min-h-8"
-                    onClick={() => toggleShow(index)}
+                    className="flex items-center justify-center bg-blue-50 rounded-full min-w-8 min-h-8"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleShow(index);
+                    }}
                   >
                     {expanded[index] ? (
                       <FiChevronUp size={20} />
@@ -190,12 +202,18 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                       <FiChevronDown size={20} />
                     )}
                   </button>
-                  <div>
-                    <h3 className="text-[#061237] font-semibold text-sm">
-                      {label}
-                    </h3>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-[#061237] font-semibold text-sm">
+                        {label}
+                      </h3>
+                      {isSelected && (
+                        <span className="flex items-center justify-center w-4 h-4 bg-[#3175FF] rounded-full">
+                          <FiCheck size={10} className="text-white" />
+                        </span>
+                      )}
+                    </div>
                     <p className="text-[#061237] font-medium text-sm">
-                      {/* 250,000 € */}
                       {budget?.startsWith("null") ||
                       budget?.startsWith("undefined")
                         ? 0

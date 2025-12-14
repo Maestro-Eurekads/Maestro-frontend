@@ -9,16 +9,21 @@ import {
 } from "date-fns";
 import Image from "next/image";
 import React, { useMemo, useState } from "react";
-import { FiChevronDown, FiChevronUp } from "react-icons/fi";
+import { FiChevronDown, FiChevronUp, FiCheck } from "react-icons/fi";
 
 const COLUMN_WIDTH = 80;
 
 interface YearTimelineProps {
   range: Date[];
   funnels: any[];
+  onTogglePlanSelection?: (id: number) => void;
 }
 
-function YearTimeline({ range, funnels }: YearTimelineProps) {
+function YearTimeline({
+  range,
+  funnels,
+  onTogglePlanSelection,
+}: YearTimelineProps) {
   const [expanded, setExpanded] = useState({});
   const [openSections, setOpenSections] = useState({});
   const { clientCampaignData } = useCampaigns();
@@ -103,7 +108,10 @@ function YearTimeline({ range, funnels }: YearTimelineProps) {
         }}
       >
         {funnels?.map(
-          ({ label, budget, stages, startDate, endDate }, index) => {
+          (
+            { id, isSelected, label, budget, stages, startDate, endDate },
+            index
+          ) => {
             const startMonthIndex = getMonthIndex(startDate);
             const endMonthIndex = getMonthIndex(endDate);
 
@@ -116,11 +124,16 @@ function YearTimeline({ range, funnels }: YearTimelineProps) {
                 }}
               >
                 <div
-                  className="flex flex-col min-h-14 bg-white border border-[rgba(0,0,0,0.1)] mt-6 shadow-sm rounded-[10px] justify-between"
+                  className={`flex flex-col min-h-14 bg-white mt-6 shadow-sm rounded-[10px] justify-between transition-all cursor-pointer ${
+                    isSelected
+                      ? "border-2 border-[#3175FF] ring-2 ring-[#3175FF]/20"
+                      : "border border-[rgba(0,0,0,0.2)] opacity-50"
+                  }`}
                   style={{
                     gridColumnStart: startMonthIndex,
                     gridColumnEnd: endMonthIndex + 1,
                   }}
+                  onClick={() => onTogglePlanSelection?.(id)}
                 >
                   <div
                     className={`flex items-center gap-3 ${
@@ -130,8 +143,11 @@ function YearTimeline({ range, funnels }: YearTimelineProps) {
                     }`}
                   >
                     <button
-                      className="flex items-center justify-center bg-blue-50  rounded-full min-w-8 min-h-8"
-                      onClick={() => toggleShow(index)}
+                      className="flex items-center justify-center bg-blue-50 rounded-full min-w-8 min-h-8"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleShow(index);
+                      }}
                     >
                       {expanded[index] ? (
                         <FiChevronUp size={20} />
@@ -139,12 +155,18 @@ function YearTimeline({ range, funnels }: YearTimelineProps) {
                         <FiChevronDown size={20} />
                       )}
                     </button>
-                    <div>
-                      <h3 className="text-[#061237] font-semibold text-sm">
-                        {label}
-                      </h3>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-[#061237] font-semibold text-sm">
+                          {label}
+                        </h3>
+                        {isSelected && (
+                          <span className="flex items-center justify-center w-4 h-4 bg-[#3175FF] rounded-full">
+                            <FiCheck size={10} className="text-white" />
+                          </span>
+                        )}
+                      </div>
                       <p className="text-[#061237] font-medium text-sm">
-                        {/* 250,000 € */}
                         {budget?.startsWith("null") ||
                         budget?.startsWith("undefined")
                           ? 0

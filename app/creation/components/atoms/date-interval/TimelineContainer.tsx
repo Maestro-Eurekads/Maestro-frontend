@@ -42,6 +42,7 @@ interface TimelineContainerProps {
   startDate?: any;
   endDate?: any;
   yearDifference?: any;
+  onTogglePlanSelection?: (id: number) => void;
 }
 
 const TimelineContainer: React.FC<TimelineContainerProps> = ({
@@ -53,6 +54,7 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
   startDate,
   endDate,
   yearDifference,
+  onTogglePlanSelection,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
@@ -177,6 +179,7 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
               daysCount={totalDays}
               funnels={funnelsData}
               range={bufferedDateList}
+              onTogglePlanSelection={onTogglePlanSelection}
             />
           </>
         );
@@ -191,6 +194,7 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
               weeksCount={totalWeeks}
               funnels={funnelsData}
               range={bufferedDateList}
+              onTogglePlanSelection={onTogglePlanSelection}
             />
           </>
         );
@@ -198,7 +202,11 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
         return (
           <>
             <YearInterval isInfiniteTimeline={false} range={bufferedDateList} />
-            <YearTimeline range={bufferedDateList} funnels={funnelsData} />
+            <YearTimeline
+              range={bufferedDateList}
+              funnels={funnelsData}
+              onTogglePlanSelection={onTogglePlanSelection}
+            />
           </>
         );
       default: // Week is default
@@ -209,10 +217,11 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
               src="dashboard"
               isInfiniteTimeline={false}
             />
-              <DayTimeline  
+            <DayTimeline
               daysCount={totalDays}
               funnels={funnelsData}
               range={bufferedDateList}
+              onTogglePlanSelection={onTogglePlanSelection}
             />
           </>
         );

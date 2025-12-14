@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import FiltersDropdowns from "./FiltersDropdowns";
 import { useCampaigns } from "../../utils/CampaignsContext";
 import TableLoader from "../../creation/components/TableLoader";
@@ -24,6 +24,47 @@ import BudgetOverviewCard, {
 const Dashboard = () => {
   const { clientCampaignData, loading } = useCampaigns();
   const { range } = useDateRange();
+
+  const visibleCampaigns =
+    clientCampaignData?.filter(
+      (c) => c?.campaign_timeline_start_date && c?.campaign_timeline_end_date
+    ) || [];
+
+  const [selectedPlanIds, setSelectedPlanIds] = useState<Set<number>>(
+    new Set()
+  );
+
+  useEffect(() => {
+    if (visibleCampaigns.length) {
+      const allIds = new Set<number>();
+      visibleCampaigns.forEach((c) => allIds.add(c.id));
+      setSelectedPlanIds(allIds);
+    }
+  }, [clientCampaignData]);
+
+  const togglePlanSelection = (id: number) => {
+    setSelectedPlanIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const selectAll = () => {
+    setSelectedPlanIds(new Set(visibleCampaigns.map((c) => c.id)));
+  };
+
+  const deselectAll = () => {
+    setSelectedPlanIds(new Set());
+  };
+
+  const allSelected =
+    visibleCampaigns.length > 0 &&
+    selectedPlanIds.size === visibleCampaigns.length;
 
   const startDates = clientCampaignData
     ?.filter((c) => c?.campaign_timeline_start_date)
@@ -61,78 +102,73 @@ const Dashboard = () => {
     earliestStartDate
   );
 
-  const funnelsData = clientCampaignData
-    ?.filter(
-      (cc) => cc?.campaign_timeline_start_date && cc?.campaign_timeline_end_date
-    )
-    ?.map((ch) => {
-      const start = ch?.campaign_timeline_start_date
-        ? parseISO(ch.campaign_timeline_start_date)
-        : null;
-      const end = ch?.campaign_timeline_end_date
-        ? parseISO(ch.campaign_timeline_end_date)
-        : null;
+  const funnelsData = visibleCampaigns?.map((ch) => {
+    const start = ch?.campaign_timeline_start_date
+      ? parseISO(ch.campaign_timeline_start_date)
+      : null;
+    const end = ch?.campaign_timeline_end_date
+      ? parseISO(ch.campaign_timeline_end_date)
+      : null;
 
-      const startDay = differenceInCalendarDays(start, earliestStartDate) + 1;
-      const endDay = differenceInCalendarDays(end, earliestStartDate) + 1;
+    const startDay = differenceInCalendarDays(start, earliestStartDate) + 1;
+    const endDay = differenceInCalendarDays(end, earliestStartDate) + 1;
 
-      const startWeek = differenceInCalendarWeeks(start, earliestStartDate) + 1;
-      const endWeek = differenceInCalendarWeeks(end, earliestStartDate) + 1;
+    const startWeek = differenceInCalendarWeeks(start, earliestStartDate) + 1;
+    const endWeek = differenceInCalendarWeeks(end, earliestStartDate) + 1;
 
-      const startMonth =
-        differenceInCalendarMonths(start, earliestStartDate) + 1;
-      const endMonth = differenceInCalendarMonths(end, earliestStartDate) + 1;
+    const startMonth = differenceInCalendarMonths(start, earliestStartDate) + 1;
+    const endMonth = differenceInCalendarMonths(end, earliestStartDate) + 1;
 
-      return {
-        startDay,
-        endDay,
-        startWeek,
-        endWeek,
-        startMonth,
-        endMonth,
-        startDate: ch?.campaign_timeline_start_date,
-        endDate: ch?.campaign_timeline_end_date,
-        label: ch?.media_plan_details?.plan_name,
-        campaignData: ch,
-        stages: ch?.channel_mix?.map((d) => {
-          const start = d?.funnel_stage_timeline_start_date
-            ? parseISO(d.funnel_stage_timeline_start_date)
-            : null;
-          const end = d?.funnel_stage_timeline_end_date
-            ? parseISO(d.funnel_stage_timeline_end_date)
-            : null;
-          const startDay =
-            differenceInCalendarDays(start, earliestStartDate) + 1;
-          const endDay = differenceInCalendarDays(end, earliestStartDate) + 1;
+    return {
+      id: ch.id,
+      isSelected: selectedPlanIds.has(ch.id),
+      startDay,
+      endDay,
+      startWeek,
+      endWeek,
+      startMonth,
+      endMonth,
+      startDate: ch?.campaign_timeline_start_date,
+      endDate: ch?.campaign_timeline_end_date,
+      label: ch?.media_plan_details?.plan_name,
+      campaignData: ch,
+      stages: ch?.channel_mix?.map((d) => {
+        const start = d?.funnel_stage_timeline_start_date
+          ? parseISO(d.funnel_stage_timeline_start_date)
+          : null;
+        const end = d?.funnel_stage_timeline_end_date
+          ? parseISO(d.funnel_stage_timeline_end_date)
+          : null;
+        const startDay = differenceInCalendarDays(start, earliestStartDate) + 1;
+        const endDay = differenceInCalendarDays(end, earliestStartDate) + 1;
 
-          const startWeek =
-            differenceInCalendarWeeks(start, earliestStartDate) + 1;
-          const endWeek = differenceInCalendarWeeks(end, earliestStartDate) + 1;
+        const startWeek =
+          differenceInCalendarWeeks(start, earliestStartDate) + 1;
+        const endWeek = differenceInCalendarWeeks(end, earliestStartDate) + 1;
 
-          const startMonth =
-            differenceInCalendarMonths(start, earliestStartDate) + 1;
-          const endMonth =
-            differenceInCalendarMonths(end, earliestStartDate) + 1;
-          return {
-            startDate: start,
-            endDate: end,
-            name: d?.funnel_stage,
-            budget: `${ch?.campaign_budget?.amount} ${getCurrencySymbol(
-              ch?.campaign_budget?.currency
-            )}`,
-            startDay,
-            endDay,
-            startWeek,
-            endWeek,
-            startMonth,
-            endMonth,
-          };
-        }),
-        budget: `${ch?.campaign_budget?.amount} ${getCurrencySymbol(
-          ch?.campaign_budget?.currency
-        )}`,
-      };
-    });
+        const startMonth =
+          differenceInCalendarMonths(start, earliestStartDate) + 1;
+        const endMonth = differenceInCalendarMonths(end, earliestStartDate) + 1;
+        return {
+          startDate: start,
+          endDate: end,
+          name: d?.funnel_stage,
+          budget: `${ch?.campaign_budget?.amount} ${getCurrencySymbol(
+            ch?.campaign_budget?.currency
+          )}`,
+          startDay,
+          endDay,
+          startWeek,
+          endWeek,
+          startMonth,
+          endMonth,
+        };
+      }),
+      budget: `${ch?.campaign_budget?.amount} ${getCurrencySymbol(
+        ch?.campaign_budget?.currency
+      )}`,
+    };
+  });
   // Helper to get funnel color by stage name
   function getFunnelColor(stage: string) {
     if (stage === "Awareness") return "#3175FF";
@@ -175,7 +211,11 @@ const Dashboard = () => {
   };
 
   const aggregatedBudgetData = useMemo(() => {
-    if (!clientCampaignData?.length) {
+    const selectedCampaigns = visibleCampaigns.filter((c) =>
+      selectedPlanIds.has(c.id)
+    );
+
+    if (!selectedCampaigns?.length) {
       return {
         totalBudget: 0,
         primaryCurrency: "",
@@ -193,7 +233,7 @@ const Dashboard = () => {
     let primaryCurrency = "";
     let colorIndex = 0;
 
-    clientCampaignData.forEach((campaign) => {
+    selectedCampaigns.forEach((campaign) => {
       totalBudget += parseFloat(campaign?.campaign_budget?.amount || 0);
       if (!primaryCurrency) {
         primaryCurrency = campaign?.campaign_budget?.currency || "";
@@ -234,7 +274,7 @@ const Dashboard = () => {
     });
 
     const customFunnels =
-      clientCampaignData.find((c) => c?.custom_funnels?.length)
+      selectedCampaigns.find((c) => c?.custom_funnels?.length)
         ?.custom_funnels || [];
 
     return {
@@ -246,14 +286,28 @@ const Dashboard = () => {
       channelsCount: channelBudgets.size,
       customFunnels,
     };
-  }, [clientCampaignData]);
+  }, [clientCampaignData, selectedPlanIds]);
+
+  const selectedCount = selectedPlanIds.size;
+  const totalCount = visibleCampaigns.length;
 
   return (
     <div className="mt-[24px] ">
       <div className="flex items-center gap-3 px-[72px] flex-wrap ">
         <FiltersDropdowns router={undefined} />
       </div>
-      <div className="flex justify-end mb-4 mr-8">
+      <div className="flex justify-between items-center mb-4 px-4 md:px-10 xl:px-20">
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-600">
+            {selectedCount} of {totalCount} plans selected
+          </span>
+          <button
+            onClick={allSelected ? deselectAll : selectAll}
+            className="px-3 py-1.5 text-sm font-medium rounded-lg border border-[#3175FF] text-[#3175FF] hover:bg-[#3175FF] hover:text-white transition-colors"
+          >
+            {allSelected ? "Deselect All" : "Select All"}
+          </button>
+        </div>
         <Range />
       </div>
       <div className=" mt-[20px] w-full">
@@ -268,6 +322,7 @@ const Dashboard = () => {
         funnelsData={funnelsData}
         startDate={earliestStartDate}
         endDate={latestEndDate}
+        onTogglePlanSelection={togglePlanSelection}
       />
 
       {/* Aggregated Budget Overview Card */}
