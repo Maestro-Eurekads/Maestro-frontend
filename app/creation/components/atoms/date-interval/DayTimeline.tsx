@@ -91,16 +91,18 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
 
     try {
       // Handle both string and Date objects
-      const formattedStart = typeof start === "string" 
-        ? parseISO(start) 
-        : start instanceof Date 
-        ? start 
-        : new Date(start);
-      const formattedEnd = typeof end === "string" 
-        ? parseISO(end) 
-        : end instanceof Date 
-        ? end 
-        : new Date(end);
+      const formattedStart =
+        typeof start === "string"
+          ? parseISO(start)
+          : start instanceof Date
+          ? start
+          : new Date(start);
+      const formattedEnd =
+        typeof end === "string"
+          ? parseISO(end)
+          : end instanceof Date
+          ? end
+          : new Date(end);
 
       // Check if dates are valid
       if (isNaN(formattedStart.getTime()) || isNaN(formattedEnd.getTime())) {
@@ -131,216 +133,253 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
         backgroundSize: `calc(50px) 100%`,
       }}
     >
-      {funnels?.map(({ startDay, endDay, label, budget, stages, startDate, endDate, campaignData }, index) => {
-        // Calculate date-based positions if dates are available, otherwise use day indices
-        const campaignStartIndex = startDate && range?.length
-          ? calculateGridColumns(startDate, startDate).startDateIndex
-          : startDay || 1;
-        const campaignEndIndex = endDate && range?.length
-          ? calculateGridColumns(endDate, endDate).endDateIndex
-          : endDay || daysCount;
-        const campaignSpan = campaignEndIndex - campaignStartIndex + 1;
+      {funnels?.map(
+        (
+          {
+            startDay,
+            endDay,
+            label,
+            budget,
+            stages,
+            startDate,
+            endDate,
+            campaignData,
+          },
+          index
+        ) => {
+          // Calculate date-based positions if dates are available, otherwise use day indices
+          const campaignStartIndex =
+            startDate && range?.length
+              ? calculateGridColumns(startDate, startDate).startDateIndex
+              : startDay || 1;
+          const campaignEndIndex =
+            endDate && range?.length
+              ? calculateGridColumns(endDate, endDate).endDateIndex
+              : endDay || daysCount;
+          const campaignSpan = campaignEndIndex - campaignStartIndex + 1;
 
-        return (
-          <div
-            key={index}
-            style={{
-              display: "grid",
-              gridTemplateColumns: `repeat(${daysCount}, 50px)`,
-            }}
-          >
+          return (
             <div
-              className="flex flex-col min-h-14 bg-white border border-[rgba(0,0,0,0.1)] mt-6 shadow-sm rounded-[10px] justify-between"
+              key={index}
               style={{
-                gridColumnStart: campaignStartIndex,
-                gridColumnEnd: campaignEndIndex + 1,
+                display: "grid",
+                gridTemplateColumns: `repeat(${daysCount}, 50px)`,
               }}
             >
               <div
-                className={`${
-                  expanded[index]
-                    ? "border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] flex justify-between items-center p-4 h-14 bg-[#F9FAFB]"
-                    : "flex justify-between items-center p-2"
-                }`}
+                className="flex flex-col min-h-14 bg-white border border-[rgba(0,0,0,0.1)] mt-6 shadow-sm rounded-[10px] justify-between"
+                style={{
+                  gridColumnStart: campaignStartIndex,
+                  gridColumnEnd: campaignEndIndex + 1,
+                }}
               >
-                <div>
-                  <h3 className="text-[#061237] font-semibold text-sm">
-                    {label}
-                  </h3>
-                  <p className="text-[#061237] font-medium text-sm">
-                    {/* 250,000 € */}
-                    {budget?.startsWith("null") ||
-                    budget?.startsWith("undefined")
-                      ? 0
-                      : `${Number(
-                          budget.replace(/[^\d.-]/g, "")
-                        ).toLocaleString()} ${budget
-                          .replace(/[\d\s.,-]/g, "")
-                          .trim()}`}
-                  </p>
-                </div>
-                <button onClick={() => toggleShow(index)}>
-                  {expanded[index] ? (
-                    <FiChevronUp size={20} />
-                  ) : (
-                    <FiChevronDown size={20} />
-                  )}
-                </button>
-              </div>
-
-              {/* Expanded section */}
-              {expanded[index] && (
                 <div
-                  className="py-2"
-                  style={{
-                    backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
-                    backgroundSize: `calc(50px) 100%`,
-                  }}
+                  className={`flex items-center gap-3 ${
+                    expanded[index]
+                      ? "border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] p-4 h-14 bg-[#F9FAFB]"
+                      : "p-2"
+                  }`}
                 >
-                  {stages?.map(
-                    (
-                      {
-                        name,
-                        startDay: stageStartDay,
-                        endDay: stageEndDay,
-                        startDate: stageStart,
-                        endDate: stageEnd,
-                        budget: stageBudget,
-                      },
-                      zIndex
-                    ) => {
-                      const channels = extractPlatforms(
-                        campaignData || clientCampaignData[index]
-                      );
-                      console.log('channels', channels);
-                      
-                      // Calculate stage positions based on dates if available
-                      const stageStartIndex = stageStart && range?.length
-                        ? calculateGridColumns(stageStart, stageStart).startDateIndex
-                        : stageStartDay || 1;
-                      const stageEndIndex = stageEnd && range?.length
-                        ? calculateGridColumns(stageEnd, stageEnd).endDateIndex
-                        : stageEndDay || campaignEndIndex;
+                  <button
+                    className="flex items-center justify-center bg-blue-50  rounded-full min-w-8 min-h-8"
+                    onClick={() => toggleShow(index)}
+                  >
+                    {expanded[index] ? (
+                      <FiChevronUp size={20} />
+                    ) : (
+                      <FiChevronDown size={20} />
+                    )}
+                  </button>
+                  <div>
+                    <h3 className="text-[#061237] font-semibold text-sm">
+                      {label}
+                    </h3>
+                    <p className="text-[#061237] font-medium text-sm">
+                      {/* 250,000 € */}
+                      {budget?.startsWith("null") ||
+                      budget?.startsWith("undefined")
+                        ? 0
+                        : `${Number(
+                            budget.replace(/[^\d.-]/g, "")
+                          ).toLocaleString()} ${budget
+                            .replace(/[\d\s.,-]/g, "")
+                            .trim()}`}
+                    </p>
+                  </div>
+                </div>
 
-                      return (
-                        <div
-                          key={name}
-                          style={{
-                            display: "grid",
-                            gridTemplateColumns: `repeat(${campaignSpan}, 50px)`,
-                          }}
-                        >
+                {/* Expanded section */}
+                {expanded[index] && (
+                  <div
+                    className="py-2"
+                    style={{
+                      backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
+                      backgroundSize: `calc(50px) 100%`,
+                    }}
+                  >
+                    {stages?.map(
+                      (
+                        {
+                          name,
+                          startDay: stageStartDay,
+                          endDay: stageEndDay,
+                          startDate: stageStart,
+                          endDate: stageEnd,
+                          budget: stageBudget,
+                        },
+                        zIndex
+                      ) => {
+                        const channels = extractPlatforms(
+                          campaignData || clientCampaignData[index]
+                        );
+                        console.log("channels", channels);
+
+                        // Calculate stage positions based on dates if available
+                        const stageStartIndex =
+                          stageStart && range?.length
+                            ? calculateGridColumns(stageStart, stageStart)
+                                .startDateIndex
+                            : stageStartDay || 1;
+                        const stageEndIndex =
+                          stageEnd && range?.length
+                            ? calculateGridColumns(stageEnd, stageEnd)
+                                .endDateIndex
+                            : stageEndDay || campaignEndIndex;
+
+                        return (
                           <div
-                            onClick={() => toggleOpen(index, name)}
-                            className={`mt-5 w-full flex items-center rounded-[10px] h-12.5 text-xs font-[500] p-2 text-center ${
-                              name === "Awareness"
-                                ? "bg-[#3175FF]"
-                                : name === "Consideration"
-                                ? "bg-[#34A853]"
-                                : name === "Conversion"
-                                ? "bg-[#ff9037]"
-                                : "bg-[#F05406]"
-                            } text-white`}
+                            key={name}
                             style={{
-                              gridColumnStart: Math.max(
-                                1,
-                                stageStartIndex - campaignStartIndex + 1
-                              ),
-                              gridColumnEnd: Math.min(
-                                campaignSpan + 1,
-                                stageEndIndex - campaignStartIndex + 2
-                              ),
+                              display: "grid",
+                              gridTemplateColumns: `repeat(${campaignSpan}, 50px)`,
                             }}
                           >
-                            <div className="flex items-center justify-center gap-3 flex-1">
-                              <span>{name}</span>
-                              <span>
-                                <FiChevronDown size={15} />
-                              </span>
-                            </div>
-                            <button className="justify-self-end px-3 py-2 text-sm font-[500] bg-white/25 rounded-[5px]">
-                              {stageBudget?.startsWith("null") ||
-                              stageBudget?.startsWith("undefined")
-                                ? 0
-                                : `${Number(
-                                    stageBudget.replace(/[^\d.-]/g, "")
-                                  ).toLocaleString()} ${stageBudget
-                                    .replace(/[\d\s.,-]/g, "")
-                                    .trim()}`}
-                            </button>
-                          </div>
-
-                          {openSections[`${index}-${name}`] && (
                             <div
+                              onClick={() => toggleOpen(index, name)}
+                              className={`mt-5 w-full flex items-center rounded-[10px] h-12.5 text-xs font-[500] p-2 text-center ${
+                                name === "Awareness"
+                                  ? "bg-[#3175FF]"
+                                  : name === "Consideration"
+                                  ? "bg-[#34A853]"
+                                  : name === "Conversion"
+                                  ? "bg-[#ff9037]"
+                                  : "bg-[#F05406]"
+                              } text-white`}
                               style={{
-                                gridColumnStart: 1,
-                                gridColumnEnd: campaignSpan + 1,
+                                gridColumnStart: Math.max(
+                                  1,
+                                  stageStartIndex - campaignStartIndex + 1
+                                ),
+                                gridColumnEnd: Math.min(
+                                  campaignSpan + 1,
+                                  stageEndIndex - campaignStartIndex + 2
+                                ),
                               }}
                             >
-                              {channels
-                                ?.filter((ch) => ch?.stageName === name && ch?.startDate && ch?.endDate)
-                                ?.map(
-                                  ({
-                                    platform_name,
-                                    icon,
-                                    amount,
-                                    bg,
-                                    startDate,
-                                    endDate,
-                                  }) => {
-                                    const { startDateIndex: platStartIndex, endDateIndex: platEndIndex } =
-                                      calculateGridColumns(startDate, endDate);
-                                    return (
-                                      <div
-                                        key={platform_name}
-                                        style={{
-                                          display: "grid",
-                                          gridTemplateColumns: `repeat(${campaignSpan}, 50px)`,
-                                        }}
-                                      >
+                              <div className="flex items-center justify-center gap-3 flex-1">
+                                <span>{name}</span>
+                                <span>
+                                  <FiChevronDown size={15} />
+                                </span>
+                              </div>
+                              <button className="justify-self-end px-3 py-2 text-sm font-[500] bg-white/25 rounded-[5px]">
+                                {stageBudget?.startsWith("null") ||
+                                stageBudget?.startsWith("undefined")
+                                  ? 0
+                                  : `${Number(
+                                      stageBudget.replace(/[^\d.-]/g, "")
+                                    ).toLocaleString()} ${stageBudget
+                                      .replace(/[\d\s.,-]/g, "")
+                                      .trim()}`}
+                              </button>
+                            </div>
+
+                            {openSections[`${index}-${name}`] && (
+                              <div
+                                style={{
+                                  gridColumnStart: 1,
+                                  gridColumnEnd: campaignSpan + 1,
+                                }}
+                              >
+                                {channels
+                                  ?.filter(
+                                    (ch) =>
+                                      ch?.stageName === name &&
+                                      ch?.startDate &&
+                                      ch?.endDate
+                                  )
+                                  ?.map(
+                                    ({
+                                      platform_name,
+                                      icon,
+                                      amount,
+                                      bg,
+                                      startDate,
+                                      endDate,
+                                    }) => {
+                                      const {
+                                        startDateIndex: platStartIndex,
+                                        endDateIndex: platEndIndex,
+                                      } = calculateGridColumns(
+                                        startDate,
+                                        endDate
+                                      );
+                                      return (
                                         <div
-                                          className="py-1 text-xs font-[500] border my-5 w-full rounded-[10px] flex items-center justify-between"
+                                          key={platform_name}
                                           style={{
-                                            gridColumnStart: Math.max(
-                                              1,
-                                              platStartIndex - campaignStartIndex + 1
-                                            ),
-                                            gridColumnEnd: Math.min(
-                                              campaignSpan + 1,
-                                              platEndIndex - campaignStartIndex + 2
-                                            ),
-                                            backgroundColor: bg,
+                                            display: "grid",
+                                            gridTemplateColumns: `repeat(${campaignSpan}, 50px)`,
                                           }}
                                         >
-                                          <div />
-                                          <span className="flex items-center gap-3">
-                                            <Image
-                                              src={icon}
-                                              alt={platform_name}
-                                              width={20}
-                                            />
-                                            <span>{platform_name}</span>
-                                          </span>
-                                          <button className="bg-[#0866FF33]/5 py-2 px-[10px] rounded-[5px] mr-3">
-                                            {amount}
-                                          </button>
+                                          <div
+                                            className="py-1 text-xs font-[500] border my-5 w-full rounded-[10px] flex items-center justify-between"
+                                            style={{
+                                              gridColumnStart: Math.max(
+                                                1,
+                                                platStartIndex -
+                                                  campaignStartIndex +
+                                                  1
+                                              ),
+                                              gridColumnEnd: Math.min(
+                                                campaignSpan + 1,
+                                                platEndIndex -
+                                                  campaignStartIndex +
+                                                  2
+                                              ),
+                                              backgroundColor: bg,
+                                            }}
+                                          >
+                                            <div />
+                                            <span className="flex items-center gap-3">
+                                              <Image
+                                                src={icon}
+                                                alt={platform_name}
+                                                width={20}
+                                              />
+                                              <span>{platform_name}</span>
+                                            </span>
+                                            <button className="bg-[#0866FF33]/5 py-2 px-[10px] rounded-[5px] mr-3">
+                                              {amount}
+                                            </button>
+                                          </div>
                                         </div>
-                                      </div>
-                                    );
-                                  }
-                                )}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    }
-                  )}
-                </div>
-              )}
+                                      );
+                                    }
+                                  )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        }
+      )}
     </div>
   );
 };

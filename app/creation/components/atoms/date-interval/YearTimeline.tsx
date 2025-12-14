@@ -123,17 +123,28 @@ function YearTimeline({ range, funnels }: YearTimelineProps) {
                   }}
                 >
                   <div
-                    className={`${
+                    className={`flex items-center gap-3 ${
                       expanded[index]
-                        ? "border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] flex justify-between items-center p-4 h-14 bg-[#F9FAFB]"
-                        : "flex justify-between items-center p-2"
+                        ? "border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] p-4 h-14 bg-[#F9FAFB]"
+                        : "p-2"
                     }`}
                   >
+                    <button
+                      className="flex items-center justify-center bg-blue-50  rounded-full min-w-8 min-h-8"
+                      onClick={() => toggleShow(index)}
+                    >
+                      {expanded[index] ? (
+                        <FiChevronUp size={20} />
+                      ) : (
+                        <FiChevronDown size={20} />
+                      )}
+                    </button>
                     <div>
                       <h3 className="text-[#061237] font-semibold text-sm">
                         {label}
                       </h3>
                       <p className="text-[#061237] font-medium text-sm">
+                        {/* 250,000 € */}
                         {budget?.startsWith("null") ||
                         budget?.startsWith("undefined")
                           ? 0
@@ -144,13 +155,6 @@ function YearTimeline({ range, funnels }: YearTimelineProps) {
                               .trim()}`}
                       </p>
                     </div>
-                    <button onClick={() => toggleShow(index)}>
-                      {expanded[index] ? (
-                        <FiChevronUp size={20} />
-                      ) : (
-                        <FiChevronDown size={20} />
-                      )}
-                    </button>
                   </div>
 
                   {expanded[index] && (
