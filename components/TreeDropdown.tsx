@@ -60,7 +60,7 @@ const TreeDropdown: React.FC<Props> = ({
 	};
 
 	return (
-		<div className="w-[330px]">
+		<div className="w-auto min-w-[330px]">
 			<TreeSelect
 				treeData={treeOptions}
 				value={value}

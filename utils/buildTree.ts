@@ -61,16 +61,15 @@ export const buildTreeWithHierarchicalTitles = (data: any, keepRoot = false, sep
 
   if (keepRoot) {
     const rootTitle = data.title || 'Root';
+    // Build children with root title included in the titlePath from the start
+    const childrenWithRoot = data.parameters.map((param) => buildNode(param, '', rootTitle));
+
     return [{
       title: rootTitle,
       paramName: rootTitle,
       value: 'root',
       key: 'root',
-      children: children.map(child => ({
-        ...child,
-        title: child.paramName,
-        paramName: `${rootTitle}${separator}${child.title}`
-      })),
+      children: childrenWithRoot,
     }];
   } else {
     return children;
