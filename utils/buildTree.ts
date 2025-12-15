@@ -33,3 +33,46 @@ export const buildTree = (data: any, keepRoot = false) => {
 
   }
 };
+
+export const buildTreeWithHierarchicalTitles = (data: any, keepRoot = false, separator = ' > ') => {
+  if (!data || !Array.isArray(data.parameters)) return [];
+
+  const buildNode = (param: any, parentPath: string = '', titlePath: string = '') => {
+    const currentPath = parentPath ? `${parentPath}-${param.name}` : param.name;
+    const currentTitlePath = titlePath ? `${titlePath}${separator}${param.name}` : param.name;
+
+    const node = {
+      title: param.name,
+      paramName: currentTitlePath,
+      value: currentPath,
+      key: currentPath,
+      children: [],
+    };
+
+    // Recursively build children if subParameters exist
+    if (param.subParameters && param.subParameters.length > 0) {
+      node.children = param.subParameters.map(sub => buildNode(sub, currentPath, currentTitlePath));
+    }
+
+    return node;
+  };
+
+  const children = data.parameters.map((param) => buildNode(param));
+
+  if (keepRoot) {
+    const rootTitle = data.title || 'Root';
+    return [{
+      title: rootTitle,
+      paramName: rootTitle,
+      value: 'root',
+      key: 'root',
+      children: children.map(child => ({
+        ...child,
+        title: child.paramName,
+        paramName: `${rootTitle}${separator}${child.title}`
+      })),
+    }];
+  } else {
+    return children;
+  }
+};
