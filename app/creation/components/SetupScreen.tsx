@@ -17,8 +17,9 @@ import { useSession } from "next-auth/react";
 import { getCreateClient } from "features/Client/clientSlice";
 import { toast } from "sonner";
 import Skeleton from "react-loading-skeleton";
-import ClientSelection from "components/ClientSelection";
 import SaveProgressButton from "app/utils/SaveProgressButton";
+import CurrencySelection from "components/CurrencySelection";
+import CountrySelection from "components/CountrySelection";
 
 
 interface DropdownOption {
@@ -187,16 +188,6 @@ export const SetupScreen = () => {
       setInternalApproverOptions(agencyUserOptions);
       setClientApprovalOptions(clientUserOptions);
       setClientUsers(FC || []);
-      setCampaignFormData(prev => ({
-        ...prev,
-        campaign_budget: {
-          currency: campaignFormData?.budget_details_currency?.id,
-        },
-        ["client_selection"]: {
-          id: selectedClient || FC?.id,
-          value: FC?.client_name || '',
-        },
-      }));
     }
   }, [FC, selectedClient, users]);
 
@@ -211,33 +202,6 @@ export const SetupScreen = () => {
     setIsDrawerOpen(false);
     setClose(false);
   }, []);
-
-
-  useEffect(() => {
-    const savedFormData = localStorage.getItem("campaignFormData");
-    if (savedFormData) {
-      const parsedData = JSON.parse(savedFormData);
-
-      const normalizeApprovers = (approvers: any[]) =>
-        Array.isArray(approvers)
-          ? approvers?.map((val: any) =>
-            typeof val === "string"
-              ? { id: "", clientId: "", value: val }
-              : {
-                id: val?.id ?? "",
-                clientId: val?.clientId ?? "",
-                value: val?.value ?? "",
-              }
-          )
-          : [];
-
-      setCampaignFormData({
-        ...parsedData,
-        internal_approver: normalizeApprovers(parsedData?.internal_approver),
-        client_approver: normalizeApprovers(parsedData?.client_approver),
-      });
-    }
-  }, [setCampaignFormData]);
 
 
   useEffect(() => {
@@ -309,7 +273,7 @@ export const SetupScreen = () => {
   ]);
 
   useEffect(() => {
-    const currencyData = campaignFormData?.budget_details_currency;
+    const currencyData = campaignFormData?.campaign_budget;
 
     if (currencyData?.value) {
       setSelectedOption({
@@ -317,35 +281,7 @@ export const SetupScreen = () => {
         value: currencyData.value,
       });
     }
-  }, [campaignFormData?.budget_details_currency]);
-
-
-
-
-
-  useEffect(() => {
-    const getFieldValue = (field) => {
-      if (Array.isArray(field)) {
-        return field?.length > 0;
-      }
-      if (typeof field === "object" && field !== null) {
-        return Object.keys(field)?.length > 0;
-      }
-      return Boolean(field);
-    };
-
-    const fieldsToCheck = [
-      // campaignFormData?.client_selection?.value,
-      campaignFormData?.media_plan,
-      campaignFormData?.budget_details_currency?.id
-      // campaignFormData?.internal_approver_ids,
-      // campaignFormData?.client_approver_ids,
-      // campaignFormData?.level_1?.id, 
-    ];
-
-    const evaluatedFields = fieldsToCheck.map(getFieldValue);
-    setRequiredFields(evaluatedFields);
-  }, [campaignFormData, cId, setRequiredFields]);
+  }, [campaignFormData?.campaign_budget]);
 
 
 
@@ -397,7 +333,9 @@ export const SetupScreen = () => {
                   data={level1Options}
                   setCampaignFormData={setCampaignFormData}
                   formId="level_1"
-                  title={"Client Architecture"} campaignFormData={campaignFormData} />
+                  title={"Client Architecture"}
+                  campaignFormData={campaignFormData}
+                />
               </div>
             </div>
           </div>
@@ -414,7 +352,7 @@ export const SetupScreen = () => {
                 </label>
                 <ClientSelectionInput
                   label="Enter media plan name"
-                  formId="media_plan"
+                  formId="plan_name"
                 />
               </div>
               <div >
@@ -450,10 +388,10 @@ export const SetupScreen = () => {
                 <label className="block text-sm font-medium text-gray-700 ">
                   Currency
                 </label>
-                <ClientSelection
+                <CurrencySelection
                   options={selectCurrency}
                   label={"Select Currency"}
-                  formId="budget_details_currency"
+                  formId="campaign_budget"
                 />
               </div>
             </div>
@@ -464,10 +402,10 @@ export const SetupScreen = () => {
               <label className="block text-sm font-medium text-gray-700 ">
                 Country
               </label>
-              <ClientSelection
+              <CountrySelection
                 options={selectCountry}
                 label={"Select Country"}
-                formId="country_details"
+                formId="budget_details"
               />
             </div>
           </div>

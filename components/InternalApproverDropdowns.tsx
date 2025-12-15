@@ -28,7 +28,7 @@ const InternalApproverDropdowns: React.FC<InternalApproverDropdownsProps> = ({
 	const clientId = campaignFormData?.client_selection?.id;
 
 	// Previously selected full objects
-	const selectedItems: any[] = campaignFormData?.[formId] || [];
+	const selectedItems: any[] = campaignFormData?.media_plan_details?.[formId] || [];
 
 	// Extract values (ids) to show in Select
 	const selectedValues = selectedItems.map((item) => item.id);
@@ -54,7 +54,10 @@ const InternalApproverDropdowns: React.FC<InternalApproverDropdownsProps> = ({
 
 		setCampaignFormData((prev) => ({
 			...prev,
-			[formId]: mappedSelectedItems,
+			media_plan_details: {
+				...prev.media_plan_details,
+				[formId]: mappedSelectedItems,
+			},
 		}));
 	};
 

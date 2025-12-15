@@ -1,5 +1,4 @@
 "use client";
-import { useCampaigns } from "app/utils/CampaignsContext";
 import { useComments } from "app/utils/CommentProvider";
 import moment from "moment";
 import { useCallback, useMemo } from "react";
@@ -7,24 +6,21 @@ import { useDateRange } from "src/date-range-context";
 import { format } from "date-fns";
 
 const WeekInterval = ({
-  weeksCount,
   funnelData,
   disableDrag,
   range,
   src,
+  isInfiniteTimeline = true,
 }: {
-  weeksCount: any;
   funnelData?: any;
   disableDrag?: any;
   range?: any;
   src?: any;
+  isInfiniteTimeline?: boolean;
 }) => {
-  const { campaignFormData } = useCampaigns();
-  const { range: ddRange, extendedRange, isInfiniteTimeline } = useDateRange();
+  const { extendedRange } = useDateRange();
   const { close } = useComments();
-
-  // Use extended range for infinite timeline
-  const effectiveRange = isInfiniteTimeline ? extendedRange : ddRange;
+  const effectiveRange = isInfiniteTimeline ? extendedRange : range;
 
   const groupDatesByWeek = (dates: Date[]) => {
     const weeks: string[][] = [];
@@ -55,50 +51,17 @@ const WeekInterval = ({
       ? groupDatesByWeek(effectiveRange)
       : [];
 
-  const calculateDailyWidth = useCallback(() => {
-    const getViewportWidth = () => {
-      return window.innerWidth || document.documentElement.clientWidth || 0;
-    };
-    const screenWidth = getViewportWidth();
-    const contWidth = screenWidth - (disableDrag ? 80 : close ? 0 : 367);
-
-    if (isInfiniteTimeline && effectiveRange && effectiveRange.length > 0) {
-      return 50;
-    }
-
-    if (isInfiniteTimeline && effectiveRange && effectiveRange.length > 0) {
-      return 50;
-    }
-
-    const totalDays = funnelData?.endDay || 30;
-    let dailyWidth = contWidth / totalDays;
-
-    // Ensure minimum width constraints
-    dailyWidth = Math.max(dailyWidth, 50);
-
-    return Math.round(dailyWidth);
-  }, [
-    disableDrag,
-    funnelData?.endDay,
-    close,
-    isInfiniteTimeline,
-    effectiveRange,
-  ]);
-
-  // Calculate individual week widths based on actual days in each week
   const weekWidths = useMemo(() => {
-    const dailyWidth = calculateDailyWidth();
+    const dailyWidth = 50;
     return datesByWeek.map((week) => dailyWidth * week.length);
-  }, [datesByWeek, calculateDailyWidth]);
+  }, [datesByWeek]);
 
-  // Calculate cumulative positions for week end lines
   const weekEndPositions = useMemo(() => {
     let cumulativeWidth = 0;
     const positions: number[] = [];
 
     weekWidths.forEach((width, index) => {
       cumulativeWidth += width;
-      // Don't add a line after the last week
       if (index < weekWidths.length - 1) {
         positions.push(cumulativeWidth);
       }
@@ -107,14 +70,8 @@ const WeekInterval = ({
     return positions;
   }, [weekWidths]);
 
-  //console.log("Week End Positions:", weekEndPositions);
-
-  const dailyWidth = calculateDailyWidth();
-
-  // Create grid template columns with individual week widths
   const gridTemplateColumns = weekWidths.map((width) => `${width}px`).join(" ");
 
-  // Calculate year headers
   const yearHeaders = useMemo(() => {
     const headers: Array<{ year: string; span: number }> = [];
     let currentYear: string | null = null;
@@ -162,7 +119,11 @@ const WeekInterval = ({
 
   return (
     <div
-      className={isInfiniteTimeline ? "min-w-max border-y relative" : "w-full border-y relative"}
+      className={
+        isInfiniteTimeline
+          ? "min-w-max border-y relative"
+          : "w-full border-y relative"
+      }
     >
       <div
         style={{

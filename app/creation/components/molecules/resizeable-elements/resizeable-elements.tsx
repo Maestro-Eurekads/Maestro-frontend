@@ -20,10 +20,9 @@ import {
   isEqual,
   parseISO,
   endOfMonth,
+  startOfMonth,
   eachMonthOfInterval,
   differenceInDays,
-  startOfYear,
-  endOfYear,
   startOfWeek,
   endOfWeek,
   differenceInWeeks,
@@ -82,11 +81,10 @@ const ResizeableElements = ({
   const { funnelWidths } = useFunnelContext();
   const { close } = useComments();
   const [openChannels, setOpenChannels] = useState<Record<string, boolean>>({});
-  const { range, extendedRange, isInfiniteTimeline } = useDateRange();
+  const { range, extendedRange } = useDateRange();
   const { range: rrange } = useRange();
   const { campaignFormData, loadingCampaign } = useCampaigns();
-  
-  const gridRange = isInfiniteTimeline ? extendedRange : range;
+  const gridRange = extendedRange;
   const [channelWidths, setChannelWidths] = useState<Record<string, number>>(
     {}
   );
@@ -126,14 +124,13 @@ const ResizeableElements = ({
     setChannelPositions((prev) => ({ ...prev, [channelId]: left }));
   };
 
-
   const generateYearMonths = useCallback(() => {
     if (!gridRange || gridRange.length === 0) return [];
 
-    const startDate = startOfYear(gridRange[0]);
-    const endDate = endOfYear(gridRange[gridRange.length - 1]);
-
-    const months = eachMonthOfInterval({ start: startDate, end: endDate });
+    const months = eachMonthOfInterval({
+      start: startOfMonth(gridRange[0]),
+      end: gridRange[gridRange.length - 1],
+    });
     return months.map((month) => format(month, "MMMM yyyy"));
   }, [gridRange]);
 
@@ -210,40 +207,16 @@ const ResizeableElements = ({
       endMonth: number,
       totalDaysInRange: number
     ) => {
-      const getViewportWidth = () => {
-        return window.innerWidth || document.documentElement.clientWidth || 0;
-      };
-      const screenWidth = getViewportWidth();
-      const contWidth = screenWidth - (disableDrag ? 80 : close ? 0 : 367);
-
       let dailyWidth: number;
 
-      if (isInfiniteTimeline) {
-        if (viewType === "Day" || viewType === "Week") {
-          dailyWidth = 50;
-        } else if (viewType === "Year") {
-          dailyWidth = 80;
-        } else if (viewType === "Month") {
-          dailyWidth = 100;
-        } else {
-          dailyWidth = 50;
-        }
+      if (viewType === "Day" || viewType === "Week") {
+        dailyWidth = 50;
+      } else if (viewType === "Year") {
+        dailyWidth = 80;
+      } else if (viewType === "Month") {
+        dailyWidth = 100;
       } else {
-        if (viewType === "Day" || viewType === "Week") {
-          const endPeriod = funnelData?.endDay || 1;
-          dailyWidth = contWidth / endPeriod;
-          dailyWidth = dailyWidth < 50 ? 50 : dailyWidth;
-        } else if (viewType === "Year") {
-          const monthWidth = contWidth / 12;
-          dailyWidth = Math.max(monthWidth, 60);
-        } else if (viewType === "Month") {
-          const totalWeeks = gridRange ? Math.ceil(gridRange.length / 7) : 4;
-          dailyWidth = Math.max(contWidth / totalWeeks, 60);
-        } else {
-          const totalDays = totalDaysInRange || funnelData?.endDay || 30;
-          dailyWidth = contWidth / totalDays;
-          dailyWidth = Math.max(dailyWidth, 10);
-        }
+        dailyWidth = 50;
       }
 
       setDailyWidthByView((prev) => ({
@@ -253,13 +226,14 @@ const ResizeableElements = ({
 
       return Math.round(dailyWidth);
     },
-    [disableDrag, funnelData?.endDay, funnelData?.endMonth, close, isInfiniteTimeline]
+    [disableDrag, funnelData?.endDay, funnelData?.endMonth, close]
   );
 
   useEffect(() => {
     if (!rrange || !gridRef?.current) return;
 
-    const effectiveRange = gridRange && gridRange.length > 0 ? gridRange : range;
+    const effectiveRange =
+      gridRange && gridRange.length > 0 ? gridRange : range;
     if (!effectiveRange || effectiveRange.length === 0) return;
 
     const result = getDaysInEachMonth(effectiveRange);
@@ -340,22 +314,25 @@ const ResizeableElements = ({
     if (!gridRange || gridRange.length === 0) return [];
     const startDate = gridRange[0];
     const endDate = gridRange[gridRange.length - 1];
-    return eachWeekOfInterval({ start: startDate, end: endDate }, { weekStartsOn: 1 });
+    return eachWeekOfInterval(
+      { start: startDate, end: endDate },
+      { weekStartsOn: 1 }
+    );
   }, [gridRange]);
 
   const generateGridColumns = useCallback(() => {
     const dailyWidth = dailyWidthByView[rrange] || 50;
-    
-    const totalDaysForGrid = isInfiniteTimeline && gridRange?.length > 0 
-      ? gridRange.length 
-      : (funnelData?.endDay || 1);
+
+    const totalDaysForGrid =
+      gridRange?.length > 0 ? gridRange.length : funnelData?.endDay || 1;
 
     if (rrange === "Day" || rrange === "Week") {
       return `repeat(${totalDaysForGrid}, ${dailyWidth}px)`;
     } else if (rrange === "Year") {
-      const startDate = startOfYear(gridRange[0]);
-      const endDate = endOfYear(gridRange[gridRange.length - 1]);
-      const months = eachMonthOfInterval({ start: startDate, end: endDate });
+      const months = eachMonthOfInterval({
+        start: startOfMonth(gridRange[0]),
+        end: gridRange[gridRange.length - 1],
+      });
       return `repeat(${months.length}, ${dailyWidth}px)`;
     } else if (rrange === "Month") {
       const weeks = getWeeksInRange();
@@ -367,24 +344,23 @@ const ResizeableElements = ({
     rrange,
     dailyWidthByView,
     funnelData?.endDay,
-    isInfiniteTimeline,
     gridRange,
     getWeeksInRange,
   ]);
 
   const getGridColumnEnd = useCallback(() => {
-    const totalDaysForGrid = isInfiniteTimeline && gridRange?.length > 0 
-      ? gridRange.length 
-      : (funnelData?.endDay || 1);
-      
+    const totalDaysForGrid =
+      gridRange?.length > 0 ? gridRange.length : funnelData?.endDay || 1;
+
     if (rrange === "Day") {
       return totalDaysForGrid;
     } else if (rrange === "Week") {
       return totalDaysForGrid;
     } else if (rrange === "Year") {
-      const startDate = startOfYear(gridRange[0]);
-      const endDate = endOfYear(gridRange[gridRange.length - 1]);
-      const months = eachMonthOfInterval({ start: startDate, end: endDate });
+      const months = eachMonthOfInterval({
+        start: startOfMonth(gridRange[0]),
+        end: gridRange[gridRange.length - 1],
+      });
       return months.length;
     } else if (rrange === "Month") {
       const weeks = getWeeksInRange();
@@ -392,7 +368,14 @@ const ResizeableElements = ({
     } else {
       return totalDaysForGrid;
     }
-  }, [rrange, funnelData?.endDay, funnelData?.endWeek, daysInEachMonth, isInfiniteTimeline, gridRange, getWeeksInRange]);
+  }, [
+    rrange,
+    funnelData?.endDay,
+    funnelData?.endWeek,
+    daysInEachMonth,
+    gridRange,
+    getWeeksInRange,
+  ]);
 
   const getDailyWidth = useCallback(
     (viewType?: string): number => {
@@ -407,66 +390,71 @@ const ResizeableElements = ({
     const initialWidths: Record<string, number> = {};
     const initialPositions: Record<string, number> = {};
 
-
     campaignFormData.funnel_stages.forEach((stageName) => {
       const stage = campaignFormData?.channel_mix?.find(
         (s) => s?.funnel_stage === stageName
       );
 
       if (stageName && stage) {
-        const stageStartDate =
-          (stage?.funnel_stage_timeline_start_date
-            ? parseISO(stage?.funnel_stage_timeline_start_date)
-            : null);
+        const stageStartDate = stage?.funnel_stage_timeline_start_date
+          ? parseISO(stage?.funnel_stage_timeline_start_date)
+          : null;
 
-        const stageEndDate =
-          (stage?.funnel_stage_timeline_end_date
-            ? parseISO(stage?.funnel_stage_timeline_end_date)
-            : null);
+        const stageEndDate = stage?.funnel_stage_timeline_end_date
+          ? parseISO(stage?.funnel_stage_timeline_end_date)
+          : null;
 
         if (rrange === "Year" && stageStartDate && stageEndDate) {
           const monthWidth = getDailyWidth("Year");
-          const timelineStart = startOfYear(gridRange[0]);
-          const allMonths = eachMonthOfInterval({ 
-            start: timelineStart, 
-            end: endOfYear(gridRange[gridRange.length - 1]) 
+          const allMonths = eachMonthOfInterval({
+            start: startOfMonth(gridRange[0]),
+            end: gridRange[gridRange.length - 1],
           });
-          
-          const startMonthIndex = allMonths.findIndex(m => 
-            format(m, "yyyy-MM") === format(stageStartDate, "yyyy-MM")
+
+          const startMonthIndex = allMonths.findIndex(
+            (m) => format(m, "yyyy-MM") === format(stageStartDate, "yyyy-MM")
           );
-          const endMonthIndex = allMonths.findIndex(m => 
-            format(m, "yyyy-MM") === format(stageEndDate, "yyyy-MM")
+          const endMonthIndex = allMonths.findIndex(
+            (m) => format(m, "yyyy-MM") === format(stageEndDate, "yyyy-MM")
           );
-          
-          const position = startMonthIndex >= 0 ? startMonthIndex * monthWidth : 0;
-          const monthsSpanned = endMonthIndex >= startMonthIndex ? endMonthIndex - startMonthIndex + 1 : 1;
-          
+
+          const position =
+            startMonthIndex >= 0 ? startMonthIndex * monthWidth : 0;
+          const monthsSpanned =
+            endMonthIndex >= startMonthIndex
+              ? endMonthIndex - startMonthIndex + 1
+              : 1;
+
           initialPositions[stageName] = position;
           initialWidths[stageName] = monthsSpanned * monthWidth;
         } else if (rrange === "Month" && stageStartDate && stageEndDate) {
           const weekWidth = getDailyWidth("Month");
           const allWeeks = getWeeksInRange();
-          
-          const startWeekIndex = allWeeks.findIndex(weekStart => {
+
+          const startWeekIndex = allWeeks.findIndex((weekStart) => {
             const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
             return stageStartDate >= weekStart && stageStartDate <= weekEnd;
           });
-          const endWeekIndex = allWeeks.findIndex(weekStart => {
+          const endWeekIndex = allWeeks.findIndex((weekStart) => {
             const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
             return stageEndDate >= weekStart && stageEndDate <= weekEnd;
           });
-          
+
           const position = startWeekIndex >= 0 ? startWeekIndex * weekWidth : 0;
-          const weeksSpanned = endWeekIndex >= startWeekIndex ? endWeekIndex - startWeekIndex + 1 : 1;
-          
+          const weeksSpanned =
+            endWeekIndex >= startWeekIndex
+              ? endWeekIndex - startWeekIndex + 1
+              : 1;
+
           initialPositions[stageName] = position;
           initialWidths[stageName] = weeksSpanned * weekWidth;
         } else {
-          const effectiveRange = gridRange && gridRange.length > 0 ? gridRange : range;
+          const effectiveRange =
+            gridRange && gridRange.length > 0 ? gridRange : range;
           const startDateIndex = stageStartDate
-            ? effectiveRange?.findIndex((date) => isEqual(date, stageStartDate)) *
-              getDailyWidth()
+            ? effectiveRange?.findIndex((date) =>
+                isEqual(date, stageStartDate)
+              ) * getDailyWidth()
             : 0;
 
           const daysBetween =
@@ -488,9 +476,10 @@ const ResizeableElements = ({
 
           const dailyWidth = getDailyWidth();
 
-          initialWidths[stageName] = daysBetween > 0
-            ? dailyWidth * daysBetween
-            : dailyWidth * daysFromStart;
+          initialWidths[stageName] =
+            daysBetween > 0
+              ? dailyWidth * daysBetween
+              : dailyWidth * daysFromStart;
 
           initialPositions[stageName] = startDateIndex;
         }
@@ -510,14 +499,13 @@ const ResizeableElements = ({
     range,
     getDailyWidth,
     close,
-    isInfiniteTimeline,
     gridRange,
     getWeeksInRange,
   ]);
 
   const generateBackground = useCallback(() => {
     const dailyWidth = getDailyWidth();
-    
+
     if (rrange === "Year") {
       return {
         backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
@@ -538,7 +526,7 @@ const ResizeableElements = ({
 
   return (
     <div
-      className={isInfiniteTimeline ? `min-w-max min-h-[494px] relative pb-5 grid-container` : `w-full min-h-[494px] relative pb-5 grid-container`}
+      className={`min-w-max min-h-[494px] relative pb-5 grid-container`}
       ref={gridRef}
       style={generateBackground()}
     >
@@ -574,7 +562,6 @@ const ResizeableElements = ({
 
           const currentChannelWidth = channelWidths[stage?.name] || 350;
           const currentChannelPosition = channelPositions[stage?.name] || 0;
-       
 
           return (
             <div
