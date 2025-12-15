@@ -1,12 +1,29 @@
-"use client"
+"use client";
 
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend } from "chart.js"
-import { Doughnut } from "react-chartjs-2"
-import { useRef, useMemo } from "react"
-import { useCampaigns } from "app/utils/CampaignsContext"
-import { getCurrencySymbol } from "./data"
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { Doughnut } from "react-chartjs-2";
+import { useRef, useMemo } from "react";
+import { useCampaigns } from "app/utils/CampaignsContext";
+import { getCurrencySymbol } from "./data";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend)
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 // Tailwind to hex mapping for converting Tailwind classes to hex colors for Chart.js
 const tailwindToHex: { [key: string]: string } = {
@@ -59,7 +76,7 @@ const tailwindToHex: { [key: string]: string } = {
   "bg-dusk-400": "#897F98",
   "bg-twilight-700": "#4E5180",
   "bg-midnight-900": "#191970",
-}
+};
 
 // Fallback palette for assigning unique colors when duplicates occur
 const distinctColorPalette = [
@@ -111,141 +128,161 @@ const distinctColorPalette = [
   "#897F98",
   "#4E5180",
   "#191970",
-]
+];
 
 // Helper to check if a string is a valid hex color
-const isHexColor = (color: string) => /^#[0-9A-Fa-f]{6}$/.test(color)
+const isHexColor = (color: string) => /^#[0-9A-Fa-f]{6}$/.test(color);
+
+interface CampaignPhase {
+  name: string;
+  percentage: string;
+  color: string;
+}
 
 const DoughnutChart = ({
   insideText = "0 €",
+  campaignPhases,
+  customFunnels,
+  totalBudget,
+  currency,
 }: {
-  insideText?: string
+  insideText?: string;
+  campaignPhases?: CampaignPhase[];
+  customFunnels?: Array<{ id: string; name: string; color: string }>;
+  totalBudget?: number;
+  currency?: string;
 }) => {
-  const chartRef = useRef(null)
-  const { campaignFormData } = useCampaigns()
+  const chartRef = useRef(null);
+  const { campaignFormData } = useCampaigns();
+
+  // If campaignPhases prop is provided, use it (for Dashboard aggregated view)
+  // Otherwise, use campaignFormData from context (for single campaign view)
+  const useAggregatedData = campaignPhases && campaignPhases.length > 0;
 
   // Calculate allocated budget (sum of all stage budgets)
   const allocatedBudget = useMemo(() => {
+    if (useAggregatedData && totalBudget) {
+      return totalBudget;
+    }
     return (
-      campaignFormData?.channel_mix?.reduce((acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0), 0) ||
-      0
-    )
-  }, [campaignFormData?.channel_mix])
+      campaignFormData?.channel_mix?.reduce(
+        (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
+        0
+      ) || 0
+    );
+  }, [campaignFormData?.channel_mix, useAggregatedData, totalBudget]);
 
   // Calculate total fees
   const totalFeesAmount = useMemo(() => {
-    const feesArr = campaignFormData?.campaign_budget?.budget_fees
-    if (!Array.isArray(feesArr) || feesArr.length === 0) {
-      return 0
+    if (useAggregatedData) {
+      return 0; // Dashboard view doesn't include fees in aggregated data
     }
-    const sum = feesArr.reduce((total, fee) => total + Number(fee.value || 0), 0)
-    return isNaN(sum) ? 0 : sum
-  }, [campaignFormData])
+    const feesArr = campaignFormData?.campaign_budget?.budget_fees;
+    if (!Array.isArray(feesArr) || feesArr.length === 0) {
+      return 0;
+    }
+    const sum = feesArr.reduce(
+      (total, fee) => total + Number(fee.value || 0),
+      0
+    );
+    return isNaN(sum) ? 0 : sum;
+  }, [campaignFormData, useAggregatedData]);
 
   // FIXED: Simple calculation - Total Spending = Allocated Budget + Fees
   const totalSpending = useMemo(() => {
-    return allocatedBudget + totalFeesAmount
-  }, [allocatedBudget, totalFeesAmount])
+    return allocatedBudget + totalFeesAmount;
+  }, [allocatedBudget, totalFeesAmount]);
 
-  // Get funnel stages and custom funnels from campaignFormData
-  const funnelStages = campaignFormData?.funnel_stages || []
-  const customFunnels = campaignFormData?.custom_funnels || []
+  // Get funnel stages and custom funnels
+  const funnelStages = useAggregatedData
+    ? campaignPhases?.map((p) => p.name) || []
+    : campaignFormData?.funnel_stages || [];
 
-  // Map selected funnel stages to their funnel objects, maintaining order
-  const selectedFunnels = funnelStages
-    .map((stage: string) => customFunnels.find((funnel: any) => funnel.name === stage))
-    .filter((funnel): funnel is { id: string; name: string; color: string } => funnel !== undefined)
+  const customFunnelsData = useAggregatedData
+    ? customFunnels || []
+    : campaignFormData?.custom_funnels || [];
 
-  // Map labels for the chart
-  const labels = selectedFunnels.map((funnel) => funnel.name)
+  const selectedFunnels = useAggregatedData
+    ? []
+    : funnelStages
+        .map((stage: string) =>
+          customFunnelsData.find((f: any) => f.name === stage)
+        )
+        .filter(Boolean);
 
-  // Assign colors from custom_funnels, ensuring uniqueness
-  function getUniqueColors(funnels: { id: string; name: string; color: string }[]) {
-    const usedColors = new Set<string>()
-    const assignedColors: string[] = []
-    let paletteIndex = 0
+  const labels = useAggregatedData
+    ? campaignPhases?.map((p) => p.name) || []
+    : selectedFunnels.map((f: any) => f.name);
 
-    for (const funnel of funnels) {
-      let color = funnel.color || "#6B7280" // Fallback to gray
-
-      // Convert Tailwind class to hex if necessary, or use hex directly
-      const colorHex = isHexColor(color) ? color : tailwindToHex[color] || "#6B7280"
-
-      // Ensure uniqueness by checking against used colors
-      if (usedColors.has(colorHex)) {
-        while (paletteIndex < distinctColorPalette.length && usedColors.has(distinctColorPalette[paletteIndex])) {
-          paletteIndex++
-        }
-        color = distinctColorPalette[paletteIndex] || "#6B7280"
-        paletteIndex++
-      } else {
-        color = colorHex
-      }
-
-      assignedColors.push(color)
-      usedColors.add(color)
-    }
-
-    return assignedColors
-  }
-
-  const colors = getUniqueColors(selectedFunnels)
+  const colors = useAggregatedData
+    ? campaignPhases?.map((p) => p.color) || []
+    : selectedFunnels.map((f: any) => {
+        const color = f.color || "#6B7280";
+        return isHexColor(color) ? color : tailwindToHex[color] || color;
+      });
 
   // Calculate the display text for total spending
-  const currency = campaignFormData?.campaign_budget?.currency || "EUR"
-  const totalSpendingText = `${getCurrencySymbol(currency)}${totalSpending.toLocaleString()}`
+  const displayCurrency =
+    currency || campaignFormData?.campaign_budget?.currency || "EUR";
+  const totalSpendingText = `${getCurrencySymbol(
+    displayCurrency
+  )}${totalSpending.toLocaleString()}`;
 
-  // Generate data values for the chart with proper percentage calculations
   const dataValues = (() => {
-    if (funnelStages.length === 0) return [100]
+    if (useAggregatedData && campaignPhases) {
+      return campaignPhases.map((phase) => parseFloat(phase.percentage) || 0);
+    }
 
-    // Get stage budgets from channel_mix
+    if (funnelStages.length === 0) return [100];
+
     const stageBudgets = funnelStages.map((stageName) => {
-      const stageData = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stageName)
+      const stageData = campaignFormData?.channel_mix?.find(
+        (ch) => ch?.funnel_stage === stageName
+      );
       return {
         name: stageName,
         amount: Number(stageData?.stage_budget?.fixed_value) || 0,
-      }
-    })
+      };
+    });
 
     // Use allocated budget as the base for percentage calculation (media budget only, not including fees)
-    const totalBudget = allocatedBudget
+    const totalBudget = allocatedBudget;
 
     // Calculate percentages based on stage amounts and total budget
-    if (totalBudget === 0) return stageBudgets.map(() => 0)
+    if (totalBudget === 0) return stageBudgets.map(() => 0);
 
     return stageBudgets.map((stage) => {
-      const percentage = (stage.amount / totalBudget) * 100
-      return Math.max(0, percentage) // Ensure no negative percentages
-    })
-  })()
+      const percentage = (stage.amount / totalBudget) * 100;
+      return Math.max(0, percentage); // Ensure no negative percentages
+    });
+  })();
 
   // Custom plugin to add text in the center of the doughnut chart
   const centerTextPlugin = {
     id: "centerText",
     beforeDraw: (chart: any) => {
-      const { width, height, ctx } = chart
-      ctx.restore()
+      const { width, height, ctx } = chart;
+      ctx.restore();
 
-      const textTop = "Total spending"
-      const textBottom = totalSpendingText // Use calculated total spending (allocated budget + fees)
+      const textTop = "Total spending";
+      const textBottom = totalSpendingText; // Use calculated total spending (allocated budget + fees)
 
-      const centerX = width / 2
-      const centerY = height / 2
+      const centerX = width / 2;
+      const centerY = height / 2;
 
-      ctx.fillStyle = "rgba(6, 18, 55, 0.8)"
-      ctx.font = `500 ${height / 20}px Arial`
-      ctx.textAlign = "center"
-      ctx.textBaseline = "middle"
-      ctx.fillText(textTop, centerX, centerY - 15)
+      ctx.fillStyle = "rgba(6, 18, 55, 0.8)";
+      ctx.font = `500 ${height / 20}px Arial`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(textTop, centerX, centerY - 15);
 
-      ctx.fillStyle = "#061237"
-      ctx.font = `bold ${height / 20}px Arial`
-      ctx.fillText(textBottom, centerX, centerY + 15)
+      ctx.fillStyle = "#061237";
+      ctx.font = `bold ${height / 20}px Arial`;
+      ctx.fillText(textBottom, centerX, centerY + 15);
 
-      ctx.save()
+      ctx.save();
     },
-  }
+  };
 
   const doughnutData = {
     labels: labels.length > 0 ? labels : ["No Stages Selected"],
@@ -259,7 +296,7 @@ const DoughnutChart = ({
         hoverOffset: 7,
       },
     ],
-  }
+  };
 
   const chartOptions: any = {
     responsive: true,
@@ -278,18 +315,30 @@ const DoughnutChart = ({
       tooltip: {
         callbacks: {
           label: (context: any) => {
-            const label = context.label || ""
-            const percentage = context.parsed || 0
-            // Get the corresponding stage budget amount
-            const stageData = campaignFormData?.channel_mix?.find((st: any) => st?.funnel_stage === label)
-            const amount = Number(stageData?.stage_budget?.fixed_value) || 0
-            const currency = campaignFormData?.campaign_budget?.currency || "EUR"
-            return `${label}: ${percentage.toFixed(1)}% (${getCurrencySymbol(currency)}${amount.toLocaleString()})`
+            const label = context.label || "";
+            const percentage = context.parsed || 0;
+
+            if (useAggregatedData && totalBudget) {
+              // For aggregated data, calculate amount from percentage
+              const amount = (percentage / 100) * totalBudget;
+              return `${label}: ${percentage.toFixed(1)}% (${getCurrencySymbol(
+                displayCurrency
+              )}${Math.round(amount).toLocaleString()})`;
+            }
+
+            // Get the corresponding stage budget amount (for single campaign view)
+            const stageData = campaignFormData?.channel_mix?.find(
+              (st: any) => st?.funnel_stage === label
+            );
+            const amount = Number(stageData?.stage_budget?.fixed_value) || 0;
+            return `${label}: ${percentage.toFixed(1)}% (${getCurrencySymbol(
+              displayCurrency
+            )}${amount.toLocaleString()})`;
           },
         },
       },
     },
-  }
+  };
 
   return (
     <div
@@ -300,9 +349,14 @@ const DoughnutChart = ({
         maxWidth: "100%",
       }}
     >
-      <Doughnut ref={chartRef} data={doughnutData} options={chartOptions} plugins={[centerTextPlugin]} />
+      <Doughnut
+        ref={chartRef}
+        data={doughnutData}
+        options={chartOptions}
+        plugins={[centerTextPlugin]}
+      />
     </div>
-  )
-}
+  );
+};
 
-export default DoughnutChart
+export default DoughnutChart;

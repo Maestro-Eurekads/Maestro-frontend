@@ -1,39 +1,63 @@
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { getPlatformIcon, mediaTypes, platformStyles } from "components/data";
-import { differenceInMonths, endOfYear, startOfYear } from "date-fns";
+import { eachWeekOfInterval, endOfWeek, parseISO } from "date-fns";
 import Image from "next/image";
 import type React from "react";
-import { useState } from "react";
-import { BsFillMegaphoneFill } from "react-icons/bs";
-import { FiChevronDown, FiChevronUp } from "react-icons/fi";
-import { TbCreditCardFilled, TbZoomFilled } from "react-icons/tb";
+import { useMemo, useState } from "react";
+import { FiChevronDown, FiChevronUp, FiCheck } from "react-icons/fi";
 
 interface MonthTimelineProps {
-  monthsCount: number;
+  weeksCount: number;
   funnels: any[];
-  range;
+  range: Date[];
+  onTogglePlanSelection?: (id: number) => void;
 }
 
+const WEEK_WIDTH_PX = 100;
+
 const MonthTimeline: React.FC<MonthTimelineProps> = ({
-  monthsCount,
+  weeksCount,
   funnels,
   range,
+  onTogglePlanSelection,
 }) => {
   const [expanded, setExpanded] = useState({});
   const [openSections, setOpenSections] = useState({});
-  const { campaignFormData, clientCampaignData } = useCampaigns();
-  const monthWidth = 120; // Fixed width for each month in pixels
-  // Function to toggle campaign dropdown
+  const { clientCampaignData } = useCampaigns();
+
   const toggleShow = (index) => {
     setExpanded((prev) => ({ ...prev, [index]: !prev[index] }));
   };
 
-  // Function to toggle Awareness/Consideration/Conversion dropdowns
   const toggleOpen = (index, section) => {
     setOpenSections((prev) => ({
       ...prev,
       [`${index}-${section}`]: !prev[`${index}-${section}`],
     }));
+  };
+
+  const allWeeks = useMemo(() => {
+    if (!range || range.length === 0) return [];
+    const startDate = range[0];
+    const endDate = range[range.length - 1];
+    return eachWeekOfInterval(
+      { start: startDate, end: endDate },
+      { weekStartsOn: 1 }
+    );
+  }, [range]);
+
+  const getWeekIndex = (date: Date | string) => {
+    if (!date || allWeeks.length === 0) return 0;
+    const targetDate = typeof date === "string" ? parseISO(date) : date;
+
+    for (let i = 0; i < allWeeks.length; i++) {
+      const weekStart = allWeeks[i];
+      const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
+      if (targetDate >= weekStart && targetDate <= weekEnd) {
+        return i + 1;
+      }
+    }
+    return 1;
   };
 
   function extractPlatforms(data) {
@@ -43,12 +67,11 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
         const stageName = stage.funnel_stage;
         const stageBudget = parseFloat(stage.stage_budget?.fixed_value);
         mediaTypes.forEach((channelType) => {
-          stage[channelType].forEach((platform) => {
+          stage[channelType]?.forEach((platform) => {
             const platformName = platform.platform_name;
             const platformBudget = parseFloat(
               platform.budget?.fixed_value || 0
             );
-            const percentage = (platformBudget / stageBudget) * 100 || 0;
             const existingPlatform = platforms.find(
               (p) => p.platform_name === platformName
             );
@@ -74,62 +97,74 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
     return platforms;
   }
 
-  const calculateGridColumns = (start: Date, end: Date) => {
-    const allMonths = range.map((date) => new Date(date).getMonth() + 1);
-    const uniqueMonths = Array.from(new Set(allMonths));
-    const startMonth = new Date(start).getMonth() + 1; // Extract start month (1-based index)
-    const endMonth = new Date(end).getMonth() + 1; // Extract end month (1-based index)
-
-    // console.log("🚀 ~ calculateGridColumns ~ uniqueMonths:", uniqueMonths);
-    // console.log({ startMonth, endMonth });
-
-    const startIndex = uniqueMonths.indexOf(startMonth); // Find the index of the start month
-    const endIndex = uniqueMonths.indexOf(endMonth); // Find the index of the end month
-    // console.log({allMonths, startMonth, endMonth, startIndex, endIndex})
-    return { allMonths, startMonth, endMonth, startIndex, endIndex };
-  };
-
   return (
     <div
       className="w-full min-h-[494px] relative pb-5"
       style={{
         backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
-        backgroundSize: `calc(250px) 100%`,
+        backgroundSize: `${WEEK_WIDTH_PX}px 100%`,
       }}
     >
       {funnels?.map(
         (
-          { startWeek, endWeek, label, budget, stages, endMonth, startMonth },
+          { id, isSelected, label, budget, stages, startDate, endDate },
           index
         ) => {
+          const startWeekIndex = getWeekIndex(startDate);
+          const endWeekIndex = getWeekIndex(endDate);
+
           return (
             <div
               key={index}
               style={{
                 display: "grid",
-                gridTemplateColumns: `repeat(${monthsCount}, 250px)`,
+                gridTemplateColumns: `repeat(${weeksCount}, ${WEEK_WIDTH_PX}px)`,
               }}
             >
               <div
-                className="flex flex-col min-h-[69px] bg-white border border-[rgba(0,0,0,0.1)] mt-6 shadow-sm rounded-[10px]  justify-between"
+                className={`flex flex-col min-h-14 bg-white mt-6 shadow-sm rounded-[10px] justify-between transition-all cursor-pointer ${
+                  isSelected
+                    ? "border-2 border-[#3175FF] ring-2 ring-[#3175FF]/20"
+                    : "border border-[rgba(0,0,0,0.2)] opacity-50"
+                }`}
                 style={{
-                  gridColumnStart: startMonth,
-                  gridColumnEnd: endMonth + 1,
+                  gridColumnStart: startWeekIndex,
+                  gridColumnEnd: endWeekIndex + 1,
                 }}
+                onClick={() => onTogglePlanSelection?.(id)}
               >
                 <div
-                  className={`${
+                  className={`flex items-center gap-3 ${
                     expanded[index]
-                      ? 'border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] flex justify-between items-center p-4    h-[77px] bg-[#F9FAFB]  "'
-                      : "flex justify-between items-center p-4"
-                  } `}
+                      ? "border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] p-4 h-14 bg-[#F9FAFB]"
+                      : "p-2"
+                  }`}
                 >
-                  <div>
-                    <h3 className="text-[#061237] font-semibold text-[16px] leading-[22px]  ">
-                      {label}
-                    </h3>
-                    <p className="text-[#061237] font-medium text-[14px]">
-                      {/* 250,000 € */}
+                  <button
+                    className="flex items-center justify-center bg-blue-50 rounded-full min-w-8 min-h-8"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleShow(index);
+                    }}
+                  >
+                    {expanded[index] ? (
+                      <FiChevronUp size={20} />
+                    ) : (
+                      <FiChevronDown size={20} />
+                    )}
+                  </button>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-[#061237] font-semibold text-sm">
+                        {label}
+                      </h3>
+                      {isSelected && (
+                        <span className="flex items-center justify-center w-4 h-4 bg-[#3175FF] rounded-[5px]">
+                          <FiCheck size={10} className="text-white" />
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[#061237] font-medium text-sm">
                       {budget?.startsWith("null") ||
                       budget?.startsWith("undefined")
                         ? 0
@@ -140,53 +175,44 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                             .trim()}`}
                     </p>
                   </div>
-                  <button onClick={() => toggleShow(index)}>
-                    {expanded[index] ? (
-                      <FiChevronUp size={20} />
-                    ) : (
-                      <FiChevronDown size={20} />
-                    )}
-                  </button>
                 </div>
 
-                {/* Expanded section */}
                 {expanded[index] && (
                   <div
                     className="py-2"
                     style={{
                       backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
-                      backgroundSize: `calc(250px) 100%`,
+                      backgroundSize: `${WEEK_WIDTH_PX}px 100%`,
                     }}
                   >
                     {stages?.map(
                       (
                         {
                           name,
-                          startDay,
-                          endDay,
-                          startWeek,
-                          endWeek,
-                          startMonth: start,
-                          endMonth: end,
-                          budget,
+                          startDate: stageStart,
+                          endDate: stageEnd,
+                          budget: stageBudget,
                         },
                         zIndex
                       ) => {
                         const channels = extractPlatforms(
                           clientCampaignData[index]
                         );
+                        const stageStartWeek = getWeekIndex(stageStart);
+                        const stageEndWeek = getWeekIndex(stageEnd);
+                        const campaignSpan = endWeekIndex - startWeekIndex + 1;
 
                         return (
                           <div
                             key={name}
                             style={{
                               display: "grid",
-                              gridTemplateColumns: `repeat(${monthsCount}, 250px)`,
+                              gridTemplateColumns: `repeat(${campaignSpan}, ${WEEK_WIDTH_PX}px)`,
                             }}
                           >
                             <div
                               onClick={() => toggleOpen(index, name)}
-                              className={`mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${
+                              className={`mt-5 w-full flex items-center rounded-[10px] h-12.5 text-xs font-[500] p-2 text-center ${
                                 name === "Awareness"
                                   ? "bg-[#3175FF]"
                                   : name === "Consideration"
@@ -196,32 +222,29 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                                   : "bg-[#F05406]"
                               } text-white`}
                               style={{
-                                gridColumnStart: start,
-                                gridColumnEnd: end + 1,
+                                gridColumnStart: Math.max(
+                                  1,
+                                  stageStartWeek - startWeekIndex + 1
+                                ),
+                                gridColumnEnd: Math.min(
+                                  campaignSpan + 1,
+                                  stageEndWeek - startWeekIndex + 2
+                                ),
                               }}
                             >
                               <div className="flex items-center justify-center gap-3 flex-1">
-                                {/* <span>
-                                {name === "Awareness" ? (
-                                  <BsFillMegaphoneFill />
-                                ) : name === "Consideration" ? (
-                                  <TbZoomFilled />
-                                ) : (
-                                  <TbCreditCardFilled />
-                                )}
-                              </span> */}
                                 <span>{name}</span>
                                 <span>
                                   <FiChevronDown size={15} />
                                 </span>
                               </div>
-                              <button className="justify-self-end px-3 py-[10px] text-[16px] font-[500] bg-white/25 rounded-[5px]">
-                                {budget?.startsWith("null") ||
-                                budget?.startsWith("undefined")
+                              <button className="justify-self-end px-3 py-2 text-sm font-[500] bg-white/25 rounded-[5px]">
+                                {stageBudget?.startsWith("null") ||
+                                stageBudget?.startsWith("undefined")
                                   ? 0
                                   : `${Number(
-                                      budget.replace(/[^\d.-]/g, "")
-                                    ).toLocaleString()} ${budget
+                                      stageBudget.replace(/[^\d.-]/g, "")
+                                    ).toLocaleString()} ${stageBudget
                                       .replace(/[\d\s.,-]/g, "")
                                       .trim()}`}
                               </button>
@@ -230,8 +253,8 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                             {openSections[`${index}-${name}`] && (
                               <div
                                 style={{
-                                  gridColumnStart: startMonth,
-                                  gridColumnEnd: endMonth + 1 - startMonth + 1,
+                                  gridColumnStart: 1,
+                                  gridColumnEnd: campaignSpan + 1,
                                 }}
                               >
                                 {channels
@@ -242,43 +265,40 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                                       icon,
                                       amount,
                                       bg,
-                                      startDate,
-                                      endDate,
+                                      startDate: platformStart,
+                                      endDate: platformEnd,
                                     }) => {
-                                      const { startIndex, endIndex, endMonth:endOfMonth } =
-                                        calculateGridColumns(
-                                          startDate,
-                                          endDate,
-                                        );
-                                      console.log(
-                                        {
-                                          startIndex,
-                                          endIndex,
-                                          startDate,
-                                          endDate,
-                                        },
-                                        "hererere"
-                                      );
+                                      const platStartWeek =
+                                        getWeekIndex(platformStart);
+                                      const platEndWeek =
+                                        getWeekIndex(platformEnd);
+
                                       return (
                                         <div
                                           key={platform_name}
                                           style={{
                                             display: "grid",
-                                            gridTemplateColumns: `repeat(${endOfMonth}, 250px)`,
+                                            gridTemplateColumns: `repeat(${campaignSpan}, ${WEEK_WIDTH_PX}px)`,
                                           }}
                                         >
                                           <div
-                                            className={`py-1 text-[15px] font-[500] border my-5 w-full rounded-[10px] flex items-center justify-between`}
+                                            className="py-1 text-xs font-[500] border my-5 w-full rounded-[10px] flex items-center justify-between"
                                             style={{
-                                              gridColumnStart: startIndex
-                                                ? startIndex + 1
-                                                : 1,
-                                              gridColumnEnd: endIndex + 2,
+                                              gridColumnStart: Math.max(
+                                                1,
+                                                platStartWeek -
+                                                  startWeekIndex +
+                                                  1
+                                              ),
+                                              gridColumnEnd: Math.min(
+                                                campaignSpan + 1,
+                                                platEndWeek - startWeekIndex + 2
+                                              ),
                                               backgroundColor: bg,
                                             }}
                                           >
                                             <div />
-                                            <span className="flex items-center gap-3 pl-3 ml-14">
+                                            <span className="flex items-center gap-3">
                                               <Image
                                                 src={icon}
                                                 alt={platform_name}

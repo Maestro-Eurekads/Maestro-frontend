@@ -43,8 +43,6 @@ type DateRangeContextType = {
   campaignRange: Date[];
   bufferMonths: number;
   setBufferMonths: (months: number) => void;
-  isInfiniteTimeline: boolean;
-  setIsInfiniteTimeline: (value: boolean) => void;
   extendTimelineBefore: () => number;
   extendTimelineAfter: () => number;
   timelineStart: Date | null;
@@ -68,7 +66,6 @@ export const DateRangeProvider = ({
   const [campaignRange, setCampaignRange] = useState<Date[]>([]);
   const [dateRangeWidth, setDateRangeWidth] = useState(0);
   const [bufferMonths, setBufferMonths] = useState(12); // 1 year default
-  const [isInfiniteTimeline, setIsInfiniteTimeline] = useState(true);
   const [timelineStart, setTimelineStart] = useState<Date | null>(null);
   const [timelineEnd, setTimelineEnd] = useState<Date | null>(null);
   const [dailyWidthPx, setDailyWidthPx] = useState(15);
@@ -89,7 +86,6 @@ export const DateRangeProvider = ({
       });
       setCampaignRange(campaignDateList);
 
-      if (isInfiniteTimeline) {
         const extendedStart = startOfMonth(
           subMonths(startDate, INITIAL_MONTHS_BUFFER)
         );
@@ -106,20 +102,9 @@ export const DateRangeProvider = ({
         setExtendedRange(extendedDateList);
         setRange(extendedDateList);
         initialized.current = true;
-      } else {
-        const bufferedStart = subDays(startDate, 0);
-        const bufferedEnd = addDays(endDate, 0);
-        const dateList = eachDayOfInterval({
-          start: bufferedStart,
-          end: bufferedEnd,
-        });
-        setTimelineStart(bufferedStart);
-        setTimelineEnd(bufferedEnd);
-        setRange(dateList);
-        setExtendedRange(dateList);
-      }
+      
     }
-  }, [campaignFormData, isInfiniteTimeline]);
+  }, [campaignFormData]);
 
   const extendTimelineBefore = useCallback((): number => {
     if (!timelineStart || !timelineEnd) return 0;
@@ -200,8 +185,6 @@ export const DateRangeProvider = ({
         campaignRange,
         bufferMonths,
         setBufferMonths,
-        isInfiniteTimeline,
-        setIsInfiniteTimeline,
         extendTimelineBefore,
         extendTimelineAfter,
         timelineStart,

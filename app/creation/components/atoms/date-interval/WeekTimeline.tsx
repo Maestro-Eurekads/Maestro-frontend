@@ -2,12 +2,6 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { FiChevronUp, FiChevronDown } from "react-icons/fi";
-import { BsFillMegaphoneFill } from "react-icons/bs";
-import youtube from "../../../../../public/youtube.svg";
-import facebook from "../../../../../public/facebook.svg";
-import TheTradeDesk from "../../../../../public/TheTradeDesk.svg";
-import instagram from "../../../../../public/ig.svg";
-import { TbZoomFilled, TbCreditCardFilled } from "react-icons/tb";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { getPlatformIcon, mediaTypes, platformStyles } from "components/data";
 
@@ -87,23 +81,24 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
             }}
           >
             <div
-              className="flex flex-col min-h-[69px] bg-white border border-[rgba(0,0,0,0.1)] mt-6 shadow-sm rounded-[10px]  justify-between"
+              className="flex flex-col min-h-14 bg-white border border-[rgba(0,0,0,0.1)] mt-6 shadow-sm rounded-[10px] justify-between"
               style={{
                 gridColumnStart: startDay,
                 gridColumnEnd: endDay + 1,
               }}
             >
               <div
-                className={`${expanded[index]
-                  ? 'border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] flex justify-between items-center p-4    h-[77px] bg-[#F9FAFB]  "'
-                  : "flex justify-between items-center p-4"
-                  } `}
+                className={`${
+                  expanded[index]
+                    ? "border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] flex justify-between items-center p-4 h-14 bg-[#F9FAFB]"
+                    : "flex justify-between items-center p-2"
+                }`}
               >
                 <div>
-                  <h3 className="text-[#061237] font-semibold text-[16px] leading-[22px]  ">
+                  <h3 className="text-[#061237] font-semibold text-sm">
                     {label}
                   </h3>
-                  <p className="text-[#061237] font-medium text-[14px]">
+                  <p className="text-[#061237] font-medium text-sm">
                     {/* 250,000 € */}
                     {budget?.startsWith("null") || budget?.startsWith("undefined")
                       ? 0
@@ -121,7 +116,13 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
 
               {/* Expanded section */}
               {expanded[index] && (
-                <div className="p-4">
+                <div
+                  className="py-2"
+                  style={{
+                    backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
+                    backgroundSize: `calc(50px) 100%`,
+                  }}
+                >
                   {stages?.map((section, zIndex) => {
 
                     const channels = extractPlatforms(
@@ -138,35 +139,27 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
                       >
                         <div
                           onClick={() => toggleOpen(index, section?.name)}
-                          className={`mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${section?.name === "Awareness"
-                            ? "bg-[#3175FF]"
-                            : section?.name === "Consideration"
+                          className={`mt-5 w-full flex items-center rounded-[10px] h-12.5 text-xs font-[500] p-2 text-center ${
+                            section?.name === "Awareness"
+                              ? "bg-[#3175FF]"
+                              : section?.name === "Consideration"
                               ? "bg-[#34A853]"
                               : section?.name === "Conversion"
-                                ? "bg-[#ff9037]"
-                                : "bg-[#F05406]"
-                            } text-white`}
+                              ? "bg-[#ff9037]"
+                              : "bg-[#F05406]"
+                          } text-white`}
                           style={{
                             gridColumnStart: startDay,
                             gridColumnEnd: endDay + 1 - startDay + 1,
                           }}
                         >
                           <div className="flex items-center justify-center gap-3 flex-1">
-                            <span>
-                              {section?.name === "Awareness" ? (
-                                <BsFillMegaphoneFill />
-                              ) : section?.name === "Consideration" ? (
-                                <TbZoomFilled />
-                              ) : (
-                                <TbCreditCardFilled />
-                              )}
-                            </span>
                             <span>{section?.name}</span>
                             <span>
                               <FiChevronDown size={15} />
                             </span>
                           </div>
-                          <button className="justify-self-end px-3 py-[10px] text-[16px] font-[500] bg-white/25 rounded-[5px]">
+                          <button className="justify-self-end px-3 py-2 text-sm font-[500] bg-white/25 rounded-[5px]">
                             {section?.budget?.startsWith("null") || section?.budget?.startsWith("undefined")
                               ? 0
                               : `${Number(section?.budget.replace(/[^\d.-]/g, "")).toLocaleString()} ${section?.budget.replace(/[\d\s.,-]/g, "").trim()}`}
@@ -193,7 +186,7 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
                                   }}
                                 >
                                   <div
-                                    className={`py-1 text-[15px] font-[500] border my-5 w-full rounded-[10px] flex items-center justify-between`}
+                                    className="py-1 text-xs font-[500] border my-5 w-full rounded-[10px] flex items-center justify-between"
                                     style={{
                                       gridColumnStart: 1,
                                       gridColumnEnd:
@@ -202,7 +195,7 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
                                     }}
                                   >
                                     <div />
-                                    <span className="flex items-center gap-3 pl-3 ml-14">
+                                    <span className="flex items-center gap-3">
                                       <Image
                                         src={icon}
                                         alt={platform_name}
