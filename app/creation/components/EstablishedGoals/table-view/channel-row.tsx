@@ -254,7 +254,7 @@ export const ChannelRow = ({
     if (!chData) return {}
     // console.log((campaignFormData?.campaign_budget?.level === "Adset level" ? adsetFormulas :formulas))
     return Object.fromEntries(
-      Object.entries((campaignFormData?.campaign_budget?.level === "Adset level" ? adsetFormulas : formulas))?.map(([key, [fn, ...args]]) => {
+      Object.entries((channel.ad_sets?.length > 0 ? adsetFormulas : formulas))?.map(([key, [fn, ...args]]) => {
         return [
           key,
           typeof fn === "function"

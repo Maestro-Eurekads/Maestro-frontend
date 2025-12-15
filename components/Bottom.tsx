@@ -202,11 +202,11 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           <button
             className={clsx(
               "bottom_black_back_btn",
-              (active === 0 && subStep === 0) || active === 1 && "opacity-50 cursor-not-allowed",
+              (active === 0 && subStep === 0) && "opacity-50 cursor-not-allowed",
               active > 1 && "hover:bg-gray-200",
             )}
             onClick={handleBack}
-            disabled={(active === 0 && subStep === 0) || active === 1}
+            disabled={(active === 0 && subStep === 0)}
           >
             <Image src={Back} alt="Back" />
             <p>Back</p>
@@ -219,15 +219,15 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           </button>
         ) : (
           <div className="flex justify-center items-center gap-3">
-            {active !== 0 && <button
+            <button
               className={clsx(
                 "bottom_black_next_btn whitespace-nowrap",
-                active === 10 && "opacity-50 cursor-not-allowed",
+                (active === 10 || !cId) && "opacity-50 cursor-not-allowed",
                 active < 10 && "hover:bg-blue-500",
                 active === 4 && !hasFormatSelected && "px-3 py-2", // Add padding for longer text
               )}
               onClick={active === 4 && !hasFormatSelected ? handleSkip : handleContinue}
-              disabled={active === 10}
+              disabled={active === 10 || (!cId)}
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
             >
@@ -257,7 +257,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                   <Image src={Continue} alt="Continue" />
                 </>
               )}
-            </button>}
+            </button>
           </div>
         )}
       </div>

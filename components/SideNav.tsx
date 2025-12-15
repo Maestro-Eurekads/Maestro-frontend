@@ -9,6 +9,7 @@ import { useActive } from "../app/utils/ActiveContext";
 import CreationFlowActive from "./CreationFlowActive";
 import funnel from "../public/ant-design_funnel-plot-filled.svg";
 import channel from "../public/icon-park-solid_web-page.svg";
+import addPlusWhite from "../public/addPlusWhite.svg";
 import devicefill from "../public/device-fill.svg";
 import basket from "../public/bxs_basket.svg";
 import click from "../public/fluent_cursor-click-24-filled.svg";
@@ -23,6 +24,7 @@ import { reset } from "features/Comment/commentSlice";
 import Skeleton from "react-loading-skeleton";
 import BackConfirmModal from "./BackConfirmModal";
 import { areObjectsSimilar } from "app/utils/similarityCheck";
+import SaveProgressButton from "app/utils/SaveProgressButton";
 
 
 const SideNav: React.FC = () => {
@@ -100,6 +102,15 @@ const SideNav: React.FC = () => {
 
   const steps = useMemo(
     () => [
+      {
+        vl: "vl",
+        vl_done: "vl_done",
+        vl_active: "vl_active",
+        state_text: "SideBar_Menu_state",
+        sidecircle: "SideBar_Menu_active",
+        title: "Media Plan Details",
+        img: <Image src={addPlusWhite} alt="add" />,
+      },
       {
         vl: "vl",
         vl_done: "vl_done",
@@ -217,13 +228,14 @@ const SideNav: React.FC = () => {
         </div>
         {!close && (
           <div className="flex flex-col items-start mb-8">
-            <button
+            <SaveProgressButton isBackToDashboardButton={true} />
+            {/* <button
               onClick={handleBackClick}
               className="font-general-sans font-semibold text-[16px] leading-[22px] text-[#3175FF] flex items-center gap-2"
             >
               <Image src={left_arrow} alt="menu" />
               <p>Back to Dashboard</p>
-            </button>
+            </button> */}
             {loadingCampaign ? (
               // Minimize skeleton visibility with a timeout
               <div className="opacity.cas(0).delay(200ms).duration(300ms)">
@@ -262,11 +274,11 @@ const SideNav: React.FC = () => {
           display, and any other rights are exclusively reserved to Eurekads Pte. Ltd.
         </p>
       )}
-      <BackConfirmModal
+      {/* <BackConfirmModal
         isOpen={showModal}
         onClose={handleCancel}
         onConfirm={handleConfirmSave}
-      />
+      /> */}
     </div>
   );
 };

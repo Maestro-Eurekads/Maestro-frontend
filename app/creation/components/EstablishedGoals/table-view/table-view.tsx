@@ -13,7 +13,7 @@ import { useActive } from "app/utils/ActiveContext"
 const TableView = () => {
   const { setChange } = useActive()
   const [expandedRows, setExpandedRows] = useState({})
-  const { campaignFormData, setCampaignFormData, updateCampaign, campaignData } = useCampaigns()
+  const { campaignFormData, setCampaignFormData, updateCampaign } = useCampaigns()
   const [isOpen, setIsOpen] = useState(false)
   const [mergedTableHeadersByStage, setMergedTableHeadersByStage] = useState({})
   const [mergedTableBodyByStage, setMergedTableBodyByStage] = useState({})
@@ -329,7 +329,6 @@ const TableView = () => {
   // }, [JSON.stringify(campaignFormData?.channel_mix)])
 
   const handleEditInfo = (stageName, channelName, platformName, fieldName, value, adSetIndex, extraAdSetindex) => {
-    setChange(true)
     setCampaignFormData((prevData) => {
       const updatedData = { ...prevData }
       const channelMix = updatedData.channel_mix?.find((ch) => ch.funnel_stage === stageName)

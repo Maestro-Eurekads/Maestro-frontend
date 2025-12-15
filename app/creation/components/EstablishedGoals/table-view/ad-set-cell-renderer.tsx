@@ -40,6 +40,8 @@ export const AdSetCellRenderer = ({
   const [inputValue, setInputValue] = useState("")
   const [isTyping, setIsTyping] = useState(false)
   const [isFocused, setIsFocused] = useState(false)
+  const { setKpiChanged } = useCampaigns()
+
 
   const isNR = nrAdCells[`${channel?.name}-${adSetIndex}`]?.[body];
   const cellType = tableHeaders[bodyIndex]?.type as CellType
@@ -382,6 +384,7 @@ export const AdSetCellRenderer = ({
 
   // Validation and save function
   const validateAndSave = (value: string) => {
+    setKpiChanged(true);
     if (value === "") {
       handleEditInfo(stage.name, channel?.channel_name, channel?.name, body, "",
         adSetIndex, "")
