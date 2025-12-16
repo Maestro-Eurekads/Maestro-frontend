@@ -763,7 +763,7 @@ const SaveProgressButton = ({ isBackToDashboardButton }: { isBackToDashboardButt
 					"documentId",
 					"_aggregated",
 				]),
-				campaign_budget: removeKeysRecursively(updatedCampaignFormData?.campaign_budget, ["id"]),
+				campaign_budget: removeKeysRecursively(updatedCampaignFormData?.campaign_budget, ["id", "value"]),
 				goal_level: updatedCampaignFormData?.goal_level,
 				table_headers: updatedCampaignFormData?.table_headers,
 			})
@@ -771,7 +771,6 @@ const SaveProgressButton = ({ isBackToDashboardButton }: { isBackToDashboardButt
 
 		const handleDateStep = async () => {
 			if (!campaignData) return
-
 			await updateCampaignData({
 				campaign_timeline_start_date: campaignFormData?.campaign_timeline_start_date,
 				campaign_timeline_end_date: campaignFormData?.campaign_timeline_end_date,
@@ -782,7 +781,7 @@ const SaveProgressButton = ({ isBackToDashboardButton }: { isBackToDashboardButt
 					"documentId",
 					"_aggregated",
 				]),
-				campaign_budget: removeKeysRecursively(campaignFormData?.campaign_budget, ["id"]),
+				campaign_budget: removeKeysRecursively(campaignFormData?.campaign_budget, ["id", "value"]),
 				goal_level: campaignFormData?.goal_level,
 			})
 		}
