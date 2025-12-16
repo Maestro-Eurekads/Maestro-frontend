@@ -79,10 +79,23 @@ const QuarterInterval: React.FC<QuarterIntervalProps> = ({
     sortedYears.forEach((year) => {
       monthsByYear[year].forEach((month, idx) => {
         // Calculate quarter based on month abbreviation
-        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const monthNames = [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul",
+          "Aug",
+          "Sep",
+          "Oct",
+          "Nov",
+          "Dec",
+        ];
         const monthIndex = monthNames.indexOf(month);
         const quarter = monthIndex >= 0 ? Math.floor(monthIndex / 3) + 1 : 1;
-        
+
         result.push({
           month,
           year,
@@ -94,27 +107,13 @@ const QuarterInterval: React.FC<QuarterIntervalProps> = ({
     return result;
   }, [sortedYears, monthsByYear]);
 
-  const yearHeaders = useMemo(() => {
-    const headers: Array<{ year: string; span: number; startIndex: number }> =
-      [];
-    let currentIndex = 0;
-
-    sortedYears.forEach((year) => {
-      const monthCount = monthsByYear[year].length;
-      headers.push({
-        year,
-        span: monthCount,
-        startIndex: currentIndex,
-      });
-      currentIndex += monthCount;
-    });
-
-    return headers;
-  }, [sortedYears, monthsByYear]);
-
   const quarterHeaders = useMemo(() => {
-    const headers: Array<{ quarter: string; span: number; startIndex: number }> =
-      [];
+    const headers: Array<{
+      quarter: string;
+      year: number | string;
+      span: number;
+      startIndex: number;
+    }> = [];
     let currentIndex = 0;
     let currentQuarter: number | null = null;
     let currentYear: string | null = null;
@@ -129,6 +128,7 @@ const QuarterInterval: React.FC<QuarterIntervalProps> = ({
         if (currentQuarter !== null && currentYear !== null) {
           headers.push({
             quarter: `Q${currentQuarter}`,
+            year: currentYear,
             span: currentSpan,
             startIndex: currentIndex - currentSpan,
           });
@@ -145,6 +145,7 @@ const QuarterInterval: React.FC<QuarterIntervalProps> = ({
     if (currentQuarter !== null && currentYear !== null) {
       headers.push({
         quarter: `Q${currentQuarter}`,
+        year: currentYear,
         span: currentSpan,
         startIndex: currentIndex - currentSpan,
       });
@@ -168,40 +169,6 @@ const QuarterInterval: React.FC<QuarterIntervalProps> = ({
         }}
         className="border-b border-blue-200"
       >
-        {yearHeaders.map((header) => (
-          <div
-            key={header.year}
-            style={{
-              gridColumn: `span ${header.span}`,
-            }}
-            className="relative h-full"
-          >
-            <div
-              style={{
-                position: "sticky",
-                left: 0,
-                width: "fit-content",
-                backgroundColor: "white",
-                paddingRight: "12px",
-                zIndex: 10,
-              }}
-              className="py-2 px-3 border-r border-blue-200/50 h-full flex items-center"
-            >
-              <span className="font-[600] text-[16px] text-[rgba(0,0,0,0.7)]">
-                {header.year}
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns,
-        }}
-        className="border-b border-blue-200"
-      >
         {quarterHeaders.map((header, idx) => (
           <div
             key={`quarter-${idx}`}
@@ -216,13 +183,12 @@ const QuarterInterval: React.FC<QuarterIntervalProps> = ({
                 left: 0,
                 width: "fit-content",
                 backgroundColor: "white",
-                paddingRight: "12px",
                 zIndex: 9,
               }}
-              className="py-2 px-3 border-r border-blue-200/50 h-full flex items-center"
+              className="px-3 border-s border-blue-200/50 h-full flex items-center"
             >
               <span className="font-[600] text-[14px] text-[rgba(0,0,0,0.7)]">
-                {header.quarter}
+                {header.quarter} - {header.year}
               </span>
             </div>
           </div>
