@@ -1,9 +1,9 @@
-
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
 import { TreeSelect } from 'antd';
-import { buildTree } from 'utils/buildTree';
+import { buildTreeWithHierarchicalTitles } from 'utils/buildTree';
+// Or import { buildTree } from 'utils/buildTree'; if you modify the existing function
 import { convertToNestedStructure } from 'utils/convertToNestedStructure';
 import { useActive } from 'app/utils/ActiveContext';
 
@@ -26,16 +26,20 @@ const TreeDropdown: React.FC<Props> = ({
 	const [treeOptions, setTreeOptions] = useState<any[]>([]);
 	const [value, setValue] = useState<string[]>([]);
 	const hasSetInitialValue = useRef(false);
+
 	// Build tree when data is ready
 	useEffect(() => {
 		if (data) {
-			const tree = buildTree(data, true);
+			// Use the new function to show hierarchical titles
+			const tree = buildTreeWithHierarchicalTitles(data, true, ' - ');
+			// Or if you modified the existing function:
+			// const tree = buildTree(data, true, true);
 			setTreeOptions(tree);
 		}
 	}, [data]);
 
+	// ...rest of your component remains the same...
 	useEffect(() => {
-
 		const selected = campaignFormData?.client_selection?.[formId]?.value || [];
 		setValue(selected);
 	}, [campaignFormData?.client_selection]);
@@ -47,7 +51,6 @@ const TreeDropdown: React.FC<Props> = ({
 			...prev,
 			client_selection: {
 				...prev.client_selection,
-
 				[formId]: {
 					id: data?.title || '',
 					value: newValue,
@@ -57,7 +60,7 @@ const TreeDropdown: React.FC<Props> = ({
 	};
 
 	return (
-		<div className="w-[330px]">
+		<div className="w-auto min-w-[330px]">
 			<TreeSelect
 				treeData={treeOptions}
 				value={value}
@@ -70,6 +73,7 @@ const TreeDropdown: React.FC<Props> = ({
 				allowClear
 				className="custom-tree-select"
 				treeLine
+				treeNodeLabelProp="paramName"
 				treeDefaultExpandAll
 			/>
 		</div>
