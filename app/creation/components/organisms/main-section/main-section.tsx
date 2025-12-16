@@ -23,6 +23,7 @@ import { useDateRange as useRange } from "src/date-range-context";
 import YearInterval from "../../atoms/date-interval/YearInterval";
 import { useActive } from "app/utils/ActiveContext";
 import { useComments } from "app/utils/CommentProvider";
+import QuarterInterval from "../../atoms/date-interval/QuarterInterval";
 
 const MainSection = ({
   hideDate,
@@ -57,6 +58,7 @@ const MainSection = ({
       case "Week":
         return 50;
       case "Year":
+      case "Quarter":
         return 80;
       case "Month":
         return 100;
@@ -68,6 +70,8 @@ const MainSection = ({
   const getScrollTriggerDistance = useCallback((viewType: string) => {
     switch (viewType) {
       case "Year":
+          return 400;
+      case "Quarter":
         return 400;
       case "Month":
         return 500;
@@ -109,7 +113,7 @@ const MainSection = ({
 
       const unitWidth = getWidthForView(viewType);
 
-      if (viewType === "Year") {
+      if (viewType === "Year" || viewType === "Quarter") {
         const months = differenceInCalendarMonths(focusDate, tlStart);
         return Math.max(0, months * unitWidth - 150);
       }
@@ -350,6 +354,8 @@ const MainSection = ({
         return <MonthInterval disableDrag={disableDrag} />;
       case "Year":
         return <YearInterval />;
+      case "Quarter":
+        return <QuarterInterval />;
       default: // Week is default
         return (
           <WeekInterval funnelData={funnelsData} disableDrag={disableDrag} />
