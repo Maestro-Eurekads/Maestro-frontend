@@ -4,14 +4,9 @@ import Message from './Message'
 import { useComments } from 'app/utils/CommentProvider';
 
 const MessageContainer = ({ isOpen, isCreateOpen }) => {
-	const { activeComment, show } = useComments();
-
-
-
-
 
 	return (
-		<div className={activeComment || show ? "" : "relative"}>
+		<div className="relative">
 			{isCreateOpen &&
 				<DraggableMessage />}
 			{isOpen &&
