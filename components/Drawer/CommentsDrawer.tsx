@@ -31,6 +31,38 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 	const [isMouseOverDrawer, setIsMouseOverDrawer] = useState(false);
 
 	const commentRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+	const [screenSize, setScreenSize] = useState('desktop');
+
+	useEffect(() => {
+		const updateScreenSize = () => {
+			const width = window.innerWidth;
+			if (width <= 768) {
+				setScreenSize('mobile');
+			} else if (width <= 1024) {
+				setScreenSize('tablet');
+			} else if (width <= 1366) {
+				setScreenSize('laptop');
+			} else {
+				setScreenSize('desktop');
+			}
+		};
+
+		updateScreenSize();
+		window.addEventListener('resize', updateScreenSize);
+
+		return () => window.removeEventListener('resize', updateScreenSize);
+	}, []);
+
+	// Then create an offset map
+	const offsetMap = {
+		mobile: 350,
+		tablet: 400,
+		laptop: 450,
+		desktop: 500
+	};
+
+	// Use it in your click handler
+	const dynamicOffset = offsetMap[screenSize];
 
 	const comment = useMemo(() => {
 		if (!data) return [];
@@ -194,7 +226,7 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 				// Fallback to page coordinates if container not found
 				const position = {
 					x: e.pageX,
-					y: e.pageY - 500 // Apply the same offset
+					y: e.pageY - dynamicOffset // Apply the same offset
 				};
 				createCommentOpportunity(position.x, position.y);
 				return;
@@ -206,7 +238,7 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 			// The -500 offset suggests there's some layout offset we need to account for
 			const position = {
 				x: e.clientX - containerRect.left,
-				y: e.clientY - containerRect.top - 500
+				y: e.clientY - containerRect.top - dynamicOffset
 			};
 
 			createCommentOpportunity(position.x, position.y);
