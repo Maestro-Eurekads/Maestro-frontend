@@ -340,7 +340,7 @@ const OverviewofyourCampaign = () => {
                 className="overview-budget-conponent"
                 onClick={() => setShow(!show)}
               >
-                {!show ? "See" : "Hide"} budget overview
+                {!show ? "" : "Hide"} Budget Overview
               </button>
 
               {Object.keys(aggregatedStats)?.length === 0 ? (
@@ -381,7 +381,7 @@ const OverviewofyourCampaign = () => {
                   <RxDotFilled size={20} color="#FF0302" />
                 )}
                 <span className="text-[16px] font-[600] text-[#3175FF]">
-                  See Focus Comments
+                  Focused Comments
                 </span>
               </button>
             </div>
