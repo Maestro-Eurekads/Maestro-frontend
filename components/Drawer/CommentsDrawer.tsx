@@ -40,7 +40,7 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 				setScreenSize('mobile');
 			} else if (width <= 1024) {
 				setScreenSize('tablet');
-			} else if (width <= 1366) {
+			} else if (width <= 1440) {
 				setScreenSize('laptop');
 			} else {
 				setScreenSize('desktop');
@@ -55,9 +55,9 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 
 	// Then create an offset map
 	const offsetMap = {
-		mobile: 350,
-		tablet: 400,
-		laptop: 450,
+		mobile: 800,
+		tablet: 700,
+		laptop: 600,
 		desktop: 500
 	};
 
