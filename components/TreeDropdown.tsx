@@ -1,9 +1,9 @@
-
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
 import { TreeSelect } from 'antd';
-import { buildTree } from 'utils/buildTree';
+import { buildTreeWithHierarchicalTitles } from 'utils/buildTree';
+// Or import { buildTree } from 'utils/buildTree'; if you modify the existing function
 import { convertToNestedStructure } from 'utils/convertToNestedStructure';
 import { useActive } from 'app/utils/ActiveContext';
 
@@ -26,61 +26,54 @@ const TreeDropdown: React.FC<Props> = ({
 	const [treeOptions, setTreeOptions] = useState<any[]>([]);
 	const [value, setValue] = useState<string[]>([]);
 	const hasSetInitialValue = useRef(false);
-	const loadAttempts = useRef(0);
-	const nested = convertToNestedStructure(campaignFormData?.[formId]?.value);
 
 	// Build tree when data is ready
 	useEffect(() => {
 		if (data) {
-			const tree = buildTree(data);
+			// Use the new function to show hierarchical titles
+			const tree = buildTreeWithHierarchicalTitles(data, true, ' - ');
+			// Or if you modified the existing function:
+			// const tree = buildTree(data, true, true);
 			setTreeOptions(tree);
 		}
 	}, [data]);
 
-	// Set initial selected values only when treeOptions and nested are ready
+	// ...rest of your component remains the same...
 	useEffect(() => {
-		if (
-			loadAttempts.current < 3 &&
-			treeOptions.length > 0 &&
-			nested?.parameters?.length > 0
-		) {
-			const selected = nested.parameters.flatMap((param: any) =>
-				param.subParameters.length > 0
-					? param.subParameters.map((sub: string) => `${param.name.trim()}-${sub.trim()}`)
-					: [`${param.name.trim()}`]
-			);
-
-			setValue(selected);
-			loadAttempts.current += 1;
-		}
-	}, [treeOptions, nested]);
+		const selected = campaignFormData?.client_selection?.[formId]?.value || [];
+		setValue(selected);
+	}, [campaignFormData?.client_selection]);
 
 	const onChange = (newValue: string[]) => {
 		setChange(true)
 		setValue(newValue);
 		setCampaignFormData((prev) => ({
 			...prev,
-			[formId]: {
-				id: data?.title || '',
-				value: newValue,
-			},
+			client_selection: {
+				...prev.client_selection,
+				[formId]: {
+					id: data?.title || '',
+					value: newValue,
+				},
+			}
 		}));
 	};
 
 	return (
-		<div className="w-[330px]">
+		<div className="w-auto min-w-[330px]">
 			<TreeSelect
 				treeData={treeOptions}
 				value={value}
 				onChange={onChange}
 				treeCheckable
-				showCheckedStrategy={TreeSelect.SHOW_CHILD}
+				showCheckedStrategy={TreeSelect.SHOW_ALL}
 				placeholder={data?.title || title}
 				style={{ width: '100%', height: '100%' }}
 				size="large"
 				allowClear
 				className="custom-tree-select"
 				treeLine
+				treeNodeLabelProp="paramName"
 				treeDefaultExpandAll
 			/>
 		</div>

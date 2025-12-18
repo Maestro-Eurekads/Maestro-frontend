@@ -32,7 +32,7 @@ const Dropdown = ({
 
   // Fetch clients when dropdown is opened
   const toggleDropdown = () => {
-    if (!isOpen && label === "Select Client") {
+    if (!isOpen) {
       //@ts-ignore
       dispatch(getCreateClient({ userId: !isAdmin ? session?.user?.data?.user?.id : null, jwt }));
     }
@@ -42,19 +42,13 @@ const Dropdown = ({
 
 
   const handleSelect = (id, value: string) => {
+    console.log("Selected:", id, value);
     setChange(true)
-    if (formId === "client_selection") {
-      const selectedClient = allClients?.find(client => client.documentId === id);
-
-      if (selectedClient) {
-        setClientUsers(selectedClient.users || []);
-      }
-    }
     setCampaignFormData((prev) => ({
-
       ...prev,
       [formId]: {
         id,
+        currency: value,
         value,
       },
     }));
@@ -100,47 +94,44 @@ const Dropdown = ({
           <p>Loading clients...</p>
         </div>
       )}
-      {isOpen &&
-        ((label === "Client Architecture")
-          ? campaignFormData["client_selection"]?.value
-          : true) && (
-          <div className="absolute w-full bg-white border border-[#EFEFEF] rounded-md shadow-lg mt-1 z-10 max-h-[300px] overflow-y-auto">
-            {/* Search Input */}
-            <div className="sticky top-0 bg-white p-2 border-b">
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                onClick={(e) => e.stopPropagation()}
-              />
-            </div>
-
-            {filteredOptions?.map((option) => (
-              <div
-                key={option?.value}
-                className="px-4 py-2 cursor-pointer hover:bg-gray-100"
-                onClick={() =>
-                  handleSelect(option?.id || option?.value, option?.value)
-                }
-              >
-                {option?.label}
-              </div>
-            ))}
-
-            {filteredOptions?.length === 0 && (
-              <div className="px-4 py-2 text-gray-500">
-                No results found
-              </div>
-            )}
+      {isOpen && (
+        <div className="absolute w-full bg-white border border-[#EFEFEF] rounded-md shadow-lg mt-1 z-10 max-h-[300px] overflow-y-auto">
+          {/* Search Input */}
+          <div className="sticky top-0 bg-white p-2 border-b">
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onClick={(e) => e.stopPropagation()}
+            />
           </div>
-        )}
+
+          {filteredOptions?.map((option) => (
+            <div
+              key={option?.value}
+              className="px-4 py-2 cursor-pointer hover:bg-gray-100"
+              onClick={() =>
+                handleSelect(option?.id || option?.value, option?.value)
+              }
+            >
+              {option?.label}
+            </div>
+          ))}
+
+          {filteredOptions?.length === 0 && (
+            <div className="px-4 py-2 text-gray-500">
+              No results found
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
 
-const ClientSelection = ({
+const CurrencySelection = ({
   options,
   label,
   formId,
@@ -157,4 +148,4 @@ const ClientSelection = ({
   );
 };
 
-export default ClientSelection;
+export default CurrencySelection;

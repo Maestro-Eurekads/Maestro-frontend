@@ -52,7 +52,7 @@ const Showcomment = ({ comment, setActiveComment }) => {
 							className="flex justify-end  px-[20px] py-[8px] gap-[6px] h-[36px] bg-[#3175FF] rounded-[6px] font-semibold text-[14px] text-white cursor-pointer"
 						>
 							{/* Comment */}
-							<Image src={send} alt="send" />
+							Highlight
 						</button>
 					</div>
 				</div>

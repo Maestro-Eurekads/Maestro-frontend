@@ -188,10 +188,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         if (!data) return;
         // const obj = await extractObjectives(campaignFormData);
         // const sMetrics = await getFilteredMetrics(obj)
-        setCampaignData(data);
+        setCampaignData({ ...data, campaign_budget: { ...data?.campaign_budget, value: data?.campaign_budget?.currency } });
         setHeaderData(data?.table_headers || {});
-        console.log("DATA", data)
-        setCampaignFormData({ ...data })
+        setCampaignFormData({ ...data, campaign_budget: { ...data?.campaign_budget, value: data?.campaign_budget?.currency } });
         // setCampaignFormData((prev) => ({
         //   ...prev,
         //   id: campaignId,
@@ -205,8 +204,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         //   },
         //   media_plan: data?.media_plan_details?.plan_name ?? prev.media_plan,
         //   budget_details_currency: {
-        //     id: data?.budget_details?.currency,
-        //     value: data?.budget_details?.currency,
+        //     id: data?.campaign_budget?.currency,
+        //     value: data?.campaign_budget?.currency,
         //   },
         //   country_details: {
         //     id: data?.budget_details?.value,
@@ -269,14 +268,21 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             selected_preset_idx: campaignFormData?.selected_preset_idx ?? null,
             client_selection: {
               client: campaignFormData?.client_selection?.value,
-              level_1: campaignFormData?.level_1?.id,
+              level_1: campaignFormData?.client_selection?.level_1,
+            },
+            campaign_budget: {
+              currency: campaignFormData?.campaign_budget?.currency,
+            },
+            budget_details: {
+              currency: campaignFormData?.campaign_budget?.currency,
+              value: campaignFormData?.budget_details?.value,
             },
             media_plan_details: {
-              plan_name: campaignFormData?.media_plan,
-              internal_approver: campaignFormData?.internal_approver?.map(
+              plan_name: campaignFormData?.media_plan_details?.plan_name,
+              internal_approver: campaignFormData?.media_plan_details?.internal_approver?.map(
                 (ff) => ff?.value
               ),
-              client_approver: campaignFormData?.client_approver?.map(
+              client_approver: campaignFormData?.media_plan_details?.client_approver?.map(
                 (ff) => ff?.value
               ),
             },

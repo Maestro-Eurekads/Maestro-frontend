@@ -1,88 +1,89 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import facebook from "../../../public/facebook.svg";
-import instagram from "../../../public/instagram.svg";
-import youtube from "../../../public/youtube.svg";
-import tradedesk from "../../../public/tradedesk.svg";
-import quantcast from "../../../public/quantcast.svg";
-import adset from "../../../public/adset_level.svg";
-import channel from "../../../public/channel_level.svg";
+import React, { useEffect, useState, useMemo } from "react";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
-import ToggleSwitch from "./EstablishedGoals/ToggleSwitch";
 import SetBudgetOverviewModel from "../../../components/Modals/SetBudgetOverviewModel";
-import TimelineView from "./EstablishedGoals/TimelineView";
-import Modal from "components/Modals/Modal";
-import Image from "next/image";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import TableView from "./EstablishedGoals/table-view/table-view";
-import ChannelDistributionChatTwo from "components/ChannelDistribution/ChannelDistributionChatTwo";
 import { getCurrencySymbol, mediaTypes } from "components/data";
 import CampaignPhases from "./CampaignPhases";
 import DoughnutChart from "components/DoughnutChat";
 import { useComments } from "app/utils/CommentProvider";
 import SaveProgressButton from "app/utils/SaveProgressButton";
-import { useActive } from "app/utils/ActiveContext";
 
 export const EstablishedGoals = () => {
-  const { setChange } = useActive()
-  const [active, setActive] = useState("Timeline View");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [step, setStep] = useState(1);
   const [openBudget, setOpenBudget] = useState(false);
-  const [channelData, setChannelData] = useState(null);
-  const { setCampaignFormData, campaignFormData } = useCampaigns();
-  const { setIsDrawerOpen, setClose } = useComments();
+  const { campaignFormData } = useCampaigns();
+  const { setIsDrawerOpen } = useComments();
 
   useEffect(() => {
     setIsDrawerOpen(false);
-    // setClose(false);
   }, [setIsDrawerOpen]);
 
-  useEffect(() => {
-    if (campaignFormData) {
-      if (campaignFormData?.goal_level) {
-        setIsModalOpen(false);
-      } else {
-        setIsModalOpen(true);
-      }
-    }
+  const CHANNEL_COLORS = [
+    "#3175FF",
+    "#00A36C",
+    "#FF6B6B",
+    "#FFB347",
+    "#9B59B6",
+    "#1ABC9C",
+    "#E74C3C",
+    "#F39C12",
+    "#3498DB",
+    "#2ECC71",
+  ];
+
+  const PHASE_COLORS: Record<string, string> = {
+    Awareness: "#3175FF",
+    Consideration: "#00A36C",
+    Conversion: "#FF9037",
+  };
+
+  const phaseData = useMemo(() => {
+    if (!campaignFormData?.channel_mix) return [];
+    return campaignFormData.channel_mix
+      .filter((c) => Number(c?.stage_budget?.percentage_value) > 0)
+      .map((ch, i) => ({
+        name: ch?.funnel_stage,
+        percentage: Number(ch?.stage_budget?.percentage_value)?.toFixed(0),
+        color:
+          PHASE_COLORS[ch?.funnel_stage] ||
+          CHANNEL_COLORS[i % CHANNEL_COLORS.length],
+      }));
   }, [campaignFormData]);
 
-  function extractPlatforms(data) {
+  const channelData = useMemo(() => {
+    if (!campaignFormData?.channel_mix) return [];
     const platforms = [];
-    data?.channel_mix?.forEach((stage) => {
-      const stageName = stage?.funnel_stage;
-      const stageBudget = parseFloat(stage?.stage_budget?.fixed_value);
-      mediaTypes?.forEach((channelType) => {
+    let totalBudget = 0;
+    campaignFormData.channel_mix.forEach((stage) => {
+      mediaTypes.forEach((channelType) => {
         stage[channelType]?.forEach((platform) => {
-          const platformName = platform?.platform_name;
-          const platformBudget = parseFloat(platform?.budget?.fixed_value);
-          const percentage = (platformBudget / stageBudget) * 100;
-          const existingPlatform = platforms?.find(
-            (p) => p?.platform_name === platformName
+          const platformBudget = parseFloat(platform?.budget?.fixed_value) || 0;
+          totalBudget += platformBudget;
+          const existing = platforms.find(
+            (p) => p.name === platform?.platform_name
           );
-          if (existingPlatform) {
-            existingPlatform?.stages_it_was_found?.push({
-              stage_name: stageName,
-              percentage: percentage,
-            });
+          if (existing) {
+            existing.budget += platformBudget;
           } else {
             platforms.push({
-              platform_name: platformName,
-              platform_budegt: platformBudget,
-              stages_it_was_found: [
-                {
-                  stage_name: stageName,
-                  percentage: percentage,
-                },
-              ],
+              name: platform?.platform_name,
+              budget: platformBudget,
             });
           }
         });
       });
     });
-    setChannelData(platforms);
-  }
+    return platforms
+      .filter((p) => p.budget > 0)
+      .map((p, i) => ({
+        ...p,
+        percentage:
+          totalBudget > 0 ? Math.round((p.budget / totalBudget) * 100) : 0,
+        color: CHANNEL_COLORS[i % CHANNEL_COLORS.length],
+      }))
+      .sort((a, b) => b.percentage - a.percentage);
+  }, [campaignFormData]);
 
   return (
     <div>
@@ -105,7 +106,6 @@ export const EstablishedGoals = () => {
           <SetBudgetOverviewModel
             openBudget={openBudget}
             setOpenBudget={setOpenBudget}
-            extractPlatforms={extractPlatforms}
           />
         </div>
         {openBudget && (
@@ -121,7 +121,9 @@ export const EstablishedGoals = () => {
                       Total budget
                     </p>
                     <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
-                      {parseInt(campaignFormData?.campaign_budget?.amount).toLocaleString()}{" "}
+                      {parseInt(
+                        campaignFormData?.campaign_budget?.amount
+                      ).toLocaleString()}{" "}
                       {getCurrencySymbol(
                         campaignFormData?.campaign_budget?.currency
                       )}
@@ -132,7 +134,7 @@ export const EstablishedGoals = () => {
                       Campaign phases
                     </p>
                     <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
-                      {campaignFormData?.funnel_stages?.length} phases
+                      {phaseData?.length || 0} phases
                     </h3>
                   </div>
                 </div>
@@ -140,54 +142,57 @@ export const EstablishedGoals = () => {
                 <div className="campaign_phases_container mt-[24px]">
                   <div className="campaign_phases_container_one">
                     <DoughnutChart
-                      insideText={`${parseInt(campaignFormData?.campaign_budget?.amount).toLocaleString()} ${getCurrencySymbol(
+                      insideText={`${parseInt(
+                        campaignFormData?.campaign_budget?.amount
+                      ).toLocaleString()} ${getCurrencySymbol(
                         campaignFormData?.campaign_budget?.currency
                       )}`}
+                      campaignPhases={phaseData}
                     />
                   </div>
-
-                  <CampaignPhases
-                    campaignPhases={campaignFormData?.channel_mix
-                      ?.filter((c) => Number(c?.stage_budget?.percentage_value) > 0)
-                      ?.map((ch) => ({
-                        name: ch?.funnel_stage,
-                        percentage: Number(
-                          ch?.stage_budget?.percentage_value
-                        )?.toFixed(0),
-                        color:
-                          ch?.funnel_stage === "Awareness"
-                            ? "#3175FF"
-                            : ch?.funnel_stage === "Consideration"
-                              ? "#00A36C"
-                              : ch?.funnel_stage === "Conversion"
-                                ? "#FF9037"
-                                : "#F05406",
-                      }))}
-                  />
+                  <CampaignPhases campaignPhases={phaseData} />
                 </div>
               </div>
               <div className="allocate_budget_phase_two">
-                <h3 className="font-semibold text-[22px] leading-[24px] flex items-center text-[#061237]">
-                  Channel distribution
+                <h3 className="font-semibold text-[18px] leading-[24px] flex items-center text-[#061237]">
+                  Your budget by Channels
                 </h3>
-                <p className="font-medium text-[15px] leading-[175%] text-[rgba(0,0,0,0.9)] order-1 self-stretch flex-none">
-                  Graph showing the total budget spent and its breakdown across
-                  the three phases.
-                </p>
-                <div className="mt-[16px]">
-                  <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
-                    Channels
-                  </p>
-                  <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
-                    {channelData?.length} channels
-                  </h3>
+                <div className="flex items-center gap-5 mt-[16px]">
+                  <div>
+                    <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
+                      Total budget
+                    </p>
+                    <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
+                      {parseInt(
+                        campaignFormData?.campaign_budget?.amount
+                      ).toLocaleString()}{" "}
+                      {getCurrencySymbol(
+                        campaignFormData?.campaign_budget?.currency
+                      )}
+                    </h3>
+                  </div>
+                  <div>
+                    <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
+                      Channels
+                    </p>
+                    <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
+                      {channelData?.length || 0} channels
+                    </h3>
+                  </div>
                 </div>
-                <ChannelDistributionChatTwo
-                  channelData={channelData}
-                  currency={getCurrencySymbol(
-                    campaignFormData?.campaign_budget?.currency
-                  )}
-                />
+                <div className="campaign_phases_container mt-[24px]">
+                  <div className="campaign_phases_container_one">
+                    <DoughnutChart
+                      insideText={`${parseInt(
+                        campaignFormData?.campaign_budget?.amount
+                      ).toLocaleString()} ${getCurrencySymbol(
+                        campaignFormData?.campaign_budget?.currency
+                      )}`}
+                      campaignPhases={channelData}
+                    />
+                  </div>
+                  <CampaignPhases campaignPhases={channelData} />
+                </div>
               </div>
             </div>
           </div>

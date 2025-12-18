@@ -2,18 +2,21 @@ import { useCampaigns } from "app/utils/CampaignsContext";
 import ThreeValuesProgress from "../ThreeValuesProgress";
 import { colorClassToHex } from "components/Options";
 
-
-
 const isHexColor = (color: string) => /^#[0-9A-Fa-f]{6}$/.test(color);
 
-const ChannelDistributionChatTwo = ({ channelData, currency }) => {
+const ChannelDistributionChatTwo = ({
+  channelData,
+  currency,
+  customFunnels = null,
+}) => {
   const { campaignFormData } = useCampaigns();
 
-  // Map funnel names to their colors from campaignFormData.custom_funnels
+  // Map funnel names to their colors from customFunnels prop or campaignFormData.custom_funnels
   const getFunnelColor = (stageName: string) => {
-    const funnel = campaignFormData?.custom_funnels?.find(
-      (f) => f.name === stageName
-    );
+    // Try customFunnels prop first (for Dashboard use case)
+    const funnel =
+      customFunnels?.find((f) => f.name === stageName) ||
+      campaignFormData?.custom_funnels?.find((f) => f.name === stageName);
     const color = funnel?.color || "bg-gray-500"; // Fallback color
     // Return hex color for components that need it, otherwise return original color
     return isHexColor(color) ? color : colorClassToHex[color] || "#c3c3c4"; // Fallback to gray-500 hex

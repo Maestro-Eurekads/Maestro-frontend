@@ -37,7 +37,6 @@ const DashboradDoughnutChat = ({
 }) => {
   const chartRef = useRef(null);
 
-  console.log('campaign---->', campaign)
 
   // Handle funnel_stages as either strings or objects
   const funnelStages = campaign?.funnel_stages || [];

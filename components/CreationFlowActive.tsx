@@ -39,7 +39,7 @@ const CreationFlowActive = ({ steps, close }) => {
     <div id={close ? "Sidenavbar_active" : "Sidenavbar"}>
       <div id="SideBar__container">
         {steps.map((step, index) => {
-          const stepNumber = index + 1;
+          const stepNumber = index;
           const isActive = active === stepNumber;
           const isCompleted = active > stepNumber;
           const stepColor = isActive

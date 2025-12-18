@@ -4,15 +4,15 @@ import { useMemo } from "react";
 import { useDateRange } from "src/date-range-context";
 
 interface DayIntervalProps {
-  daysCount: number;
   src?: string;
   range?: any
+  isInfiniteTimeline?: boolean
 }
 
-const DayInterval: React.FC<DayIntervalProps> = ({ daysCount, src , range}) => {
-  const { range: ddRange, extendedRange, isInfiniteTimeline } = useDateRange();
-    const effectiveRange = isInfiniteTimeline ? extendedRange : ddRange;
-  
+const DayInterval: React.FC<DayIntervalProps> = ({  src , range, isInfiniteTimeline = true}) => {
+  const { extendedRange } = useDateRange();
+    const effectiveRange = isInfiniteTimeline ? extendedRange : range;
+
   const dailyWidth = isInfiniteTimeline ? 50 : undefined;
   const gridColumns = isInfiniteTimeline 
     ? `repeat(${effectiveRange?.length || 0}, ${dailyWidth}px)`

@@ -1,17 +1,36 @@
 "use client";
 
 import type React from "react";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import { ChevronRight } from "lucide-react";
 import DayInterval from "./DayInterval";
 import DayTimeline from "./DayTimeline";
 import WeekInterval from "./WeekInterval";
-import WeekTimeline from "./WeekTimeline";
 import MonthInterval from "./MonthInterval";
 import MonthTimeline from "./MonthTimeline";
-import { addDays, differenceInDays, eachDayOfInterval, format } from "date-fns";
+import {
+  eachDayOfInterval,
+  eachWeekOfInterval,
+  eachMonthOfInterval,
+  startOfMonth,
+  subMonths,
+  addMonths,
+  subDays,
+  addDays,
+  subWeeks,
+  addWeeks,
+  differenceInMonths,
+} from "date-fns";
 import YearInterval from "./YearInterval";
 import YearTimeline from "./YearTimeline";
+
+// Column widths for each view type
+const COLUMN_WIDTHS = {
+  Day: 50,
+  Week: 50,
+  Month: 100, // Week columns in Month view
+  Year: 80, // Month columns in Year view
+};
 
 interface TimelineContainerProps {
   range: string;
@@ -21,7 +40,8 @@ interface TimelineContainerProps {
   funnelsData: any[];
   startDate?: any;
   endDate?: any;
-  yearDifference?:any
+  yearDifference?: any;
+  onTogglePlanSelection?: (id: number) => void;
 }
 
 const TimelineContainer: React.FC<TimelineContainerProps> = ({
@@ -33,11 +53,14 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
   startDate,
   endDate,
   yearDifference,
+  onTogglePlanSelection,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
 
-  // Check if we need to show the scroll indicator
+  const viewportWidth =
+    typeof window !== "undefined" ? window.innerWidth - 100 : 1200;
+
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -52,86 +75,152 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
     return () => window.removeEventListener("resize", checkScroll);
   }, [range, dayDifference, weekDifference, monthDifference]);
 
-  const differenceInDays = Math.ceil(
-    (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
-  );
+  const getRequiredColumns = (columnWidth: number) => {
+    return Math.ceil(viewportWidth / columnWidth) + 1;
+  };
 
-  const dateList = eachDayOfInterval({
-    start: startDate,
-    end: addDays(endDate, 0),
-  });
-
-  function getDaysInEachMonth(): Record<string, number> {
-    const daysInMonth: Record<string, number> = {};
-
-    dateList?.forEach((date) => {
-      const monthYear = format(date, "MMMM yyyy"); // Include year to differentiate months across years
-      daysInMonth[monthYear] = (daysInMonth[monthYear] || 0) + 1;
+  const { bufferedStartDate, bufferedEndDate, dateList } = useMemo(() => {
+    const originalDateList = eachDayOfInterval({
+      start: startDate,
+      end: endDate,
     });
 
-    // console.log("daysInMonth", daysInMonth);
+    let buffStart = startDate;
+    let buffEnd = endDate;
 
-    return daysInMonth;
-  }
-  function getDaysInEachYear(): Record<string, number> {
-    const daysInYear: Record<string, number> = {};
+    if (range === "Year") {
+      const columnWidth = COLUMN_WIDTHS.Year;
+      const requiredColumns = getRequiredColumns(columnWidth);
 
-    dateList?.forEach((date) => {
-      const year = format(date, "yyyy");
-      daysInYear[year] = (daysInYear[year] || 0) + 1;
+      const currentMonths = eachMonthOfInterval({
+        start: startOfMonth(startDate),
+        end: endDate,
+      });
+
+      if (currentMonths.length < requiredColumns) {
+        const monthsToAdd = Math.ceil(
+          (requiredColumns - currentMonths.length) / 2
+        );
+        buffStart = subMonths(startDate, monthsToAdd);
+        buffEnd = addMonths(endDate, monthsToAdd);
+      }
+    } else if (range === "Month") {
+      const columnWidth = COLUMN_WIDTHS.Month;
+      const requiredColumns = getRequiredColumns(columnWidth);
+
+      const currentWeeks = eachWeekOfInterval(
+        { start: startDate, end: endDate },
+        { weekStartsOn: 1 }
+      );
+
+      if (currentWeeks.length < requiredColumns) {
+        const weeksToAdd = Math.ceil(
+          (requiredColumns - currentWeeks.length) / 2
+        );
+        buffStart = subWeeks(startDate, weeksToAdd);
+        buffEnd = addWeeks(endDate, weeksToAdd);
+      }
+    } else {
+      const columnWidth = COLUMN_WIDTHS.Day;
+      const requiredColumns = getRequiredColumns(columnWidth);
+
+      if (originalDateList.length < requiredColumns) {
+        const daysToAdd = Math.ceil(
+          (requiredColumns - originalDateList.length) / 2
+        );
+        buffStart = subDays(startDate, daysToAdd);
+        buffEnd = addDays(endDate, daysToAdd);
+      }
+    }
+
+    return {
+      bufferedStartDate: buffStart,
+      bufferedEndDate: buffEnd,
+      dateList: originalDateList,
+    };
+  }, [startDate, endDate, range, viewportWidth]);
+
+  const bufferedDateList = useMemo(() => {
+    return eachDayOfInterval({
+      start: bufferedStartDate,
+      end: bufferedEndDate,
     });
-console.log(daysInYear, "daysInYear");
-    return daysInYear;
-  }
-  // Render the appropriate timeline components based on the range
+  }, [bufferedStartDate, bufferedEndDate]);
+
+  const totalDays = bufferedDateList.length;
+
+  const totalWeeks = useMemo(() => {
+    return eachWeekOfInterval(
+      { start: bufferedStartDate, end: bufferedEndDate },
+      { weekStartsOn: 1 }
+    ).length;
+  }, [bufferedStartDate, bufferedEndDate]);
+
+  const totalMonths = useMemo(() => {
+    return eachMonthOfInterval({
+      start: startOfMonth(bufferedStartDate),
+      end: bufferedEndDate,
+    }).length;
+  }, [bufferedStartDate, bufferedEndDate]);
+
   const renderTimeline = () => {
     switch (range) {
       case "Day":
         return (
           <>
             <DayInterval
-              daysCount={dayDifference}
+              isInfiniteTimeline={false}
               src="dashboard"
-              range={dateList}
+              range={bufferedDateList}
             />
-            <DayTimeline daysCount={dayDifference} funnels={funnelsData} range={dateList} />
+            <DayTimeline
+              daysCount={totalDays}
+              funnels={funnelsData}
+              range={bufferedDateList}
+              onTogglePlanSelection={onTogglePlanSelection}
+            />
           </>
         );
       case "Month":
         return (
           <>
             <MonthInterval
-              monthsCount={monthDifference}
-              getDaysInEachMonth={getDaysInEachMonth}
+              range={bufferedDateList}
+              isInfiniteTimeline={false}
             />
             <MonthTimeline
-              monthsCount={monthDifference}
+              weeksCount={totalWeeks}
               funnels={funnelsData}
-              range={dateList}
+              range={bufferedDateList}
+              onTogglePlanSelection={onTogglePlanSelection}
             />
           </>
         );
       case "Year":
         return (
           <>
-            <YearInterval
-              yearsCount={yearDifference === 0 ? 1 : yearDifference + 1}
-              // view={view}
-              getDaysInEachYear={getDaysInEachYear}
-              funnelData={funnelsData}
+            <YearInterval isInfiniteTimeline={false} range={bufferedDateList} />
+            <YearTimeline
+              range={bufferedDateList}
+              funnels={funnelsData}
+              onTogglePlanSelection={onTogglePlanSelection}
             />
-            <YearTimeline range={dateList} funnels={funnelsData}/>
           </>
         );
       default: // Week is default
         return (
           <>
             <WeekInterval
-              weeksCount={weekDifference}
-              range={dateList}
+              range={bufferedDateList}
               src="dashboard"
+              isInfiniteTimeline={false}
             />
-           <DayTimeline daysCount={dayDifference} funnels={funnelsData} range={dateList} />
+            <DayTimeline
+              daysCount={totalDays}
+              funnels={funnelsData}
+              range={bufferedDateList}
+              onTogglePlanSelection={onTogglePlanSelection}
+            />
           </>
         );
     }

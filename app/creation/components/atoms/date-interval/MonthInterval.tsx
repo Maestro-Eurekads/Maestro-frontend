@@ -7,30 +7,25 @@ import { useCampaigns } from "app/utils/CampaignsContext"
 import { useDateRange } from "src/date-range-context"
 
 interface MonthIntervalProps {
-  monthsCount: number
-  view?: boolean
-  getDaysInEachMonth?: any
-  funnelData?: any
   disableDrag?: any
+  range?: any
+  isInfiniteTimeline?: boolean
 }
 
 const WEEK_WIDTH_PX = 100
 
 const MonthInterval: React.FC<MonthIntervalProps> = ({
-  monthsCount,
-  view,
-  getDaysInEachMonth,
   disableDrag,
-  funnelData,
+  range,
+  isInfiniteTimeline = true
 }) => {
-  const { campaignFormData } = useCampaigns()
-  const { extendedRange, isInfiniteTimeline } = useDateRange()
-
+  const { extendedRange } = useDateRange()
+  const effectiveRange = isInfiniteTimeline ? extendedRange : range;
   const weeks = useMemo(() => {
-    if (!extendedRange || extendedRange.length === 0) return []
+    if (!effectiveRange || effectiveRange.length === 0) return []
     
-    const startDate = extendedRange[0]
-    const endDate = extendedRange[extendedRange.length - 1]
+    const startDate = effectiveRange[0]
+    const endDate = effectiveRange[effectiveRange.length - 1]
     
     const allWeeks = eachWeekOfInterval(
       { start: startDate, end: endDate },
@@ -48,7 +43,7 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
         monthYear: format(weekStart, "MMMM yyyy"),
       }
     })
-  }, [extendedRange])
+  }, [effectiveRange])
 
   const weeksByMonth = useMemo(() => {
     const grouped: Record<string, typeof weeks> = {}
@@ -68,6 +63,58 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
       return dateA.getTime() - dateB.getTime()
     })
   }, [weeksByMonth])
+
+  const monthHeaderPositions = useMemo(() => {
+    const positions: Array<{
+      monthName: string
+      monthYear: string
+      startWeekIndex: number
+      startDayOffset: number 
+      endWeekIndex: number
+      endDayOffset: number
+    }> = []
+
+    sortedMonths.forEach((monthYear) => {
+      const [monthName, year] = monthYear.split(" ")
+      const monthWeeks = weeksByMonth[monthYear]
+      if (!monthWeeks || monthWeeks.length === 0) return
+
+      const monthNames = ["January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"]
+      const monthIndex = monthNames.indexOf(monthName)
+      if (monthIndex === -1) return
+
+      const yearNum = parseInt(year)
+      const firstDayOfMonth = new Date(yearNum, monthIndex, 1)
+      
+      const weekIndex = weeks.findIndex(week => {
+        return week.start <= firstDayOfMonth && week.end >= firstDayOfMonth
+      })
+
+      if (weekIndex >= 0) {
+        const dayOfWeek = (firstDayOfMonth.getDay() + 6) % 7 
+        const lastDayOfMonth = new Date(yearNum, monthIndex + 1, 0)
+        const endWeekIndex = weeks.findIndex(week => {
+          return week.start <= lastDayOfMonth && week.end >= lastDayOfMonth
+        })
+
+        const endDayOfWeek = endWeekIndex >= 0 
+          ? (lastDayOfMonth.getDay() + 6) % 7
+          : 6
+
+        positions.push({
+          monthName,
+          monthYear,
+          startWeekIndex: weekIndex,
+          startDayOffset: dayOfWeek,
+          endWeekIndex: endWeekIndex >= 0 ? endWeekIndex : weeks.length - 1,
+          endDayOffset: endDayOfWeek,
+        })
+      }
+    })
+
+    return positions
+  }, [sortedMonths, weeksByMonth, weeks])
 
   const yearHeaders = useMemo(() => {
     const headers: Array<{ year: string; span: number }> = []
@@ -105,15 +152,8 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
     return screenWidth - (disableDrag ? 80 : 367)
   }, [disableDrag])
 
-  const weekWidth = isInfiniteTimeline ? WEEK_WIDTH_PX : Math.max(calculateContainerWidth() / totalWeeks, 60)
 
-  const gridTemplateColumns = useMemo(() => {
-    if (isInfiniteTimeline) {
-      return `repeat(${totalWeeks}, ${WEEK_WIDTH_PX}px)`
-    } else {
-      return `repeat(${totalWeeks}, ${weekWidth}px)`
-    }
-  }, [totalWeeks, isInfiniteTimeline, weekWidth])
+  const gridTemplateColumns = `repeat(${totalWeeks}, ${WEEK_WIDTH_PX}px)`
 
   const allWeeksFlat = useMemo(() => {
     const result: Array<{
@@ -135,6 +175,20 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
 
     return result
   }, [sortedMonths, weeksByMonth])
+
+  const monthHeaders = useMemo(() => {
+    return monthHeaderPositions.map((pos) => {
+      const span = pos.endWeekIndex - pos.startWeekIndex + 1
+      return {
+        monthName: pos.monthName,
+        span,
+        startWeekIndex: pos.startWeekIndex,
+        startDayOffset: pos.startDayOffset,
+        endWeekIndex: pos.endWeekIndex,
+        endDayOffset: pos.endDayOffset,
+      }
+    })
+  }, [monthHeaderPositions])
 
   return (
     <div className={isInfiniteTimeline ? "min-w-max border-y relative" : "w-full border-y relative"}>
@@ -176,23 +230,63 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
         style={{
           display: "grid",
           gridTemplateColumns,
+          position: "relative",
+        }}
+        className="border-b border-blue-200 pb-8"
+      >
+        {monthHeaders.map((header, idx) => {
+          const dayWidth = WEEK_WIDTH_PX / 7
+          const leftOffset = header.startDayOffset * dayWidth
+          
+          const daysToTrimFromEnd = 7 - header.endDayOffset - 1
+          const rightOffset = daysToTrimFromEnd * dayWidth
+          
+          const totalWeeksWidth = header.span * WEEK_WIDTH_PX
+          const actualWidth = totalWeeksWidth - leftOffset - rightOffset
+          
+          return (
+            <div
+              key={`month-${idx}`}
+              style={{
+                gridColumnStart: header.startWeekIndex + 1,
+                gridColumnEnd: header.endWeekIndex + 2,
+                position: "relative",
+              }}
+              className="h-full"
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  left: `${leftOffset}px`,
+                  width: `${actualWidth}px`,
+                  height: "100%",
+                }}
+                className="border-r border-blue-200/50 bg-white"
+              >
+                <div className="py-4 px-3 h-full flex items-center border-r">
+                  <span className="font-[600] text-[14px] text-[rgba(0,0,0,0.7)]">
+                    {header.monthName}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns,
           backgroundImage: `linear-gradient(to right, rgba(0,0,255,0.1) 1px, transparent 1px)`,
-          backgroundSize: `${weekWidth}px 100%`,
+          backgroundSize: `${WEEK_WIDTH_PX}px 100%`,
         }}
       >
         {allWeeksFlat.map((item, i) => (
           <div
             key={`week-${i}`}
-            className="flex flex-col items-center justify-center relative py-2 border-r border-blue-200 last:border-r-0"
-            style={{
-              borderLeft: item.isFirstOfMonth && i > 0 ? "2px solid rgba(0,0,255,0.3)" : "none",
-            }}
+            className="flex flex-col items-center justify-center relative py-2 last:border-r-0"
           >
-            {item.isFirstOfMonth && (
-              <span className="font-[600] text-[12px] text-[rgba(0,0,0,0.7)] mb-1">
-                {item.monthName}
-              </span>
-            )}
             <span className="font-[400] text-[11px] text-[rgba(0,0,0,0.4)]">
               {item.week.label}
             </span>

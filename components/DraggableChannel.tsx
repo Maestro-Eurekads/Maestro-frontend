@@ -337,10 +337,9 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       draftCampaignFormRef.current = {
         ...campaignFormData,
         channel_mix: updatedChannelMixArray,
-          campaign_timeline_start_date: minStartDate,
-          campaign_timeline_end_date: maxEndDate,
+        campaign_timeline_start_date: minStartDate,
+        campaign_timeline_end_date: maxEndDate,
       };
-      setCampaignFormData(draftCampaignFormRef.current);
     }
 
     setParentWidth(newWidth);
@@ -484,12 +483,9 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       draftCampaignFormRef.current = {
         ...campaignFormData,
         channel_mix: updatedChannelMixArray,
-       
-          campaign_timeline_start_date: minStartDate,
-          campaign_timeline_end_date: maxEndDate,
-        
+        campaign_timeline_start_date: minStartDate,
+        campaign_timeline_end_date: maxEndDate,
       };
-      setCampaignFormData(draftCampaignFormRef.current);
     }
     setParentLeft(newPosition);
     setPosition(newPosition);
