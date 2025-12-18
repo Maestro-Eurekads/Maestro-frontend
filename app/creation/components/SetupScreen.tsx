@@ -21,7 +21,6 @@ import SaveProgressButton from "app/utils/SaveProgressButton";
 import CurrencySelection from "components/CurrencySelection";
 import CountrySelection from "components/CountrySelection";
 
-
 interface DropdownOption {
   label: string;
   value: string;
@@ -35,7 +34,6 @@ interface SelectedItem {
 }
 export const SetupScreen = () => {
   const router: any = useRouter();
-
 
   const dispatch = useAppDispatch();
   const {
@@ -54,17 +52,17 @@ export const SetupScreen = () => {
     setClientUsers,
     clientUsers,
     jwt,
+    agencyId,
     FC,
     setFC,
     selectedId,
     selectedOption,
-    setSelectedOption
-
+    setSelectedOption,
   } = useCampaigns();
   const query = useSearchParams();
   const documentId = query.get("campaignId");
   const lastFetchedClientId = useRef(null);
-  const { data: session } = useSession()
+  const { data: session } = useSession();
   const { client_selection } = campaignFormData || {};
 
   const [alert, setAlert] = useState(null);
@@ -72,17 +70,20 @@ export const SetupScreen = () => {
   const [users, setUsers] = useState({ agencyAccess: [], clientAccess: [] });
   const { setIsDrawerOpen, setClose } = useComments();
   const { isAdmin, userID } = useUserPrivileges();
-  const [internalapproverOptions, setInternalApproverOptions] = useState<DropdownOption[]>([]);
-  const [clientapprovalOptions, setClientApprovalOptions] = useState<DropdownOption[]>([]);
+  const [internalapproverOptions, setInternalApproverOptions] = useState<
+    DropdownOption[]
+  >([]);
+  const [clientapprovalOptions, setClientApprovalOptions] = useState<
+    DropdownOption[]
+  >([]);
   const [level1Options, setlevel1Options] = useState<DropdownOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [clientId, setClientId] = useState(null);
 
-
   useEffect(() => {
     const cached = localStorage.getItem("filteredClient");
     const storedClientId = localStorage.getItem(userID);
-    setClientId(storedClientId)
+    setClientId(storedClientId);
     if (cached) {
       try {
         const parsed = JSON.parse(cached);
@@ -93,27 +94,28 @@ export const SetupScreen = () => {
     }
   }, []);
 
-
-
-
-
   const fetchUsers = async () => {
     // Pick the first available ID
     const effectiveClientId = clientId || selectedClient || FC?.id;
     if (!effectiveClientId) return;
 
     const baseUrl = `${process.env.NEXT_PUBLIC_STRAPI_URL}/users`;
-    const filterParams = [`filters[clients][id][$eq]=${encodeURIComponent(effectiveClientId)}`];
-    const populateParams = ['populate=*'];
+    const filterParams = [
+      `filters[clients][id][$eq]=${encodeURIComponent(effectiveClientId)}`,
+    ];
+    const populateParams = ["populate=*"];
 
     setLoading(true);
 
     try {
-      const response = await fetch(`${baseUrl}?${[...filterParams, ...populateParams].join('&')}`, {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      });
+      const response = await fetch(
+        `${baseUrl}?${[...filterParams, ...populateParams].join("&")}`,
+        {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        }
+      );
 
       if (response.status === 401) {
         const event = new Event("unauthorizedEvent");
@@ -129,10 +131,12 @@ export const SetupScreen = () => {
       const data = await response.json();
 
       const agencyAccess = data?.filter((user) =>
-        ['agency_creator', 'agency_approver', 'financial_approver'].includes(user.user_type)
+        ["agency_creator", "agency_approver", "financial_approver"].includes(
+          user.user_type
+        )
       );
       const clientAccess = data?.filter((user) =>
-        ['client', 'client_approver'].includes(user.user_type)
+        ["client", "client_approver"].includes(user.user_type)
       );
 
       setUsers({ agencyAccess, clientAccess });
@@ -143,23 +147,26 @@ export const SetupScreen = () => {
     }
   };
 
-
-
   useEffect(() => {
     fetchUsers();
-  }, [clientId, selectedClient, FC?.id, campaignFormData?.client_selection?.id]);
-
-
-
-
-
-
+  }, [
+    clientId,
+    selectedClient,
+    FC?.id,
+    campaignFormData?.client_selection?.id,
+  ]);
 
   useEffect(() => {
-    //@ts-ignore
-    dispatch(getCreateClient({ userId: !isAdmin ? session?.user?.data?.user?.id : null, jwt }));
-  }, [isAdmin, session, dispatch]);
-
+    if (!jwt) return;
+    dispatch(
+      getCreateClient({
+        //@ts-ignore
+        userId: !isAdmin ? session?.user?.data?.user?.id : null,
+        jwt,
+        agencyId,
+      })
+    );
+  }, [isAdmin, session, jwt, agencyId, dispatch]);
 
   useEffect(() => {
     if (FC) {
@@ -167,7 +174,8 @@ export const SetupScreen = () => {
         users?.agencyAccess
           ?.filter(
             (user) =>
-              user?.user_type === "agency_approver" || user?.user_type === "financial_approver"
+              user?.user_type === "agency_approver" ||
+              user?.user_type === "financial_approver"
           )
           .map((user) => ({
             value: user?.id,
@@ -182,9 +190,6 @@ export const SetupScreen = () => {
             label: user?.client_user?.full_name,
           })) || [];
 
-
-
-
       setInternalApproverOptions(agencyUserOptions);
       setClientApprovalOptions(clientUserOptions);
       setClientUsers(FC || []);
@@ -193,7 +198,7 @@ export const SetupScreen = () => {
 
   useEffect(() => {
     if (FC) {
-      const data = FC
+      const data = FC;
       setlevel1Options(data?.level_1);
     }
   }, [FC]);
@@ -203,13 +208,12 @@ export const SetupScreen = () => {
     setClose(false);
   }, []);
 
-
   useEffect(() => {
     if (documentId === null && !isInitialized) {
       const initialFormData = {
         client_selection: {
           id: selectedClient || FC?.id,
-          value: FC?.client_name || '',
+          value: FC?.client_name || "",
         },
         media_plan: "",
         internal_approver: [],
@@ -227,12 +231,12 @@ export const SetupScreen = () => {
       setIsInitialized(true);
     } else if (documentId === null && isInitialized) {
       // Only update client_selection if already initialized
-      setCampaignFormData(prev => {
+      setCampaignFormData((prev) => {
         const updated = {
           ...prev,
           client_selection: {
             id: selectedClient || FC?.id,
-            value: FC?.client_name || '',
+            value: FC?.client_name || "",
           },
         };
         localStorage.setItem("campaignFormData", JSON.stringify(updated));
@@ -241,7 +245,6 @@ export const SetupScreen = () => {
     }
   }, [documentId, isInitialized, selectedClient, FC, setCampaignFormData]);
 
-
   useEffect(() => {
     if (alert) {
       const timer = setTimeout(() => setAlert(null), 3000);
@@ -249,19 +252,22 @@ export const SetupScreen = () => {
     }
   }, [alert]);
 
-
-
-
   useEffect(() => {
     if (campaignFormData?.campaign_budget?.currency) {
       const currency = selectCurrency?.find(
         (c) => c?.value === campaignFormData?.campaign_budget?.currency
       );
       if (currency) {
-        if (campaignFormData?.budget_details_fee_type?.id === "Fix budget fee") {
+        if (
+          campaignFormData?.budget_details_fee_type?.id === "Fix budget fee"
+        ) {
           setCurrencySign(currency.sign);
-        } else if (campaignFormData?.budget_details_fee_type?.id === "Tooling") {
-          setCurrencySign(selectedOption === "percentage" ? "%" : currency.sign);
+        } else if (
+          campaignFormData?.budget_details_fee_type?.id === "Tooling"
+        ) {
+          setCurrencySign(
+            selectedOption === "percentage" ? "%" : currency.sign
+          );
         }
       }
     }
@@ -283,22 +289,11 @@ export const SetupScreen = () => {
     }
   }, [campaignFormData?.campaign_budget]);
 
-
-
-
-
-
-
-
-
-
-
   if (!campaignFormData) {
     return <div>Loading...</div>;
   }
 
   return (
-
     <div className="container mx-auto px-4">
       <div className="flex flex-row justify-between w-full align-center">
         <PageHeaderWrapper t1="Set up your new campaign" />
@@ -309,15 +304,15 @@ export const SetupScreen = () => {
       {loading ? (
         <div className="flex flex-col gap-6 mt-5">
           <div>
-            <Skeleton height={50} width={'60%'} />
-            <Skeleton height={30} width={'80%'} />
-            <Skeleton height={30} width={'100%'} />
-            <Skeleton height={30} width={'100%'} />
+            <Skeleton height={50} width={"60%"} />
+            <Skeleton height={30} width={"80%"} />
+            <Skeleton height={30} width={"100%"} />
+            <Skeleton height={30} width={"100%"} />
           </div>
           <div>
-            <Skeleton height={70} width={'50%'} />
-            <Skeleton height={50} width={'60%'} />
-            <Skeleton height={30} width={'80%'} />
+            <Skeleton height={70} width={"50%"} />
+            <Skeleton height={50} width={"60%"} />
+            <Skeleton height={30} width={"80%"} />
           </div>
         </div>
       ) : (
@@ -346,7 +341,7 @@ export const SetupScreen = () => {
               Media Plan Details
             </Title>
             <div className="flex flex-wrap items-start gap-6">
-              <div >
+              <div>
                 <label className="block text-sm font-medium text-gray-700  ">
                   Name
                 </label>
@@ -355,7 +350,7 @@ export const SetupScreen = () => {
                   formId="plan_name"
                 />
               </div>
-              <div >
+              <div>
                 <label className="block text-sm font-medium text-gray-700">
                   Internal Approver
                 </label>
@@ -366,8 +361,7 @@ export const SetupScreen = () => {
                 />
               </div>
 
-
-              <div >
+              <div>
                 <label className="block text-sm font-medium text-gray-700 ">
                   Client Approver
                 </label>
@@ -376,14 +370,15 @@ export const SetupScreen = () => {
                   label="Client Approver"
                   formId={"client_approver"}
                   options={clientapprovalOptions}
-
                 />
               </div>
             </div>
           </div>
           <div className="flex flex-wrap items-start gap-6 mb-14">
             <div className="pb-1">
-              <Title className="text-2xl font-semibold text-gray-800 mb-4">Budget details</Title>
+              <Title className="text-2xl font-semibold text-gray-800 mb-4">
+                Budget details
+              </Title>
               <div className="mt-4">
                 <label className="block text-sm font-medium text-gray-700 ">
                   Currency
@@ -397,7 +392,9 @@ export const SetupScreen = () => {
             </div>
           </div>
           <div className="">
-            <Title className="text-2xl font-semibold text-gray-800 mb-4">Country details</Title>
+            <Title className="text-2xl font-semibold text-gray-800 mb-4">
+              Country details
+            </Title>
             <div className="mt-4">
               <label className="block text-sm font-medium text-gray-700 ">
                 Country
@@ -409,9 +406,8 @@ export const SetupScreen = () => {
               />
             </div>
           </div>
-        </div>)
-      }
-
-    </div >
+        </div>
+      )}
+    </div>
   );
 };

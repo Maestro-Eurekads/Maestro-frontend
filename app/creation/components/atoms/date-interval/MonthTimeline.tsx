@@ -131,7 +131,6 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                   gridColumnStart: startWeekIndex,
                   gridColumnEnd: endWeekIndex + 1,
                 }}
-                onClick={() => onTogglePlanSelection?.(id)}
               >
                 <div
                   className={`flex items-center gap-3 ${
@@ -153,7 +152,10 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                       <FiChevronDown size={20} />
                     )}
                   </button>
-                  <div className="flex-1">
+                  <div
+                    className="flex-1"
+                    onClick={() => onTogglePlanSelection?.(id)}
+                  >
                     <div className="flex items-center gap-2">
                       <h3 className="text-[#061237] font-semibold text-sm">
                         {label}

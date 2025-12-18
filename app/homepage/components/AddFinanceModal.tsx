@@ -77,7 +77,7 @@ const AddFinanceModal = ({
  const [loadingCam, setLoadingCam] = useState(false);
  const [loadingUser, setLoadingUser] = useState(false);
  const [uploading, setUploading] = useState(false);
- const { isAdmin, isAgencyApprover, isFinancialApprover } =
+ const { isAdmin, isFinancialApprover, userID } =
   useUserPrivileges();
  const dispatch = useAppDispatch();
 
@@ -85,6 +85,19 @@ const AddFinanceModal = ({
   (state) => state.client
  );
  const clients: any = getCreateClientData;
+
+ useEffect(() => {
+  if (!isAdmin) return;
+  if (!jwt  || !userID) return;
+
+  dispatch(
+   getCreateClient({
+    userId: userID,
+    jwt,
+    agencyId,
+   })
+  );
+ }, [isAdmin, jwt, agencyId, userID, dispatch]);
 
  const removeMP = (index: number) => {
   setMediaPlans((prev) => prev.filter((_, ind) => ind !== index));
@@ -484,7 +497,7 @@ const AddFinanceModal = ({
    setUploading(false);
   }
  };
-
+ 
  return (
   <div className="relative z-50">
    <Toaster />
