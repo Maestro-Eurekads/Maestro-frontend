@@ -180,7 +180,6 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                   gridColumnStart: campaignStartIndex,
                   gridColumnEnd: campaignEndIndex + 1,
                 }}
-                onClick={() => onTogglePlanSelection?.(id)}
               >
                 <div
                   className={`flex items-center gap-3 ${
@@ -202,7 +201,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                       <FiChevronDown size={20} />
                     )}
                   </button>
-                  <div className="flex-1">
+                  <div className="flex-1" onClick={() => onTogglePlanSelection?.(id)}>
                     <div className="flex items-center gap-2">
                       <h3 className="text-[#061237] font-semibold text-sm">
                         {label}
@@ -250,7 +249,6 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                         const channels = extractPlatforms(
                           campaignData || clientCampaignData[index]
                         );
-                        console.log("channels", channels);
 
                         // Calculate stage positions based on dates if available
                         const stageStartIndex =

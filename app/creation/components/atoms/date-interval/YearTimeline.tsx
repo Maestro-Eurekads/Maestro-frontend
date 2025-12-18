@@ -96,7 +96,7 @@ function YearTimeline({
   return (
     <div>
       <div
-        className="w-full min-h-auto relative pb-5"
+        className="w-full min-h-[400px] relative pb-5"
         style={{
           backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
           backgroundSize: `${COLUMN_WIDTH}px 100%`,
@@ -128,7 +128,6 @@ function YearTimeline({
                     gridColumnStart: startMonthIndex,
                     gridColumnEnd: endMonthIndex + 1,
                   }}
-                  onClick={() => onTogglePlanSelection?.(id)}
                 >
                   <div
                     className={`flex items-center gap-3 ${
@@ -150,7 +149,10 @@ function YearTimeline({
                         <FiChevronDown size={20} />
                       )}
                     </button>
-                    <div className="flex-1">
+                    <div
+                      className="flex-1"
+                      onClick={() => onTogglePlanSelection?.(id)}
+                    >
                       <div className="flex items-center gap-2">
                         <h3 className="text-[#061237] font-semibold text-sm">
                           {label}

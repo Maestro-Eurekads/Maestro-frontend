@@ -82,7 +82,7 @@ const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({
             </div>
           </div>
 
-          <div className="campaign_phases_container mt-[24px]">
+          <div className="campaign_phases_container mt-[24px] items-start"> 
             <div className="campaign_phases_container_one">
               <DoughnutChart
                 insideText={insideText}
@@ -124,7 +124,7 @@ const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({
             </div>
           </div>
 
-          <div className="campaign_phases_container mt-[24px]">
+          <div className="campaign_phases_container mt-[24px] items-start">
             <div className="campaign_phases_container_one">
               <DoughnutChart
                 insideText={insideText}
