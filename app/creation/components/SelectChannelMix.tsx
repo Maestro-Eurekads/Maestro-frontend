@@ -654,7 +654,7 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
       </div>
 
 
-      <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
+      <div className="mt-[32px] flex flex-col gap-[24px]">
         {(orderedFunnelStages.length > 0
           ? selectedStage
             ? orderedFunnelStages.filter(
@@ -696,7 +696,7 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
                   }`}
               >
                 <div
-                  className="flex items-center"
+                  className="flex items-center cursor-pointer"
                   onClick={() => toggleItem(stage.name)}
                 >
                   <div className="flex items-center gap-2 flex-1 min-w-0">

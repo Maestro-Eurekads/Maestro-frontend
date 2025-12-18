@@ -450,7 +450,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   }
 
   return (
-    <div className="mt-12 flex items-start flex-col cursor-pointer mx-auto gap-12 w-full">
+    <div className="mt-12 flex items-start flex-col mx-auto gap-12 w-full">
       {/* Center the granularity switch */}
       <div className="flex justify-center w-full">
         <div className="flex justify-center items-center gap-3">
@@ -488,7 +488,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
         return (
           <div key={stageName} className="w-full">
             <div
-              className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
+              className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] cursor-pointer
                 ${openItems[stageName] ? "rounded-t-[10px]" : "rounded-[10px]"}`}
               onClick={() => toggleItem(stageName)}
               style={{ cursor: "pointer" }}
@@ -517,7 +517,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
             </div>
             {openItems[stageName] && (
               <div
-                className={`card_bucket_container_main_sub flex flex-col pb-6 w-full cursor-pointer min-h-[300px] overflow-x-scroll`}
+                className={`card_bucket_container_main_sub flex flex-col pb-6 w-full min-h-[300px] overflow-x-scroll`}
               >
                 <AdSetsFlow
                   stageName={stageName}
