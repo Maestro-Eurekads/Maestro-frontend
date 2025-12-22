@@ -160,7 +160,7 @@ const ConfiguredSetPage = ({
             stage[channel].forEach((platform) => {
               const icon = getPlatformIcon(platform?.platform_name);
               if (icon) {
-                platformsByStage[funnel_stage].push({
+                const platformData = {
                   id: Math.floor(Math.random() * 1000000),
                   outlet: platform.platform_name,
                   ad_sets: platform?.ad_sets || [],
@@ -170,7 +170,8 @@ const ConfiguredSetPage = ({
                     percentage_value: "",
                   },
                   channel,
-                });
+                };
+                platformsByStage[funnel_stage].push(platformData);
               }
             });
           }
@@ -183,7 +184,8 @@ const ConfiguredSetPage = ({
 
   useEffect(() => {
     if (campaignFormData?.channel_mix) {
-      setPlatforms(getPlatformsFromStage(campaignFormData.channel_mix));
+      const newPlatforms = getPlatformsFromStage(campaignFormData.channel_mix);
+      setPlatforms(newPlatforms);
     }
   }, [campaignFormData?.channel_mix]);
 
@@ -1282,11 +1284,11 @@ const ConfiguredSetPage = ({
                     </div>
                     <hr className="text-gray-200 w-full p-0.5" />
                     <div className="font-bold">Channels</div>
-                    {platforms[stage.name]?.map((platform, pIdx) => {
-                      const stageObj = campaignFormData?.channel_mix?.find(
-                        (stage) => stage.funnel_stage === stageName
-                      );
-                      if (!stageObj) return null;
+                    {platforms[stage.name]?.filter(p => p && p.outlet).map((platform, pIdx) => {
+                        const stageObj = campaignFormData?.channel_mix?.find(
+                          (stage) => stage.funnel_stage === stageName
+                        );
+                        if (!stageObj) return null;
                       const channelTypes = mediaTypes;
                       let platformBudget = "";
                       let platformPercentage = 0;
@@ -1503,9 +1505,7 @@ const ConfiguredSetPage = ({
                             </div>
                           </div>
                           <div className="pb-4 space-y-3" id="setContainer">
-                            {campaignFormData?.campaign_budget?.level ===
-                              "Adset level" &&
-                              platform?.ad_sets?.map((ad_set, adSetIdx) => {
+                            {campaignFormData?.campaign_budget?.level === "Adset level" && platform?.ad_sets?.map((ad_set, adSetIdx) => {
                                 const getAdSetBudget = (adSet: any): string => {
                                   return adSet?.budget?.fixed_value &&
                                     platform.ad_sets?.length
@@ -1657,6 +1657,7 @@ const ConfiguredSetPage = ({
                                                 setCampaignFormData(
                                                   (prevData) => {
                                                     const isBottomUp = prevData.campaign_budget?.budget_type === "bottom_up";
+                                                    const channelTypes = mediaTypes;
                                                     const updatedChannelMix =
                                                       prevData.channel_mix.map(
                                                         (ch) => {
@@ -1678,10 +1679,7 @@ const ConfiguredSetPage = ({
                                                             if (
                                                               updatedChannelType
                                                             ) {
-                                                              return {
-                                                                ...ch,
-                                                                [updatedChannelType]:
-                                                                  ch[
+                                                              const updatedPlatforms = ch[
                                                                     updatedChannelType
                                                                   ].map((p) => {
                                                                     if (
@@ -1787,8 +1785,7 @@ const ConfiguredSetPage = ({
                                                                               }
                                                                               
                                                                               const newPlatformBudget = isBottomUp ? totalAdSetBudget : Number(p.budget?.fixed_value || 0);
-                                                                              
-                                                                              return {
+                                                                              const updatedAdSet = {
                                                                                 ...tempAdSets[adSetIdx2],
                                                                                 budget: {
                                                                                   ...tempAdSets[adSetIdx2].budget,
@@ -1797,6 +1794,7 @@ const ConfiguredSetPage = ({
                                                                                     : tempAdSets[adSetIdx2].budget.percentage_value,
                                                                                 },
                                                                               };
+                                                                              return updatedAdSet;
                                                                             }
                                                                             return adSet;
                                                                           }
@@ -1824,7 +1822,7 @@ const ConfiguredSetPage = ({
                                                                               ? ((Number(adSet.budget?.fixed_value || 0) / newPlatformBudget) * 100).toFixed(2)
                                                                               : "0",
                                                                           },
-                                                                          extra_audiences: adSet.extra_audiences?.map((extra) => ({
+                                                                          extra_audiences: (adSet.extra_audiences || []).map((extra) => ({
                                                                             ...extra,
                                                                             budget: {
                                                                               ...extra.budget,
@@ -1835,50 +1833,62 @@ const ConfiguredSetPage = ({
                                                                           })),
                                                                         }));
                                                                         
-                                                                        let totalPlatformBudgets = 0;
-                                                                        for (const channelType of channelTypes) {
-                                                                          if (ch[channelType]) {
-                                                                            totalPlatformBudgets += ch[channelType].reduce((acc, pl) => {
-                                                                              if (pl.platform_name === platform.outlet) {
-                                                                                return acc + newPlatformBudget;
-                                                                              }
-                                                                              return acc + (Number(pl?.budget?.fixed_value) || 0);
-                                                                            }, 0);
-                                                                          }
-                                                                        }
-                                                                        
                                                                         return {
-                                                                          ...ch,
-                                                                          stage_budget: {
-                                                                            fixed_value: totalPlatformBudgets.toString(),
-                                                                            percentage_value: "",
+                                                                          ...p,
+                                                                          budget: {
+                                                                            ...p.budget,
+                                                                            fixed_value: newPlatformBudget.toString(),
                                                                           },
-                                                                          [updatedChannelType]: ch[updatedChannelType].map((pl) => {
-                                                                            if (pl.platform_name === platform.outlet) {
-                                                                              return {
-                                                                                ...pl,
-                                                                                budget: {
-                                                                                  fixed_value: newPlatformBudget.toString(),
-                                                                                  percentage_value: totalPlatformBudgets > 0
-                                                                                    ? ((newPlatformBudget / totalPlatformBudgets) * 100).toFixed(1)
-                                                                                    : "",
-                                                                                },
-                                                                                ad_sets: updatedAdSetsWithPercentages,
-                                                                              };
-                                                                            }
-                                                                            return pl;
-                                                                          }),
+                                                                          ad_sets: updatedAdSetsWithPercentages,
                                                                         };
                                                                       }
                                                                       
-                                                                      return {
+                                                                      const platformResult = {
                                                                         ...p,
-                                                                        ad_sets:
-                                                                          updatedAdSets,
+                                                                        ad_sets: updatedAdSets || [],
                                                                       };
+                                                                      return platformResult;
                                                                     }
                                                                     return p;
-                                                                  }),
+                                                                  });
+                                                              
+                                                              if (isBottomUp) {
+                                                                let totalPlatformBudgets = 0;
+                                                                for (const channelType of channelTypes) {
+                                                                  if (ch[channelType]) {
+                                                                    const platformsToSum = channelType === updatedChannelType 
+                                                                      ? updatedPlatforms 
+                                                                      : ch[channelType];
+                                                                    totalPlatformBudgets += platformsToSum.reduce((acc, pl) => {
+                                                                      return acc + (Number(pl?.budget?.fixed_value) || 0);
+                                                                    }, 0);
+                                                                  }
+                                                                }
+                                                                
+                                                                const updatedPlatformsWithPercentages = updatedPlatforms.map((pl) => ({
+                                                                  ...pl,
+                                                                  budget: {
+                                                                    ...pl.budget,
+                                                                    percentage_value: totalPlatformBudgets > 0
+                                                                      ? ((Number(pl.budget?.fixed_value || 0) / totalPlatformBudgets) * 100).toFixed(1)
+                                                                      : "",
+                                                                  },
+                                                                }));
+                                                                
+                                                                return {
+                                                                  ...ch,
+                                                                  stage_budget: {
+                                                                    ...ch.stage_budget,
+                                                                    fixed_value: totalPlatformBudgets.toString(),
+                                                                    percentage_value: "",
+                                                                  },
+                                                                  [updatedChannelType]: updatedPlatformsWithPercentages,
+                                                                };
+                                                              }
+                                                              
+                                                              return {
+                                                                ...ch,
+                                                                [updatedChannelType]: updatedPlatforms,
                                                               };
                                                             }
                                                           }
@@ -1891,7 +1901,7 @@ const ConfiguredSetPage = ({
                                                           (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
                                                           0
                                                         );
-                                                        return {
+                                                        const result = {
                                                           ...prevData,
                                                           channel_mix: updatedChannelMix,
                                                           campaign_budget: {
@@ -1902,13 +1912,14 @@ const ConfiguredSetPage = ({
                                                                 : newNetTotal.toString(),
                                                           },
                                                         };
+                                                        return result;
                                                       }
                                                       
-                                                    return {
+                                                    const result = {
                                                       ...prevData,
-                                                      channel_mix:
-                                                        updatedChannelMix,
+                                                      channel_mix: updatedChannelMix,
                                                     };
+                                                    return result;
                                                   }
                                                 );
                                               }}
@@ -2184,19 +2195,18 @@ const ConfiguredSetPage = ({
                                                                                                 return extra;
                                                                                               }
                                                                                               
-                                                                                              return tempExtraAudiences[
-                                                                                                exIdx
-                                                                                              ];
+                                                                                              const updatedExtra = tempExtraAudiences[exIdx];
+                                                                                              return updatedExtra;
                                                                                             }
                                                                                             return extra;
                                                                                           }
                                                                                         ) ||
                                                                                         [];
-                                                                                      return {
+                                                                                      const adSetResult = {
                                                                                         ...adSet,
-                                                                                        extra_audiences:
-                                                                                          updatedExtraAudiences,
+                                                                                        extra_audiences: updatedExtraAudiences,
                                                                                       };
+                                                                                      return adSetResult;
                                                                                     }
                                                                                     return adSet;
                                                                                   }
@@ -2269,11 +2279,11 @@ const ConfiguredSetPage = ({
                                                                                 };
                                                                               }
                                                                               
-                                                                              return {
+                                                                              const platformResult = {
                                                                                 ...p,
-                                                                                ad_sets:
-                                                                                  updatedAdSets,
+                                                                                ad_sets: updatedAdSets,
                                                                               };
+                                                                              return platformResult;
                                                                             }
                                                                             return p;
                                                                           }
@@ -2290,7 +2300,7 @@ const ConfiguredSetPage = ({
                                                               (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
                                                               0
                                                             );
-                                                            return {
+                                                            const result = {
                                                               ...prevData,
                                                               channel_mix: updatedChannelMix,
                                                               campaign_budget: {
@@ -2301,13 +2311,14 @@ const ConfiguredSetPage = ({
                                                                     : newNetTotal.toString(),
                                                               },
                                                             };
+                                                            return result;
                                                           }
                                                           
-                                                          return {
+                                                          const result = {
                                                             ...prevData,
-                                                            channel_mix:
-                                                              updatedChannelMix,
+                                                            channel_mix: updatedChannelMix,
                                                           };
+                                                          return result;
                                                         }
                                                       );
                                                     }}
