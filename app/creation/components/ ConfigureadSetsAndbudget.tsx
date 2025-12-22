@@ -264,15 +264,17 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
                 {formatNumberWithCommas(calculateGrossAmount())}
               </p>
             </div>
+            {campaignFormData?.campaign_budget?.budget_type !== "bottom_up" && (
             <div className="flex-1 flex justify-end">
-              <p
-                className={`font-[600] text-[22px] leading-[20px] ${Number(calculateRemainingBudget()) < 1 ? "text-red-500" : "text-[#00A36C]"
-                  }`}
-              >
-                Remaining budget: {getCurrencySymbol(selectedOption.value)}
-                {formatNumberWithCommas(calculateRemainingBudget())}
-              </p>
-            </div>
+            <p
+              className={`font-[600] text-[22px] leading-[20px] ${Number(calculateRemainingBudget()) < 1 ? "text-red-500" : "text-[#00A36C]"
+                }`}
+            >
+              Remaining budget: {getCurrencySymbol(selectedOption.value)}
+              {formatNumberWithCommas(calculateRemainingBudget())}
+            </p>
+          </div>
+            )}
           </div>
         </div>
       )}

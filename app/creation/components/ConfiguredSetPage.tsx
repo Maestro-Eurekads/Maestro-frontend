@@ -25,7 +25,6 @@ interface OutletType {
   channel: string;
 }
 
-// Helper functions
 const calculateNetFromGross = (grossAmount: number, fees: any[]): number => {
   const totalFees = fees.reduce(
     (total, fee) => total + Number(fee.amount || 0),
@@ -46,6 +45,9 @@ const calculatePhaseRemainingBudget = (
   stageName: string,
   campaignFormData: any
 ): string => {
+  if (campaignFormData?.campaign_budget?.budget_type === "bottom_up") {
+    return "0.00";
+  }
   const stage = campaignFormData?.channel_mix?.find(
     (ch) => ch?.funnel_stage === stageName
   );
@@ -158,7 +160,7 @@ const ConfiguredSetPage = ({
             stage[channel].forEach((platform) => {
               const icon = getPlatformIcon(platform?.platform_name);
               if (icon) {
-                platformsByStage[funnel_stage].push({
+                const platformData = {
                   id: Math.floor(Math.random() * 1000000),
                   outlet: platform.platform_name,
                   ad_sets: platform?.ad_sets || [],
@@ -168,7 +170,8 @@ const ConfiguredSetPage = ({
                     percentage_value: "",
                   },
                   channel,
-                });
+                };
+                platformsByStage[funnel_stage].push(platformData);
               }
             });
           }
@@ -181,7 +184,8 @@ const ConfiguredSetPage = ({
 
   useEffect(() => {
     if (campaignFormData?.channel_mix) {
-      setPlatforms(getPlatformsFromStage(campaignFormData.channel_mix));
+      const newPlatforms = getPlatformsFromStage(campaignFormData.channel_mix);
+      setPlatforms(newPlatforms);
     }
   }, [campaignFormData?.channel_mix]);
 
@@ -705,77 +709,79 @@ const ConfiguredSetPage = ({
             percentage_value: newPercentage.toFixed(1),
           },
         };
-        let sumChannelBudgets = 0;
-        mediaTypes.forEach((type) => {
-          if (ch[type]) {
-            sumChannelBudgets += ch[type].reduce(
-              (acc, p) => acc + (Number(p?.budget?.fixed_value) || 0),
-              0
-            );
-          }
-        });
-        if (newBudget === 0 || sumChannelBudgets > newBudget) {
-          const clearedChannels = {};
+        if (campaignFormData?.campaign_budget?.budget_type !== "bottom_up") {
+          let sumChannelBudgets = 0;
           mediaTypes.forEach((type) => {
             if (ch[type]) {
-              clearedChannels[type] = ch[type].map((p) => ({
-                ...p,
-                budget: {
-                  fixed_value: "",
-                  percentage_value: "",
-                },
-                ad_sets: Array.isArray(p.ad_sets)
-                  ? p.ad_sets.map((adSet) => ({
-                      ...adSet,
-                      budget: {
-                        fixed_value: "",
-                        percentage_value: "",
-                      },
-                      extra_audiences: Array.isArray(adSet.extra_audiences)
-                        ? adSet.extra_audiences.map((extra) => ({
-                            ...extra,
-                            budget: {
-                              fixed_value: "",
-                              percentage_value: "",
-                            },
-                          }))
-                        : [],
-                    }))
-                  : [],
-              }));
+              sumChannelBudgets += ch[type].reduce(
+                (acc, p) => acc + (Number(p?.budget?.fixed_value) || 0),
+                0
+              );
             }
           });
-          updatedCh = {
-            ...updatedCh,
-            ...clearedChannels,
-          };
-        } else {
-          const recalculatedChannels = {};
-          mediaTypes.forEach((type) => {
-            if (ch[type]) {
-              recalculatedChannels[type] = ch[type].map((p) => {
-                const channelBudget = Number(p?.budget?.fixed_value) || 0;
-                let newChannelBudget = channelBudget;
-                if (channelBudget > newBudget) {
-                  newChannelBudget = newBudget;
-                }
-                return {
+          if (newBudget === 0 || sumChannelBudgets > newBudget) {
+            const clearedChannels = {};
+            mediaTypes.forEach((type) => {
+              if (ch[type]) {
+                clearedChannels[type] = ch[type].map((p) => ({
                   ...p,
                   budget: {
-                    fixed_value: newChannelBudget.toString(),
-                    percentage_value:
-                      newBudget > 0
-                        ? ((newChannelBudget / newBudget) * 100).toFixed(1)
-                        : "",
+                    fixed_value: "",
+                    percentage_value: "",
                   },
-                };
-              });
-            }
-          });
-          updatedCh = {
-            ...updatedCh,
-            ...recalculatedChannels,
-          };
+                  ad_sets: Array.isArray(p.ad_sets)
+                    ? p.ad_sets.map((adSet) => ({
+                        ...adSet,
+                        budget: {
+                          fixed_value: "",
+                          percentage_value: "",
+                        },
+                        extra_audiences: Array.isArray(adSet.extra_audiences)
+                          ? adSet.extra_audiences.map((extra) => ({
+                              ...extra,
+                              budget: {
+                                fixed_value: "",
+                                percentage_value: "",
+                              },
+                            }))
+                          : [],
+                      }))
+                    : [],
+                }));
+              }
+            });
+            updatedCh = {
+              ...updatedCh,
+              ...clearedChannels,
+            };
+          } else {
+            const recalculatedChannels = {};
+            mediaTypes.forEach((type) => {
+              if (ch[type]) {
+                recalculatedChannels[type] = ch[type].map((p) => {
+                  const channelBudget = Number(p?.budget?.fixed_value) || 0;
+                  let newChannelBudget = channelBudget;
+                  if (channelBudget > newBudget) {
+                    newChannelBudget = newBudget;
+                  }
+                  return {
+                    ...p,
+                    budget: {
+                      fixed_value: newChannelBudget.toString(),
+                      percentage_value:
+                        newBudget > 0
+                          ? ((newChannelBudget / newBudget) * 100).toFixed(1)
+                          : "",
+                    },
+                  };
+                });
+              }
+            });
+            updatedCh = {
+              ...updatedCh,
+              ...recalculatedChannels,
+            };
+          }
         }
         return updatedCh;
       }
@@ -811,68 +817,117 @@ const ConfiguredSetPage = ({
       (ch) => ch?.funnel_stage === stageName
     );
     if (!stageData) return;
+    const isBottomUp = campaignFormData?.campaign_budget?.budget_type === "bottom_up";
     const stageBudget = Number(stageData.stage_budget?.fixed_value) || 0;
-    if (stageBudget === 0) {
+    
+    if (!isBottomUp && stageBudget === 0) {
       toast.error("Please set stage budget first", {
         position: "bottom-right",
         theme: "colored",
       });
       return;
     }
+    
     let newBudget = 0;
     let newPercentage = 0;
-    if (isPercentage) {
-      const percentageValue = Math.min(100, Math.max(0, Number(value) || 0));
-      newPercentage = percentageValue;
-      newBudget = (stageBudget * percentageValue) / 100;
-    } else {
+    
+    if (isBottomUp) {
       const budgetValue = Number(value.replace(/,/g, "")) || 0;
       newBudget = budgetValue;
-      newPercentage = stageBudget ? (newBudget / stageBudget) * 100 : 0;
-    }
-    const channelTypes = mediaTypes;
-    let totalPlatformBudget = 0;
-    for (const channelType of channelTypes) {
-      if (stageData[channelType]) {
-        totalPlatformBudget += stageData[channelType].reduce((acc, p) => {
-          if (p.platform_name === platformOutlet) {
-            return acc + newBudget;
-          }
-          return acc + (Number(p?.budget?.fixed_value) || 0);
-        }, 0);
+      
+      const channelTypes = mediaTypes;
+      let currentTotalPlatformBudget = 0;
+      for (const channelType of channelTypes) {
+        if (stageData[channelType]) {
+          currentTotalPlatformBudget += stageData[channelType].reduce((acc, p) => {
+            if (p.platform_name === platformOutlet) {
+              return acc + newBudget;
+            }
+            return acc + (Number(p?.budget?.fixed_value) || 0);
+          }, 0);
+        }
       }
-    }
-    if (totalPlatformBudget > stageBudget) {
-      toast.error(
-        "The sum of all channels budgets cannot exceed the stage budget.",
-        {
+      
+      newPercentage = currentTotalPlatformBudget > 0 
+        ? (newBudget / currentTotalPlatformBudget) * 100 
+        : 0;
+    } else {
+      if (isPercentage) {
+        const percentageValue = Math.min(100, Math.max(0, Number(value) || 0));
+        newPercentage = percentageValue;
+        newBudget = (stageBudget * percentageValue) / 100;
+      } else {
+        const budgetValue = Number(value.replace(/,/g, "")) || 0;
+        newBudget = budgetValue;
+        newPercentage = stageBudget ? (newBudget / stageBudget) * 100 : 0;
+      }
+      
+      const channelTypes = mediaTypes;
+      let totalPlatformBudget = 0;
+      for (const channelType of channelTypes) {
+        if (stageData[channelType]) {
+          totalPlatformBudget += stageData[channelType].reduce((acc, p) => {
+            if (p.platform_name === platformOutlet) {
+              return acc + newBudget;
+            }
+            return acc + (Number(p?.budget?.fixed_value) || 0);
+          }, 0);
+        }
+      }
+      if (totalPlatformBudget > stageBudget) {
+        toast.error(
+          "The sum of all channels budgets cannot exceed the stage budget.",
+          {
+            position: "bottom-right",
+            theme: "colored",
+          }
+        );
+        return;
+      }
+      if (newBudget > stageBudget) {
+        newBudget = 0;
+        newPercentage = 0;
+      }
+      if (newPercentage > 100) {
+        newPercentage = 100;
+        newBudget = stageBudget;
+        toast.error("Percentage cannot exceed 100%", {
           position: "bottom-right",
           theme: "colored",
-        }
-      );
-      return;
-    }
-    if (newBudget > stageBudget) {
-      newBudget = 0;
-      newPercentage = 0;
-    }
-    if (newPercentage > 100) {
-      newPercentage = 100;
-      newBudget = stageBudget;
-      toast.error("Percentage cannot exceed 100%", {
-        position: "bottom-right",
-        theme: "colored",
-      });
+        });
+      }
     }
     setCampaignFormData((prevData) => {
+      const isBottomUp = prevData.campaign_budget?.budget_type === "bottom_up";
+      const channelTypes = mediaTypes;
       const updatedChannelMix = prevData.channel_mix.map((ch) => {
         if (ch.funnel_stage === stageName) {
           const updatedChannelType = channelTypes.find((type) =>
             ch[type]?.some((p) => p.platform_name === platformOutlet)
           );
           if (updatedChannelType) {
+            let newStageBudget = Number(ch.stage_budget?.fixed_value) || 0;
+            if (isBottomUp) {
+              let totalPlatformBudgets = 0;
+              for (const channelType of channelTypes) {
+                if (ch[channelType]) {
+                  totalPlatformBudgets += ch[channelType].reduce((acc, p) => {
+                    if (p.platform_name === platformOutlet) {
+                      return acc + newBudget;
+                    }
+                    return acc + (Number(p?.budget?.fixed_value) || 0);
+                  }, 0);
+                }
+              }
+              newStageBudget = totalPlatformBudgets;
+            }
+            
             return {
               ...ch,
+              stage_budget: isBottomUp ? {
+                fixed_value: newStageBudget.toString(),
+                percentage_value: "",
+              } : ch.stage_budget,
               [updatedChannelType]: ch[updatedChannelType].map((p) =>
                 p.platform_name === platformOutlet
                   ? {
@@ -882,12 +937,12 @@ const ConfiguredSetPage = ({
                         percentage_value:
                           newBudget === 0
                             ? ""
-                            : ((newBudget / (stageBudget || 1)) * 100).toFixed(
-                                1
-                              ),
+                            : isBottomUp
+                            ? ((newBudget / (newStageBudget || 1)) * 100).toFixed(1)
+                            : ((newBudget / (stageBudget || 1)) * 100).toFixed(1),
                       },
                       ad_sets:
-                        newBudget === 0 && Array.isArray(p.ad_sets)
+                        newBudget === 0 && !isBottomUp && Array.isArray(p.ad_sets)
                           ? p.ad_sets.map((adSet) => ({
                               ...adSet,
                               budget: {
@@ -915,6 +970,25 @@ const ConfiguredSetPage = ({
         }
         return ch;
       });
+      
+      if (isBottomUp) {
+        const newNetTotal = updatedChannelMix.reduce(
+          (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
+          0
+        );
+        return {
+          ...prevData,
+          channel_mix: updatedChannelMix,
+          campaign_budget: {
+            ...prevData.campaign_budget,
+            amount:
+              campaignBudgetType === "gross"
+                ? calculateGrossFromNet(newNetTotal, fees).toString()
+                : newNetTotal.toString(),
+          },
+        };
+      }
+      
       return {
         ...prevData,
         channel_mix: updatedChannelMix,
@@ -1210,11 +1284,11 @@ const ConfiguredSetPage = ({
                     </div>
                     <hr className="text-gray-200 w-full p-0.5" />
                     <div className="font-bold">Channels</div>
-                    {platforms[stage.name]?.map((platform, pIdx) => {
-                      const stageObj = campaignFormData?.channel_mix?.find(
-                        (stage) => stage.funnel_stage === stageName
-                      );
-                      if (!stageObj) return null;
+                    {platforms[stage.name]?.filter(p => p && p.outlet).map((platform, pIdx) => {
+                        const stageObj = campaignFormData?.channel_mix?.find(
+                          (stage) => stage.funnel_stage === stageName
+                        );
+                        if (!stageObj) return null;
                       const channelTypes = mediaTypes;
                       let platformBudget = "";
                       let platformPercentage = 0;
@@ -1431,9 +1505,7 @@ const ConfiguredSetPage = ({
                             </div>
                           </div>
                           <div className="pb-4 space-y-3" id="setContainer">
-                            {campaignFormData?.campaign_budget?.level ===
-                              "Adset level" &&
-                              platform?.ad_sets?.map((ad_set, adSetIdx) => {
+                            {campaignFormData?.campaign_budget?.level === "Adset level" && platform?.ad_sets?.map((ad_set, adSetIdx) => {
                                 const getAdSetBudget = (adSet: any): string => {
                                   return adSet?.budget?.fixed_value &&
                                     platform.ad_sets?.length
@@ -1584,6 +1656,8 @@ const ConfiguredSetPage = ({
                                                 const newBudget = inputValue;
                                                 setCampaignFormData(
                                                   (prevData) => {
+                                                    const isBottomUp = prevData.campaign_budget?.budget_type === "bottom_up";
+                                                    const channelTypes = mediaTypes;
                                                     const updatedChannelMix =
                                                       prevData.channel_mix.map(
                                                         (ch) => {
@@ -1605,10 +1679,7 @@ const ConfiguredSetPage = ({
                                                             if (
                                                               updatedChannelType
                                                             ) {
-                                                              return {
-                                                                ...ch,
-                                                                [updatedChannelType]:
-                                                                  ch[
+                                                              const updatedPlatforms = ch[
                                                                     updatedChannelType
                                                                   ].map((p) => {
                                                                     if (
@@ -1675,19 +1746,30 @@ const ConfiguredSetPage = ({
                                                                                             ?.fixed_value
                                                                                         ) ||
                                                                                         0;
+                                                                                      if (!isBottomUp && a.extra_audiences) {
+                                                                                        totalAdSetBudget += a.extra_audiences.reduce(
+                                                                                          (acc, extra) => acc + (Number(extra?.budget?.fixed_value) || 0),
+                                                                                          0
+                                                                                        );
+                                                                                      }
                                                                                       return a;
                                                                                     }
                                                                                   }
                                                                                 ) ||
                                                                                 [];
-                                                                              if (
-                                                                                totalAdSetBudget >
-                                                                                Number(
-                                                                                  p
-                                                                                    .budget
-                                                                                    ?.fixed_value
-                                                                                )
-                                                                              ) {
+                                                                              
+                                                                              if (isBottomUp) {
+                                                                                tempAdSets.forEach((adSet) => {
+                                                                                  if (adSet.extra_audiences) {
+                                                                                    totalAdSetBudget += adSet.extra_audiences.reduce(
+                                                                                      (acc, extra) => acc + (Number(extra?.budget?.fixed_value) || 0),
+                                                                                      0
+                                                                                    );
+                                                                                  }
+                                                                                });
+                                                                              }
+                                                                              
+                                                                              if (!isBottomUp && totalAdSetBudget > Number(p.budget?.fixed_value || 0)) {
                                                                                 toast.error(
                                                                                   "The sum of all ad set budgets cannot exceed the platform budget.",
                                                                                   {
@@ -1701,32 +1783,143 @@ const ConfiguredSetPage = ({
                                                                                 );
                                                                                 return adSet;
                                                                               }
-                                                                              return tempAdSets[
-                                                                                adSetIdx2
-                                                                              ];
+                                                                              
+                                                                              const newPlatformBudget = isBottomUp ? totalAdSetBudget : Number(p.budget?.fixed_value || 0);
+                                                                              const updatedAdSet = {
+                                                                                ...tempAdSets[adSetIdx2],
+                                                                                budget: {
+                                                                                  ...tempAdSets[adSetIdx2].budget,
+                                                                                  percentage_value: isBottomUp && newPlatformBudget > 0
+                                                                                    ? ((Number(newBudget) / newPlatformBudget) * 100).toFixed(2)
+                                                                                    : tempAdSets[adSetIdx2].budget.percentage_value,
+                                                                                },
+                                                                              };
+                                                                              return updatedAdSet;
                                                                             }
                                                                             return adSet;
                                                                           }
                                                                         );
-                                                                      return {
+                                                                      
+                                                                      if (isBottomUp) {
+                                                                        let totalAdSetAndExtraBudget = 0;
+                                                                        updatedAdSets.forEach((adSet) => {
+                                                                          totalAdSetAndExtraBudget += Number(adSet?.budget?.fixed_value || 0);
+                                                                          if (adSet.extra_audiences) {
+                                                                            totalAdSetAndExtraBudget += adSet.extra_audiences.reduce(
+                                                                              (acc, extra) => acc + (Number(extra?.budget?.fixed_value) || 0),
+                                                                              0
+                                                                            );
+                                                                          }
+                                                                        });
+                                                                        
+                                                                        const newPlatformBudget = totalAdSetAndExtraBudget;
+                                                                        
+                                                                        const updatedAdSetsWithPercentages = updatedAdSets.map((adSet) => ({
+                                                                          ...adSet,
+                                                                          budget: {
+                                                                            ...adSet.budget,
+                                                                            percentage_value: newPlatformBudget > 0
+                                                                              ? ((Number(adSet.budget?.fixed_value || 0) / newPlatformBudget) * 100).toFixed(2)
+                                                                              : "0",
+                                                                          },
+                                                                          extra_audiences: (adSet.extra_audiences || []).map((extra) => ({
+                                                                            ...extra,
+                                                                            budget: {
+                                                                              ...extra.budget,
+                                                                              percentage_value: newPlatformBudget > 0
+                                                                                ? ((Number(extra.budget?.fixed_value || 0) / newPlatformBudget) * 100).toFixed(2)
+                                                                                : "0",
+                                                                            },
+                                                                          })),
+                                                                        }));
+                                                                        
+                                                                        return {
+                                                                          ...p,
+                                                                          budget: {
+                                                                            ...p.budget,
+                                                                            fixed_value: newPlatformBudget.toString(),
+                                                                          },
+                                                                          ad_sets: updatedAdSetsWithPercentages,
+                                                                        };
+                                                                      }
+                                                                      
+                                                                      const platformResult = {
                                                                         ...p,
-                                                                        ad_sets:
-                                                                          updatedAdSets,
+                                                                        ad_sets: updatedAdSets || [],
                                                                       };
+                                                                      return platformResult;
                                                                     }
                                                                     return p;
-                                                                  }),
+                                                                  });
+                                                              
+                                                              if (isBottomUp) {
+                                                                let totalPlatformBudgets = 0;
+                                                                for (const channelType of channelTypes) {
+                                                                  if (ch[channelType]) {
+                                                                    const platformsToSum = channelType === updatedChannelType 
+                                                                      ? updatedPlatforms 
+                                                                      : ch[channelType];
+                                                                    totalPlatformBudgets += platformsToSum.reduce((acc, pl) => {
+                                                                      return acc + (Number(pl?.budget?.fixed_value) || 0);
+                                                                    }, 0);
+                                                                  }
+                                                                }
+                                                                
+                                                                const updatedPlatformsWithPercentages = updatedPlatforms.map((pl) => ({
+                                                                  ...pl,
+                                                                  budget: {
+                                                                    ...pl.budget,
+                                                                    percentage_value: totalPlatformBudgets > 0
+                                                                      ? ((Number(pl.budget?.fixed_value || 0) / totalPlatformBudgets) * 100).toFixed(1)
+                                                                      : "",
+                                                                  },
+                                                                }));
+                                                                
+                                                                return {
+                                                                  ...ch,
+                                                                  stage_budget: {
+                                                                    ...ch.stage_budget,
+                                                                    fixed_value: totalPlatformBudgets.toString(),
+                                                                    percentage_value: "",
+                                                                  },
+                                                                  [updatedChannelType]: updatedPlatformsWithPercentages,
+                                                                };
+                                                              }
+                                                              
+                                                              return {
+                                                                ...ch,
+                                                                [updatedChannelType]: updatedPlatforms,
                                                               };
                                                             }
                                                           }
                                                           return ch;
                                                         }
                                                       );
-                                                    return {
+                                                      
+                                                      if (isBottomUp) {
+                                                        const newNetTotal = updatedChannelMix.reduce(
+                                                          (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
+                                                          0
+                                                        );
+                                                        const result = {
+                                                          ...prevData,
+                                                          channel_mix: updatedChannelMix,
+                                                          campaign_budget: {
+                                                            ...prevData.campaign_budget,
+                                                            amount:
+                                                              campaignBudgetType === "gross"
+                                                                ? calculateGrossFromNet(newNetTotal, fees).toString()
+                                                                : newNetTotal.toString(),
+                                                          },
+                                                        };
+                                                        return result;
+                                                      }
+                                                      
+                                                    const result = {
                                                       ...prevData,
-                                                      channel_mix:
-                                                        updatedChannelMix,
+                                                      channel_mix: updatedChannelMix,
                                                     };
+                                                    return result;
                                                   }
                                                 );
                                               }}
@@ -1861,6 +2054,7 @@ const ConfiguredSetPage = ({
                                                         inputValue;
                                                       setCampaignFormData(
                                                         (prevData) => {
+                                                          const isBottomUp = prevData.campaign_budget?.budget_type === "bottom_up";
                                                           const updatedChannelMix =
                                                             prevData.channel_mix.map(
                                                               (ch) => {
@@ -1916,6 +2110,10 @@ const ConfiguredSetPage = ({
                                                                                               extraIdx
                                                                                             ) {
                                                                                               let totalAdSetBudget = 0;
+                                                                                              p.ad_sets?.forEach((aSet) => {
+                                                                                                totalAdSetBudget += Number(aSet?.budget?.fixed_value || 0);
+                                                                                              });
+                                                                                              
                                                                                               const tempExtraAudiences =
                                                                                                 adSet.extra_audiences?.map(
                                                                                                   (
@@ -1970,14 +2168,19 @@ const ConfiguredSetPage = ({
                                                                                                   }
                                                                                                 ) ||
                                                                                                 [];
-                                                                                              if (
-                                                                                                totalAdSetBudget >
-                                                                                                Number(
-                                                                                                  p
-                                                                                                    .budget
-                                                                                                    ?.fixed_value
-                                                                                                )
-                                                                                              ) {
+                                                                                              
+                                                                                              if (!isBottomUp) {
+                                                                                                p.ad_sets?.forEach((aSet, idx) => {
+                                                                                                  if (aSet.extra_audiences && idx !== adSetIdx2) {
+                                                                                                    totalAdSetBudget += aSet.extra_audiences.reduce(
+                                                                                                      (acc, extra) => acc + (Number(extra?.budget?.fixed_value) || 0),
+                                                                                                      0
+                                                                                                    );
+                                                                                                  }
+                                                                                                });
+                                                                                              }
+                                                                                              
+                                                                                              if (!isBottomUp && totalAdSetBudget > Number(p.budget?.fixed_value || 0)) {
                                                                                                 toast.error(
                                                                                                   "Total budget (ad sets + extras) cannot exceed platform budget",
                                                                                                   {
@@ -1991,28 +2194,96 @@ const ConfiguredSetPage = ({
                                                                                                 );
                                                                                                 return extra;
                                                                                               }
-                                                                                              return tempExtraAudiences[
-                                                                                                exIdx
-                                                                                              ];
+                                                                                              
+                                                                                              const updatedExtra = tempExtraAudiences[exIdx];
+                                                                                              return updatedExtra;
                                                                                             }
                                                                                             return extra;
                                                                                           }
                                                                                         ) ||
                                                                                         [];
-                                                                                      return {
+                                                                                      const adSetResult = {
                                                                                         ...adSet,
-                                                                                        extra_audiences:
-                                                                                          updatedExtraAudiences,
+                                                                                        extra_audiences: updatedExtraAudiences,
                                                                                       };
+                                                                                      return adSetResult;
                                                                                     }
                                                                                     return adSet;
                                                                                   }
                                                                                 );
-                                                                              return {
+                                                                              
+                                                                              if (isBottomUp) {
+                                                                                let totalPlatformBudget = 0;
+                                                                                updatedAdSets.forEach((aSet) => {
+                                                                                  totalPlatformBudget += Number(aSet?.budget?.fixed_value || 0);
+                                                                                  if (aSet.extra_audiences) {
+                                                                                    totalPlatformBudget += aSet.extra_audiences.reduce(
+                                                                                      (acc, ext) => acc + (Number(ext?.budget?.fixed_value || 0)),
+                                                                                      0
+                                                                                    );
+                                                                                  }
+                                                                                });
+                                                                                
+                                                                                const updatedAdSetsWithPercentages = updatedAdSets.map((aSet) => ({
+                                                                                  ...aSet,
+                                                                                  budget: {
+                                                                                    ...aSet.budget,
+                                                                                    percentage_value: totalPlatformBudget > 0
+                                                                                      ? ((Number(aSet.budget?.fixed_value || 0) / totalPlatformBudget) * 100).toFixed(2)
+                                                                                      : "0",
+                                                                                  },
+                                                                                  extra_audiences: aSet.extra_audiences?.map((ext) => ({
+                                                                                    ...ext,
+                                                                                    budget: {
+                                                                                      ...ext.budget,
+                                                                                      percentage_value: totalPlatformBudget > 0
+                                                                                        ? ((Number(ext.budget?.fixed_value || 0) / totalPlatformBudget) * 100).toFixed(2)
+                                                                                        : "0",
+                                                                                    },
+                                                                                  })),
+                                                                                }));
+                                                                                
+                                                                                let totalPlatformBudgets = 0;
+                                                                                for (const channelType of channelTypes) {
+                                                                                  if (ch[channelType]) {
+                                                                                    totalPlatformBudgets += ch[channelType].reduce((acc, pl) => {
+                                                                                      if (pl.platform_name === platform.outlet) {
+                                                                                        return acc + totalPlatformBudget;
+                                                                                      }
+                                                                                      return acc + (Number(pl?.budget?.fixed_value) || 0);
+                                                                                    }, 0);
+                                                                                  }
+                                                                                }
+                                                                                
+                                                                                return {
+                                                                                  ...ch,
+                                                                                  stage_budget: {
+                                                                                    fixed_value: totalPlatformBudgets.toString(),
+                                                                                    percentage_value: "",
+                                                                                  },
+                                                                                  [updatedChannelType]: ch[updatedChannelType].map((pl) => {
+                                                                                    if (pl.platform_name === platform.outlet) {
+                                                                                      return {
+                                                                                        ...pl,
+                                                                                        budget: {
+                                                                                          fixed_value: totalPlatformBudget.toString(),
+                                                                                          percentage_value: totalPlatformBudgets > 0
+                                                                                            ? ((totalPlatformBudget / totalPlatformBudgets) * 100).toFixed(1)
+                                                                                            : "",
+                                                                                        },
+                                                                                        ad_sets: updatedAdSetsWithPercentages,
+                                                                                      };
+                                                                                    }
+                                                                                    return pl;
+                                                                                  }),
+                                                                                };
+                                                                              }
+                                                                              
+                                                                              const platformResult = {
                                                                                 ...p,
-                                                                                ad_sets:
-                                                                                  updatedAdSets,
+                                                                                ad_sets: updatedAdSets,
                                                                               };
+                                                                              return platformResult;
                                                                             }
                                                                             return p;
                                                                           }
@@ -2023,11 +2294,31 @@ const ConfiguredSetPage = ({
                                                                 return ch;
                                                               }
                                                             );
-                                                          return {
+                                                          
+                                                          if (isBottomUp) {
+                                                            const newNetTotal = updatedChannelMix.reduce(
+                                                              (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
+                                                              0
+                                                            );
+                                                            const result = {
+                                                              ...prevData,
+                                                              channel_mix: updatedChannelMix,
+                                                              campaign_budget: {
+                                                                ...prevData.campaign_budget,
+                                                                amount:
+                                                                  campaignBudgetType === "gross"
+                                                                    ? calculateGrossFromNet(newNetTotal, fees).toString()
+                                                                    : newNetTotal.toString(),
+                                                              },
+                                                            };
+                                                            return result;
+                                                          }
+                                                          
+                                                          const result = {
                                                             ...prevData,
-                                                            channel_mix:
-                                                              updatedChannelMix,
+                                                            channel_mix: updatedChannelMix,
                                                           };
+                                                          return result;
                                                         }
                                                       );
                                                     }}
@@ -2078,23 +2369,25 @@ const ConfiguredSetPage = ({
                       );
                     })}
                   </div>
-                  <div className="flex w-full my-4 justify-end items-center">
-                    <Button
-                      text={validatedStages[stage.name] ? "Edit" : "Validate"}
-                      onClick={
-                        validatedStages[stage.name]
-                          ? () =>
-                              setValidatedStages((prev) => ({
-                                ...prev,
-                                [stage.name]: false,
-                              }))
-                          : () => handleValidateClick(stage.name)
-                      }
-                      disabled={!isButtonEnabled(stage.name)}
-                      variant="primary"
-                      className="h-[40px] rounded-md px-4 py-1"
-                    />
-                  </div>
+                 
+                    {/* <div className="flex w-full my-4 justify-end items-center">
+                      <Button
+                        text={validatedStages[stage.name] ? "Edit" : "Validate"}
+                        onClick={
+                          validatedStages[stage.name]
+                            ? () =>
+                                setValidatedStages((prev) => ({
+                                  ...prev,
+                                  [stage.name]: false,
+                                }))
+                            : () => handleValidateClick(stage.name)
+                        }
+                        disabled={!isButtonEnabled(stage.name)}
+                        variant="primary"
+                        className="h-[40px] rounded-md px-4 py-1"
+                      />
+                    </div> */}
+                  
                 </div>
               </>
             )}
