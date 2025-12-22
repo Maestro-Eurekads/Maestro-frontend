@@ -70,8 +70,6 @@ const AddFinanceModal = ({
  // @ts-ignore 
  const userType = session?.user?.data?.user?.id || "";
  const [clientCampaigns, setClientCampaigns] = useState<any[]>([]);
- const [clientApprover, setClientApprover] = useState<any[]>([]);
- const [internalApprover, setInternalApprover] = useState<any[]>([]);
  const [users, setUsers] = useState<any[]>([]);
  const [financialUsers, setFinancialUsers] = useState<any[]>([]);
  const [loadingCam, setLoadingCam] = useState(false);
@@ -146,8 +144,6 @@ const AddFinanceModal = ({
       budget: opt?.campaign_budget?.amount,
      }));
      setClientCampaigns(newOption);
-     setClientApprover(data?.media_plan_details.client_approver || []);
-     setInternalApprover(data?.media_plan_details?.internal_approver || []);
     } catch (err) {
      if (err?.response?.status === 401) {
       const event = new Event("unauthorizedEvent");

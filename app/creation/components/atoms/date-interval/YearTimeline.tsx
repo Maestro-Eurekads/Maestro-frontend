@@ -121,7 +121,7 @@ function YearTimeline({
                 <div
                   className={`flex flex-col min-h-14 bg-white mt-6 shadow-sm rounded-[10px] justify-between transition-all cursor-pointer ${
                     isSelected
-                      ? "border-2 border-[#3175FF] ring-2 ring-[#3175FF]/20"
+                      ? "ring-2 ring-[#3175FF]"
                       : "border border-[rgba(0,0,0,0.2)] opacity-50"
                   }`}
                   style={{
@@ -212,7 +212,7 @@ function YearTimeline({
                             >
                               <div
                                 onClick={() => toggleOpen(index, name)}
-                                className={`mt-5 w-full flex items-center rounded-[10px] h-12.5 text-xs font-[500] p-2 text-center ${
+                                className={`mt-5 w-full flex items-center rounded-[10px] h-[52px] text-xs font-[500] p-2 text-center ${
                                   name === "Awareness"
                                     ? "bg-[#3175FF]"
                                     : name === "Consideration"
@@ -282,7 +282,7 @@ function YearTimeline({
                                             }}
                                           >
                                             <div
-                                              className="py-1 text-xs font-[500] border my-5 w-full rounded-[10px] flex items-center justify-between"
+                                              className="py-1 text-xs font-[500] border my-5 w-full rounded-[10px] flex items-center justify-between overflow-visible"
                                               style={{
                                                 gridColumnStart: Math.max(
                                                   1,
@@ -308,9 +308,9 @@ function YearTimeline({
                                                 />
                                                 <span>{platform_name}</span>
                                               </span>
-                                              <button className="bg-[#0866FF33]/5 py-2 px-[10px] rounded-[5px] mr-3">
+                                              <div className="bg-[#0866FF33]/5 py-2 px-[10px] rounded-[5px] mr-3">
                                                 {amount}
-                                              </button>
+                                              </div>
                                             </div>
                                           </div>
                                         );
