@@ -173,7 +173,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
               <div
                 className={`flex flex-col min-h-14 bg-white mt-6 shadow-sm rounded-[10px] justify-between transition-all cursor-pointer ${
                   isSelected
-                    ? "border-2 border-[#3175FF] ring-2 ring-[#3175FF]/20"
+                    ? "ring-2 ring-[#3175FF]"
                     : "border border-[rgba(0,0,0,0.2)] opacity-50"
                 }`}
                 style={{
@@ -272,7 +272,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                           >
                             <div
                               onClick={() => toggleOpen(index, name)}
-                              className={`mt-5 w-full flex items-center rounded-[10px] h-12.5 text-xs font-[500] p-2 text-center ${
+                              className={`mt-5 w-full flex items-center rounded-[10px] h-[52px] text-xs font-[500] p-2 text-center ${
                                 name === "Awareness"
                                   ? "bg-[#3175FF]"
                                   : name === "Consideration"

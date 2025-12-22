@@ -139,7 +139,7 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
                       >
                         <div
                           onClick={() => toggleOpen(index, section?.name)}
-                          className={`mt-5 w-full flex items-center rounded-[10px] h-12.5 text-xs font-[500] p-2 text-center ${
+                          className={`mt-5 w-full flex items-center rounded-[10px] h-[52px] text-xs font-[500] p-2 text-center ${
                             section?.name === "Awareness"
                               ? "bg-[#3175FF]"
                               : section?.name === "Consideration"
