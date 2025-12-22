@@ -273,11 +273,14 @@ const MainSection = ({
 
   useEffect(() => {
     if (!startDates || !endDates) return;
-    if (dayDifference <= 31) {
-      setRange("Day");
-    } else if (dayDifference <= 90) {
+    const viewPortWidth = window.innerWidth;
+    if (dayDifference <= 10) {
+    } else if (dayDifference <= 22) {
       setRange("Week");
-    } else if (dayDifference <= 200) {
+    } else if (
+      dayDifference <= 80 &&
+      viewPortWidth > ((dayDifference / 7) * 100)
+    ) {
       setRange("Month");
     } else {
       setRange("Year");
