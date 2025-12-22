@@ -19,10 +19,10 @@ import {
   addDays,
   subWeeks,
   addWeeks,
-  differenceInMonths,
 } from "date-fns";
 import YearInterval from "./YearInterval";
 import YearTimeline from "./YearTimeline";
+import QuarterInterval from "./QuarterInterval";
 
 // Column widths for each view type
 const COLUMN_WIDTHS = {
@@ -88,7 +88,7 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
     let buffStart = startDate;
     let buffEnd = endDate;
 
-    if (range === "Year") {
+    if (range === "Year" || range === "Quarter") {
       const columnWidth = COLUMN_WIDTHS.Year;
       const requiredColumns = getRequiredColumns(columnWidth);
 
@@ -200,6 +200,17 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
         return (
           <>
             <YearInterval isInfiniteTimeline={false} range={bufferedDateList} />
+            <YearTimeline
+              range={bufferedDateList}
+              funnels={funnelsData}
+              onTogglePlanSelection={onTogglePlanSelection}
+            />
+          </>
+        );
+      case "Quarter":
+        return (
+          <>
+            <QuarterInterval isInfiniteTimeline={false} range={bufferedDateList} />
             <YearTimeline
               range={bufferedDateList}
               funnels={funnelsData}
