@@ -61,32 +61,26 @@ function YearTimeline({
     data?.channel_mix?.length > 0 &&
       data.channel_mix.forEach((stage) => {
         const stageName = stage.funnel_stage;
-        const stageBudget = parseFloat(stage.stage_budget?.fixed_value);
         mediaTypes.forEach((channelType) => {
           stage[channelType]?.forEach((platform) => {
             const platformName = platform.platform_name;
             const platformBudget = parseFloat(
               platform.budget?.fixed_value || 0
             );
-            const existingPlatform = platforms.find(
-              (p) => p.platform_name === platformName
-            );
-            if (!existingPlatform) {
-              const style =
-                platformStyles.find((style) => style.name === platformName) ||
-                platformStyles[
-                  Math.floor(Math.random() * platformStyles.length)
-                ];
-              platforms.push({
-                platform_name: platformName,
-                amount: platformBudget,
-                stageName,
-                icon: getPlatformIcon(platformName),
-                bg: style?.bg,
-                startDate: platform.campaign_start_date,
-                endDate: platform.campaign_end_date,
-              });
-            }
+            const style =
+              platformStyles.find((style) => style.name === platformName) ||
+              platformStyles[
+                Math.floor(Math.random() * platformStyles.length)
+              ];
+            platforms.push({
+              platform_name: platformName,
+              amount: platformBudget,
+              stageName,
+              icon: getPlatformIcon(platformName),
+              bg: style?.bg,
+              startDate: platform.campaign_start_date,
+              endDate: platform.campaign_end_date,
+            });
           });
         });
       });
@@ -104,7 +98,7 @@ function YearTimeline({
       >
         {funnels?.map(
           (
-            { id, isSelected, label, budget, stages, startDate, endDate },
+            { id, isSelected, label, budget, stages, startDate, endDate, campaignData },
             index
           ) => {
             const startMonthIndex = getMonthIndex(startDate);
@@ -195,7 +189,7 @@ function YearTimeline({
                           zIndex
                         ) => {
                           const channels = extractPlatforms(
-                            clientCampaignData[index]
+                            campaignData || clientCampaignData[index]
                           );
                           const stageStartMonth = getMonthIndex(stageStart);
                           const stageEndMonth = getMonthIndex(stageEnd);

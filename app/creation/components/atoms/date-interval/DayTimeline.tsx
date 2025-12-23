@@ -42,45 +42,26 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
     data?.channel_mix?.length > 0 &&
       data.channel_mix.forEach((stage) => {
         const stageName = stage.funnel_stage;
-        const stageBudget = parseFloat(stage.stage_budget?.fixed_value);
-        [
-          "social_media",
-          "display_networks",
-          "search_engines",
-          "streaming",
-          "ooh",
-          "broadcast",
-          "messaging",
-          "print",
-          "e_commerce",
-          "in_game",
-          "mobile",
-        ].forEach((channelType) => {
+        mediaTypes.forEach((channelType) => {
           stage[channelType]?.forEach((platform) => {
             const platformName = platform.platform_name;
             const platformBudget = parseFloat(
               platform.budget?.fixed_value || 0
             );
-            const percentage = (platformBudget / stageBudget) * 100 || 0;
-            const existingPlatform = platforms.find(
-              (p) => p.platform_name === platformName
-            );
-            if (!existingPlatform) {
-              const style =
-                platformStyles.find((style) => style.name === platformName) ||
-                platformStyles[
-                  Math.floor(Math.random() * platformStyles.length)
-                ];
-              platforms.push({
-                platform_name: platformName,
-                amount: platformBudget,
-                stageName,
-                icon: getPlatformIcon(platformName),
-                bg: style?.bg,
-                startDate: platform.campaign_start_date,
-                endDate: platform.campaign_end_date,
-              });
-            }
+            const style =
+              platformStyles.find((style) => style.name === platformName) ||
+              platformStyles[
+                Math.floor(Math.random() * platformStyles.length)
+              ];
+            platforms.push({
+              platform_name: platformName,
+              amount: platformBudget,
+              stageName,
+              icon: getPlatformIcon(platformName),
+              bg: style?.bg,
+              startDate: platform.campaign_start_date,
+              endDate: platform.campaign_end_date,
+            });
           });
         });
       });
