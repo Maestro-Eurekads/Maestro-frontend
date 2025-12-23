@@ -17,7 +17,6 @@ import channel from "../../../public/channel_level.svg"
 import toast from "react-hot-toast"
 import { useSearchParams } from "next/navigation"
 import ConfigureAdSetsAndBudget, { BudgetOverviewSection } from "./ ConfigureadSetsAndbudget"
-import SaveProgressButton from "app/utils/SaveProgressButton"
 import { useActive } from "app/utils/ActiveContext"
 
 const CampaignBudget = () => {
@@ -268,7 +267,6 @@ const CampaignBudget = () => {
           t4="Choose how to set your campaign budget"
           span={1}
         />
-        <SaveProgressButton />
       </div>
 
       <div className="mt-[24px] flex gap-5">

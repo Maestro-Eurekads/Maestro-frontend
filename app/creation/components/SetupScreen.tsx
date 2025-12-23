@@ -17,7 +17,6 @@ import { useSession } from "next-auth/react";
 import { getCreateClient } from "features/Client/clientSlice";
 import { toast } from "sonner";
 import Skeleton from "react-loading-skeleton";
-import SaveProgressButton from "app/utils/SaveProgressButton";
 import CurrencySelection from "components/CurrencySelection";
 import CountrySelection from "components/CountrySelection";
 
@@ -58,6 +57,7 @@ export const SetupScreen = () => {
     selectedId,
     selectedOption,
     setSelectedOption,
+    persistedCampaignData
   } = useCampaigns();
   const query = useSearchParams();
   const documentId = query.get("campaignId");
@@ -297,7 +297,6 @@ export const SetupScreen = () => {
     <div className="container mx-auto px-4">
       <div className="flex flex-row justify-between w-full align-center">
         <PageHeaderWrapper t1="Set up your new campaign" />
-        <SaveProgressButton />
       </div>
       {alert && <AlertMain alert={alert} />}
 

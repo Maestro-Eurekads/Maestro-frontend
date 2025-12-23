@@ -8,8 +8,6 @@ import Dashboard from "./components/Dashboard";
 import FinanceView from "./components/FinanceView";
 import AddFinanceModal from "./components/AddFinanceModal";
 import ViewClientModal from "./components/ViewClientModal";
-import { useActive } from "app/utils/ActiveContext";
-import SaveProgressButton from "app/utils/SaveProgressButton";
 
 const Homepage = () => {
   const [isOpen, setIsOpen] = useState(false);

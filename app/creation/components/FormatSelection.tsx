@@ -13,7 +13,6 @@ import { debounce } from "lodash"
 import Switch from "react-switch"
 import PageHeaderWrapper from "../../../components/PageHeaderWapper"
 import { useComments } from "app/utils/CommentProvider"
-import SaveProgressButton from "app/utils/SaveProgressButton"
 import { useActive } from "app/utils/ActiveContext"
 
 // Types
@@ -1167,7 +1166,7 @@ export const Platforms = ({
           })
         })
 
-        await updateCampaign(sanitizedData)
+        // await updateCampaign(sanitizedData)
       } catch (error: any) {
         console.error("Error in uploadUpdatedCampaignToStrapi:", {
           message: error.message,
@@ -1560,14 +1559,15 @@ export const FormatSelection = ({
   const { setIsDrawerOpen, setClose } = useComments()
 
   useEffect(() => {
-    setView(openView ? openView : "channel")
     setIsDrawerOpen(false)
     if (shouldOpenSidebar) {
       setClose(false)
     }
+
+    setView(openView ? openView : campaignFormData?.goal_level === "Adset level" ? "adset" : "channel")
     setCampaignFormData((prev) => ({
       ...prev,
-      goal_level: openView ? (openView === "channel" ? "Channel level" : "Adset level") : "Channel level",
+      goal_level: openView ? (openView === "channel" ? "Channel level" : "Adset level") : campaignFormData?.goal_level,
     }))
   }, [setIsDrawerOpen, setClose, setCampaignFormData, openView])
 
@@ -1650,7 +1650,6 @@ export const FormatSelection = ({
     <div>
       <div className="flex flex-row justify-between">
         <div />
-        <SaveProgressButton />
       </div>
       {!stageName && (
         <PageHeaderWrapper

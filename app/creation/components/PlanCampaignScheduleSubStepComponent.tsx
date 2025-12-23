@@ -6,7 +6,6 @@ import { useSearchParams } from 'next/navigation';
 import { useComments } from 'app/utils/CommentProvider';
 import { useEditing } from 'app/utils/EditingContext';
 import EnhancedMainSection from './organisms/main-section/enhanced-main-section';
-import SaveProgressButton from 'app/utils/SaveProgressButton';
 import { useActive } from 'app/utils/ActiveContext';
 
 const PlanCampaignScheduleSubStepComponent = () => {
@@ -39,7 +38,6 @@ const PlanCampaignScheduleSubStepComponent = () => {
 						t4={'Phases default to the campaign duration, but you can adjust each phase and channel by dragging them'}
 						span={2}
 					/>
-					<SaveProgressButton />
 				</div>
 
 			</div>

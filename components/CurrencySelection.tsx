@@ -42,14 +42,13 @@ const Dropdown = ({
 
 
   const handleSelect = (id, value: string) => {
-    console.log("Selected:", id, value);
     setChange(true)
     setCampaignFormData((prev) => ({
       ...prev,
       [formId]: {
         id,
         currency: value,
-        value,
+        // value,
       },
     }));
     setIsOpen(false);
@@ -80,7 +79,7 @@ const Dropdown = ({
         onClick={toggleDropdown}
       >
         <span className="text-[#061237]">
-          {campaignFormData[formId]?.value || label}
+          {campaignFormData[formId]?.currency || label}
         </span>
         <span className="ml-auto text-[#061237]">
           <Image src={down} alt="dropdown-icon" />

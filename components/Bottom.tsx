@@ -11,6 +11,8 @@ import { BiLoader } from "react-icons/bi"
 import { useSelectedDates } from "../app/utils/SelectedDatesContext"
 import { useEditing } from "app/utils/EditingContext"
 import { Toaster } from "react-hot-toast"
+import SaveProgressButton from "app/utils/SaveProgressButton";
+
 
 interface BottomProps {
   setIsOpen: (isOpen: boolean) => void
@@ -121,6 +123,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
   // --- Custom back handler for active === 5 to persist step 4 if user had format selected and continued ---
   const handleBack = () => {
+    localStorage.setItem(campaignFormData.documentId, JSON.stringify(campaignFormData))
     if (active === 5 && hasProceededFromFormatStep.current) {
       setActive(4)
       return
@@ -147,6 +150,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   }, [requiredFields, setIsStepZeroValid])
 
   const handleContinue = () => {
+    localStorage.setItem(campaignFormData.documentId, JSON.stringify(campaignFormData))
+
     // FIXED: Clear channel state when moving to step 3 (Adset and Audiences step)
     if (active === 3) {
       clearChannelStateForNewCampaign()
@@ -188,6 +193,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   }
 
   const handleSkip = () => {
+    localStorage.setItem(campaignFormData.documentId, JSON.stringify(campaignFormData))
+
     setActive((prev) => Math.min(9, prev + 1))
   }
 
@@ -219,7 +226,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           </button>
         ) : (
           <div className="flex justify-center items-center gap-3">
-            <button
+            <SaveProgressButton />
+            {cId && <button
               className={clsx(
                 "bottom_black_next_btn whitespace-nowrap",
                 (active === 10 || !cId) && "opacity-50 cursor-not-allowed",
@@ -257,7 +265,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                   <Image src={Continue} alt="Continue" />
                 </>
               )}
-            </button>
+            </button>}
           </div>
         )}
       </div>

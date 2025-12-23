@@ -120,6 +120,7 @@ const SaveProgressButton = ({ isBackToDashboardButton }: { isBackToDashboardButt
 		setIsStepZeroValid,
 		selectedOption,
 		setCampaignFormData,
+		persistedCampaignData,
 		requiredFields,
 		currencySign,
 		jwt,
@@ -132,7 +133,7 @@ const SaveProgressButton = ({ isBackToDashboardButton }: { isBackToDashboardButt
 
 	const hasChanges = useMemo(() => {
 		if (!campaignData || !campaignFormData) return false;
-		return kpiChanged || !areObjectsSimilar(campaignFormData, campaignData, ['objective_level']);
+		return kpiChanged || !areObjectsSimilar(campaignFormData, persistedCampaignData, ['objective_level']);
 	}, [campaignFormData, campaignData]);
 
 	// --- Persist format selection for active === 4 ---
@@ -357,7 +358,6 @@ const SaveProgressButton = ({ isBackToDashboardButton }: { isBackToDashboardButt
 			const response = await createCampaign(campaignFormData);
 			setLoading(false);
 			setShowSave(false);
-			setActive(1)
 			router.push(`/creation?campaignId=${response?.data?.data?.documentId}`);
 		}
 		if (isBackToDashboardButton) {
@@ -809,13 +809,8 @@ const SaveProgressButton = ({ isBackToDashboardButton }: { isBackToDashboardButt
 				if (subStep < 1) {
 					setSubStep((prev) => prev + 1)
 				} else {
-					setActive((prev) => prev + 1)
 					setSubStep(0)
 				}
-			} else if (active === 5) {
-				setActive(7)
-			} else if (active !== 0) {
-				setActive((prev) => prev + 1)
 			}
 		} catch (error) {
 			if (error?.response?.status === 401) {
@@ -1001,13 +996,12 @@ const SaveProgressButton = ({ isBackToDashboardButton }: { isBackToDashboardButt
 					<div className="flex justify-center items-center gap-3">
 						<button
 							className={clsx(
-								"bottom_blue_save_btn whitespace-nowrap",
+								"bottom_black_next_btn whitespace-nowrap",
 								isButtonDisabled && "bg-gray-400 cursor-not-allowed",
 								hasChanges && "hover:bg-blue-500",
-								active === 4 && !hasFormatSelected && "px-3 py-2"
 							)}
 							onClick={
-								active === 4 && !hasFormatSelected ? handleSkip : handleContinue
+								handleContinue
 							}
 							disabled={isButtonDisabled}
 							onMouseEnter={() => setIsHovered(true)}
@@ -1021,9 +1015,9 @@ const SaveProgressButton = ({ isBackToDashboardButton }: { isBackToDashboardButt
 			{showSave && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
 					<div className="bg-white rounded-xl shadow-lg w-[400px] p-6 text-center">
-						<h2 className="text-xl font-semibold text-gray-800 mb-4">Confirm Save</h2>
+						<h2 className="text-xl font-semibold text-gray-800 mb-4">Confirm {cId ? "Save" : "Create"}</h2>
 						<p className="text-gray-700 mb-6">
-							{cId ? "Do you want to save this step progress?" : "Do you want to save your latest progress before leaving?"}
+							{cId ? "Do you want to save this step progress?" : "Do you want to create a new media plan?"}
 						</p>
 						<div className="flex justify-center gap-4">
 							<button

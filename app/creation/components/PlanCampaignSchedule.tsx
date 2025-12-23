@@ -13,7 +13,6 @@ import { useRouter } from "next/router";
 import { useSearchParams } from "next/navigation";
 import { useVerification } from "app/utils/VerificationContext";
 import { useComments } from "app/utils/CommentProvider";
-import SaveProgressButton from "app/utils/SaveProgressButton";
 import { useActive } from "app/utils/ActiveContext";
 
 const PlanCampaignSchedule: React.FC = () => {
@@ -137,7 +136,6 @@ const PlanCampaignSchedule: React.FC = () => {
 						Edit
 					</button>
 				)} */}
-        <SaveProgressButton />
       </div>
       {/* @ts-ignore      */}
       {alert && <AlertMain alert={alert} />}

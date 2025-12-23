@@ -12,7 +12,6 @@ import { useCampaigns } from "../../utils/CampaignsContext";
 import { removeKeysRecursively } from "utils/removeID";
 import { SVGLoader } from "components/SVGLoader";
 import { useComments } from "app/utils/CommentProvider";
-import SaveProgressButton from "app/utils/SaveProgressButton";
 import { useActive } from "app/utils/ActiveContext";
 
 // Simple Toast Component
@@ -650,7 +649,6 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
           t2="Choose the platforms for each stage to ensure your campaign reaches the right audience at the right time."
           span={1}
         />
-        <SaveProgressButton />
       </div>
 
 
