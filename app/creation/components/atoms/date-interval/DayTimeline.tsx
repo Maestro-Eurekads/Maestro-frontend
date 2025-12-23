@@ -3,7 +3,7 @@ import { getPlatformIcon, mediaTypes, platformStyles } from "components/data";
 import { isEqual, parseISO } from "date-fns";
 import Image from "next/image";
 import type React from "react";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { FiChevronDown, FiChevronUp, FiCheck } from "react-icons/fi";
 
 interface DayTimelineProps {
@@ -12,6 +12,27 @@ interface DayTimelineProps {
   range?: any;
   onTogglePlanSelection?: (id: number) => void;
 }
+
+const TruncatedText = ({ text, className }: { text: string; className?: string }) => {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [isTruncated, setIsTruncated] = useState(false);
+
+  useEffect(() => {
+    if (ref.current) {
+      setIsTruncated(ref.current.scrollWidth > ref.current.clientWidth);
+    }
+  }, [text]);
+
+  return (
+    <span
+      ref={ref}
+      className={className}
+      title={isTruncated ? text : undefined}
+    >
+      {text}
+    </span>
+  );
+};
 
 const DayTimeline: React.FC<DayTimelineProps> = ({
   daysCount,
@@ -214,7 +235,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                 {/* Expanded section */}
                 {expanded[index] && (
                   <div
-                    className="py-2"
+                    className="py-2 overflow-visible"
                     style={{
                       backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
                       backgroundSize: `calc(50px) 100%`,
@@ -251,6 +272,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                         return (
                           <div
                             key={name}
+                            className="overflow-visible"
                             style={{
                               display: "grid",
                               gridTemplateColumns: `repeat(${campaignSpan}, 50px)`,
@@ -258,7 +280,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                           >
                             <div
                               onClick={() => toggleOpen(index, name)}
-                              className={`mt-5 w-full flex items-center rounded-[10px] h-[52px] text-xs font-[500] p-2 text-center ${
+                              className={`mt-5 w-full flex items-center rounded-[10px] min-h-[52px] text-xs font-[500] p-2 overflow-visible ${
                                 name === "Awareness"
                                   ? "bg-[#3175FF]"
                                   : name === "Consideration"
@@ -278,13 +300,13 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                                 ),
                               }}
                             >
-                              <div className="flex items-center justify-center gap-3 flex-1">
-                                <span>{name}</span>
-                                <span>
+                              <div className="flex items-center justify-center gap-2 flex-shrink-0" style={{ maxWidth: '60%', minWidth: '43px' }}>
+                                <TruncatedText text={name} className="text-xs truncate" />
+                                <span className="flex-shrink-0">
                                   <FiChevronDown size={15} />
                                 </span>
                               </div>
-                              <button className="justify-self-end px-3 py-2 text-sm font-[500] bg-white/25 rounded-[5px]">
+                              <button className="flex-shrink-0 px-2 py-1 text-[10px] font-[500] bg-black/25 rounded-[5px] whitespace-nowrap ml-2">
                                 {stageBudget?.startsWith("null") ||
                                 stageBudget?.startsWith("undefined")
                                   ? 0
@@ -329,13 +351,14 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                                       return (
                                         <div
                                           key={platform_name}
+                                          className="overflow-visible"
                                           style={{
                                             display: "grid",
                                             gridTemplateColumns: `repeat(${campaignSpan}, 50px)`,
                                           }}
                                         >
                                           <div
-                                            className="py-1 text-xs font-[500] border my-5 w-full rounded-[10px] flex items-center justify-between"
+                                            className="py-1 text-xs font-[500] border my-5 w-full rounded-[10px] flex items-center gap-2 min-h-[40px] overflow-visible"
                                             style={{
                                               gridColumnStart: Math.max(
                                                 1,
@@ -352,18 +375,19 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                                               backgroundColor: bg,
                                             }}
                                           >
-                                            <div />
-                                            <span className="flex items-center gap-3">
+                                            <span className="flex items-center gap-2 flex-shrink-0" style={{ maxWidth: '60%', minWidth: '50px' }}>
                                               <Image
                                                 src={icon}
                                                 alt={platform_name}
-                                                width={20}
+                                                width={16}
+                                                height={16}
+                                                className="flex-shrink-0"
                                               />
-                                              <span>{platform_name}</span>
+                                              <TruncatedText text={platform_name} className="text-xs truncate" />
                                             </span>
-                                            <button className="bg-[#0866FF33]/5 py-2 px-[10px] rounded-[5px] mr-3">
+                                            <div className="flex-shrink-0 bg-[#0866FF33]/5 py-1 px-2 text-[10px] rounded-[5px] whitespace-nowrap">
                                               {amount}
-                                            </button>
+                                            </div>
                                           </div>
                                         </div>
                                       );
