@@ -15,26 +15,7 @@ interface MonthTimelineProps {
 
 const WEEK_WIDTH_PX = 100;
 
-const TruncatedText = ({ text, className }: { text: string; className?: string }) => {
-  const ref = useRef<HTMLSpanElement>(null);
-  const [isTruncated, setIsTruncated] = useState(false);
 
-  useEffect(() => {
-    if (ref.current) {
-      setIsTruncated(ref.current.scrollWidth > ref.current.clientWidth);
-    }
-  }, [text]);
-
-  return (
-    <span
-      ref={ref}
-      className={className}
-      title={isTruncated ? text : undefined}
-    >
-      {text}
-    </span>
-  );
-};
 
 const MonthTimeline: React.FC<MonthTimelineProps> = ({
   weeksCount,
@@ -255,7 +236,7 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                               }}
                             >
                               <div className="flex items-center justify-center gap-2 flex-shrink-0" style={{ maxWidth: '60%', minWidth: '90px' }}>
-                                <TruncatedText text={name} className="text-xs truncate" />
+                                <span className="text-xs truncate" >{name}</span>
                                 <span className="flex-shrink-0">
                                   <FiChevronDown size={15} />
                                 </span>
@@ -328,7 +309,7 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                                                 height={16}
                                                 className="flex-shrink-0"
                                               />
-                                              <TruncatedText text={platform_name} className="text-xs truncate" />
+                                              <span className="text-xs truncate" >{platform_name}</span>
                                             </span>
                                             <div className="flex-shrink-0 bg-[#0866FF33]/5 py-1 px-2 text-[10px] rounded-[5px] whitespace-nowrap">
                                               {amount}
