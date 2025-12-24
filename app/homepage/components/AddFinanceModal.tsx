@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import closefill from "../../../public/close-fill.svg";
 import blueprofile from "../../../public/blueprofile.svg";
@@ -55,7 +55,7 @@ const AddFinanceModal = ({
  const [mediaPlans, setMediaPlans] = useState<MediaPlan[]>([]);
  const { fetchClientCampaign, fetchUserByType, fetchClientPOS } = useCampaignHook();
 
- const { setClientPOs, setFetchingPO, profile, jwt, agencyId } = useCampaigns();
+ const { setClientPOs, setFetchingPO, profile, jwt, agencyId , selectedId } = useCampaigns();
  const [selected, setSelected] = useState("");
  const [poForm, setPoForm] = useState<POForm>({
   client: "",
@@ -493,6 +493,13 @@ const AddFinanceModal = ({
    setUploading(false);
   }
  };
+
+ const selectedClientName = useMemo(() => {
+  if (selectedId || selected) {
+   return profile?.clients?.find((client: any) => client?.id?.toString() === selectedId || client?.id?.toString() === selected)?.client_name || "";
+  }
+  return "";
+ }, [profile?.clients, selectedId, selected]);
  
  return (
   <div className="relative z-50">
@@ -522,71 +529,10 @@ const AddFinanceModal = ({
          <label htmlFor="" className="block mb-2">
           Client Name
          </label>
-         {getCreateClientIsLoading ? (
-          <div className="flex items-center gap-2">
-           <FiLoader className="animate-spin" />
-           <p>Loading clients...</p>
-          </div>
-         ) : (isAdmin ? <div>
-          {clients?.data && (
-           <CustomSelect
-            required={true}
-            options={clients?.data?.map((c: any) => ({
-             label: c?.client_name,
-             value: c?.id?.toString(),
-            }))}
-            className="min-w-[150px] z-[20]"
-            placeholder="Select client"
-            value={clients?.data
-             ?.map((c: any) => ({
-              label: c?.client_name,
-              value: c?.id?.toString(),
-             }))
-             ?.find((op: any) => op?.value === poForm?.client)}
-            onChange={(value: { label: string; value: string } | null) => {
-             if (value) {
-              setSelected(value.value);
-              setPoForm((prev) => ({
-               ...prev,
-               client: value.value,
-              }));
-             }
-            }}
-            isDisabled={mode === "edit"}
-           />
-          )}
-         </div> : <div>
-          {profile?.clients?.length > 0 && (
-           <CustomSelect
-            required={true}
-            options={profile?.clients?.map((c: any) => ({
-             label: c?.client_name,
-             value: c?.id?.toString(),
-            }))}
-            className="min-w-[150px] z-[20]"
-            placeholder="Select client"
-            value={profile.clients
-             .map((c: any) => ({
-              label: c?.client_name,
-              value: c?.id?.toString(),
-             }))
-             .find((op: any) => op?.value === poForm?.client)}
-            onChange={(value: { label: string; value: string } | null) => {
-             if (value) {
-              setSelected(value.value);
-              setPoForm((prev) => ({
-               ...prev,
-               client: value.value,
-              }));
-             }
-            }}
-            isDisabled={mode === "edit"}
-           />
-          )}
-         </div>
-
-
-         )}
+    
+         <input type="text" value={selectedClientName} className="w-full border rounded-md p-[6px] outline-none" disabled/>
+       
+      
         </div>
         <div className="w-1/2">
          <label htmlFor="">Client Responsible</label>
