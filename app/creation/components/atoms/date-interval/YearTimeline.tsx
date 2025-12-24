@@ -13,26 +13,8 @@ interface YearTimelineProps {
   onTogglePlanSelection?: (id: number) => void;
 }
 
-const TruncatedText = ({ text, className }: { text: string; className?: string }) => {
-  const ref = useRef<HTMLSpanElement>(null);
-  const [isTruncated, setIsTruncated] = useState(false);
 
-  useEffect(() => {
-    if (ref.current) {
-      setIsTruncated(ref.current.scrollWidth > ref.current.clientWidth);
-    }
-  }, [text]);
 
-  return (
-    <span
-      ref={ref}
-      className={className}
-      title={isTruncated ? text : undefined}
-    >
-      {text}
-    </span>
-  );
-};
 
 function YearTimeline({
   range,
@@ -252,11 +234,15 @@ function YearTimeline({
                                   ),
                                 }}
                               >
-                                <div className="flex items-center justify-center gap-2 flex-shrink-0" style={{ maxWidth: '60%', minWidth: '70px' }}>
-                                  <TruncatedText text={name} className="text-xs truncate" />
+                                <div className="flex items-center justify-center gap-2 flex-shrink-0 relative group" style={{ maxWidth: '60%', minWidth: '70px' }}>
+                                  <span className="text-xs truncate peer" >{name}</span>
                                   <span className="flex-shrink-0">
                                     <FiChevronDown size={15} />
                                   </span>
+                                  <div className="absolute left-1/2 -translate-x-1/2 -top-11 bg-gray-900 text-white text-[10px] px-3 py-1.5 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-in-out whitespace-nowrap z-50 pointer-events-none">
+                                    {name}
+                                    <div className="absolute left-1/2 -translate-x-1/2 -bottom-1 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                                  </div>
                                 </div>
                                 <button className="flex-shrink-0 px-2 py-1 text-[10px] font-[500] bg-black/25 rounded-[5px] whitespace-nowrap ml-2">
                                   {stageBudget?.startsWith("null") ||
@@ -320,7 +306,7 @@ function YearTimeline({
                                                 backgroundColor: bg,
                                               }}
                                             >
-                                              <span className="flex items-center gap-2 flex-shrink-0" style={{ maxWidth: '60%', minWidth: '75px' }}>
+                                              <span className="flex items-center gap-2 flex-shrink-0 relative group" style={{ maxWidth: '60%', minWidth: '75px' }}>
                                                 <Image
                                                   src={icon}
                                                   alt={platform_name}
@@ -328,7 +314,11 @@ function YearTimeline({
                                                   height={16}
                                                   className="flex-shrink-0"
                                                 />
-                                                <TruncatedText text={platform_name} className="text-xs truncate" />
+                                                <span className="text-xs truncate peer" >{platform_name}</span>
+]                                                <div className="absolute left-1/2 -translate-x-1/2 -top-11 bg-gray-900 text-white text-[10px] px-3 py-1.5 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-in-out whitespace-nowrap z-50 pointer-events-none">
+                                                  {platform_name}
+                                                  <div className="absolute left-1/2 -translate-x-1/2 -bottom-1 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                                                </div>
                                               </span>
                                               <div className="flex-shrink-0 bg-[#0866FF33]/5 py-1 px-2 text-[10px] rounded-[5px] whitespace-nowrap">
                                                 {amount}
