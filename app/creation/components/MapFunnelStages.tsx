@@ -419,11 +419,17 @@ const MapFunnelStages = () => {
 
   useEffect(() => {
     if (persistentCustomFunnels.length > 0) {
-      setCampaignFormData((prev: any) => ({
-        ...prev,
+      const currentCustomFunnels = campaignFormData?.custom_funnels;
+      const funnelsChanged = !currentCustomFunnels || 
+        JSON.stringify(currentCustomFunnels) !== JSON.stringify(persistentCustomFunnels);
+      
+      if (funnelsChanged) {
+        setCampaignFormData((prev: any) => ({
+          ...prev,
 
-        custom_funnels: persistentCustomFunnels,
-      }));
+          custom_funnels: persistentCustomFunnels,
+        }));
+      }
 
       // Update selection if current funnels match a config or preset
       // Only consider active (non-deleted) configurations
@@ -472,8 +478,6 @@ const MapFunnelStages = () => {
   }, [
     persistentCustomFunnels,
     funnelConfigs,
-    selectedConfigIdx,
-    selectedPreset,
   ]);
 
   // Update campaignFormData when funnel configs change
