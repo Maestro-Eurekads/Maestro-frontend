@@ -599,7 +599,6 @@ const SaveProgressButton = ({ isBackToDashboardButton }: { isBackToDashboardButt
 		}
 
 		const handleStepZero = async () => {
-			setLoading(true)
 			try {
 				// Clean and store form
 				const cleanedFormData = {
@@ -680,8 +679,6 @@ const SaveProgressButton = ({ isBackToDashboardButton }: { isBackToDashboardButt
 					const event = new Event("unauthorizedEvent")
 					window.dispatchEvent(event)
 				}
-			} finally {
-				setLoading(false)
 			}
 		}
 
@@ -787,31 +784,43 @@ const SaveProgressButton = ({ isBackToDashboardButton }: { isBackToDashboardButt
 		}
 
 		try {
-			if (active === 0) {
-				await handleStepZero()
-			} else if (active === 1) {
-				await handleStepTwo()
-			} else if (active === 2) {
-				await handleStepThree()
-			} else if (active === 3) {
-				await handleStepThree()
-			} else if (active === 8) {
-				await handleStepSeven()
-			} else if (active === 6) {
-				await handleStepSeven()
-			} else if (active === 7) {
-				await handleDateStep()
-			} else if (active > 3 && subStep < 2) {
-				await handleStepFour()
-			}
+			setLoading(true)
 
-			if (active === 7) {
-				if (subStep < 1) {
-					setSubStep((prev) => prev + 1)
-				} else {
-					setSubStep(0)
-				}
-			}
+			// await updateCampaignData(campaignFormData)
+
+			await Promise.all([
+				handleStepZero(),
+				handleStepTwo(),
+				handleStepThree(),
+				handleStepFour(),
+				handleStepSeven(),
+				handleDateStep(),
+			])
+			// if (active === 0) {
+			// 	await handleStepZero()
+			// } else if (active === 1) {
+			// 	await handleStepTwo()
+			// } else if (active === 2) {
+			// 	await handleStepThree()
+			// } else if (active === 3) {
+			// 	await handleStepThree()
+			// } else if (active === 8) {
+			// 	await handleStepSeven()
+			// } else if (active === 6) {
+			// 	await handleStepSeven()
+			// } else if (active === 7) {
+			// 	await handleDateStep()
+			// } else if (active > 3 && subStep < 2) {
+			// 	await handleStepFour()
+			// }
+
+			// if (active === 7) {
+			// 	if (subStep < 1) {
+			// 		setSubStep((prev) => prev + 1)
+			// 	} else {
+			// 		setSubStep(0)
+			// 	}
+			// }
 		} catch (error) {
 			if (error?.response?.status === 401) {
 				const event = new Event("unauthorizedEvent")
