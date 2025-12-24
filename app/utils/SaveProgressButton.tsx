@@ -133,7 +133,7 @@ const SaveProgressButton = ({ isBackToDashboardButton }: { isBackToDashboardButt
 
 	const hasChanges = useMemo(() => {
 		if (!campaignData || !campaignFormData) return false;
-		return kpiChanged || !areObjectsSimilar(campaignFormData, persistedCampaignData, ['objective_level']);
+		return kpiChanged || !areObjectsSimilar(campaignFormData, persistedCampaignData, ['objective_level', '_aggregated']);
 	}, [campaignFormData, campaignData]);
 
 	// --- Persist format selection for active === 4 ---
