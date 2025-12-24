@@ -4,7 +4,6 @@ import React, { useEffect } from 'react'
 import PageHeaderWrapper from '../../../components/PageHeaderWapper'
 import ObjectiveSelection from './ObjectiveSelection'
 import { useComments } from 'app/utils/CommentProvider';
-import SaveProgressButton from 'app/utils/SaveProgressButton';
 import { useActive } from 'app/utils/ActiveContext';
 
 const SetBuyObjectivesAndTypes = () => {
@@ -24,7 +23,6 @@ const SetBuyObjectivesAndTypes = () => {
 					t2={'Select the buying objectives and types for each platform to ensure your campaign targets the right audience.'}
 
 				/>
-				<SaveProgressButton />
 			</div>
 
 			<ObjectiveSelection />

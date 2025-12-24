@@ -26,6 +26,16 @@ const SetBuyObjectivesAndTypesSubStep = () => {
   const { campaignFormData } = useCampaigns()
   const { setIsDrawerOpen, setClose } = useComments()
   const { midcapEditing, setMidcapEditing } = useEditing()
+  const [view, setView] = useState<"channel" | "adset">("channel");
+
+  useEffect(() => {
+    setView(campaignFormData?.goal_level === "Adset level" ? "adset" : "channel");
+  }, [campaignFormData]);
+
+
+  const handleToggleChange = (newView: "channel" | "adset") => {
+    setView(newView);
+  };
 
   useEffect(() => {
     setIsDrawerOpen(false)
@@ -95,7 +105,7 @@ const SetBuyObjectivesAndTypesSubStep = () => {
           stages={campaignFormData.funnel_stages}
           platforms={platforms}
         />
-        <AdSetsSection platforms={platforms} />
+        <AdSetsSection onToggleChange={handleToggleChange} view={view} platforms={platforms} />
         <FormatSelectionsSection platforms={platforms} />
         <BuyingObjectivesSection platforms={platforms} />
       </div>
