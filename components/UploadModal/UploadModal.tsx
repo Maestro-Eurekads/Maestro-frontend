@@ -96,7 +96,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
           ["id", "documentId", "createdAt", "publishedAt", "updatedAt", "_aggregated"],
           ["previews"],
         )
-        await updateCampaign(cleanData)
+        // await updateCampaign(cleanData)
         await getActiveCampaign()
       } catch (error) {
         if (error?.response?.status === 401) {
@@ -190,9 +190,8 @@ const UploadModal: React.FC<UploadModalProps> = ({
           ["id", "documentId", "createdAt", "publishedAt", "updatedAt"],
           ["previews"],
         )
-        const { media_plan_details, user, ...rest } = cleanData
-        await updateCampaign(rest)
-        await getActiveCampaign()
+        const { media_plan_details, user, validatedStages, ...rest } = cleanData
+        // await updateCampaign(rest)
       } catch (error) {
         if (error?.response?.status === 401) {
           const event = new Event("unauthorizedEvent");
@@ -200,7 +199,6 @@ const UploadModal: React.FC<UploadModalProps> = ({
         }
         toast.error("Failed to save campaign data. Changes may not persist.")
         // Revert optimistic update if needed
-        await getActiveCampaign()
       }
     },
     [
@@ -213,7 +211,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
       quantities,
       adSetIndex,
       setCampaignData,
-      updateCampaign,
+      // updateCampaign,
       getActiveCampaign,
     ],
   )

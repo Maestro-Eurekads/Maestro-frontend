@@ -5,7 +5,6 @@ import DefineAdSetPage from "./DefineAdSetPage";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import { useEditing } from "../../utils/EditingContext";
 import { useComments } from "app/utils/CommentProvider";
-import SaveProgressButton from "app/utils/SaveProgressButton";
 import { useActive } from "app/utils/ActiveContext";
 import { useCampaigns } from "app/utils/CampaignsContext";
 
@@ -13,12 +12,13 @@ const DefineAdSet = () => {
   const { setChange } = useActive()
   const { setIsEditing } = useEditing();
   const { setIsDrawerOpen, setClose } = useComments();
-  const { campaignData } = useCampaigns()
+  const { campaignData, campaignFormData } = useCampaigns()
+
   const [view, setView] = useState<"channel" | "adset">("channel");
 
   useEffect(() => {
-    setView(campaignData?.goal_level === "Adset level" ? "adset" : "channel");
-  }, [campaignData]);
+    setView(campaignFormData?.goal_level === "Adset level" ? "adset" : "channel");
+  }, [campaignFormData]);
 
   useEffect(() => {
     setIsDrawerOpen(false);
@@ -38,7 +38,6 @@ const DefineAdSet = () => {
           t2={"Specify the details and audiences for each ad set within your campaign."}
           span={1}
         />
-        <SaveProgressButton />
       </div>
 
       <DefineAdSetPage view={view} onToggleChange={handleToggleChange} />

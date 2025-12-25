@@ -12,7 +12,6 @@ import { useCampaigns } from "../../utils/CampaignsContext";
 import { removeKeysRecursively } from "utils/removeID";
 import { SVGLoader } from "components/SVGLoader";
 import { useComments } from "app/utils/CommentProvider";
-import SaveProgressButton from "app/utils/SaveProgressButton";
 import { useActive } from "app/utils/ActiveContext";
 
 // Simple Toast Component
@@ -650,11 +649,10 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
           t2="Choose the platforms for each stage to ensure your campaign reaches the right audience at the right time."
           span={1}
         />
-        <SaveProgressButton />
       </div>
 
 
-      <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
+      <div className="mt-[32px] flex flex-col gap-[24px]">
         {(orderedFunnelStages.length > 0
           ? selectedStage
             ? orderedFunnelStages.filter(
@@ -696,7 +694,7 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
                   }`}
               >
                 <div
-                  className="flex items-center"
+                  className="flex items-center cursor-pointer"
                   onClick={() => toggleItem(stage.name)}
                 >
                   <div className="flex items-center gap-2 flex-1 min-w-0">

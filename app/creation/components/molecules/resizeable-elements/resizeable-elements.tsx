@@ -28,7 +28,6 @@ import {
   differenceInWeeks,
 } from "date-fns";
 import { useComments } from "app/utils/CommentProvider";
-import EnhancedDraggableChannel from "components/enhanced-draggable-channel";
 import DraggableChannel from "components/DraggableChannel";
 
 interface OutletType {
@@ -211,7 +210,7 @@ const ResizeableElements = ({
 
       if (viewType === "Day" || viewType === "Week") {
         dailyWidth = 50;
-      } else if (viewType === "Year") {
+      } else if (viewType === "Year" || viewType === "Quarter") {
         dailyWidth = 80;
       } else if (viewType === "Month") {
         dailyWidth = 100;
@@ -328,7 +327,7 @@ const ResizeableElements = ({
 
     if (rrange === "Day" || rrange === "Week") {
       return `repeat(${totalDaysForGrid}, ${dailyWidth}px)`;
-    } else if (rrange === "Year") {
+    } else if (rrange === "Year" || rrange === "Quarter") {
       const months = eachMonthOfInterval({
         start: startOfMonth(gridRange[0]),
         end: gridRange[gridRange.length - 1],
@@ -356,7 +355,7 @@ const ResizeableElements = ({
       return totalDaysForGrid;
     } else if (rrange === "Week") {
       return totalDaysForGrid;
-    } else if (rrange === "Year") {
+    } else if (rrange === "Year" || rrange === "Quarter") {
       const months = eachMonthOfInterval({
         start: startOfMonth(gridRange[0]),
         end: gridRange[gridRange.length - 1],
@@ -404,7 +403,7 @@ const ResizeableElements = ({
           ? parseISO(stage?.funnel_stage_timeline_end_date)
           : null;
 
-        if (rrange === "Year" && stageStartDate && stageEndDate) {
+        if ((rrange === "Year" || rrange === "Quarter") && stageStartDate && stageEndDate) {
           const monthWidth = getDailyWidth("Year");
           const allMonths = eachMonthOfInterval({
             start: startOfMonth(gridRange[0]),
@@ -506,7 +505,7 @@ const ResizeableElements = ({
   const generateBackground = useCallback(() => {
     const dailyWidth = getDailyWidth();
 
-    if (rrange === "Year") {
+    if (rrange === "Year" || rrange === "Quarter") {
       return {
         backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
         backgroundSize: `${dailyWidth}px 100%`,

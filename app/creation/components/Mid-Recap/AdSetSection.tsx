@@ -4,27 +4,27 @@ import { SummarySection } from "./SummarySection"
 import { OutletType } from "types/types"
 import { useEditing } from "app/utils/EditingContext"
 import DefineAdSetPage from "../DefineAdSetPage"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useCampaigns } from "app/utils/CampaignsContext"
 
 interface AdSetsSectionProps {
   platforms: Record<string, OutletType[]>
+  view: "channel" | "adset"
+  onToggleChange: (newView: "channel" | "adset") => void
 }
 
-export const AdSetsSection: React.FC<AdSetsSectionProps> = ({ platforms }) => {
+export const AdSetsSection: React.FC<AdSetsSectionProps> = ({ onToggleChange, view, platforms }) => {
   const { midcapEditing, setMidcapEditing } = useEditing();
 
   // Provide default values for required props
   // You may want to lift this state up if you want to persist view/toggle across renders
-  const [view, setView] = useState<"channel" | "adset">("channel");
-  const handleToggleChange = (newView: "channel" | "adset") => {
-    setView(newView);
-  };
+
 
   return (
     <SummarySection title="Your Adset and Audiences" number={3}>
       <div>
         {midcapEditing.isEditing && midcapEditing.step === "Your Adset and Audiences" ? (
-          <DefineAdSetPage view={view} onToggleChange={handleToggleChange} />
+          <DefineAdSetPage view={view} onToggleChange={onToggleChange} />
         ) : (
           Object.keys(platforms).map((stage) => (
             <div key={stage} className="mb-6">

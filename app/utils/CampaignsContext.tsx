@@ -63,6 +63,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const jwt = (session?.user as { data?: { jwt: string } })?.data?.jwt;
   const campaign_builder = session?.user;
   const [campaignFormData, setCampaignFormData] = useState(getInitialState());
+  const [persistedCampaignData, setPersistedCampaignData] = useState();
   const [campaignData, setCampaignData] = useState(null);
   const [clientCampaignData, setClientCampaignData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -183,14 +184,15 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           }
         );
 
-        const data = res?.data?.data;
+        const data = localStorage.getItem(campaignId) ? JSON.parse(localStorage.getItem(campaignId)) : res?.data?.data;
 
         if (!data) return;
         // const obj = await extractObjectives(campaignFormData);
         // const sMetrics = await getFilteredMetrics(obj)
-        setCampaignData({ ...data, campaign_budget: { ...data?.campaign_budget, value: data?.campaign_budget?.currency } });
+        setPersistedCampaignData({ ...res?.data?.data, campaign_budget: { ...res?.data?.data?.campaign_budget } });
+        setCampaignData({ ...data, campaign_budget: { ...data?.campaign_budget } });
         setHeaderData(data?.table_headers || {});
-        setCampaignFormData({ ...data, campaign_budget: { ...data?.campaign_budget, value: data?.campaign_budget?.currency } });
+        setCampaignFormData({ ...data, campaign_budget: { ...data?.campaign_budget } });
         // setCampaignFormData((prev) => ({
         //   ...prev,
         //   id: campaignId,
@@ -266,6 +268,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             campaign_builder: loggedInUser?.id,
             client: campaignFormData?.client_selection?.id,
             selected_preset_idx: campaignFormData?.selected_preset_idx ?? null,
+            progress_percent: 8,
             client_selection: {
               client: campaignFormData?.client_selection?.value,
               level_1: campaignFormData?.client_selection?.level_1,
@@ -335,7 +338,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           : response?.data?.user_type?.includes("cleint")
             ? response?.data?.cleint_user?.agency?.id
             : response?.data?.agency_user?.agency?.id;
-      //console.log("agencyId", aId);
       setAgencyId(aId);
       return response;
     } catch (error) {
@@ -392,6 +394,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             },
           }
         );
+        localStorage.removeItem(cId || "");
         return response;
       } catch (error) {
         if (error?.response?.status === 401) {
@@ -769,7 +772,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       setAgencyData,
       updateStatus,
       kpiChanged,
-      setKpiChanged
+      setKpiChanged,
+      persistedCampaignData
     }),
     [
       getUserByUserType,
@@ -817,7 +821,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       setAgencyData,
       updateStatus,
       kpiChanged,
-      setKpiChanged
+      setKpiChanged,
+      persistedCampaignData
     ]
   );
 

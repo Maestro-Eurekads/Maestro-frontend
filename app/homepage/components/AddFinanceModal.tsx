@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import closefill from "../../../public/close-fill.svg";
 import blueprofile from "../../../public/blueprofile.svg";
@@ -55,7 +55,7 @@ const AddFinanceModal = ({
  const [mediaPlans, setMediaPlans] = useState<MediaPlan[]>([]);
  const { fetchClientCampaign, fetchUserByType, fetchClientPOS } = useCampaignHook();
 
- const { setClientPOs, setFetchingPO, profile, jwt, agencyId } = useCampaigns();
+ const { setClientPOs, setFetchingPO, profile, jwt, agencyId , selectedId } = useCampaigns();
  const [selected, setSelected] = useState("");
  const [poForm, setPoForm] = useState<POForm>({
   client: "",
@@ -70,14 +70,12 @@ const AddFinanceModal = ({
  // @ts-ignore 
  const userType = session?.user?.data?.user?.id || "";
  const [clientCampaigns, setClientCampaigns] = useState<any[]>([]);
- const [clientApprover, setClientApprover] = useState<any[]>([]);
- const [internalApprover, setInternalApprover] = useState<any[]>([]);
  const [users, setUsers] = useState<any[]>([]);
  const [financialUsers, setFinancialUsers] = useState<any[]>([]);
  const [loadingCam, setLoadingCam] = useState(false);
  const [loadingUser, setLoadingUser] = useState(false);
  const [uploading, setUploading] = useState(false);
- const { isAdmin, isAgencyApprover, isFinancialApprover } =
+ const { isAdmin, isFinancialApprover, userID } =
   useUserPrivileges();
  const dispatch = useAppDispatch();
 
@@ -86,20 +84,33 @@ const AddFinanceModal = ({
  );
  const clients: any = getCreateClientData;
 
+ useEffect(() => {
+  if (!isAdmin) return;
+  if (!jwt  || !userID) return;
+
+  dispatch(
+   getCreateClient({
+    userId: userID,
+    jwt,
+    agencyId,
+   })
+  );
+ }, [isAdmin, jwt, agencyId, userID, dispatch]);
+
  const removeMP = (index: number) => {
   setMediaPlans((prev) => prev.filter((_, ind) => ind !== index));
  };
 
  const handleClose = () => {
-  setPoForm({
-   client: "",
-   client_responsible: "",
-   financial_responsible: "",
-   PO_number: 0,
-   PO_currency: "",
-   PO_total_amount: 0,
-   PO_status: "open",
-  });
+  setPoForm((prev)=>({
+    ...prev,
+      client_responsible: "",
+      financial_responsible: "",
+      PO_number: 0,
+      PO_currency: "",
+      PO_total_amount: 0,
+      PO_status: "open",
+  }));
   setSelected("");
   setIsOpen(false);
   setClientCampaigns([]);
@@ -110,6 +121,7 @@ const AddFinanceModal = ({
  };
 
  useEffect(() => {
+  
   if (!poForm?.client && selected) {
    toast("Please select a client", {
     style: { background: "red", color: "white", textAlign: "center" },
@@ -133,8 +145,6 @@ const AddFinanceModal = ({
       budget: opt?.campaign_budget?.amount,
      }));
      setClientCampaigns(newOption);
-     setClientApprover(data?.media_plan_details.client_approver || []);
-     setInternalApprover(data?.media_plan_details?.internal_approver || []);
     } catch (err) {
      if (err?.response?.status === 401) {
       const event = new Event("unauthorizedEvent");
@@ -233,6 +243,7 @@ const AddFinanceModal = ({
  }, [selectedRow, isOpen]);
 
  const validateForm = () => {
+  console.log("🟢 [VALIDATE FORM] poForm", JSON.stringify(poForm));
   if (!poForm.client) {
    toast("Please select a client", {
     style: { background: "red", color: "white", textAlign: "center" },
@@ -485,6 +496,27 @@ const AddFinanceModal = ({
   }
  };
 
+ const selectedClientName = useMemo(() => {
+  if (selectedId || selected) {
+   return profile?.clients?.find((client: any) => client?.id?.toString() === selectedId || client?.id?.toString() === selected)?.client_name || "";
+  }
+  return "";
+ }, [profile?.clients, selectedId, selected]);
+
+
+ useEffect(() => {
+  const client = profile?.clients?.find((client: any) => client?.id?.toString() === selectedId);
+  if (client) {
+    const id = client?.id?.toString();
+    console.log(id);
+    setSelected(id);
+    setPoForm((prev) => ({
+     ...prev,
+     client: id,
+    }));
+   }
+ }, [selectedClientName, profile?.clients, setSelected, setPoForm]);
+ 
  return (
   <div className="relative z-50">
    <Toaster />
@@ -513,71 +545,10 @@ const AddFinanceModal = ({
          <label htmlFor="" className="block mb-2">
           Client Name
          </label>
-         {getCreateClientIsLoading ? (
-          <div className="flex items-center gap-2">
-           <FiLoader className="animate-spin" />
-           <p>Loading clients...</p>
-          </div>
-         ) : (isAdmin ? <div>
-          {clients?.data && (
-           <CustomSelect
-            required={true}
-            options={clients?.data?.map((c: any) => ({
-             label: c?.client_name,
-             value: c?.id?.toString(),
-            }))}
-            className="min-w-[150px] z-[20]"
-            placeholder="Select client"
-            value={clients?.data
-             ?.map((c: any) => ({
-              label: c?.client_name,
-              value: c?.id?.toString(),
-             }))
-             ?.find((op: any) => op?.value === poForm?.client)}
-            onChange={(value: { label: string; value: string } | null) => {
-             if (value) {
-              setSelected(value.value);
-              setPoForm((prev) => ({
-               ...prev,
-               client: value.value,
-              }));
-             }
-            }}
-            isDisabled={mode === "edit"}
-           />
-          )}
-         </div> : <div>
-          {profile?.clients?.length > 0 && (
-           <CustomSelect
-            required={true}
-            options={profile?.clients?.map((c: any) => ({
-             label: c?.client_name,
-             value: c?.id?.toString(),
-            }))}
-            className="min-w-[150px] z-[20]"
-            placeholder="Select client"
-            value={profile.clients
-             .map((c: any) => ({
-              label: c?.client_name,
-              value: c?.id?.toString(),
-             }))
-             .find((op: any) => op?.value === poForm?.client)}
-            onChange={(value: { label: string; value: string } | null) => {
-             if (value) {
-              setSelected(value.value);
-              setPoForm((prev) => ({
-               ...prev,
-               client: value.value,
-              }));
-             }
-            }}
-            isDisabled={mode === "edit"}
-           />
-          )}
-         </div>
-
-
-         )}
+    
+         <input type="text" value={selectedClientName} className="w-full border rounded-md p-[6px] outline-none" disabled/>
+       
+      
         </div>
         <div className="w-1/2">
          <label htmlFor="">Client Responsible</label>

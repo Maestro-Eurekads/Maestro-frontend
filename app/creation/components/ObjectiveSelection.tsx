@@ -78,13 +78,6 @@ const ObjectiveSelection = () => {
     setPreviousSelectedOptions(selectedOptions)
   }, [selectedOptions])
 
-  // Initialize state and sync with campaign data
-  useEffect(() => {
-    setCampaignFormData((prev) => ({
-      ...prev,
-      objective_level: "Channel level",
-    }))
-  }, [setCampaignFormData])
 
   // Initialize or reset state for new plan and sync selections
   useEffect(() => {

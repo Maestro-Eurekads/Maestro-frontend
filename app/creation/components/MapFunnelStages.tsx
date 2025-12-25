@@ -27,7 +27,6 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import Skeleton from "react-loading-skeleton";
 import { colorClassToHex, colorPalette } from "components/Options";
-import SaveProgressButton from "app/utils/SaveProgressButton";
 import { useSearchParams } from "next/navigation";
 import { useActive } from "app/utils/ActiveContext";
 
@@ -230,7 +229,6 @@ const MapFunnelStages = () => {
         configs = campaignData.client.custom_funnel_configs;
       }
 
-      // console.log("configs", configs)
 
       setFunnelConfigs(configs);
 
@@ -421,11 +419,17 @@ const MapFunnelStages = () => {
 
   useEffect(() => {
     if (persistentCustomFunnels.length > 0) {
-      setCampaignFormData((prev: any) => ({
-        ...prev,
+      const currentCustomFunnels = campaignFormData?.custom_funnels;
+      const funnelsChanged = !currentCustomFunnels || 
+        JSON.stringify(currentCustomFunnels) !== JSON.stringify(persistentCustomFunnels);
+      
+      if (funnelsChanged) {
+        setCampaignFormData((prev: any) => ({
+          ...prev,
 
-        custom_funnels: persistentCustomFunnels,
-      }));
+          custom_funnels: persistentCustomFunnels,
+        }));
+      }
 
       // Update selection if current funnels match a config or preset
       // Only consider active (non-deleted) configurations
@@ -474,8 +478,6 @@ const MapFunnelStages = () => {
   }, [
     persistentCustomFunnels,
     funnelConfigs,
-    selectedConfigIdx,
-    selectedPreset,
   ]);
 
   // Update campaignFormData when funnel configs change
@@ -690,7 +692,6 @@ const MapFunnelStages = () => {
     newColor: string
   ) => {
     const error = validateFunnelName(newName, true, oldId);
-    // console.log({oldId, newName, newColor})
     if (error) {
       toast.error(error, {
         style: { background: "red", color: "white", textAlign: "center" },
@@ -963,7 +964,6 @@ const MapFunnelStages = () => {
 
     setHasChanges(true);
 
-    toast.success("Preset structure applied", { duration: 2000 });
 
     setDropdownOpen(false);
 
@@ -973,7 +973,6 @@ const MapFunnelStages = () => {
   // Handle saved config selection
 
   const handleConfigSelect = (configIdx: number) => {
-    // console.log("here");
     setSelectedConfigIdx(configIdx);
 
     setSelectedPreset(null);
@@ -1234,7 +1233,6 @@ const MapFunnelStages = () => {
           className="text-[22px]"
           t1="How many funnel stage(s) would you like to activate to achieve your objective?"
         />
-        <SaveProgressButton />
       </div>
 
       <div className="w-full flex items-start">

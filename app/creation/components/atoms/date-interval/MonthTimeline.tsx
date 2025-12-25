@@ -3,7 +3,7 @@ import { getPlatformIcon, mediaTypes, platformStyles } from "components/data";
 import { eachWeekOfInterval, endOfWeek, parseISO } from "date-fns";
 import Image from "next/image";
 import type React from "react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { FiChevronDown, FiChevronUp, FiCheck } from "react-icons/fi";
 
 interface MonthTimelineProps {
@@ -14,6 +14,8 @@ interface MonthTimelineProps {
 }
 
 const WEEK_WIDTH_PX = 100;
+
+
 
 const MonthTimeline: React.FC<MonthTimelineProps> = ({
   weeksCount,
@@ -65,32 +67,26 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
     data?.channel_mix?.length > 0 &&
       data.channel_mix.forEach((stage) => {
         const stageName = stage.funnel_stage;
-        const stageBudget = parseFloat(stage.stage_budget?.fixed_value);
         mediaTypes.forEach((channelType) => {
           stage[channelType]?.forEach((platform) => {
             const platformName = platform.platform_name;
             const platformBudget = parseFloat(
               platform.budget?.fixed_value || 0
             );
-            const existingPlatform = platforms.find(
-              (p) => p.platform_name === platformName
-            );
-            if (!existingPlatform) {
-              const style =
-                platformStyles.find((style) => style.name === platformName) ||
-                platformStyles[
-                  Math.floor(Math.random() * platformStyles.length)
-                ];
-              platforms.push({
-                platform_name: platformName,
-                amount: platformBudget,
-                stageName,
-                icon: getPlatformIcon(platformName),
-                bg: style?.bg,
-                startDate: platform.campaign_start_date,
-                endDate: platform.campaign_end_date,
-              });
-            }
+            const style =
+              platformStyles.find((style) => style.name === platformName) ||
+              platformStyles[
+                Math.floor(Math.random() * platformStyles.length)
+              ];
+            platforms.push({
+              platform_name: platformName,
+              amount: platformBudget,
+              stageName,
+              icon: getPlatformIcon(platformName),
+              bg: style?.bg,
+              startDate: platform.campaign_start_date,
+              endDate: platform.campaign_end_date,
+            });
           });
         });
       });
@@ -107,7 +103,7 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
     >
       {funnels?.map(
         (
-          { id, isSelected, label, budget, stages, startDate, endDate },
+          { id, isSelected, label, budget, stages, startDate, endDate, campaignData },
           index
         ) => {
           const startWeekIndex = getWeekIndex(startDate);
@@ -124,21 +120,24 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
               <div
                 className={`flex flex-col min-h-14 bg-white mt-6 shadow-sm rounded-[10px] justify-between transition-all cursor-pointer ${
                   isSelected
-                    ? "border-2 border-[#3175FF] ring-2 ring-[#3175FF]/20"
+                    ? "ring-2 ring-[#3175FF]"
                     : "border border-[rgba(0,0,0,0.2)] opacity-50"
                 }`}
                 style={{
                   gridColumnStart: startWeekIndex,
                   gridColumnEnd: endWeekIndex + 1,
                 }}
-                onClick={() => onTogglePlanSelection?.(id)}
               >
                 <div
                   className={`flex items-center gap-3 ${
                     expanded[index]
-                      ? "border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] p-4 h-14 bg-[#F9FAFB]"
+                      ? "border-b border-b-[rgba(0,0,0,0.1)] p-4 h-14"
                       : "p-2"
                   }`}
+                  style={{
+                    background: "linear-gradient(90deg,rgba(50,98,255,.92) 0,rgba(14,156,255,.92) 25%,rgba(0,180,255,.92) 50%,rgba(42,229,225,.92) 75%,rgba(62,253,212,.92) 100%),url(../bg-footer.png) center/cover no-repeat",
+                    borderRadius: expanded[index] ? "10px 10px 0 0" : "10px 10px 10px 10px"
+                  }}
                 >
                   <button
                     className="flex items-center justify-center bg-blue-50 rounded-full min-w-8 min-h-8"
@@ -153,7 +152,10 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                       <FiChevronDown size={20} />
                     )}
                   </button>
-                  <div className="flex-1">
+                  <div
+                    className="flex-1"
+                    onClick={() => onTogglePlanSelection?.(id)}
+                  >
                     <div className="flex items-center gap-2">
                       <h3 className="text-[#061237] font-semibold text-sm">
                         {label}
@@ -179,7 +181,7 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
 
                 {expanded[index] && (
                   <div
-                    className="py-2"
+                    className="py-2 overflow-visible"
                     style={{
                       backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
                       backgroundSize: `${WEEK_WIDTH_PX}px 100%`,
@@ -196,7 +198,7 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                         zIndex
                       ) => {
                         const channels = extractPlatforms(
-                          clientCampaignData[index]
+                          campaignData || clientCampaignData[index]
                         );
                         const stageStartWeek = getWeekIndex(stageStart);
                         const stageEndWeek = getWeekIndex(stageEnd);
@@ -205,6 +207,7 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                         return (
                           <div
                             key={name}
+                            className="overflow-visible"
                             style={{
                               display: "grid",
                               gridTemplateColumns: `repeat(${campaignSpan}, ${WEEK_WIDTH_PX}px)`,
@@ -212,7 +215,7 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                           >
                             <div
                               onClick={() => toggleOpen(index, name)}
-                              className={`mt-5 w-full flex items-center rounded-[10px] h-12.5 text-xs font-[500] p-2 text-center ${
+                              className={`mt-5 w-full flex items-center rounded-[10px] min-h-[52px] text-xs font-[500] p-2 overflow-visible ${
                                 name === "Awareness"
                                   ? "bg-[#3175FF]"
                                   : name === "Consideration"
@@ -232,13 +235,17 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                                 ),
                               }}
                             >
-                              <div className="flex items-center justify-center gap-3 flex-1">
-                                <span>{name}</span>
-                                <span>
+                              <div className="flex items-center justify-center gap-2 flex-shrink-0 relative group" style={{ maxWidth: '60%', minWidth: '90px' }}>
+                                <span className="text-xs truncate peer" >{name}</span>
+                                <span className="flex-shrink-0">
                                   <FiChevronDown size={15} />
                                 </span>
+                                <div className="absolute left-1/2 -translate-x-1/2 -top-11 bg-gray-900 text-white text-[10px] px-3 py-1.5 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-in-out whitespace-nowrap z-50 pointer-events-none">
+                                  {name}
+                                  <div className="absolute left-1/2 -translate-x-1/2 -bottom-1 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                                </div>
                               </div>
-                              <button className="justify-self-end px-3 py-2 text-sm font-[500] bg-white/25 rounded-[5px]">
+                              <button className="flex-shrink-0 px-2 py-1 text-[10px] font-[500] bg-black/25 rounded-[5px] whitespace-nowrap ml-2">
                                 {stageBudget?.startsWith("null") ||
                                 stageBudget?.startsWith("undefined")
                                   ? 0
@@ -276,13 +283,14 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                                       return (
                                         <div
                                           key={platform_name}
+                                          className="overflow-visible"
                                           style={{
                                             display: "grid",
                                             gridTemplateColumns: `repeat(${campaignSpan}, ${WEEK_WIDTH_PX}px)`,
                                           }}
                                         >
                                           <div
-                                            className="py-1 text-xs font-[500] border my-5 w-full rounded-[10px] flex items-center justify-between"
+                                            className="py-1 text-xs font-[500] border my-5 w-full rounded-[10px] flex items-center gap-2 min-h-[40px] overflow-visible"
                                             style={{
                                               gridColumnStart: Math.max(
                                                 1,
@@ -297,18 +305,23 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                                               backgroundColor: bg,
                                             }}
                                           >
-                                            <div />
-                                            <span className="flex items-center gap-3">
+                                            <span className="flex items-center gap-2 flex-shrink-0 relative group" style={{ maxWidth: '60%', minWidth: '97px' }}>
                                               <Image
                                                 src={icon}
                                                 alt={platform_name}
-                                                width={20}
+                                                width={16}
+                                                height={16}
+                                                className="flex-shrink-0"
                                               />
-                                              <span>{platform_name}</span>
+                                              <span className="text-xs truncate peer" >{platform_name}</span>
+                                              <div className="absolute left-1/2 -translate-x-1/2 -top-11 bg-gray-900 text-white text-[10px] px-3 py-1.5 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-in-out whitespace-nowrap z-50 pointer-events-none">
+                                                {platform_name}
+                                                <div className="absolute left-1/2 -translate-x-1/2 -bottom-1 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                                              </div>
                                             </span>
-                                            <button className="bg-[#0866FF33]/5 py-2 px-[10px] rounded-[5px] mr-3">
+                                            <div className="flex-shrink-0 bg-[#0866FF33]/5 py-1 px-2 text-[10px] rounded-[5px] whitespace-nowrap">
                                               {amount}
-                                            </button>
+                                            </div>
                                           </div>
                                         </div>
                                       );

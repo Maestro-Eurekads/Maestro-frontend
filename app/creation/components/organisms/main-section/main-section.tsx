@@ -23,6 +23,7 @@ import { useDateRange as useRange } from "src/date-range-context";
 import YearInterval from "../../atoms/date-interval/YearInterval";
 import { useActive } from "app/utils/ActiveContext";
 import { useComments } from "app/utils/CommentProvider";
+import QuarterInterval from "../../atoms/date-interval/QuarterInterval";
 
 const MainSection = ({
   hideDate,
@@ -57,6 +58,7 @@ const MainSection = ({
       case "Week":
         return 50;
       case "Year":
+      case "Quarter":
         return 80;
       case "Month":
         return 100;
@@ -68,6 +70,8 @@ const MainSection = ({
   const getScrollTriggerDistance = useCallback((viewType: string) => {
     switch (viewType) {
       case "Year":
+          return 400;
+      case "Quarter":
         return 400;
       case "Month":
         return 500;
@@ -109,7 +113,7 @@ const MainSection = ({
 
       const unitWidth = getWidthForView(viewType);
 
-      if (viewType === "Year") {
+      if (viewType === "Year" || viewType === "Quarter") {
         const months = differenceInCalendarMonths(focusDate, tlStart);
         return Math.max(0, months * unitWidth - 150);
       }
@@ -269,11 +273,14 @@ const MainSection = ({
 
   useEffect(() => {
     if (!startDates || !endDates) return;
-    if (dayDifference <= 31) {
-      setRange("Day");
-    } else if (dayDifference <= 90) {
+    const viewPortWidth = window.innerWidth;
+    if (dayDifference <= 10) {
+    } else if (dayDifference <= 22) {
       setRange("Week");
-    } else if (dayDifference <= 200) {
+    } else if (
+      dayDifference <= 80 &&
+      viewPortWidth > ((dayDifference / 7) * 100)
+    ) {
       setRange("Month");
     } else {
       setRange("Year");
@@ -350,6 +357,8 @@ const MainSection = ({
         return <MonthInterval disableDrag={disableDrag} />;
       case "Year":
         return <YearInterval />;
+      case "Quarter":
+        return <QuarterInterval />;
       default: // Week is default
         return (
           <WeekInterval funnelData={funnelsData} disableDrag={disableDrag} />

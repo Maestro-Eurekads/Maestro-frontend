@@ -90,9 +90,13 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
               <div
                 className={`${
                   expanded[index]
-                    ? "border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] flex justify-between items-center p-4 h-14 bg-[#F9FAFB]"
+                    ? "border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] flex justify-between items-center p-4 h-14"
                     : "flex justify-between items-center p-2"
                 }`}
+                style={{
+                  background: "linear-gradient(90deg,rgba(50,98,255,.92) 0,rgba(14,156,255,.92) 25%,rgba(0,180,255,.92) 50%,rgba(42,229,225,.92) 75%,rgba(62,253,212,.92) 100%),url(../bg-footer.png) center/cover no-repeat",
+                  borderRadius: expanded[index] ? "10px 10px 0 0" : "10px 10px 0 0"
+                }}
               >
                 <div>
                   <h3 className="text-[#061237] font-semibold text-sm">
@@ -139,7 +143,7 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
                       >
                         <div
                           onClick={() => toggleOpen(index, section?.name)}
-                          className={`mt-5 w-full flex items-center rounded-[10px] h-12.5 text-xs font-[500] p-2 text-center ${
+                          className={`mt-5 w-full flex items-center rounded-[10px] h-[52px] text-xs font-[500] p-2 text-center ${
                             section?.name === "Awareness"
                               ? "bg-[#3175FF]"
                               : section?.name === "Consideration"

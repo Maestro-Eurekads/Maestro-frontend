@@ -13,7 +13,6 @@ import { debounce } from "lodash"
 import Switch from "react-switch"
 import PageHeaderWrapper from "../../../components/PageHeaderWapper"
 import { useComments } from "app/utils/CommentProvider"
-import SaveProgressButton from "app/utils/SaveProgressButton"
 import { useActive } from "app/utils/ActiveContext"
 
 // Types
@@ -1167,7 +1166,7 @@ export const Platforms = ({
           })
         })
 
-        await updateCampaign(sanitizedData)
+        // await updateCampaign(sanitizedData)
       } catch (error: any) {
         console.error("Error in uploadUpdatedCampaignToStrapi:", {
           message: error.message,
@@ -1560,14 +1559,15 @@ export const FormatSelection = ({
   const { setIsDrawerOpen, setClose } = useComments()
 
   useEffect(() => {
-    setView(openView ? openView : "channel")
     setIsDrawerOpen(false)
     if (shouldOpenSidebar) {
       setClose(false)
     }
+
+    setView(openView ? openView : campaignFormData?.goal_level === "Adset level" ? "adset" : "channel")
     setCampaignFormData((prev) => ({
       ...prev,
-      goal_level: openView ? (openView === "channel" ? "Channel level" : "Adset level") : "Channel level",
+      goal_level: openView ? (openView === "channel" ? "Channel level" : "Adset level") : campaignFormData?.goal_level,
     }))
   }, [setIsDrawerOpen, setClose, setCampaignFormData, openView])
 
@@ -1650,7 +1650,6 @@ export const FormatSelection = ({
     <div>
       <div className="flex flex-row justify-between">
         <div />
-        <SaveProgressButton />
       </div>
       {!stageName && (
         <PageHeaderWrapper
@@ -1658,7 +1657,7 @@ export const FormatSelection = ({
           t2="Select the creative formats you want to use for your campaign. Specify the number of visuals for each format. Multiple formats can be selected per channel or Ad set"
         />
       )}
-      <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
+      <div className="mt-[32px] flex flex-col gap-[24px]">
         {!stageName && (
           <div className="flex justify-center gap-3">
             <p className="font-medium">Channel Granularity</p>
@@ -1692,7 +1691,7 @@ export const FormatSelection = ({
             return (
               <div key={index}>
                 <div
-                  className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] ${isOpen ? "rounded-t-[10px]" : "rounded-[10px]"
+                  className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] cursor-pointer ${isOpen ? "rounded-t-[10px]" : "rounded-[10px]"
                     }`}
                   onClick={() => toggleTab(stage.name)}
                 >
