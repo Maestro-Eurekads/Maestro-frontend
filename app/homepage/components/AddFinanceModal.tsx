@@ -102,15 +102,15 @@ const AddFinanceModal = ({
  };
 
  const handleClose = () => {
-  setPoForm({
-   client: "",
-   client_responsible: "",
-   financial_responsible: "",
-   PO_number: 0,
-   PO_currency: "",
-   PO_total_amount: 0,
-   PO_status: "open",
-  });
+  setPoForm((prev)=>({
+    ...prev,
+      client_responsible: "",
+      financial_responsible: "",
+      PO_number: 0,
+      PO_currency: "",
+      PO_total_amount: 0,
+      PO_status: "open",
+  }));
   setSelected("");
   setIsOpen(false);
   setClientCampaigns([]);
@@ -121,6 +121,7 @@ const AddFinanceModal = ({
  };
 
  useEffect(() => {
+  
   if (!poForm?.client && selected) {
    toast("Please select a client", {
     style: { background: "red", color: "white", textAlign: "center" },
@@ -242,6 +243,7 @@ const AddFinanceModal = ({
  }, [selectedRow, isOpen]);
 
  const validateForm = () => {
+  console.log("🟢 [VALIDATE FORM] poForm", JSON.stringify(poForm));
   if (!poForm.client) {
    toast("Please select a client", {
     style: { background: "red", color: "white", textAlign: "center" },
@@ -503,7 +505,7 @@ const AddFinanceModal = ({
 
 
  useEffect(() => {
-  const client = profile?.clients?.find((client: any) => client?.client_name === selectedClientName);
+  const client = profile?.clients?.find((client: any) => client?.id?.toString() === selectedId);
   if (client) {
     const id = client?.id?.toString();
     console.log(id);
