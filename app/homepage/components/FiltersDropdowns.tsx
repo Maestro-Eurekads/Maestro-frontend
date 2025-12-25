@@ -166,6 +166,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
 
   const {
     filterOptions,
+    selectedId,
     selectedFilters,
     setSelectedFilters,
     loading,
@@ -180,15 +181,11 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
   const userType = session?.user?.data?.user?.id || "";
 
   const [filters, setFilters]: any = useState(defaultFilters);
-  const allFiltersEmpty = useMemo(
-    () => Object.values(selectedFilters).every((val) => !val),
-    [selectedFilters]
-  );
+
 
   const handleSelect = (label, value) => {
     if (!value || value === "") {
       if (label === "year") {
-        router.refresh();
         dispatch(
           getCreateClient({ userId: !isAdmin ? userType : null, jwt, agencyId })
         );
@@ -222,21 +219,11 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
           isLevel: ["level_1"].includes(key),
         });
       });
-      setFilters(f);
-
-      const yearOptions = filterOptions["year"];
-      if (yearOptions && !selectedFilters["year"]) {
-        const currentYear = new Date().getFullYear().toString();
-        console.log("yearOptions", yearOptions);
-        if (yearOptions.includes(currentYear)) {
-          setSelectedFilters((prev) => ({ ...prev, year: currentYear }));
-        }
-      }
+      setFilters(f);   
     }
   }, [filterOptions]);
 
   useEffect(() => {
-    const allEmpty = Object.values(selectedFilters).every((val) => !val);
     const fetchData = async () => {
       const clientID =
         localStorage.getItem(userType.toString()) || allClients[0]?.id;
@@ -245,9 +232,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
 
       setLoading(true);
       try {
-        const res = allEmpty
-          ? await fetchFilteredCampaigns(clientID, filters ?? {}, jwt)
-          : await fetchFilteredCampaigns(clientID, selectedFilters, jwt);
+        const res = await fetchFilteredCampaigns(clientID, selectedFilters, jwt);
         setClientCampaignData(res);
       } finally {
         setLoading(false);
@@ -257,7 +242,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
     if (jwt) {
       fetchData();
     }
-  }, [selectedFilters, allClients, userType, jwt]);
+  }, [selectedFilters, allClients, userType, jwt , selectedId]);
 
   const isYearSelected = !!selectedFilters["year"];
 

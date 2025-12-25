@@ -329,38 +329,24 @@ export function extractLevelNameFilters(client: any) {
   };
 }
 
- 
+const defaultFilters: FilterState = {
+  year: new Date().getFullYear().toString(),
+  quarter: "",
+  month: "",
+  made_by: "",
+  approved_by: "",
+  channel: "",
+  phase: "",
+  searchQuery: "",
+  level_1: [],
+};
 
 export const fetchFilteredCampaigns = async (
   clientID: string,
-  filters: FilterState | null = {
-    year: undefined,
-    quarter: "",
-    month: "",
-    made_by: "",
-    approved_by: "",
-    channel: "",
-    phase: "",
-    searchQuery: "",
-    level_1: [],
-  },
+  filters: FilterState = defaultFilters,
   jwt: string
 ) => {
   if (!clientID) return [];
-
-  const defaultFilters: FilterState = {
-    year: undefined,
-    quarter: "",
-    month: "",
-    made_by: "",
-    approved_by: "",
-    channel: "",
-    phase: "",
-    searchQuery: "",
-    level_1: [],
-  };
-
-  filters = filters || defaultFilters;
 
   const channelMixPopulate = {
     social_media: { populate: "*" },

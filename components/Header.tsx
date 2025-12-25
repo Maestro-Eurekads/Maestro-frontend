@@ -55,7 +55,8 @@ const Header = ({ setIsOpen, setIsView }) => {
     selectedId,
     setSelectedId,
     setFC,
-    FC
+    FC,
+    defaultSelectedFilters
   } = useCampaigns();
   const profileClients: any = profile?.clients || [];
 
@@ -144,9 +145,6 @@ const Header = ({ setIsOpen, setIsView }) => {
     fetchClientCampaign(clientId, agencyId)
       .then((res) => {
         const campaigns = res?.data?.data || [];
-
-        if (isMounted) setClientCampaignData(campaigns);
-
         const dateData = extractDateFilters(campaigns);
         const mediaData = extractAprroverFilters(campaigns);
         const channelData = extractChannelAndPhase(campaigns);
@@ -175,7 +173,6 @@ const Header = ({ setIsOpen, setIsView }) => {
       });
 
     setFetchingPO(true);
-    setSelectedFilters({});
 
     return () => {
       isMounted = false;
@@ -209,6 +206,7 @@ const Header = ({ setIsOpen, setIsView }) => {
                 setSelected(value?.value);
                 setSelectedId(value?.value);
                 setSelectedClient(value?.value);
+                setSelectedFilters(defaultSelectedFilters);
               }
             }}
             value={(profileClients)

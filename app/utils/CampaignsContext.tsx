@@ -100,7 +100,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     made_by: [],
     approved_by: [],
   });
-  const [selectedFilters, setSelectedFilters] = useState({});
+  const defaultSelectedFilters = {
+    year: new Date().getFullYear().toString(),
+  };
+  const [selectedFilters, setSelectedFilters] = useState(defaultSelectedFilters);
   const [clientUsers, setClientUsers] = useState([]);
   const [agencyId, setAgencyId] = useState<string | number | null>(null);
   const [selectedClient, setSelectedClient] = useState()
@@ -741,6 +744,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       setFilterOptions,
       selectedFilters,
       setSelectedFilters,
+      defaultSelectedFilters,
       isLoading,
       setIsLoading,
       profile,

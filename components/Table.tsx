@@ -74,8 +74,6 @@ const Table = () => {
   const [duplicateName, setDuplicateName] = useState("");
   const [loadingg, setLoading] = useState(false);
   const { setActive, setSubStep } = useActive();
-  const [clientId, setClientId] = useState<string | null>(null);
-
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -96,15 +94,6 @@ const Table = () => {
   const currentItems = campaignArray.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(campaignArray?.length / itemsPerPage);
 
-
-
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedClientId = localStorage.getItem(userType?.toString());
-      setClientId(storedClientId);
-    }
-  }, [userType]);
 
   // Reset page if data length changes
   useEffect(() => {

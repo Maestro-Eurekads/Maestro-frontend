@@ -1,25 +1,10 @@
 import React, { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Table from '../../../components/Table';
-import { useCampaigns } from '../../utils/CampaignsContext';
 import FiltersDropdowns from './FiltersDropdowns';
-import { useActive } from 'app/utils/ActiveContext';
 
 const Overview = () => {
   const router = useRouter()
-  const { setCampaignFormData } = useCampaigns()
-  const { setActive, setSubStep } = useActive()
-
-  const handleNewMediaPlan = () => {
-    // Reset form data and steps before navigating
-    setCampaignFormData({})
-    setActive(0)
-    setSubStep(0)
-    router.push('/creation')
-  }
-
-
-
 
   useEffect(() => {
     router.refresh();
