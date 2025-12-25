@@ -355,6 +355,7 @@ const SaveProgressButton = ({ isBackToDashboardButton }: { isBackToDashboardButt
 			setKpiChanged(false)
 		} else {
 			setLoading(true);
+			console.log("HOIIII")
 			const response = await createCampaign(campaignFormData);
 			setLoading(false);
 			setShowSave(false);
@@ -574,7 +575,7 @@ const SaveProgressButton = ({ isBackToDashboardButton }: { isBackToDashboardButt
 		}
 
 		const updateCampaignData = async (data) => {
-			const calcPercent = Math.ceil((active / 10) * 100)
+			const calcPercent = (active + 1) * 8
 			try {
 				await updateCampaign({
 					...data,

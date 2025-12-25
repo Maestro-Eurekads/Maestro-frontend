@@ -268,6 +268,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             campaign_builder: loggedInUser?.id,
             client: campaignFormData?.client_selection?.id,
             selected_preset_idx: campaignFormData?.selected_preset_idx ?? null,
+            progress_percent: 8,
             client_selection: {
               client: campaignFormData?.client_selection?.value,
               level_1: campaignFormData?.client_selection?.level_1,
