@@ -500,6 +500,20 @@ const AddFinanceModal = ({
   }
   return "";
  }, [profile?.clients, selectedId, selected]);
+
+
+ useEffect(() => {
+  const client = profile?.clients?.find((client: any) => client?.client_name === selectedClientName);
+  if (client) {
+    const id = client?.id?.toString();
+    console.log(id);
+    setSelected(id);
+    setPoForm((prev) => ({
+     ...prev,
+     client: id,
+    }));
+   }
+ }, [selectedClientName, profile?.clients, setSelected, setPoForm]);
  
  return (
   <div className="relative z-50">
