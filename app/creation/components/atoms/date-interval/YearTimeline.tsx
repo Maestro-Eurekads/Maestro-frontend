@@ -127,53 +127,75 @@ function YearTimeline({
                   }}
                 >
                   <div
-                    className={`flex items-center gap-3 ${
+                    className={`flex items-center gap-2 p-2 relative overflow-visible ${
                       expanded[index]
-                        ? "border-b border-b-[rgba(0,0,0,0.1)] p-4 h-14"
+                        ? "border-b border-b-[rgba(0,0,0,0.1)] h-14"
                         : "p-2"
                     }`}
                     style={{
                       background: "linear-gradient(90deg,rgba(50,98,255,.92) 0,rgba(14,156,255,.92) 25%,rgba(0,180,255,.92) 50%,rgba(42,229,225,.92) 75%,rgba(62,253,212,.92) 100%),url(../bg-footer.png) center/cover no-repeat",
-                      borderRadius: expanded[index] ? "10px 10px 0 0" : "10px 10px 10px 10px"
+                      borderRadius: expanded[index] ? "10px 10px 0 0" : "10px 10px 10px 10px",
+                      paddingLeft: '2rem'
                     }}
                   >
                     <button
-                      className="flex items-center justify-center bg-blue-50 rounded-full min-w-8 min-h-8"
+                      className="absolute left-1 flex items-center justify-center bg-blue-50 rounded-full w-5 h-5 p-0.5 flex-shrink-0 z-10"
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleShow(index);
                       }}
                     >
                       {expanded[index] ? (
-                        <FiChevronUp size={20} />
+                        <FiChevronUp size={14} />
                       ) : (
-                        <FiChevronDown size={20} />
+                        <FiChevronDown size={14} />
                       )}
                     </button>
                     <div
-                      className="flex-1"
+                      className="flex-1 min-w-0"
                       onClick={() => onTogglePlanSelection?.(id)}
                     >
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-[#061237] font-semibold text-sm">
-                          {label}
-                        </h3>
-                        {isSelected && (
-                          <span className="flex items-center justify-center w-4 h-4 bg-[#3175FF] rounded-[5px]">
-                            <FiCheck size={10} className="text-white" />
-                          </span>
-                        )}
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-shrink-0 relative group min-w-0" style={{ maxWidth: '100%' }}>
+                          <h3 className="text-[#061237] font-semibold text-sm truncate">
+                            {label}
+                          </h3>
+                          {isSelected && (
+                            <span className="flex items-center justify-center w-4 h-4 bg-[#3175FF] rounded-[5px] flex-shrink-0">
+                              <FiCheck size={10} className="text-white" />
+                            </span>
+                          )}
+                          <div className="absolute left-1/2 -translate-x-1/2 -top-11 bg-gray-900 text-white text-[10px] px-3 py-1.5 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-in-out whitespace-nowrap z-50 pointer-events-none">
+                            {label}
+                            <div className="absolute left-1/2 -translate-x-1/2 -bottom-1 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-[#061237] font-medium text-sm">
-                        {budget?.startsWith("null") ||
-                        budget?.startsWith("undefined")
-                          ? 0
-                          : `${Number(
-                              budget.replace(/[^\d.-]/g, "")
-                            ).toLocaleString()} ${budget
-                              .replace(/[\d\s.,-]/g, "")
-                              .trim()}`}
-                      </p>
+                      <div className="flex items-center gap-1.5 min-w-0 mt-0.5">
+                        <div className="relative group min-w-0" style={{ maxWidth: '100%' }}>
+                          <p className="text-[#061237] font-medium text-sm truncate">
+                            {budget?.startsWith("null") ||
+                            budget?.startsWith("undefined")
+                              ? 0
+                              : `${Number(
+                                  budget.replace(/[^\d.-]/g, "")
+                                ).toLocaleString()} ${budget
+                                  .replace(/[\d\s.,-]/g, "")
+                                  .trim()}`}
+                          </p>
+                          <div className="absolute left-1/2 -translate-x-1/2 -top-11 bg-gray-900 text-white text-[10px] px-3 py-1.5 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-in-out whitespace-nowrap z-50 pointer-events-none">
+                            {budget?.startsWith("null") ||
+                            budget?.startsWith("undefined")
+                              ? 0
+                              : `${Number(
+                                  budget.replace(/[^\d.-]/g, "")
+                                ).toLocaleString()} ${budget
+                                  .replace(/[\d\s.,-]/g, "")
+                                  .trim()}`}
+                            <div className="absolute left-1/2 -translate-x-1/2 -bottom-1 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
