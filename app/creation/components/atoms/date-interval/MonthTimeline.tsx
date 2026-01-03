@@ -222,6 +222,10 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                         const channels = extractPlatforms(
                           campaignData || clientCampaignData[index]
                         );
+                        // Calculate phase budget by summing all platform budgets in this phase
+                        const phaseBudget = channels
+                          ?.filter((ch) => ch?.stageName === name)
+                          ?.reduce((sum, platform) => sum + (platform.amount || 0), 0) || 0;
                         const stageStartWeek = getWeekIndex(stageStart);
                         const stageEndWeek = getWeekIndex(stageEnd);
                         const campaignSpan = endWeekIndex - startWeekIndex + 1;
@@ -268,14 +272,9 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                                 </div>
                               </div>
                               <button className="flex-shrink-0 px-2 py-1 text-[10px] font-[500] bg-black/25 rounded-[5px] whitespace-nowrap ml-2">
-                                {stageBudget?.startsWith("null") ||
-                                stageBudget?.startsWith("undefined")
-                                  ? 0
-                                  : `${Number(
-                                      stageBudget.replace(/[^\d.-]/g, "")
-                                    ).toLocaleString()} ${stageBudget
-                                      .replace(/[\d\s.,-]/g, "")
-                                      .trim()}`}
+                                {phaseBudget > 0
+                                  ? `${phaseBudget.toLocaleString()} ${budget && !budget.startsWith("null") && !budget.startsWith("undefined") ? budget.replace(/[\d\s.,-]/g, "").trim() : ''}`
+                                  : 0}
                               </button>
                             </div>
 
