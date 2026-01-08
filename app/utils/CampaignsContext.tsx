@@ -338,8 +338,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       const aId =
         response?.data?.user_type === "admin"
           ? response?.data?.admin?.agency?.id
-          : response?.data?.user_type?.includes("cleint")
-            ? response?.data?.cleint_user?.agency?.id
+          : response?.data?.user_type?.includes("client")
+            ? response?.data?.client_user?.agency?.id
             : response?.data?.agency_user?.agency?.id;
       setAgencyId(aId);
       return response;
@@ -678,7 +678,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       try {
         await Promise.all([
           id && getProfile(),
-          agencyId && getAgency(),
           cId && getActiveCampaign(),
           fetchBuyObjectives(),
           fetchObjectives(),
@@ -705,8 +704,14 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     fetchPlatformLists,
     fetchBuyTypes,
     jwt,
-    agencyId
   ]);
+
+  // Separate useEffect to fetch agency data after agencyId is set
+  useEffect(() => {
+    if (jwt && agencyId) {
+      getAgency();
+    }
+  }, [jwt, agencyId, getAgency]);
 
   const contextValue = useMemo(
     () => ({

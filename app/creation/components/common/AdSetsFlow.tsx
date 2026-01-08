@@ -332,6 +332,9 @@ const AdSet = memo(function AdSet({
   platformName?: string;
   onAddNewAdSet?: () => void;
 }) {
+  // Import setKpiChanged to enable save button on audience changes
+  const { setKpiChanged } = useCampaigns();
+
   // For channel granularity, use local state (not campaignFormData)
   const [channelAudience, setChannelAudience] = useState<{
     name: string;
@@ -385,9 +388,12 @@ const AdSet = memo(function AdSet({
     field: keyof typeof channelAudience,
     value: string
   ) => {
-    const updated = { ...channelAudience, [field]: value };
-    setChannelAudience(updated);
-    setChannelAudienceState && setChannelAudienceState(updated);
+    // For channel granularity, update parent state directly
+    if (setChannelAudienceState && channelAudienceState) {
+      const updated = { ...channelAudienceState, [field]: value };
+      setChannelAudienceState(updated);
+    }
+    setKpiChanged(true); // Enable save button on audience change
     onInteraction();
   };
 
