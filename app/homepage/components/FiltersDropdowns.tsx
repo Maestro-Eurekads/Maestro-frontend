@@ -5,7 +5,7 @@ import Image from "next/image";
 import { BiX } from "react-icons/bi";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { fetchFilteredCampaigns } from "app/utils/campaign-filter-utils";
-import { toast, Toaster } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import { useAppDispatch } from "store/useStore";
 import { getCreateClient } from "features/Client/clientSlice";
 import { defaultFilters } from "components/data";
@@ -262,7 +262,6 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
 
   return (
     <div>
-      <Toaster />
       {!hideTitle && (
         <h6 className="font-[600] text-[14px] leading-[19px] text-[rgba(6,18,55,0.8)]">
           Filters
