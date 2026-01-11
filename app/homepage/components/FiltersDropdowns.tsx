@@ -219,7 +219,14 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
           isLevel: ["level_1"].includes(key),
         });
       });
-      setFilters(f);   
+      setFilters((prev) => {
+        const prevStr = JSON.stringify(prev);
+        const newStr = JSON.stringify(f);
+        if (prevStr === newStr) {
+          return prev; 
+        }
+        return f;
+      });   
     }
   }, [filterOptions]);
 
@@ -228,21 +235,28 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
       const clientID =
         localStorage.getItem(userType.toString()) || allClients[0]?.id;
 
-      if (!clientID) return;
+      if (!clientID || !jwt) return;
 
       setLoading(true);
       try {
         const res = await fetchFilteredCampaigns(clientID, selectedFilters, jwt);
-        setClientCampaignData(res);
+        setClientCampaignData((prev) => {
+          const prevStr = JSON.stringify(prev);
+          const newStr = JSON.stringify(res);
+          if (prevStr === newStr) {
+            return prev;
+          }
+          return res;
+        });
+      } catch (error) {
+        console.error("Error fetching filtered campaigns:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    if (jwt) {
-      fetchData();
-    }
-  }, [selectedFilters, allClients, userType, jwt , selectedId]);
+    fetchData();
+  }, [selectedFilters, allClients, userType, jwt, selectedId]);
 
   const isYearSelected = !!selectedFilters["year"];
 

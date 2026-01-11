@@ -112,14 +112,25 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [kpiChanged, setKpiChanged] = useState(false);
 
 
-  const reduxClients = useSelector(
-    (state: any) => state.client?.getCreateClientData?.data || []
+  const EMPTY_ARRAY = useMemo(() => [], []);
+  
+  const reduxClientsData = useSelector(
+    (state: any) => state.client?.getCreateClientData?.data
   );
+    const reduxClients = useMemo(() => {
+    return reduxClientsData && Array.isArray(reduxClientsData) && reduxClientsData.length > 0
+      ? reduxClientsData
+      : EMPTY_ARRAY;
+  }, [reduxClientsData, EMPTY_ARRAY]);
+  
   const reduxLoadingClients = useSelector(
     (state: any) => state.client?.getCreateClientIsLoading || false
   );
 
-  const allClients = reduxClients?.length > 0 ? reduxClients : hookAllClients;
+  const allClients = useMemo(() => {
+    return reduxClients?.length > 0 ? reduxClients : hookAllClients;
+  }, [reduxClients, hookAllClients]);
+  
   const loadingClients = reduxLoadingClients || hookLoadingClients || false;
 
   // Save form data to localStorage with debounce

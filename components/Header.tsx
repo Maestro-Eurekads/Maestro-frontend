@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useCampaigns } from "../app/utils/CampaignsContext";
 import { FiLoader } from "react-icons/fi";
 import useCampaignHook from "../app/utils/useCampaignHook";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAppDispatch, useAppSelector } from "store/useStore";
 import AlertMain from "./Alert/AlertMain";
 import { getCreateClient } from "features/Client/clientSlice"; // Removed unused 'reset'
@@ -56,7 +56,8 @@ const Header = ({ setIsOpen, setIsView }) => {
     setSelectedId,
     setFC,
     FC,
-    defaultSelectedFilters
+    defaultSelectedFilters,
+    clientCampaignData
   } = useCampaigns();
   const profileClients: any = profile?.clients || [];
 
@@ -70,6 +71,7 @@ const Header = ({ setIsOpen, setIsView }) => {
 
   const [show, setShow] = useState(false);
   const [selected, setSelected] = useState("");
+  const lastExtractedClientIdRef = useRef<string | null>(null);
 
 
 
@@ -144,21 +146,40 @@ const Header = ({ setIsOpen, setIsView }) => {
 
     fetchClientCampaign(clientId, agencyId)
       .then((res) => {
-        const campaigns = res?.data?.data || [];
-        const dateData = extractDateFilters(campaigns);
-        const mediaData = extractAprroverFilters(campaigns);
-        const channelData = extractChannelAndPhase(campaigns);
-        const levelData = extractLevelFilters(campaigns);
-        const levelNames = extractLevelNameFilters(filteredClient);
+        const apiCampaigns = res?.data?.data || [];
+        
+        const campaigns = (lastExtractedClientIdRef.current !== clientId && clientCampaignData && clientCampaignData.length > 0) 
+          ? clientCampaignData 
+          : apiCampaigns;
+        
+        if (campaigns.length > 0 && lastExtractedClientIdRef.current !== clientId) {
+          lastExtractedClientIdRef.current = clientId;
+          
+          const dateData = extractDateFilters(campaigns);
+          const mediaData = extractAprroverFilters(campaigns);
+          const channelData = extractChannelAndPhase(campaigns);
+          const levelData = extractLevelFilters(campaigns);
+          const levelNames = extractLevelNameFilters(filteredClient);
 
-        setFilterOptions((prev) => ({
-          ...prev,
-          ...dateData,
-          ...mediaData,
-          ...channelData,
-          ...levelData,
-          ...levelNames,
-        }));
+          const newFilterOptions = {
+            ...dateData,
+            ...mediaData,
+            ...channelData,
+            ...levelData,
+            ...levelNames,
+          };
+          
+          setFilterOptions((prev) => {
+            const hasChanged =  JSON.stringify(prev) !== JSON.stringify(newFilterOptions);
+            if (!hasChanged) {
+              return prev;
+            }
+            return {
+              ...prev,
+              ...newFilterOptions,
+            };
+          });
+        }
 
         fetchClientPOS(clientId)
           .then((res) => {
@@ -177,7 +198,7 @@ const Header = ({ setIsOpen, setIsView }) => {
     return () => {
       isMounted = false;
     };
-  }, [profileClients, selectedId]);
+  }, [profileClients, selectedId , clientCampaignData]);
 
 
 
