@@ -336,7 +336,7 @@ function YearTimeline({
                                                   className="flex-shrink-0"
                                                 />
                                                 <span className="text-xs truncate peer" >{platform_name}</span>
-]                                                <div className="absolute left-1/2 -translate-x-1/2 -top-11 bg-gray-900 text-white text-[10px] px-3 py-1.5 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-in-out whitespace-nowrap z-50 pointer-events-none">
+                                                <div className="absolute left-1/2 -translate-x-1/2 -top-11 bg-gray-900 text-white text-[10px] px-3 py-1.5 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-in-out whitespace-nowrap z-50 pointer-events-none">
                                                   {platform_name}
                                                   <div className="absolute left-1/2 -translate-x-1/2 -bottom-1 w-2 h-2 bg-gray-900 transform rotate-45"></div>
                                                 </div>
