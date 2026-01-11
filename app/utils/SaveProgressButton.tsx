@@ -7,7 +7,7 @@ import left_arrow from "../../public/blue_back_arrow.svg";
 import { useState, useEffect, useRef, useMemo } from "react"
 import { BiLoader } from "react-icons/bi"
 import { useEditing } from "app/utils/EditingContext"
-import toast, { Toaster } from "react-hot-toast"
+import toast from "react-hot-toast"
 import { useUserPrivileges } from "utils/userPrivileges"
 import {
 	extractObjectives,
@@ -903,7 +903,6 @@ const SaveProgressButton = ({ isBackToDashboardButton }: { isBackToDashboardButt
 
 	return (
 		<div >
-			<Toaster position="bottom-right" />
 			{alert && <AlertMain alert={alert} />}
 			{setupyournewcampaignError && (
 				<AlertMain

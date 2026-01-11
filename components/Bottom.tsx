@@ -200,7 +200,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
   return (
     <footer id="footer" className="w-full">
-      <Toaster position="bottom-right" />
       {alert && <AlertMain alert={alert} />}
       <div className="flex justify-between w-full">
         {active === 0 ? (

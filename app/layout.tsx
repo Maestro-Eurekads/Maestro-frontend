@@ -22,6 +22,7 @@ import { KpiProvider } from "./utils/KpiProvider";
 import { DashboardDateRangeProvider } from "src/date-context";
 import { VersionApprovalProvider } from "./utils/VersionApprovalContext";
 import { Toaster } from "sonner";
+import { Toaster as ReactHotToastToaster } from "react-hot-toast";
 import UnauthorizedModal from "components/UnauthorizedModal";
 import { SaveProgressProvider } from "./utils/SaveProgressContext";
 
@@ -73,7 +74,9 @@ export default async function RootLayout({
         />
       </head>
       <body className={`${roboto.variable} ${inter.variable} antialiased`}>
-        <Toaster richColors position="bottom-right" />
+        <Toaster richColors position="bottom-right" offset={100} />
+        <ReactHotToastToaster position="bottom-right"  containerStyle={{bottom: 85}}/>
+
 
         <NewProvider session={session}>
           <Suspense>

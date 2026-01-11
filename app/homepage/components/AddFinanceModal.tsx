@@ -11,7 +11,7 @@ import { FiLoader } from "react-icons/fi";
 import useCampaignHook from "app/utils/useCampaignHook";
 import axios from "axios";
 import { FaSpinner } from "react-icons/fa";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { statusOption } from "components/data";
 import { getCreateClient } from "features/Client/clientSlice";
@@ -519,7 +519,6 @@ const AddFinanceModal = ({
  
  return (
   <div className="relative z-50">
-   <Toaster />
    {isOpen && (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
      <div className="flex flex-col w-[700px] bg-white rounded-[32px] max-h-[90vh]">
