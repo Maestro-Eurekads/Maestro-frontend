@@ -490,7 +490,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                                  {[
                                     { label: "Plan Creator", value: "agency_creator" },
                                     { label: "Plan Approver", value: "agency_approver" },
-                                    { label: "Plan Role", value: "financial_approver" },
+                                    { label: "Financial Role", value: "financial_approver" },
                                  ].map((role) => (
                                     <div key={role.value} className="flex items-center gap-2">
                                        <input

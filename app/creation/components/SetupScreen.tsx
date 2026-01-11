@@ -351,10 +351,10 @@ export const SetupScreen = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Internal Approver
+                Agency approver
                 </label>
                 <InternalApproverDropdowns
-                  label="Client Approver"
+                  label="Agency approver"
                   formId={"internal_approver"}
                   options={internalapproverOptions}
                 />
