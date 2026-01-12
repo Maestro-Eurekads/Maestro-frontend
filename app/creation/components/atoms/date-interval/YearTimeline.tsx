@@ -133,7 +133,7 @@ function YearTimeline({
                         : "p-2"
                     }`}
                     style={{
-                      background: "linear-gradient(90deg,rgba(50,98,255,.92) 0,rgba(14,156,255,.92) 25%,rgba(0,180,255,.92) 50%,rgba(42,229,225,.92) 75%,rgba(62,253,212,.92) 100%),url(../bg-footer.png) center/cover no-repeat",
+                      background: '#a4c6fc',
                       borderRadius: expanded[index] ? "10px 10px 0 0" : "10px 10px 10px 10px",
                       paddingLeft: '2rem'
                     }}

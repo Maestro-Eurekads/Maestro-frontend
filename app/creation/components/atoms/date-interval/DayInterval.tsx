@@ -78,7 +78,7 @@ const DayInterval: React.FC<DayIntervalProps> = ({  src , range, isInfiniteTimel
                 paddingRight: "12px",
                 zIndex: 10,
               }}
-              className="py-2 px-3 border-r border-blue-200/50 h-full flex items-center"
+              className="py-2 px-3 border-l border-blue-200/50 h-full flex items-center"
             >
               <span className="font-[600] text-[16px] text-[rgba(0,0,0,0.7)]">
                 {header.year}
