@@ -172,7 +172,7 @@ const findPlatform = (
 
   const channelTypes = mediaTypes;
   for (const channelType of channelTypes) {
-    const platform = stage[channelType].find(
+    const platform = stage[channelType]?.find(
       (p) => p.platform_name === platformName
     );
     if (platform) {
