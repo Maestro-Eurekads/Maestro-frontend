@@ -40,7 +40,6 @@ const Header = ({ setIsOpen, setIsView }) => {
   );
 
   const {
-    setClientCampaignData,
     setLoading,
     setCampaignFormData,
     setClientPOs,
@@ -57,7 +56,7 @@ const Header = ({ setIsOpen, setIsView }) => {
     setFC,
     FC,
     defaultSelectedFilters,
-    clientCampaignData
+    clientCampaignData,
   } = useCampaigns();
   const profileClients: any = profile?.clients || [];
 
@@ -148,17 +147,13 @@ const Header = ({ setIsOpen, setIsView }) => {
       .then((res) => {
         const apiCampaigns = res?.data?.data || [];
         
-        const campaigns = (lastExtractedClientIdRef.current !== clientId && clientCampaignData && clientCampaignData.length > 0) 
-          ? clientCampaignData 
-          : apiCampaigns;
-        
-        if (campaigns.length > 0 && lastExtractedClientIdRef.current !== clientId) {
+        if (apiCampaigns.length > 0 && lastExtractedClientIdRef.current !== clientId) {
           lastExtractedClientIdRef.current = clientId;
           
-          const dateData = extractDateFilters(campaigns);
-          const mediaData = extractAprroverFilters(campaigns);
-          const channelData = extractChannelAndPhase(campaigns);
-          const levelData = extractLevelFilters(campaigns);
+          const dateData = extractDateFilters(apiCampaigns);
+          const mediaData = extractAprroverFilters(apiCampaigns);
+          const channelData = extractChannelAndPhase(apiCampaigns);
+          const levelData = extractLevelFilters(apiCampaigns);
           const levelNames = extractLevelNameFilters(filteredClient);
 
           const newFilterOptions = {
@@ -170,7 +165,7 @@ const Header = ({ setIsOpen, setIsView }) => {
           };
           
           setFilterOptions((prev) => {
-            const hasChanged =  JSON.stringify(prev) !== JSON.stringify(newFilterOptions);
+            const hasChanged = JSON.stringify(prev) !== JSON.stringify(newFilterOptions);
             if (!hasChanged) {
               return prev;
             }
@@ -198,7 +193,45 @@ const Header = ({ setIsOpen, setIsView }) => {
     return () => {
       isMounted = false;
     };
-  }, [profileClients, selectedId , clientCampaignData]);
+  }, [profileClients, selectedId]);
+
+  useEffect(() => {
+    const hasCampaigns = clientCampaignData && clientCampaignData.length > 0;
+    const isNewClient = lastExtractedClientIdRef.current !== selectedId;
+    
+    if (hasCampaigns && isNewClient && selectedId && profileClients?.length > 0) {
+      lastExtractedClientIdRef.current = selectedId;
+      
+      const filteredClient = profileClients?.find(
+        (client) => client?.id === Number(selectedId)
+      );
+      
+      const dateData = extractDateFilters(clientCampaignData);
+      const mediaData = extractAprroverFilters(clientCampaignData);
+      const channelData = extractChannelAndPhase(clientCampaignData);
+      const levelData = extractLevelFilters(clientCampaignData);
+      const levelNames = extractLevelNameFilters(filteredClient);
+
+      const newFilterOptions = {
+        ...dateData,
+        ...mediaData,
+        ...channelData,
+        ...levelData,
+        ...levelNames,
+      };
+      
+      setFilterOptions((prev) => {
+        const hasChanged = JSON.stringify(prev) !== JSON.stringify(newFilterOptions);
+        if (!hasChanged) {
+          return prev;
+        }
+        return {
+          ...prev,
+          ...newFilterOptions,
+        };
+      });
+    }
+  }, [clientCampaignData, selectedId, profileClients]);
 
 
 
