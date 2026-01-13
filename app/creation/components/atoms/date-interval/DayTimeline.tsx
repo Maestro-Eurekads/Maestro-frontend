@@ -53,7 +53,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
             const style =
               platformStyles.find((style) => style.name === platformName) ||
               platformStyles[
-                Math.floor(Math.random() * platformStyles.length)
+              Math.floor(Math.random() * platformStyles.length)
               ];
             platforms.push({
               platform_name: platformName,
@@ -80,14 +80,14 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
         typeof start === "string"
           ? parseISO(start)
           : start instanceof Date
-          ? start
-          : new Date(start);
+            ? start
+            : new Date(start);
       const formattedEnd =
         typeof end === "string"
           ? parseISO(end)
           : end instanceof Date
-          ? end
-          : new Date(end);
+            ? end
+            : new Date(end);
 
       // Check if dates are valid
       if (isNaN(formattedStart.getTime()) || isNaN(formattedEnd.getTime())) {
@@ -154,11 +154,10 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
               }}
             >
               <div
-                className={`flex flex-col min-h-14 bg-white mt-6 shadow-sm rounded-[10px] justify-between transition-all cursor-pointer ${
-                  isSelected
+                className={`flex flex-col min-h-14 bg-white mt-6 shadow-sm rounded-[10px] justify-between transition-all cursor-pointer ${isSelected
                     ? "ring-2 ring-[#3175FF]"
                     : "border border-[rgba(0,0,0,0.2)] opacity-50"
-                }`}
+                  }`}
                 style={{
                   gridColumnStart: campaignStartIndex,
                   gridColumnEnd: campaignEndIndex + 1,
@@ -166,11 +165,10 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                 }}
               >
                 <div
-                  className={`flex items-center gap-2 p-2 relative overflow-visible ${
-                    expanded[index]
+                  className={`flex items-center gap-2 p-2 relative overflow-visible ${expanded[index]
                       ? "border-b border-b-[rgba(0,0,0,0.1)] h-14"
                       : "p-2"
-                  }`}
+                    }`}
                   style={{
                     background: "#a4c6fc",
                     borderRadius: expanded[index] ? "10px 10px 0 0" : "10px 10px 10px 10px",
@@ -214,23 +212,23 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                       <div className="relative group min-w-0" style={{ maxWidth: '100%' }}>
                         <p className="text-[#061237] font-medium text-sm truncate">
                           {budget?.startsWith("null") ||
-                          budget?.startsWith("undefined")
+                            budget?.startsWith("undefined")
                             ? 0
                             : `${Number(
-                                budget.replace(/[^\d.-]/g, "")
-                              ).toLocaleString()} ${budget
-                                .replace(/[\d\s.,-]/g, "")
-                                .trim()}`}
+                              budget.replace(/[^\d.-]/g, "")
+                            ).toLocaleString()} ${budget
+                              .replace(/[\d\s.,-]/g, "")
+                              .trim()}`}
                         </p>
                         <div className="absolute left-1/2 -translate-x-1/2 -top-11 bg-gray-900 text-white text-[10px] px-3 py-1.5 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-in-out whitespace-nowrap z-50 pointer-events-none">
                           {budget?.startsWith("null") ||
-                          budget?.startsWith("undefined")
+                            budget?.startsWith("undefined")
                             ? 0
                             : `${Number(
-                                budget.replace(/[^\d.-]/g, "")
-                              ).toLocaleString()} ${budget
-                                .replace(/[\d\s.,-]/g, "")
-                                .trim()}`}
+                              budget.replace(/[^\d.-]/g, "")
+                            ).toLocaleString()} ${budget
+                              .replace(/[\d\s.,-]/g, "")
+                              .trim()}`}
                           <div className="absolute left-1/2 -translate-x-1/2 -bottom-1 w-2 h-2 bg-gray-900 transform rotate-45"></div>
                         </div>
                       </div>
@@ -271,12 +269,12 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                         const stageStartIndex =
                           stageStart && range?.length
                             ? calculateGridColumns(stageStart, stageStart)
-                                .startDateIndex
+                              .startDateIndex
                             : stageStartDay || 1;
                         const stageEndIndex =
                           stageEnd && range?.length
                             ? calculateGridColumns(stageEnd, stageEnd)
-                                .endDateIndex
+                              .endDateIndex
                             : stageEndDay || campaignEndIndex;
 
                         return (
@@ -290,15 +288,14 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                           >
                             <div
                               onClick={() => toggleOpen(index, name)}
-                              className={`mt-5 w-full flex items-center rounded-[10px] min-h-[52px] text-xs font-[500] p-2 overflow-visible ${
-                                name === "Awareness"
+                              className={`mt-5 w-full flex items-center rounded-[10px] min-h-[52px] text-xs font-[500] p-2 overflow-visible ${name === "Awareness"
                                   ? "bg-[#3175FF]"
                                   : name === "Consideration"
-                                  ? "bg-[#34A853]"
-                                  : name === "Conversion"
-                                  ? "bg-[#ff9037]"
-                                  : "bg-[#F05406]"
-                              } text-white`}
+                                    ? "bg-[#34A853]"
+                                    : name === "Conversion"
+                                      ? "bg-[#ff9037]"
+                                      : "bg-[#F05406]"
+                                } text-white`}
                               style={{
                                 gridColumnStart: Math.max(
                                   1,
@@ -372,14 +369,14 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
                                               gridColumnStart: Math.max(
                                                 1,
                                                 platStartIndex -
-                                                  campaignStartIndex +
-                                                  1
+                                                campaignStartIndex +
+                                                1
                                               ),
                                               gridColumnEnd: Math.min(
                                                 campaignSpan + 1,
                                                 platEndIndex -
-                                                  campaignStartIndex +
-                                                  2
+                                                campaignStartIndex +
+                                                2
                                               ),
                                               backgroundColor: bg,
                                             }}
