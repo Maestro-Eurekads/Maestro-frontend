@@ -43,6 +43,8 @@ const Dashboard = () => {
       const allIds = new Set<number>();
       visibleCampaigns.forEach((c) => allIds.add(c.id));
       setSelectedPlanIds(allIds);
+    }else{
+      setSelectedPlanIds(new Set())
     }
   }, [stringifiedClientCampaignData]);
 
@@ -317,7 +319,7 @@ const Dashboard = () => {
           </span>
           <div
             onClick={allSelected ? deselectAll : selectAll}
-            className="px-3 cursor-pointer py-2.5 w-28 text-center text-sm font-medium rounded-lg bg-[#3175FF] text-white"
+            className={`px-3 cursor-pointer py-2.5 w-28 text-center text-sm font-medium rounded-lg bg-[#3175FF] text-white ${visibleCampaigns?.length === 0 &&  'opacity-50 !cursor-not-allowed' }`}
           >
             {allSelected ? "Deselect All" : "Select All"}
           </div>

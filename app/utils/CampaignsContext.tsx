@@ -100,7 +100,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     made_by: [],
     approved_by: [],
   });
-  const [selectedFilters, setSelectedFilters] = useState({});
+  const defaultSelectedFilters = {
+    year: new Date().getFullYear().toString(),
+  };
+  const [selectedFilters, setSelectedFilters] = useState(defaultSelectedFilters);
   const [clientUsers, setClientUsers] = useState([]);
   const [agencyId, setAgencyId] = useState<string | number | null>(null);
   const [selectedClient, setSelectedClient] = useState()
@@ -109,14 +112,25 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [kpiChanged, setKpiChanged] = useState(false);
 
 
-  const reduxClients = useSelector(
-    (state: any) => state.client?.getCreateClientData?.data || []
+  const EMPTY_ARRAY = useMemo(() => [], []);
+  
+  const reduxClientsData = useSelector(
+    (state: any) => state.client?.getCreateClientData?.data
   );
+    const reduxClients = useMemo(() => {
+    return reduxClientsData && Array.isArray(reduxClientsData) && reduxClientsData.length > 0
+      ? reduxClientsData
+      : EMPTY_ARRAY;
+  }, [reduxClientsData, EMPTY_ARRAY]);
+  
   const reduxLoadingClients = useSelector(
     (state: any) => state.client?.getCreateClientIsLoading || false
   );
 
-  const allClients = reduxClients?.length > 0 ? reduxClients : hookAllClients;
+  const allClients = useMemo(() => {
+    return reduxClients?.length > 0 ? reduxClients : hookAllClients;
+  }, [reduxClients, hookAllClients]);
+  
   const loadingClients = reduxLoadingClients || hookLoadingClients || false;
 
   // Save form data to localStorage with debounce
@@ -335,8 +349,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       const aId =
         response?.data?.user_type === "admin"
           ? response?.data?.admin?.agency?.id
-          : response?.data?.user_type?.includes("cleint")
-            ? response?.data?.cleint_user?.agency?.id
+          : response?.data?.user_type?.includes("client")
+            ? response?.data?.client_user?.agency?.id
             : response?.data?.agency_user?.agency?.id;
       setAgencyId(aId);
       return response;
@@ -675,7 +689,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       try {
         await Promise.all([
           id && getProfile(),
-          agencyId && getAgency(),
           cId && getActiveCampaign(),
           fetchBuyObjectives(),
           fetchObjectives(),
@@ -702,8 +715,14 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     fetchPlatformLists,
     fetchBuyTypes,
     jwt,
-    agencyId
   ]);
+
+  // Separate useEffect to fetch agency data after agencyId is set
+  useEffect(() => {
+    if (jwt && agencyId) {
+      getAgency();
+    }
+  }, [jwt, agencyId, getAgency]);
 
   const contextValue = useMemo(
     () => ({
@@ -741,6 +760,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       setFilterOptions,
       selectedFilters,
       setSelectedFilters,
+      defaultSelectedFilters,
       isLoading,
       setIsLoading,
       profile,

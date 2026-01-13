@@ -76,7 +76,7 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
             const style =
               platformStyles.find((style) => style.name === platformName) ||
               platformStyles[
-                Math.floor(Math.random() * platformStyles.length)
+              Math.floor(Math.random() * platformStyles.length)
               ];
             platforms.push({
               platform_name: platformName,
@@ -118,64 +118,84 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
               }}
             >
               <div
-                className={`flex flex-col min-h-14 bg-white mt-6 shadow-sm rounded-[10px] justify-between transition-all cursor-pointer ${
-                  isSelected
+                className={`flex flex-col min-h-14 bg-white mt-6 shadow-sm rounded-[10px] justify-between transition-all cursor-pointer ${isSelected
                     ? "ring-2 ring-[#3175FF]"
                     : "border border-[rgba(0,0,0,0.2)] opacity-50"
-                }`}
+                  }`}
                 style={{
                   gridColumnStart: startWeekIndex,
                   gridColumnEnd: endWeekIndex + 1,
                 }}
               >
                 <div
-                  className={`flex items-center gap-3 ${
-                    expanded[index]
-                      ? "border-b border-b-[rgba(0,0,0,0.1)] p-4 h-14"
+                  className={`flex items-center gap-2 p-2 relative overflow-visible ${expanded[index]
+                      ? "border-b border-b-[rgba(0,0,0,0.1)] h-14"
                       : "p-2"
-                  }`}
+                    }`}
                   style={{
-                    background: "linear-gradient(90deg,rgba(50,98,255,.92) 0,rgba(14,156,255,.92) 25%,rgba(0,180,255,.92) 50%,rgba(42,229,225,.92) 75%,rgba(62,253,212,.92) 100%),url(../bg-footer.png) center/cover no-repeat",
-                    borderRadius: expanded[index] ? "10px 10px 0 0" : "10px 10px 10px 10px"
+                    background: "#a4c6fc",
+                    borderRadius: expanded[index] ? "10px 10px 0 0" : "10px 10px 10px 10px",
+                    paddingLeft: '2rem'
                   }}
                 >
                   <button
-                    className="flex items-center justify-center bg-blue-50 rounded-full min-w-8 min-h-8"
+                    className="absolute left-1 flex items-center justify-center bg-blue-50 rounded-full w-5 h-5 p-0.5 flex-shrink-0 z-10"
                     onClick={(e) => {
                       e.stopPropagation();
                       toggleShow(index);
                     }}
                   >
                     {expanded[index] ? (
-                      <FiChevronUp size={20} />
+                      <FiChevronUp size={14} />
                     ) : (
-                      <FiChevronDown size={20} />
+                      <FiChevronDown size={14} />
                     )}
                   </button>
                   <div
-                    className="flex-1"
+                    className="flex-1 min-w-0"
                     onClick={() => onTogglePlanSelection?.(id)}
                   >
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-[#061237] font-semibold text-sm">
-                        {label}
-                      </h3>
-                      {isSelected && (
-                        <span className="flex items-center justify-center w-4 h-4 bg-[#3175FF] rounded-[5px]">
-                          <FiCheck size={10} className="text-white" />
-                        </span>
-                      )}
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <div className="flex items-center gap-1.5 flex-shrink-0 relative group min-w-0" style={{ maxWidth: '100%' }}>
+                        <h3 className="text-[#061237] font-semibold text-sm truncate">
+                          {label}
+                        </h3>
+                        {isSelected && (
+                          <span className="flex items-center justify-center w-4 h-4 bg-[#3175FF] rounded-[5px] flex-shrink-0">
+                            <FiCheck size={10} className="text-white" />
+                          </span>
+                        )}
+                        <div className="absolute left-1/2 -translate-x-1/2 -top-11 bg-gray-900 text-white text-[10px] px-3 py-1.5 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-in-out whitespace-nowrap z-50 pointer-events-none">
+                          {label}
+                          <div className="absolute left-1/2 -translate-x-1/2 -bottom-1 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-[#061237] font-medium text-sm">
-                      {budget?.startsWith("null") ||
-                      budget?.startsWith("undefined")
-                        ? 0
-                        : `${Number(
-                            budget.replace(/[^\d.-]/g, "")
-                          ).toLocaleString()} ${budget
-                            .replace(/[\d\s.,-]/g, "")
-                            .trim()}`}
-                    </p>
+                    <div className="flex items-center gap-1.5 min-w-0 mt-0.5">
+                      <div className="relative group min-w-0" style={{ maxWidth: '100%' }}>
+                        <p className="text-[#061237] font-medium text-sm truncate">
+                          {budget?.startsWith("null") ||
+                            budget?.startsWith("undefined")
+                            ? 0
+                            : `${Number(
+                              budget.replace(/[^\d.-]/g, "")
+                            ).toLocaleString()} ${budget
+                              .replace(/[\d\s.,-]/g, "")
+                              .trim()}`}
+                        </p>
+                        <div className="absolute left-1/2 -translate-x-1/2 -top-11 bg-gray-900 text-white text-[10px] px-3 py-1.5 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-in-out whitespace-nowrap z-50 pointer-events-none">
+                          {budget?.startsWith("null") ||
+                            budget?.startsWith("undefined")
+                            ? 0
+                            : `${Number(
+                              budget.replace(/[^\d.-]/g, "")
+                            ).toLocaleString()} ${budget
+                              .replace(/[\d\s.,-]/g, "")
+                              .trim()}`}
+                          <div className="absolute left-1/2 -translate-x-1/2 -bottom-1 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -200,6 +220,10 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                         const channels = extractPlatforms(
                           campaignData || clientCampaignData[index]
                         );
+                        // Calculate phase budget by summing all platform budgets in this phase
+                        const phaseBudget = channels
+                          ?.filter((ch) => ch?.stageName === name)
+                          ?.reduce((sum, platform) => sum + (platform.amount || 0), 0) || 0;
                         const stageStartWeek = getWeekIndex(stageStart);
                         const stageEndWeek = getWeekIndex(stageEnd);
                         const campaignSpan = endWeekIndex - startWeekIndex + 1;
@@ -215,15 +239,14 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                           >
                             <div
                               onClick={() => toggleOpen(index, name)}
-                              className={`mt-5 w-full flex items-center rounded-[10px] min-h-[52px] text-xs font-[500] p-2 overflow-visible ${
-                                name === "Awareness"
+                              className={`mt-5 w-full flex items-center rounded-[10px] min-h-[52px] text-xs font-[500] p-2 overflow-visible ${name === "Awareness"
                                   ? "bg-[#3175FF]"
                                   : name === "Consideration"
-                                  ? "bg-[#34A853]"
-                                  : name === "Conversion"
-                                  ? "bg-[#ff9037]"
-                                  : "bg-[#F05406]"
-                              } text-white`}
+                                    ? "bg-[#34A853]"
+                                    : name === "Conversion"
+                                      ? "bg-[#ff9037]"
+                                      : "bg-[#F05406]"
+                                } text-white`}
                               style={{
                                 gridColumnStart: Math.max(
                                   1,
@@ -246,14 +269,9 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                                 </div>
                               </div>
                               <button className="flex-shrink-0 px-2 py-1 text-[10px] font-[500] bg-black/25 rounded-[5px] whitespace-nowrap ml-2">
-                                {stageBudget?.startsWith("null") ||
-                                stageBudget?.startsWith("undefined")
-                                  ? 0
-                                  : `${Number(
-                                      stageBudget.replace(/[^\d.-]/g, "")
-                                    ).toLocaleString()} ${stageBudget
-                                      .replace(/[\d\s.,-]/g, "")
-                                      .trim()}`}
+                                {phaseBudget > 0
+                                  ? `${phaseBudget.toLocaleString()} ${budget && !budget.startsWith("null") && !budget.startsWith("undefined") ? budget.replace(/[\d\s.,-]/g, "").trim() : ''}`
+                                  : 0}
                               </button>
                             </div>
 
@@ -295,8 +313,8 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                                               gridColumnStart: Math.max(
                                                 1,
                                                 platStartWeek -
-                                                  startWeekIndex +
-                                                  1
+                                                startWeekIndex +
+                                                1
                                               ),
                                               gridColumnEnd: Math.min(
                                                 campaignSpan + 1,

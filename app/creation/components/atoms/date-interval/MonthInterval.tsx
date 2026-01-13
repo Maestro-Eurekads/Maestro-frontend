@@ -216,7 +216,7 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
                 paddingRight: "12px",
                 zIndex: 10,
               }}
-              className="py-2 px-3 border-r border-blue-200/50 h-full flex items-center"
+              className="py-2 px-3 border-l border-blue-200/50 h-full flex items-center"
             >
               <span className="font-[600] text-[16px] text-[rgba(0,0,0,0.7)]">
                 {header.year}
@@ -261,7 +261,7 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
                   width: `${actualWidth}px`,
                   height: "100%",
                 }}
-                className="border-r border-blue-200/50 bg-white"
+                className="border-l border-blue-200/50 bg-white"
               >
                 <div className="py-4 px-3 h-full flex items-center border-r">
                   <span className="font-[600] text-[14px] text-[rgba(0,0,0,0.7)]">

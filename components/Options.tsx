@@ -150,7 +150,7 @@ export const kpiFormatMap = {
   // Volume/Numbers
   "Audience size": { type: "Number", decimals: 0 },
   "Impressions": { type: "Number", decimals: 0 },
-  "Frequency": { type: "Number", decimals: 0 },
+  "Frequency": { type: "Number", decimals: 1 },
   "Purchases": { type: "Number", decimals: 0 },
   "Reach": { type: "Number", decimals: 0 },
   "Video Views": { type: "Number", decimals: 0 },
@@ -920,7 +920,11 @@ const formatKPIValue = (value, kpiName, currencySymbol = "€") => {
     case "Seconds":
       return `${formatNumber(value, format.decimals)} Sec`;
     case "Number":
-      return withSeparators(Math.round(value));
+      // For Number type, use decimals if specified, otherwise round to whole number
+      if (format.decimals !== undefined && format.decimals > 0) {
+        return withSeparators(formatNumber(value, format.decimals));
+      }
+      return withSeparators(Math.round(value).toString());
     default:
       return value.toString();
   }

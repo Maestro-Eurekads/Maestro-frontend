@@ -426,7 +426,7 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
           "updatedAt",
           "_aggregated",
         ]),
-        channel_mix: removeKeysRecursively(updatedFormData.channel_mix, [
+        channel_mix: removeKeysRecursively(updatedFormData?.channel_mix, [
           "id",
           "isValidated",
           "formatValidated",

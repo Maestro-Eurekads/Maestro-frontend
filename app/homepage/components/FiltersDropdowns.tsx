@@ -1,16 +1,13 @@
 "use client";
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect } from "react";
 import down from "../../../public/down.svg";
 import Image from "next/image";
 import { BiX } from "react-icons/bi";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { fetchFilteredCampaigns } from "app/utils/campaign-filter-utils";
-import { toast, Toaster } from "react-hot-toast";
-import { useAppDispatch } from "store/useStore";
-import { getCreateClient } from "features/Client/clientSlice";
+import { toast } from "react-hot-toast";
 import { defaultFilters } from "components/data";
 import { useSession } from "next-auth/react";
-import { useUserPrivileges } from "utils/userPrivileges";
 import TreeDropdownFilter from "components/TreeDropdownFilter";
 import { convertToSingleNestedStructure } from "utils/convertToSingleNestedStructure";
 import { cleanName, cleanNames } from "components/Options";
@@ -151,9 +148,6 @@ const Dropdown = ({
 };
 
 const FiltersDropdowns = ({ hideTitle, router }: Props) => {
-  const dispatch = useAppDispatch();
-  const { isAdmin, isAgencyApprover, isFinancialApprover } =
-    useUserPrivileges();
   useEffect(() => {
     const styleElement = document.createElement("style");
     styleElement.innerHTML = scrollbarStyles;
@@ -166,6 +160,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
 
   const {
     filterOptions,
+    selectedId,
     selectedFilters,
     setSelectedFilters,
     loading,
@@ -173,25 +168,17 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
     setClientCampaignData,
     allClients,
     jwt,
-    agencyId,
   } = useCampaigns();
   const { data: session } = useSession();
   // @ts-ignore
   const userType = session?.user?.data?.user?.id || "";
 
   const [filters, setFilters]: any = useState(defaultFilters);
-  const allFiltersEmpty = useMemo(
-    () => Object.values(selectedFilters).every((val) => !val),
-    [selectedFilters]
-  );
+
 
   const handleSelect = (label, value) => {
     if (!value || value === "") {
       if (label === "year") {
-        router.refresh();
-        dispatch(
-          getCreateClient({ userId: !isAdmin ? userType : null, jwt, agencyId })
-        );
         setSelectedFilters((prev) => ({
           ...prev,
           [label]: "",
@@ -222,48 +209,59 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
           isLevel: ["level_1"].includes(key),
         });
       });
-      setFilters(f);
-
-      const yearOptions = filterOptions["year"];
-      if (yearOptions && !selectedFilters["year"]) {
-        const currentYear = new Date().getFullYear().toString();
-        console.log("yearOptions", yearOptions);
-        if (yearOptions.includes(currentYear)) {
-          setSelectedFilters((prev) => ({ ...prev, year: currentYear }));
+      setFilters((prev) => {
+        const prevStr = JSON.stringify(prev);
+        const newStr = JSON.stringify(f);
+        if (prevStr === newStr) {
+          return prev; 
         }
-      }
+        return f;
+      });   
     }
   }, [filterOptions]);
 
+  const lastFetchedFiltersRef = useRef<string>("");
+
   useEffect(() => {
-    const allEmpty = Object.values(selectedFilters).every((val) => !val);
     const fetchData = async () => {
       const clientID =
         localStorage.getItem(userType.toString()) || allClients[0]?.id;
 
-      if (!clientID) return;
+      if (!clientID || !jwt) return;
+
+      const fetchKey = JSON.stringify({ clientID, selectedFilters });
+      
+      if (lastFetchedFiltersRef.current === fetchKey) {
+        return;
+      }
 
       setLoading(true);
+      lastFetchedFiltersRef.current = fetchKey;
+      
       try {
-        const res = allEmpty
-          ? await fetchFilteredCampaigns(clientID, filters ?? {}, jwt)
-          : await fetchFilteredCampaigns(clientID, selectedFilters, jwt);
-        setClientCampaignData(res);
+        const res = await fetchFilteredCampaigns(clientID, selectedFilters, jwt);
+        setClientCampaignData((prev) => {
+          const prevStr = JSON.stringify(prev);
+          const newStr = JSON.stringify(res);
+          if (prevStr === newStr) {
+            return prev;
+          }
+          return res;
+        });
+      } catch (error) {
+        console.error("Error fetching filtered campaigns:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    if (jwt) {
-      fetchData();
-    }
-  }, [selectedFilters, allClients, userType, jwt]);
+    fetchData();
+  }, [selectedFilters, userType, jwt, selectedId]);
 
   const isYearSelected = !!selectedFilters["year"];
 
   return (
     <div>
-      <Toaster />
       {!hideTitle && (
         <h6 className="font-[600] text-[14px] leading-[19px] text-[rgba(6,18,55,0.8)]">
           Filters
